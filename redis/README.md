@@ -325,6 +325,167 @@ hgetall settings
 | cloud:key | string | Cloud key path | "/etc/keys/unu-cloud-production.pub" |
 | cloud:mqtt-url | string | MQTT server URL | "zeus-iot-v3.unumotors.com:8883" |
 
+#### LibreScoot Additional Settings
+
+LibreScoot adds persistent settings managed by the settings-service:
+
+| Field | Type | Description | Example |
+|-------|------|-------------|----------|
+| alarm.enabled | "true"/"false" | Alarm system enabled | "true" |
+| alarm.honk | "true"/"false" | Horn enabled during alarm | "false" |
+| scooter.speed_limit | integer (km/h) | Speed limit setting | "25" |
+| scooter.mode | string | Drive mode | "eco" |
+| cellular.apn | string | Cellular APN | "internet.provider.com" |
+| updates.mdb.channel | string | MDB update channel | "nightly" |
+| updates.mdb.check-interval | duration | MDB update check interval | "6h" |
+| updates.mdb.dry-run | "true"/"false" | MDB update dry-run mode | "false" |
+| updates.mdb.method | string | MDB update method | "full" or "delta" |
+| updates.dbc.channel | string | DBC update channel | "stable" |
+| updates.dbc.check-interval | duration | DBC update check interval | "12h" |
+| updates.dbc.dry-run | "true"/"false" | DBC update dry-run mode | "false" |
+| updates.dbc.method | string | DBC update method | "full" or "delta" |
+
+See [settings-service documentation](../services/librescoot-settings.md) for details on persistent settings.
+
+### Alarm System (`alarm`) - LibreScoot Only
+
+```
+hgetall alarm
+```
+
+| Field | Type | Description | Example |
+|-------|------|-------------|----------|
+| status | string | Current alarm status | "armed" |
+
+**Possible status values:**
+- `disabled` - Alarm system is disabled
+- `disarmed` - Alarm enabled but not armed (vehicle not in stand-by)
+- `armed` - Alarm is armed and monitoring for motion
+- `level-1-triggered` - Level 1 alarm (notification only)
+- `level-2-triggered` - Level 2 alarm (horn + hazards)
+
+See [alarm-service documentation](../services/librescoot-alarm.md) for details.
+
+### BMX055 Motion Sensor (`bmx`) - LibreScoot Only
+
+```
+hgetall bmx
+```
+
+| Field | Type | Description | Example |
+|-------|------|-------------|----------|
+| initialized | "true"/"false" | BMX sensor initialization status | "true" |
+| interrupt | string | Interrupt status | "active" |
+| sensitivity | string | Current sensitivity level | "MEDIUM" |
+| pin | string | Interrupt pin configuration | "INT2" |
+
+**Sensitivity levels:** `LOW`, `MEDIUM`, `HIGH`
+
+The alarm-service manages BMX055 configuration automatically based on alarm state.
+
+### Dashboard Backlight (`dashboard`) - LibreScoot Enhancement
+
+LibreScoot adds these fields to the dashboard hash:
+
+| Field | Type | Description | Example |
+|-------|------|-------------|----------|
+| illumination | integer (lux) | Ambient light level | "42" |
+| backlight | integer | Current backlight brightness | "9700" |
+| brightness | integer (lux) | Alias for illumination | "42" |
+
+The `dbc-illumination-service` monitors the OPT3001 sensor and publishes to `illumination`.
+The `dbc-backlight-service` reads `illumination` and adjusts `backlight` automatically.
+
+### GPS State (`gps`) - LibreScoot Enhancement
+
+LibreScoot adds GPS state tracking:
+
+| Field | Type | Description | Example |
+|-------|------|-------------|----------|
+| state | string | GPS state | "fix-established" |
+
+**GPS states:**
+- `off` - GPS is disabled
+- `searching` - Actively searching for GPS signal
+- `fix-established` - Valid GPS fix obtained (2D or 3D)
+- `error` - GPS configuration or connection failed
+
+### Modem Management (`modem`) - LibreScoot Only
+
+```
+hgetall modem
+```
+
+| Field | Type | Description | Example |
+|-------|------|-------------|----------|
+| power-state | string | Modem power state | "on" |
+| sim-state | string | SIM card state | "active" |
+| sim-lock | string | SIM lock status | "disabled" |
+| operator-name | string | Network operator name | "T-Mobile" |
+| operator-code | string | Network operator code | "26201" |
+| is-roaming | "true"/"false" | Roaming status | "false" |
+| registration-fail | string | Registration failure reason | "" |
+
+### Internet Connectivity (`internet`) - LibreScoot Enhancement
+
+LibreScoot adds modem health tracking:
+
+| Field | Type | Description | Example |
+|-------|------|-------------|----------|
+| modem-health | string | Modem recovery state | "normal" |
+| sim-imsi | string | SIM IMSI | "262010123456789" |
+
+**Modem health states:**
+- `normal` - Modem operating normally
+- `recovering` - Attempting recovery
+- `recovery-failed-waiting-reboot` - Recovery failed, waiting for reboot
+- `permanent-failure-needs-replacement` - Hardware failure
+
+### OTA Updates (`ota`) - LibreScoot Enhancement
+
+LibreScoot adds per-component update tracking:
+
+| Field | Type | Description | Example |
+|-------|------|-------------|----------|
+| status:mdb | string | MDB update status | "downloading" |
+| status:dbc | string | DBC update status | "idle" |
+| update-version:mdb | string | MDB target version | "20251009t162327" |
+| update-version:dbc | string | DBC target version | "20251008t143210" |
+| download-progress:mdb | integer (0-100) | MDB download progress | "45" |
+| download-progress:dbc | integer (0-100) | DBC download progress | "0" |
+| download-bytes:mdb | integer | MDB bytes downloaded | "47185920" |
+| download-bytes:dbc | integer | DBC bytes downloaded | "0" |
+| download-total:mdb | integer | MDB total download size | "104857600" |
+| download-total:dbc | integer | DBC total download size | "0" |
+| error:mdb | string | MDB error type | "" |
+| error:dbc | string | DBC error type | "" |
+| error-message:mdb | string | MDB error message | "" |
+| error-message:dbc | string | DBC error message | "" |
+
+**Update status values:** `idle`, `downloading`, `installing`, `rebooting`, `error`
+
+See [update-service documentation](../services/librescoot-services.md#update-service) for details.
+
+### Version Information - LibreScoot Only
+
+#### MDB Version (`version:mdb`)
+
+```
+hgetall version:mdb
+```
+
+Contains all fields from `/etc/os-release` with lowercase keys (e.g., `version_id`, `build_id`).
+
+#### DBC Version (`version:dbc`)
+
+```
+hgetall version:dbc
+```
+
+Contains all fields from `/etc/os-release` with lowercase keys.
+
+The version-service populates these hashes on startup from the OS release information.
+
 ### Event Streams
 
 #### Fault Events (`events:faults`)
@@ -406,9 +567,104 @@ redis-cli -h 192.168.7.1 LPUSH scooter:blinker off
 
 **Available commands**: `left`, `right`, `both`, `off`
 
+### Alarm Control (`scooter:alarm`) - LibreScoot Only
+
+Controls the motion-based alarm system.
+
+```bash
+# Enable alarm system
+redis-cli -h 192.168.7.1 LPUSH scooter:alarm enable
+
+# Disable alarm system
+redis-cli -h 192.168.7.1 LPUSH scooter:alarm disable
+
+# Manual alarm trigger (30 seconds)
+redis-cli -h 192.168.7.1 LPUSH scooter:alarm start:30
+
+# Stop alarm immediately
+redis-cli -h 192.168.7.1 LPUSH scooter:alarm stop
+```
+
+**Available commands**: `enable`, `disable`, `start:<seconds>`, `stop`
+
+### BMX Sensor Control (`scooter:bmx`) - LibreScoot Only
+
+Controls BMX055 accelerometer/gyroscope configuration. Typically used by alarm-service.
+
+```bash
+# Configure sensitivity
+redis-cli -h 192.168.7.1 LPUSH scooter:bmx sensitivity:MEDIUM
+
+# Configure interrupt pin
+redis-cli -h 192.168.7.1 LPUSH scooter:bmx pin:INT2
+
+# Enable interrupt
+redis-cli -h 192.168.7.1 LPUSH scooter:bmx interrupt:enable
+```
+
+**Available commands**: `sensitivity:<LOW|MEDIUM|HIGH>`, `pin:<NONE|INT1|INT2>`, `interrupt:<enable|disable>`
+
+### Power Control (`scooter:power`) - LibreScoot Enhanced
+
+LibreScoot adds more power control commands:
+
+```bash
+# Request running state (highest priority)
+redis-cli -h 192.168.7.1 LPUSH scooter:power run
+
+# Request suspend
+redis-cli -h 192.168.7.1 LPUSH scooter:power suspend
+
+# Request hibernation
+redis-cli -h 192.168.7.1 LPUSH scooter:power hibernate
+
+# Manual hibernation (user-initiated)
+redis-cli -h 192.168.7.1 LPUSH scooter:power hibernate-manual
+
+# Timer-based hibernation
+redis-cli -h 192.168.7.1 LPUSH scooter:power hibernate-timer
+
+# Reboot system
+redis-cli -h 192.168.7.1 LPUSH scooter:power reboot
+```
+
+**Available commands**: `run`, `suspend`, `hibernate`, `hibernate-manual`, `hibernate-timer`, `reboot`
+
+### Modem Control (`scooter:modem`) - LibreScoot Only
+
+Controls modem power state and GPS.
+
+```bash
+# Enable modem
+redis-cli -h 192.168.7.1 LPUSH scooter:modem enable
+
+# Disable modem
+redis-cli -h 192.168.7.1 LPUSH scooter:modem disable
+
+# Enable GPS
+redis-cli -h 192.168.7.1 LPUSH scooter:modem gps:enable
+
+# Disable GPS
+redis-cli -h 192.168.7.1 LPUSH scooter:modem gps:disable
+```
+
+**Available commands**: `enable`, `disable`, `gps:enable`, `gps:disable`
+
+### Update Control (`scooter:update`) - LibreScoot Only
+
+Controls OTA update system.
+
+```bash
+# Force immediate update check (both MDB and DBC)
+redis-cli -h 192.168.7.1 LPUSH scooter:update check-now
+```
+
+**Available commands**: `check-now`
+
 ### Command Channel Notes
 
 - Commands use the `LPUSH` operation to queue requests
-- The unu-vehicle service subscribes to these channels and processes commands sequentially
+- Services subscribe to these channels using `BRPOP` and process commands sequentially
 - State changes resulting from commands are published to the corresponding hash fields and pub/sub channels
 - Command results can be monitored by subscribing to the relevant state hashes (e.g., `vehicle` hash for lock/unlock state)
+- LibreScoot adds several new command channels for alarm, BMX, modem, and update control

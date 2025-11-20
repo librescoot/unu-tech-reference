@@ -67,6 +67,17 @@ Detailed documentation available for:
 
 The MDB runs several system services that coordinate vehicle operations. For detailed documentation of each service, see [Services Documentation](services/README.md).
 
+### LibreScoot Services
+
+LibreScoot provides open-source replacement firmware for unu Scooter Pro systems, including:
+
+- **Core System Services**: alarm, battery, bluetooth, ECU, keycard, modem, power management, settings, vehicle
+- **Dashboard Services**: backlight control, illumination monitoring
+- **Update Services**: OTA updates, version tracking
+- **Communication Services**: nRF52 UART protocol
+
+For complete LibreScoot service documentation, see [LibreScoot Services](services/librescoot-services.md).
+
 ## System States
 
 The scooter operates in several power states:
@@ -83,6 +94,30 @@ State transitions are triggered by:
 - System commands
 
 [Detailed state diagrams and transitions](states/README.md)
+
+## Command-Line Tools
+
+### lsc - LibreScoot Control CLI
+
+`lsc` is a comprehensive command-line tool for controlling and monitoring LibreScoot systems. It provides easy access to:
+- Vehicle control (lock/unlock, hibernate)
+- Service management (start/stop/logs)
+- Battery and GPS monitoring
+- Alarm system control
+- Settings management
+- OTA updates
+- System diagnostics
+
+See [lsc documentation](tools/lsc.md) for complete command reference.
+
+**Quick examples:**
+```bash
+lsc status              # Show overall system status
+lsc lock                # Lock the scooter
+lsc battery             # Show battery information
+lsc svc list            # List all services
+lsc svc logs vehicle -f # Follow vehicle service logs
+```
 
 ## Development Access
 

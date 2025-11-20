@@ -1,29 +1,88 @@
-# unu-dashboard-ui
+# librescoot-scootui (scootui)
 
 ## Description
 
-The dashboard UI service provides the primary user interface for the scooter. Built with Qt/QML, it displays speed, battery status, navigation, and system information. The service subscribes to all other services via Redis pub/sub, displays real-time data, and provides limited control functions (auto-lock on battery timeout).
+ScootUI is the primary user interface for LibreScoot. Built with **Flutter/Dart**, it provides a modern, responsive dashboard with real-time telemetry, navigation, and system controls. The application runs on the DBC (Dashboard Controller) and communicates with all LibreScoot services via Redis.
 
-**Note:** Detailed documentation for the dashboard is available in the [dashboard/](../dashboard/) directory. This page provides a summary and quick reference.
+**Technology Stack:**
+- **Flutter/Dart** - UI framework and language
+- **Bloc/Cubit** - State management
+- **Redis** - Real-time data communication with vehicle systems
+- **Flutter Map** - Mapping and navigation display
+- **MBTiles** - Offline map data storage
 
-## Version
+ScootUI replaces the proprietary unu-dashboard-ui with an open-source, community-developed interface.
 
-Not available via command-line (binary name on DBC not confirmed yet).
+## Features
 
-## Command-Line Options
+### Real-time Telemetry Display
+- Speed (raw or wheel-corrected), power output, battery levels
+- Odometer, trip meter
+- GPS status, connectivity indicators
+- System warnings and fault codes
 
+### Multiple View Modes
+- **Cluster View** - Speedometer and vehicle status dashboard
+- **Map View** - Navigation with turn-by-turn directions
+- **Destination Selection** - Address input and route planning
+- **OTA Update Interface** - System update progress and control
+
+### Navigation
+- Online and offline map support (MBTiles)
+- Integration with BRouter for routing
+- Turn-by-turn directions
+- GPS tracking
+
+### System Integration
+- Connects to Redis-based MDB (Main Driver Board)
+- Monitors battery, engine, GPS, Bluetooth, and all vehicle systems
+- OTA update support for MDB and DBC
+- Alarm status display
+- Modem health monitoring
+
+### Adaptable Design
+- Light and dark themes
+- Configurable dashboard elements
+
+## Configuration
+
+ScootUI uses Redis for dynamic configuration. Settings are stored in the `settings` hash.
+
+### Dashboard Display Settings
+
+| Key | Values | Default | Description |
+|-----|--------|---------|-------------|
+| `dashboard.show-raw-speed` | `true`/`false` | `false` | Show ECU speed vs wheel-corrected |
+| `dashboard.show-gps` | `always`/`active-or-error`/`error`/`never` | `error` | GPS icon visibility |
+| `dashboard.show-bluetooth` | `always`/`active-or-error`/`error`/`never` | `active-or-error` | Bluetooth icon visibility |
+| `dashboard.show-cloud` | `always`/`active-or-error`/`error`/`never` | `error` | Cloud connection icon visibility |
+| `dashboard.show-internet` | `always`/`active-or-error`/`error`/`never` | `always` | Cellular icon visibility |
+
+### Map Settings
+
+| Key | Values | Default | Description |
+|-----|--------|---------|-------------|
+| `dashboard.map.type` | `online`/`offline` | `offline` | Map source (CartoDB online or local MBTiles) |
+| `dashboard.map.render-mode` | `vector`/`raster` | `raster` | Offline map rendering mode |
+
+**Examples:**
+```bash
+# Show raw GPS speed
+redis-cli HSET settings dashboard.show-raw-speed true
+redis-cli PUBLISH settings dashboard.show-raw-speed
+
+# Always show GPS indicator
+redis-cli HSET settings dashboard.show-gps always
+redis-cli PUBLISH settings dashboard.show-gps
+
+# Switch to online maps
+redis-cli HSET settings dashboard.map.type online
+redis-cli PUBLISH settings dashboard.map.type
+
+# Use vector rendering for offline maps
+redis-cli HSET settings dashboard.map.render-mode vector
+redis-cli PUBLISH settings dashboard.map.render-mode
 ```
-options:
- -b <bindaddress>         Redis server bind address (default: 127.0.0.1)
- -p <redisport>           Redis server port (default: 6379)
- --showFps                Show FPS counter in top bar
- --show-internet-details  Show connection type and signal strength in top bar
- --debug-gps              Show GPS coordinates on screen
- --screenshot <delay>     Take screenshot after startup delay in seconds
- --disable-poweroff       Disable system poweroff during shutdown
-```
-
-See [dashboard/README.md](../dashboard/README.md) for complete documentation.
 
 ## Redis Operations
 
