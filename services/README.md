@@ -25,28 +25,28 @@ LibreScoot provides open-source replacement services for the unu Scooter Pro. Fo
 
 ```mermaid
 graph TB
-    UI[scootui<br/>Qt/QML UI on DBC]
-    Redis[Redis<br/>Pub/Sub + Hashes + Lists]
+    UI[scootui<br>Qt/QML UI on DBC]
+    Redis[Redis<br>Pub/Sub + Hashes + Lists]
 
-    PM[pm-service<br/>Power Management]
-    BT[bluetooth-service<br/>BLE Interface]
-    VH[vehicle-service<br/>State Machine]
-    ECU[ecu-service<br/>Motor Control]
-    KC[keycard-service<br/>NFC Auth]
-    BAT[battery-service<br/>Battery Monitor]
-    MDM[modem-service<br/>Cellular + GPS]
-    ALM[alarm-service<br/>Motion Alarm]
-    SET[settings-service<br/>Config Sync]
+    PM[pm-service<br>Power Management]
+    BT[bluetooth-service<br>BLE Interface]
+    VH[vehicle-service<br>State Machine]
+    ECU[ecu-service<br>Motor Control]
+    KC[keycard-service<br>NFC Auth]
+    BAT[battery-service<br>Battery Monitor]
+    MDM[modem-service<br>Cellular + GPS]
+    ALM[alarm-service<br>Motion Alarm]
+    SET[settings-service<br>Config Sync]
 
-    LOGIND[systemd-logind<br/>D-Bus]
-    NRF[nRF52840<br/>UART]
-    GPIO[GPIO/PWM<br/>Inputs/Outputs]
-    CAN[ECU Motor Controller<br/>CAN Bus]
-    NFC1[PN7150 + LP5662<br/>NFC + LED via I2C]
-    NFC2[PN7150 x2<br/>Battery NFC via I2C]
-    MODEM[ModemManager<br/>mmcli + gpsd]
-    BMX[BMX055<br/>Accelerometer/Gyro via I2C]
-    TOML[/data/settings.toml<br/>Persistent Config]
+    LOGIND[systemd-logind<br>D-Bus]
+    NRF[nRF52840<br>UART]
+    GPIO[GPIO/PWM<br>Inputs/Outputs]
+    CAN[ECU Motor Controller<br>CAN Bus]
+    NFC1[PN7150 + LP5662<br>NFC + LED via I2C]
+    NFC2[PN7150 x2<br>Battery NFC via I2C]
+    MODEM[ModemManager<br>mmcli + gpsd]
+    BMX[BMX055<br>Accelerometer/Gyro via I2C]
+    TOML[/data/settings.toml<br>Persistent Config]
 
     UI <--> Redis
     PM <--> Redis
