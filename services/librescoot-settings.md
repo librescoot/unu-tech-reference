@@ -36,22 +36,51 @@ When a field is published to the `settings` channel, the service:
 
 Settings are organized by section. Examples:
 
-**Scooter settings:**
-- `scooter.speed_limit` - Speed limit in km/h
-- `scooter.mode` - Drive mode (eco, sport, etc.)
+**Alarm settings:**
+- `alarm.enabled` - Alarm system enabled ("true"/"false")
+- `alarm.honk` - Horn enabled during alarm ("true"/"false")
+- `alarm.duration` - Alarm duration in seconds
+
+**Battery settings:**
+- `battery.ignore-seatbox` - Ignore seatbox state for battery management ("true"/"false")
 
 **Cellular settings:**
 - `cellular.apn` - Cellular APN for data connection
 
-**Alarm settings:**
-- `alarm.enabled` - Alarm system enabled ("true"/"false")
-- `alarm.honk` - Horn enabled during alarm ("true"/"false")
+**Power management settings:**
+- `hibernation-timer` - Hibernation timeout in seconds (0=disabled)
+
+**Scooter settings:**
+- `scooter.auto-standby-seconds` - Auto-lock timeout when parked in seconds (0=disabled)
+- `scooter.brake-hibernation` - Enable brake lever hibernation ("enabled"/"disabled")
 
 **Update settings:**
 - `updates.mdb.channel` - MDB update channel (stable/testing/nightly)
-- `updates.mdb.check-interval` - Update check interval
+- `updates.mdb.check-interval` - Update check interval as Go duration ("6h", "24h", "never")
+- `updates.mdb.method` - Update method (full/delta)
+- `updates.mdb.dry-run` - Dry-run mode ("true"/"false")
+- `updates.mdb.github-releases-url` - GitHub Releases API endpoint
+- `updates.mdb.last-check-time` - Last check timestamp (ISO8601)
 - `updates.dbc.channel` - DBC update channel
-- `updates.dbc.check-interval` - DBC update check interval
+- `updates.dbc.check-interval` - DBC update check interval as Go duration
+- `updates.dbc.method` - DBC update method (full/delta)
+- `updates.dbc.dry-run` - DBC dry-run mode
+- `updates.dbc.github-releases-url` - DBC GitHub Releases API endpoint
+- `updates.dbc.last-check-time` - DBC last check timestamp
+
+**Dashboard settings:**
+- `dashboard.show-raw-speed` - Show raw uncorrected speed ("true"/"false")
+- `dashboard.show-clock` - Clock visibility (always/never)
+- `dashboard.show-gps` - GPS indicator visibility (always/active-or-error/error/never)
+- `dashboard.show-bluetooth` - Bluetooth indicator visibility
+- `dashboard.show-cloud` - Cloud indicator visibility
+- `dashboard.show-internet` - Internet indicator visibility
+- `dashboard.battery-display-mode` - Battery display mode (percentage/range)
+- `dashboard.map.type` - Map tile source (online/offline)
+- `dashboard.map.render-mode` - Map rendering mode (vector/raster)
+- `dashboard.theme` - UI theme (light/dark/auto)
+- `dashboard.mode` - Default screen mode (speedometer/navigation)
+- `dashboard.valhalla-url` - Valhalla routing service endpoint
 
 ## File Operations
 
@@ -60,16 +89,24 @@ Settings are organized by section. Examples:
 The service maintains a TOML file with this structure:
 
 ```toml
-[scooter]
-speed_limit = "25"
-mode = "eco"
+[alarm]
+enabled = "true"
+honk = "false"
+duration = "60"
+
+[battery]
+ignore-seatbox = "false"
 
 [cellular]
 apn = "internet.provider.com"
 
-[alarm]
-enabled = "true"
-honk = "false"
+[scooter]
+auto-standby-seconds = "0"
+brake-hibernation = "enabled"
+
+[dashboard]
+theme = "dark"
+mode = "speedometer"
 
 [updates.mdb]
 channel = "nightly"

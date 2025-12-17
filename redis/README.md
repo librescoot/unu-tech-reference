@@ -36,6 +36,7 @@ hgetall vehicle
 | blinker:switch | "left"/"right"/"both"/"off" | Blinker switch position | "off" |
 | blinker:state | "on"/"off" | Blinker active state | "off" |
 | state | "stand-by"/"ready-to-drive"/"off"/"parked"/"booting"/"shutting-down"/"hibernating"/"hibernating-imminent"/"suspending"/"suspending-imminent"/"updating" | Vehicle operating state | "stand-by" |
+| auto-standby-deadline | integer (Unix timestamp) | When auto-standby will trigger (only present when timer active) | "1734567890" |
 
 ### Engine ECU (`engine-ecu`)
 ```
@@ -315,10 +316,6 @@ hgetall settings
 
 | Field | Type | Description | Example |
 |-------|------|-------------|----------|
-| behavior:poweroff_timeout_with_battery | integer (sec) | Power off timeout with battery | "900" |
-| behavior:must_lock_handlebar | "true"/"false" | Must lock handlebar setting | "true" |
-| behavior:poweroff_timeout_without_battery | integer (sec) | Power off timeout without battery | "900" |
-| notification:timeout_seatbox_open_lock_requested | integer (sec) | Seat open timeout | "30" |
 | customer:type | string | Customer type | "D2C" |
 | cloud:mqtt-ca | string | MQTT CA certificate path | "/etc/keys/unu-mqtt-production.pub" |
 | cloud:url | string | Cloud URL | "cloud-iot-v1.unumotors.com" |
@@ -333,17 +330,36 @@ LibreScoot adds persistent settings managed by the settings-service:
 |-------|------|-------------|----------|
 | alarm.enabled | "true"/"false" | Alarm system enabled | "true" |
 | alarm.honk | "true"/"false" | Horn enabled during alarm | "false" |
-| scooter.speed_limit | integer (km/h) | Speed limit setting | "25" |
-| scooter.mode | string | Drive mode | "eco" |
+| alarm.duration | integer (sec) | Alarm duration in seconds | "60" |
+| battery.ignore-seatbox | "true"/"false" | Ignore seatbox state for battery management | "false" |
 | cellular.apn | string | Cellular APN | "internet.provider.com" |
+| hibernation-timer | integer (sec) | Hibernation timeout (0=disabled) | "432000" |
+| scooter.auto-standby-seconds | integer (sec) | Auto-lock timeout when parked (0=disabled) | "0" |
+| scooter.brake-hibernation | "enabled"/"disabled" | Enable brake lever hibernation | "enabled" |
 | updates.mdb.channel | string | MDB update channel | "nightly" |
-| updates.mdb.check-interval | duration | MDB update check interval | "6h" |
+| updates.mdb.check-interval | duration | MDB update check interval ("never" to disable) | "6h" |
 | updates.mdb.dry-run | "true"/"false" | MDB update dry-run mode | "false" |
 | updates.mdb.method | string | MDB update method | "full" or "delta" |
+| updates.mdb.github-releases-url | string | GitHub Releases API endpoint for MDB | "https://api.github.com/repos/librescoot/librescoot/releases" |
+| updates.mdb.last-check-time | string (ISO8601) | Last MDB update check timestamp | "2025-01-15T10:30:00Z" |
 | updates.dbc.channel | string | DBC update channel | "stable" |
-| updates.dbc.check-interval | duration | DBC update check interval | "12h" |
+| updates.dbc.check-interval | duration | DBC update check interval ("never" to disable) | "6h" |
 | updates.dbc.dry-run | "true"/"false" | DBC update dry-run mode | "false" |
 | updates.dbc.method | string | DBC update method | "full" or "delta" |
+| updates.dbc.github-releases-url | string | GitHub Releases API endpoint for DBC | "https://api.github.com/repos/librescoot/librescoot/releases" |
+| updates.dbc.last-check-time | string (ISO8601) | Last DBC update check timestamp | "2025-01-15T10:30:00Z" |
+| dashboard.show-raw-speed | "true"/"false" | Show raw uncorrected speed from ECU | "false" |
+| dashboard.show-clock | string | Clock visibility (always/never) | "always" |
+| dashboard.show-gps | string | GPS indicator visibility (always/active-or-error/error/never) | "error" |
+| dashboard.show-bluetooth | string | Bluetooth indicator visibility | "active-or-error" |
+| dashboard.show-cloud | string | Cloud indicator visibility | "error" |
+| dashboard.show-internet | string | Internet indicator visibility | "always" |
+| dashboard.battery-display-mode | string | Battery display mode (percentage/range) | "percentage" |
+| dashboard.map.type | string | Map tile source (online/offline) | "offline" |
+| dashboard.map.render-mode | string | Map rendering mode (vector/raster) | "raster" |
+| dashboard.theme | string | UI theme (light/dark/auto) | "dark" |
+| dashboard.mode | string | Default screen mode (speedometer/navigation) | "speedometer" |
+| dashboard.valhalla-url | string | Valhalla routing service endpoint | "http://localhost:8002/" |
 
 See [settings-service documentation](../services/librescoot-settings.md) for details on persistent settings.
 

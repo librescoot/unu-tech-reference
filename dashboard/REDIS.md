@@ -112,9 +112,19 @@ The dashboard subscribes to these channels to receive real-time updates:
 
 ### Settings (`settings`)
 - `customer:type` - Customer type (D2C, etc.)
-- `behavior:must_lock_handlebar` - Must lock handlebar setting (boolean)
-- `behavior:poweroff_timeout_with_battery` - Power-off timeout with battery (seconds)
-- `behavior:poweroff_timeout_without_battery` - Power-off timeout without battery (seconds)
+- `scooter.auto-standby-seconds` - Auto-lock timeout when parked in seconds (0=disabled)
+- `dashboard.show-raw-speed` - Show raw uncorrected speed ("true"/"false")
+- `dashboard.show-clock` - Clock visibility (always/never)
+- `dashboard.show-gps` - GPS indicator visibility (always/active-or-error/error/never)
+- `dashboard.show-bluetooth` - Bluetooth indicator visibility
+- `dashboard.show-cloud` - Cloud indicator visibility
+- `dashboard.show-internet` - Internet indicator visibility
+- `dashboard.battery-display-mode` - Battery display mode (percentage/range)
+- `dashboard.map.type` - Map tile source (online/offline)
+- `dashboard.map.render-mode` - Map rendering mode (vector/raster)
+- `dashboard.theme` - UI theme (light/dark/auto)
+- `dashboard.mode` - Default screen mode (speedometer/navigation)
+- `dashboard.valhalla-url` - Valhalla routing service endpoint
 
 ### System (`system`)
 - `mdb-version` - MDB firmware version
@@ -132,6 +142,7 @@ The dashboard subscribes to these channels to receive real-time updates:
 - `kickstand` - Kickstand position (up/down)
 - `handlebar:position` - Handlebar position (on-place/off-place)
 - `handlebar:lock-sensor` - Handlebar lock sensor (locked/unlocked)
+- `auto-standby-deadline` - Unix timestamp when auto-standby will trigger (only present when timer active)
 - `fault` - Fault codes (RedisSet)
 
 ## Redis Keys Written (HSET)
