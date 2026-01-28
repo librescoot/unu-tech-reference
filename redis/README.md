@@ -331,6 +331,9 @@ LibreScoot adds persistent settings managed by the settings-service:
 | alarm.enabled | "true"/"false" | Alarm system enabled | "true" |
 | alarm.honk | "true"/"false" | Horn enabled during alarm | "false" |
 | alarm.duration | integer (sec) | Alarm duration in seconds | "60" |
+| alarm.seatbox-trigger | "true"/"false" | Trigger alarm on unauthorized seatbox opening | "true" |
+| alarm.hairtrigger | "true"/"false" | Hair trigger mode (immediate short alarm on first motion) | "false" |
+| alarm.hairtrigger-duration | integer (sec) | Hair trigger alarm duration in seconds | "3" |
 | battery.ignore-seatbox | "true"/"false" | Ignore seatbox state for battery management | "false" |
 | cellular.apn | string | Cellular APN | "internet.provider.com" |
 | hibernation-timer | integer (sec) | Hibernation timeout (0=disabled) | "432000" |

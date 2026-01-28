@@ -11,12 +11,16 @@ LibreScoot alarm-service v1.0.0+
 ## Command-Line Options
 
 ```
---i2c-bus=/dev/i2c-3      I2C bus device path for BMX055
---redis=localhost:6379    Redis address
---log-level=info          Log level (debug, info, warn, error)
---alarm-duration=10       Alarm duration in seconds
---horn-enabled=false      Enable horn during alarm (overrides Redis setting)
---version                 Print version and exit
+--i2c-bus=/dev/i2c-3           I2C bus device path for BMX055
+--redis=localhost:6379         Redis address
+--log-level=info               Log level (debug, info, warn, error)
+--alarm-enabled=false          Enable alarm system (writes to Redis on startup)
+--alarm-duration=10            Alarm duration in seconds
+--horn-enabled=false           Enable horn during alarm (overrides Redis setting)
+--seatbox-trigger=true         Trigger alarm on unauthorized seatbox opening
+--hair-trigger=false           Enable hair trigger mode (immediate short alarm on first motion)
+--hair-trigger-duration=3      Hair trigger alarm duration in seconds
+--version                      Print version and exit
 ```
 
 ## Redis Operations
@@ -38,11 +42,20 @@ LibreScoot alarm-service v1.0.0+
 **Fields read:**
 - `alarm.enabled` - Alarm system enabled ("true"/"false")
 - `alarm.honk` - Horn enabled during alarm ("true"/"false")
+- `alarm.duration` - Alarm duration in seconds
+- `alarm.seatbox-trigger` - Trigger alarm on unauthorized seatbox opening ("true"/"false")
+- `alarm.hairtrigger` - Hair trigger mode enabled ("true"/"false")
+- `alarm.hairtrigger-duration` - Hair trigger alarm duration in seconds
 
-**Fields written (if --horn-enabled flag set):**
+**Fields written (if CLI flags set):**
+- `alarm.enabled` - Overrides alarm enabled state
 - `alarm.honk` - Overrides Redis value with CLI flag value
+- `alarm.duration` - Overrides alarm duration
+- `alarm.seatbox-trigger` - Overrides seatbox trigger setting
+- `alarm.hairtrigger` - Overrides hair trigger setting
+- `alarm.hairtrigger-duration` - Overrides hair trigger duration
 
-**Subscribed channels:** `settings` (listens for changes to `alarm.enabled` and `alarm.honk`)
+**Subscribed channels:** `settings` (listens for changes to alarm settings)
 
 ### Hash: `bmx`
 
@@ -94,7 +107,7 @@ init → waiting_enabled → disarmed → delay_armed (5s) → armed
 - **disarmed**: Alarm enabled but vehicle not in stand-by
 - **delay_armed**: 5-second delay before arming (allows user to leave)
 - **armed**: Armed and monitoring for motion
-- **trigger_level_1_wait**: 15-second cooldown after motion detected
+- **trigger_level_1_wait**: 15-second cooldown after motion detected (with hair trigger: immediate short alarm)
 - **trigger_level_1**: 5-second check for continued movement
 - **trigger_level_2**: Full alarm activated (horn + hazards, 50s duration, max 4 cycles)
 
@@ -140,8 +153,9 @@ The service automatically configures BMX sensitivity based on alarm state:
 ### Alarm Outputs
 
 **Horn Pattern:**
-- 400ms on, 400ms off alternating
-- Only active during Level 2 trigger
+- 400ms on, 400ms off alternating (800ms per cycle)
+- Runs for integral cycles only (no partial honks)
+- Active during Level 2 trigger and hair trigger (if enabled)
 - Controlled via `scooter:horn` list
 
 **Hazard Lights:**
@@ -161,23 +175,31 @@ redis-cli PUBLISH settings alarm.enabled
 redis-cli HSET settings alarm.honk true
 redis-cli PUBLISH settings alarm.honk
 
-# Disable horn
-redis-cli HSET settings alarm.honk false
-redis-cli PUBLISH settings alarm.honk
+# Enable hair trigger mode (immediate short alarm on first motion)
+redis-cli HSET settings alarm.hairtrigger true
+redis-cli PUBLISH settings alarm.hairtrigger
+
+# Set hair trigger duration to 5 seconds
+redis-cli HSET settings alarm.hairtrigger-duration 5
+redis-cli PUBLISH settings alarm.hairtrigger-duration
+
+# Disable seatbox trigger
+redis-cli HSET settings alarm.seatbox-trigger false
+redis-cli PUBLISH settings alarm.seatbox-trigger
 ```
 
 ### Settings via Command Line
 
-The `--horn-enabled` flag overrides Redis settings:
+CLI flags override Redis settings when explicitly provided:
 
 ```bash
-# Always enable horn (overrides Redis)
-alarm-service --horn-enabled=true
+# Enable horn and hair trigger
+alarm-service --horn-enabled=true --hair-trigger=true --hair-trigger-duration=3
 
-# Always disable horn (overrides Redis)
-alarm-service --horn-enabled=false
+# Disable seatbox trigger
+alarm-service --seatbox-trigger=false
 
-# Use Redis setting (default)
+# Use Redis settings (default)
 alarm-service
 ```
 
@@ -207,11 +229,13 @@ When vehicle enters `stand-by` with alarm enabled:
 
 1. BMX055 detects motion
 2. State: `armed` → `trigger_level_1_wait`
-3. 15-second cooldown period
-4. If motion continues: `trigger_level_1_wait` → `trigger_level_1`
-5. 5-second verification period
-6. If no major movement: returns to `armed`
-7. If major movement detected: escalates to Level 2
+3. Hazard lights blink once
+4. If hair trigger enabled: immediate short alarm (horn + hazards) for configured duration
+5. 15-second cooldown period
+6. If motion continues: `trigger_level_1_wait` → `trigger_level_1`
+7. 5-second verification period
+8. If no major movement: returns to `armed`
+9. If major movement detected: escalates to Level 2
 
 ### Level 2 Trigger (Full Alarm)
 

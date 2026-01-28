@@ -234,6 +234,10 @@ lsc del custom.field
 **Common settings:**
 - `alarm.enabled` - Enable/disable alarm system (true/false)
 - `alarm.honk` - Enable horn during alarm (true/false)
+- `alarm.duration` - Alarm duration in seconds
+- `alarm.seatbox-trigger` - Trigger alarm on unauthorized seatbox opening (true/false)
+- `alarm.hairtrigger` - Enable hair trigger mode (true/false)
+- `alarm.hairtrigger-duration` - Hair trigger alarm duration in seconds
 - `scooter.speed_limit` - Speed limit in km/h
 - `scooter.mode` - Drive mode (eco/sport)
 - `cellular.apn` - Cellular APN configuration

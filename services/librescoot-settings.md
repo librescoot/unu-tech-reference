@@ -40,6 +40,9 @@ Settings are organized by section. Examples:
 - `alarm.enabled` - Alarm system enabled ("true"/"false")
 - `alarm.honk` - Horn enabled during alarm ("true"/"false")
 - `alarm.duration` - Alarm duration in seconds
+- `alarm.seatbox-trigger` - Trigger alarm on unauthorized seatbox opening ("true"/"false")
+- `alarm.hairtrigger` - Hair trigger mode enabled ("true"/"false")
+- `alarm.hairtrigger-duration` - Hair trigger alarm duration in seconds
 
 **Battery settings:**
 - `battery.ignore-seatbox` - Ignore seatbox state for battery management ("true"/"false")
@@ -93,6 +96,9 @@ The service maintains a TOML file with this structure:
 enabled = "true"
 honk = "false"
 duration = "60"
+seatbox-trigger = "true"
+hairtrigger = "false"
+hairtrigger-duration = "3"
 
 [battery]
 ignore-seatbox = "false"
