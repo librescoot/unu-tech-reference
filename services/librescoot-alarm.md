@@ -20,6 +20,7 @@ LibreScoot alarm-service v1.0.0+
 --seatbox-trigger=true         Trigger alarm on unauthorized seatbox opening
 --hair-trigger=false           Enable hair trigger mode (immediate short alarm on first motion)
 --hair-trigger-duration=3      Hair trigger alarm duration in seconds
+--l1-cooldown=15               Level 1 cooldown duration in seconds
 --version                      Print version and exit
 ```
 
@@ -46,6 +47,7 @@ LibreScoot alarm-service v1.0.0+
 - `alarm.seatbox-trigger` - Trigger alarm on unauthorized seatbox opening ("true"/"false")
 - `alarm.hairtrigger` - Hair trigger mode enabled ("true"/"false")
 - `alarm.hairtrigger-duration` - Hair trigger alarm duration in seconds
+- `alarm.l1-cooldown` - Level 1 cooldown duration in seconds
 
 **Fields written (if CLI flags set):**
 - `alarm.enabled` - Overrides alarm enabled state
@@ -54,6 +56,7 @@ LibreScoot alarm-service v1.0.0+
 - `alarm.seatbox-trigger` - Overrides seatbox trigger setting
 - `alarm.hairtrigger` - Overrides hair trigger setting
 - `alarm.hairtrigger-duration` - Overrides hair trigger duration
+- `alarm.l1-cooldown` - Overrides L1 cooldown duration
 
 **Subscribed channels:** `settings` (listens for changes to alarm settings)
 

@@ -43,6 +43,7 @@ Settings are organized by section. Examples:
 - `alarm.seatbox-trigger` - Trigger alarm on unauthorized seatbox opening ("true"/"false")
 - `alarm.hairtrigger` - Hair trigger mode enabled ("true"/"false")
 - `alarm.hairtrigger-duration` - Hair trigger alarm duration in seconds
+- `alarm.l1-cooldown` - Level 1 cooldown duration in seconds
 
 **Battery settings:**
 - `battery.ignore-seatbox` - Ignore seatbox state for battery management ("true"/"false")
@@ -99,6 +100,7 @@ duration = "60"
 seatbox-trigger = "true"
 hairtrigger = "false"
 hairtrigger-duration = "3"
+l1-cooldown = "15"
 
 [battery]
 ignore-seatbox = "false"

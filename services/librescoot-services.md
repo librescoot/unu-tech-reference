@@ -25,7 +25,7 @@ Motion-based alarm system with integrated BMX055 accelerometer control.
 - 100ms interrupt polling loop
 
 **Redis Interface:**
-- Reads: `settings alarm.enabled`, `settings alarm.honk`, `settings alarm.duration`, `settings alarm.seatbox-trigger`, `settings alarm.hairtrigger`, `settings alarm.hairtrigger-duration`
+- Reads: `settings alarm.enabled`, `settings alarm.honk`, `settings alarm.duration`, `settings alarm.seatbox-trigger`, `settings alarm.hairtrigger`, `settings alarm.hairtrigger-duration`, `settings alarm.l1-cooldown`
 - Writes: `alarm status`
 - Subscribes: `vehicle`, `settings`, `bmx:interrupt`
 - Commands: `scooter:alarm` (enable/disable/start/stop)
