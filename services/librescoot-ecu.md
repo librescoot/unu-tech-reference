@@ -49,6 +49,14 @@ Usage of ecu-service:
 - `engine-ecu odometer` - Published when odometer updates
 - `engine-ecu kers-reason-off` - Published when KERS disable reason changes
 
+### Hash: `settings`
+
+**Fields read:**
+- `engine-ecu.kers` - KERS enable/disable ("enabled"/"disabled"; default: enabled)
+- `engine-ecu.kers-power` - KERS regenerative braking current in mA (default: 10000)
+
+Loaded on startup; updated live via `settings` pub/sub.
+
 ### Pub/Sub Subscriptions
 
 The service subscribes to the following channels to monitor system state:
@@ -56,6 +64,7 @@ The service subscribes to the following channels to monitor system state:
 - `vehicle` - Listens for vehicle state changes (e.g., "ready-to-drive")
 - `battery:0` - Monitors battery 0 state and temperature
 - `battery:1` - Monitors battery 1 state and temperature
+- `settings` - Listens for KERS setting changes
 
 ### Redis Operations for Fault Management
 

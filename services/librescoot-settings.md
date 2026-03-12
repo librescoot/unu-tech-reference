@@ -48,6 +48,8 @@ Settings are organized by section. Examples:
 **Battery settings:**
 - `battery.ignore-seatbox` - Ignore seatbox state for battery management ("true"/"false")
 
+- `scooter.max-voltage-delta` - Maximum voltage difference between batteries in mV before dual battery activation is refused (default: 1000; 0 to disable)
+
 **Cellular settings:**
 - `cellular.apn` - Cellular APN for data connection
 
@@ -80,11 +82,17 @@ Settings are organized by section. Examples:
 - `dashboard.show-cloud` - Cloud indicator visibility
 - `dashboard.show-internet` - Internet indicator visibility
 - `dashboard.battery-display-mode` - Battery display mode (percentage/range)
+- `dashboard.blinker-style` - Blinker indicator style (default/overlay)
+- `dashboard.language` - UI language (en, de, ...)
 - `dashboard.map.type` - Map tile source (online/offline)
 - `dashboard.map.render-mode` - Map rendering mode (vector/raster)
 - `dashboard.theme` - UI theme (light/dark/auto)
 - `dashboard.mode` - Default screen mode (speedometer/navigation)
 - `dashboard.valhalla-url` - Valhalla routing service endpoint
+
+**ECU settings:**
+- `engine-ecu.kers` - KERS enable/disable ("enabled"/"disabled"; default: "enabled")
+- `engine-ecu.kers-power` - KERS regenerative braking current in mA (default: 10000)
 
 ## File Operations
 
@@ -142,7 +150,7 @@ The service:
 On startup, the service manages WireGuard VPN connections:
 
 1. **Deletes all existing WireGuard connections** from NetworkManager
-2. **Waits 120 seconds** (configurable delay)
+2. **Waits for internet connectivity** (event-driven: subscribes to `internet` channel and polls `internet` hash; falls back to a 120s timeout if Redis is unavailable or internet never connects)
 3. **Imports all `*.conf` files** from `/data/wireguard/` directory
 4. Each `.conf` file becomes a new WireGuard connection in NetworkManager
 
@@ -163,7 +171,7 @@ This ensures clean WireGuard state on boot and allows easy VPN configuration via
    - Flushes Redis `settings` hash
    - Creates empty TOML file
 5. Deletes existing WireGuard connections from NetworkManager
-6. Waits 120 seconds
+6. Waits for internet connectivity (event-driven; max 120s timeout)
 7. Imports all WireGuard configs from `/data/wireguard/`
 8. Begins monitoring Redis for setting changes
 
@@ -238,7 +246,7 @@ PersistentKeepalive = 25
 
 **Management process:**
 1. On startup: Service deletes all existing WireGuard connections
-2. Waits 120 seconds (allows system to stabilize)
+2. Waits for internet connectivity (event-driven; falls back to 120s timeout)
 3. Scans `/data/wireguard/` for `*.conf` files
 4. Imports each file as a NetworkManager connection
 5. Connections are named based on filename (e.g., `vpn.conf` → "vpn")

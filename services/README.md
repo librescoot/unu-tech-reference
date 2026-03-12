@@ -20,6 +20,7 @@ LibreScoot provides open-source replacement services for the unu Scooter Pro. Fo
 | [librescoot-scootui](librescoot-scootui.md) | Primary user interface | `dashboard` | All services (via Redis) |
 | [librescoot-alarm](librescoot-alarm.md) | Motion-based alarm system | `alarm`, `bmx` | BMX055 (I2C), Redis |
 | [librescoot-settings](librescoot-settings.md) | Persistent settings sync | `settings` | NetworkManager, Redis |
+| [librescoot-ums](librescoot-ums.md) | USB Mass Storage / file transfer | `usb` | USB gadget (g_ether/g_mass_storage), Redis |
 
 ## Service Architecture
 
@@ -37,6 +38,7 @@ graph TB
     MDM["modem-service<br/>Cellular + GPS"]
     ALM["alarm-service<br/>Motion Alarm"]
     SET["settings-service<br/>Config Sync"]
+    UMS["ums-service<br/>USB Mass Storage"]
 
     LOGIND["systemd-logind<br/>D-Bus"]
     NRF["nRF52840<br/>UART"]
@@ -47,6 +49,7 @@ graph TB
     MODEM["ModemManager<br/>mmcli + gpsd"]
     BMX["BMX055<br/>Accelerometer/Gyro via I2C"]
     TOML["settings.toml<br/>Persistent Config"]
+    USB["USB Gadget<br/>g_ether / g_mass_storage"]
 
     UI <--> Redis
     PM <--> Redis
@@ -58,6 +61,7 @@ graph TB
     MDM <--> Redis
     ALM <--> Redis
     SET <--> Redis
+    UMS <--> Redis
 
     PM <--> LOGIND
     BT <--> NRF
@@ -68,6 +72,7 @@ graph TB
     MDM <--> MODEM
     ALM <--> BMX
     SET <--> TOML
+    UMS <--> USB
 ```
 
 ## Service Communication Patterns

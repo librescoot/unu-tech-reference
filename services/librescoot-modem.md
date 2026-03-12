@@ -37,6 +37,7 @@ Note: The `-polling-time` option is defined but not currently used by the servic
 - `ip-address` - Interface IP address from wwan0/ppp0
 - `access-tech` - Access technology from modem ("2G", "GSM", "3G", "UMTS", "4G", "LTE", "5G", "UNKNOWN")
 - `signal-quality` - Signal strength (0-100, or 255 if unknown)
+- `unu-cloud` - Cloud (uplink) connection status — written by `uplink-service`, not modem-service ("connected"/"disconnected")
 - `sim-imei` - Modem IMEI identifier (identifies modem hardware, not SIM - name kept for backward compatibility)
 - `sim-imsi` - SIM IMSI identifier (unique subscriber identity)
 - `sim-iccid` - SIM ICCID identifier (unique SIM card identifier)
@@ -213,7 +214,7 @@ This ensures the service only reports "connected" when actual internet connectiv
 
 **State transitions:**
 1. GPS enable: `off` → `searching` → configure GPS → connect to gpsd
-2. Fix acquired: `searching` → `fix-established`
+2. Fix acquired: `searching` → `fix-established` (system clock set via `chronyc` on first fix)
 3. Fix lost: `fix-established` → `searching`
 4. Configuration failure: `searching` → `error`
 

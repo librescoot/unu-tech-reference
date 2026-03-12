@@ -71,8 +71,10 @@ LibreScoot alarm-service v1.0.0+
 ### Lists consumed (BRPOP)
 
 - `scooter:alarm` - Alarm control commands:
-  - `enable` - Enable alarm system
-  - `disable` - Disable alarm system
+  - `enable` - Enable alarm system (writes to `settings alarm.enabled`)
+  - `disable` - Disable alarm system (writes to `settings alarm.enabled`)
+  - `arm` - Force immediate arming (transitions to `StateDelayArmed` without changing `alarm.enabled`)
+  - `disarm` - Force disarm from any armed/triggered state (without changing `alarm.enabled`; alarm re-arms automatically on next standby)
   - `start:<seconds>` - Manual alarm trigger (e.g., `start:30`)
   - `stop` - Stop alarm immediately
 
@@ -148,10 +150,12 @@ The service automatically configures BMX sensitivity based on alarm state:
 
 | State | Wake Lock | Sensitivity | INT Pin |
 |-------|-----------|-------------|---------|
-| armed | No | MEDIUM | NONE |
+| armed | No | MEDIUM | BOTH (INT1 for polling, INT2 for nRF wake) |
 | delay_armed | Yes | LOW | INT2 |
-| trigger_level_1 | Yes | MEDIUM | NONE |
+| trigger_level_1 | Yes | MEDIUM | BOTH (INT1 for polling, INT2 for nRF wake) |
 | trigger_level_2 | Yes | HIGH | NONE |
+
+**Note:** BMX055 accelerometer bandwidth is explicitly set to 7.81 Hz in all alarm states.
 
 ### Alarm Outputs
 
@@ -227,6 +231,8 @@ When vehicle enters `stand-by` with alarm enabled:
 4. After 5 seconds: `delay_armed` → `armed`
 5. BMX055 reconfigured with MEDIUM sensitivity
 6. Alarm now monitoring for motion
+
+**Startup fast-track:** On startup with alarm enabled and vehicle already in `stand-by`, the 5-second delay is skipped and the alarm goes directly to `armed`. INT2 only fires when the slow/no-motion interrupt is configured (i.e. in armed states), so an INT2 wakeup from hibernation is self-proving — no file-based persistence required.
 
 ### Level 1 Trigger (Notification)
 
@@ -304,11 +310,21 @@ redis-cli LPUSH scooter:alarm stop
 ### Enable/Disable Commands
 
 ```bash
-# Enable alarm system
+# Enable alarm system (persistent, writes settings)
 redis-cli LPUSH scooter:alarm enable
 
-# Disable alarm system
+# Disable alarm system (persistent, writes settings)
 redis-cli LPUSH scooter:alarm disable
+```
+
+### Runtime Arm/Disarm (Without Changing Settings)
+
+```bash
+# Force arm immediately (no 5-second delay, doesn't change alarm.enabled)
+redis-cli LPUSH scooter:alarm arm
+
+# Force disarm without disabling (alarm will re-arm on next standby)
+redis-cli LPUSH scooter:alarm disarm
 ```
 
 ## Log Output

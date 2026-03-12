@@ -65,6 +65,8 @@ This hash tracks which services are blocking suspend/hibernation via the Unix so
 
 Used for programmatic inhibitor management (downloading, installing, etc.)
 
+pm-service subscribes to the `power:inhibits` channel and syncs entries into its inhibitor manager as manual inhibitors — so `update-service` power inhibits (e.g. during DBC boot partition writes) actually block suspend/hibernate/poweroff.
+
 ### Hash: `hibernation`
 
 **Fields written:**

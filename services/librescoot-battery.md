@@ -67,6 +67,11 @@ Usage of battery-service:
   - `temperature-state` - Temperature state changed
   - `fault` - Fault status changed
 
+### Hash: `settings`
+
+**Fields read:**
+- `scooter.max-voltage-delta` - Max voltage difference between batteries in mV before battery 1 activation is refused (default: 1000; 0 to disable). Updated live via `settings` pub/sub.
+
 ### Hash: `vehicle`
 
 **Fields read:**
@@ -184,6 +189,8 @@ Battery behavior is controlled by:
 1. **Battery Role:**
    - `active` - Can provide power (battery 0 is always active)
    - `inactive` - Cannot provide power (battery 1 by default, use `--battery1-active` to make active)
+
+   **Voltage delta protection:** Battery 1 activation is refused if the voltage difference between both batteries exceeds `scooter.max-voltage-delta` (default: 1000 mV). Checked on startup, on setting change, and on battery swap; clears when a compatible battery is inserted.
 
 2. **Enabled State (for active batteries):**
    - Automatically controlled based on seatbox lock state

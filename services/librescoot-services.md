@@ -28,7 +28,7 @@ Motion-based alarm system with integrated BMX055 accelerometer control.
 - Reads: `settings alarm.enabled`, `settings alarm.honk`, `settings alarm.duration`, `settings alarm.seatbox-trigger`, `settings alarm.hairtrigger`, `settings alarm.hairtrigger-duration`, `settings alarm.l1-cooldown`
 - Writes: `alarm status`
 - Subscribes: `vehicle`, `settings`, `bmx:interrupt`
-- Commands: `scooter:alarm` (enable/disable/start/stop)
+- Commands: `scooter:alarm` (enable/disable/arm/disarm/start/stop)
 - Publishes commands to: `scooter:bmx`, `scooter:horn`, `scooter:blinker`
 
 **State Machine:**
@@ -54,6 +54,7 @@ Manages dual battery monitoring via NFC communication with PN7150 controllers.
 - Configurable update intervals for different battery states
 - Automatic battery presence detection
 - Heartbeat timeout monitoring (40s default)
+- Voltage delta protection: refuses dual battery activation if voltage difference exceeds `scooter.max-voltage-delta` (default: 1000 mV)
 
 **Configuration:**
 - Device paths: `/dev/pn5xx_i2c0`, `/dev/pn5xx_i2c1`
@@ -94,11 +95,12 @@ Unified interface for electric motor control units via CAN bus.
   - Voltage/Current
   - Odometer
   - Fault codes
-- KERS (Kinetic Energy Recovery System) management
+- KERS (Kinetic Energy Recovery System) management with configurable enable/power via Redis settings
 - CAN bus communication (default: can0)
 
 **Redis Interface:**
 - Writes: `engine-ecu` hash with motor control and telemetry data
+- Reads: `settings engine-ecu.kers` (enabled/disabled), `settings engine-ecu.kers-power` (mA)
 
 #### keycard-service
 NFC keycard authentication system.
@@ -188,9 +190,18 @@ Settings synchronization between Redis and persistent storage.
   - Updates `/etc/NetworkManager/system-connections/wwan.nmconnection`
 - WireGuard connection management:
   - Deletes existing WireGuard connections on startup
-  - Imports all `*.conf` files from `/data/wireguard/` after 120s delay
+  - Imports all `*.conf` files from `/data/wireguard/` after internet connectivity is detected (event-driven; max 120s fallback timeout)
 - Startup sync: reads TOML and populates Redis
 - Empty config handling: flushes Redis if TOML is empty
+
+#### ums-service
+Switches MDB between USB network (`g_ether`) and USB Mass Storage (`g_mass_storage`) modes. Exposes a 1 GB FAT32 virtual drive to the host PC for transferring settings, WireGuard configs, Mender updates, and map tiles. On UMS exit, processes files and transfers maps to DBC.
+
+`ums-by-dbc` mode stays in UMS after the first disconnect and switches back only after the second — needed for DBC updates where the DBC disconnects mid-process.
+
+**Redis Interface:**
+- Reads/Writes: `usb mode`
+- Subscribes: `usb` channel
 
 **TOML Structure:**
 ```toml
@@ -417,6 +428,7 @@ All services are managed by systemd:
 | modem-service | modem-service | Enhanced GPS integration via gpsd and multi-strategy recovery |
 | pm-service | unu-pm | Enhanced with inhibitor management |
 | settings-service | (new feature) | TOML-based persistent configuration |
+| ums-service | (new feature) | USB gadget mode switching and file transfer |
 | vehicle-service | unu-vehicle | Core vehicle state machine |
 | update-service | unu-activation (partial) | Component-specific OTA updates |
 | version-service | (new feature) | Version tracking per component |

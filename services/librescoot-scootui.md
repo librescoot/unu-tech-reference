@@ -1,15 +1,24 @@
-# librescoot-scootui (scootui)
+# librescoot-scootui (scootui / scootui-qt)
 
 ## Description
 
-ScootUI is the primary user interface for LibreScoot. Built with **Flutter/Dart**, it provides a modern, responsive dashboard with real-time telemetry, navigation, and system controls. The application runs on the DBC (Dashboard Controller) and communicates with all LibreScoot services via Redis.
+ScootUI is the primary user interface for LibreScoot. It runs on the DBC (Dashboard Computer) and communicates with all LibreScoot services via Redis.
 
-**Technology Stack:**
-- **Flutter/Dart** - UI framework and language
-- **Bloc/Cubit** - State management
-- **Redis** - Real-time data communication with vehicle systems
-- **Flutter Map** - Mapping and navigation display
-- **MBTiles** - Offline map data storage
+There are two implementations:
+
+### scootui-qt (Qt/QML)
+Native Qt 6 / QML application targeting the i.MX6-based DBC. Current production target.
+
+- Qt 6 / QML — UI framework
+- QMapLibre — vector map rendering
+- Valhalla — routing engine
+- Redis — real-time data via MDB
+- CMake — build system
+
+### scootui (Flutter)
+Original implementation in Flutter/Dart. Bloc/Cubit state management, Flutter Map, MBTiles for offline maps.
+
+Both expose the same Redis interface and `settings` keys.
 
 ScootUI replaces the proprietary unu-dashboard-ui with an open-source, community-developed interface.
 
