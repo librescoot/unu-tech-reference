@@ -116,6 +116,12 @@ The Bluetooth service provides the BLE (Bluetooth Low Energy) interface for the 
 
 **Published channel:** `usb` (when mode field changes)
 
+### Hash: `dashboard`
+
+**Fields read (not written):**
+- `maps-available` - Offline display maps installed (set by scootui-qt, queried via `status:maps-available`)
+- `navigation-available` - Routing engine available (set by scootui-qt, queried via `status:navigation-available`)
+
 ### Hashes read (not written)
 
 The service reads but does not write to these hashes:
@@ -356,6 +362,10 @@ Extended commands arrive as string payloads via the EXTENDED_COMMAND BLE charact
 - `config:apn <value>` → `HSET settings cellular.apn <value>`
 - `config:hibernate-timer <seconds>` → `HSET settings hibernation-timer <value>`
 - `config:update-channel <stable|testing|nightly>` → sets `settings:updates.mdb.channel` and `settings:updates.dbc.channel`
+
+**Status queries (read-only):**
+- `status:maps-available` → reads `dashboard:maps-available` (set by scootui-qt)
+- `status:navigation-available` → reads `dashboard:navigation-available` (set by scootui-qt)
 
 Responses are sent back via EXTENDED_RESPONSE (0x0402) as string notifications to the phone app.
 
