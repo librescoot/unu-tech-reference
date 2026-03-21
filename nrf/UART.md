@@ -79,6 +79,8 @@ Messages use 16-bit type identifiers organized hierarchically:
 - **0x0060** - CB Battery Information (detailed BMS data)
 - **0x00E0** - Battery Status (slots 0 & 1)
 - **0x0100** - Power Mux State (internal only - not exposed via BLE)
+- **0x0200** - Accelerometer Wake-up Events (suspend or hibernation wake)
+- **0x0400** - Extended Command (forwarded from phone app BLE write)
 - **0x0800** - Power Management (hibernation, state changes)
 - **0xA000** - BLE Firmware Version
 - **0xA020** - BLE Debug / Reset Information
@@ -87,8 +89,9 @@ Messages use 16-bit type identifiers organized hierarchically:
 ### Commands (iMX6 → nRF)
 
 - **0x00C0** - Data Stream Management (enable/disable/sync)
+- **0x0400** - Extended Response (response string written to BLE characteristic, up to 512 bytes)
+- **0xA040** - Scooter Info (mileage, software version, navigation active, UMS status)
 - **0xAA00** - BLE Commands (advertising, bonding)
-- **0xA040** - Scooter Info Requests (mileage, software version)
 
 ### Sub-Types Examples
 
@@ -120,6 +123,21 @@ Each message type contains sub-types as CBOR map keys:
 
 **Power Mux (0x0100):**
 - 0x0101: Power Mux State (0=AUX battery, 1=CB battery)
+
+**Scooter Info (0xA040):**
+- 0xA041: Software version (string, iMX → nRF)
+- 0xA042: Mileage/odometer (int32, iMX → nRF)
+- 0xA043: System time (string, phone → nRF → iMX)
+- 0xA044: Navigation active (uint8: 0/1, iMX → nRF)
+- 0xA045: UMS status (uint8: 0=normal, 1=ums, iMX → nRF)
+
+**Accelerometer (0x0200):**
+- 0x0201: Wake-up from suspend (nRF → iMX, sent immediately)
+- 0x0202: Wake-up from hibernation (nRF → iMX, sent after VERSION handshake on next boot)
+
+**Extended Commands (0x0400):**
+- 0x0401: Command (string, phone → nRF → iMX, up to 128 bytes)
+- 0x0402: Response (string, iMX → nRF → phone, up to 512 bytes, bypasses proto_t 128-byte limit via direct CBOR parsing)
 
 **Reset Information (0xA020):**
 - 0xA021: Reset Info array `[reason, count]` - reason is Nordic RESETREAS register value

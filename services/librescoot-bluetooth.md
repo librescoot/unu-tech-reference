@@ -87,21 +87,32 @@ The Bluetooth service provides the BLE (Bluetooth Low Energy) interface for the 
 ### Hash: `navigation`
 
 **Fields written:**
-- `destination` - Navigation destination coordinates (from BLE event "navi:start <coords>")
+- `latitude` - Navigation destination latitude (from extended command `nav:dest`)
+- `longitude` - Navigation destination longitude (from extended command `nav:dest`)
+- `destination` - Legacy combined coordinates "lat,lon" (from extended command `nav:dest` or BLE event `navi:start`)
+- `address` - Destination name/address (from extended command `nav:dest lat,lon,name`)
 
-**Published channel:** `navigation` (when destination field changes)
+**Fields deleted:** All above fields cleared by `nav:clear` extended command.
+
+**Published channel:** `navigation` (when fields change)
 
 ### Hash: `settings`
 
 **Fields written:**
-- `cellular.apn` - Cellular APN configuration (from BLE event "apn <value>")
+- `cellular.apn` - Cellular APN (from extended command `config:apn` or legacy BLE event `apn <value>`)
+- `hibernation-timer` - Hibernation timeout in seconds (from extended command `config:hibernate-timer`)
+- `updates.mdb.channel` - MDB OTA update channel (from extended command `config:update-channel`)
+- `updates.dbc.channel` - DBC OTA update channel (from extended command `config:update-channel`)
+- `dashboard.saved-locations.<id>.latitude` - Saved location lat (from `nav:fav:add`)
+- `dashboard.saved-locations.<id>.longitude` - Saved location lon (from `nav:fav:add`)
+- `dashboard.saved-locations.<id>.label` - Saved location name (from `nav:fav:add`)
 
-**Published channel:** `settings` (when cellular.apn field changes)
+**Published channel:** `settings` (when fields change)
 
 ### Hash: `usb`
 
 **Fields written:**
-- `mode` - USB mode ("ums" or "normal", from BLE events "usb:ums" or "usb:normal")
+- `mode` - USB mode ("ums" or "normal", from extended command `usb:ums`/`usb:normal` or legacy BLE events)
 
 **Published channel:** `usb` (when mode field changes)
 
@@ -133,8 +144,13 @@ The service writes requests to:
 - `scooter:power` - Power requests ("hibernate", "hibernate-manual")
 - `scooter:seatbox` - Seatbox commands ("open")
 - `scooter:blinker` - Blinker commands ("left", "right", "both", "off")
+- `scooter:keycard` - Keycard management commands ("list", "count", "add:<uid>", "remove:<uid>")
 
-These are triggered by BLE characteristic writes received from the nRF52 (BLE events with format "scooter:command value").
+These are triggered by BLE characteristic writes received from the nRF52 (BLE events or extended commands).
+
+### Pub/Sub published
+
+- `bmx:interrupt` - Accelerometer wake-up events from nRF ("wake-suspend", "wake-hibernation")
 
 ## Hardware Interfaces
 
@@ -191,8 +207,11 @@ BLE services and characteristics are defined in the nRF52 firmware.
 ### Systemd Unit
 
 - **Unit file:** `/etc/systemd/system/bluetooth-service.service` (or `/usr/lib/systemd/system/bluetooth-service.service`)
+- **Type:** idle (delayed until other services have started)
+- **Requires:** redis.service
+- **After:** redis.service, librescoot-vehicle.service, librescoot-alarm.service
 - **Started by:** systemd at boot
-- **Restart policy:** Always (on-failure)
+- **Restart policy:** Always
 
 ## Observable Behavior
 
@@ -258,26 +277,29 @@ The service handles various USOCK message types from the nRF52. See [nRF UART Pr
 
 **Key message types received:**
 - `0x0000` - Generic events (BLE characteristic writes as event strings)
-- `0x0008` - Power management (hibernation requests from nRF)
 - `0x0020` - Vehicle state updates (acknowledgments)
-- `0x0040` - Scooter info (mileage, firmware version from nRF)
-- `0x0041` - Auxiliary battery data
+- `0x0040` - Auxiliary battery data
 - `0x0060` - CB battery detailed information (MAX1730X fuel gauge data)
-- `0x0080` - Power mux status
+- `0x0100` - Power mux status
+- `0x0200` - Accelerometer wake-up events (suspend/hibernation)
+- `0x0400` - Extended commands (string commands from phone app)
+- `0x0800` - Power management (hibernation requests from nRF)
 - `0x00C0` - Data stream control acknowledgments
 - `0x00E0` - Battery slot status (slot 1 and 2)
 - `0xA000` - BLE firmware version
-- `0xA021` - BLE reset information (reason and count)
+- `0xA020` - BLE reset information (reason and count)
+- `0xA040` - Scooter info (mileage, firmware version, system time from nRF)
 - `0xA080` - BLE parameters (MAC address, PIN code, connection status)
 - `0xAA00` - BLE command acknowledgments
 
 **Key message types sent:**
-- `0x0008` - Power management state updates
 - `0x0020` - Vehicle state (locked/unlocked, seatbox, handlebar)
-- `0x0040` - Scooter info (firmware version, mileage)
+- `0x0400` - Extended response (response string to phone app, up to 512 bytes)
+- `0x0800` - Power management state updates
 - `0x00C0` - Data stream enable/disable/sync
 - `0x00E0` - Battery status (presence, charge, cycle count for both slots)
 - `0xA000` - Request BLE firmware version
+- `0xA040` - Scooter info (firmware version, mileage, navigation active, UMS status)
 - `0xA080` - Request BLE MAC address, remove PIN
 - `0xAA00` - BLE commands (advertising control, bond management)
 
@@ -307,6 +329,44 @@ Event strings received from nRF52 (message type 0x0000) are parsed and converted
 **USB mode:**
 - `"usb:ums"` → `HSET usb mode ums` + publish
 - `"usb:normal"` → `HSET usb mode normal` + publish
+
+### Extended Commands (message type 0x0400)
+
+Extended commands arrive as string payloads via the EXTENDED_COMMAND BLE characteristic (0x0401). The bluetooth-service routes them by prefix:
+
+**Navigation:**
+- `nav:dest lat,lon[,name]` → sets `navigation` hash fields (latitude, longitude, destination, address)
+- `nav:clear` → deletes all `navigation` hash fields
+- `nav:fav:add lat,lon,name` → adds to `settings:dashboard.saved-locations.<id>.*`
+- `nav:fav:delete <id>` → removes saved location
+- `nav:fav:navigate <id>` → sets navigation destination from saved location
+- `nav:fav:list` → responds with count + one notification per saved location
+
+**USB mode:**
+- `usb:ums` → `HSET usb mode ums`
+- `usb:normal` → `HSET usb mode normal`
+
+**Keycard management:**
+- `keycard:list`, `keycard:count`, `keycard:add:<uid>`, `keycard:remove:<uid>` → forwarded to `scooter:keycard` Redis list; response returned asynchronously via `keycard` hash `command-result` field
+
+**Time:**
+- `time:set <unix_timestamp>` → sets system clock via `Settimeofday` syscall
+
+**Configuration:**
+- `config:apn <value>` → `HSET settings cellular.apn <value>`
+- `config:hibernate-timer <seconds>` → `HSET settings hibernation-timer <value>`
+- `config:update-channel <stable|testing|nightly>` → sets `settings:updates.mdb.channel` and `settings:updates.dbc.channel`
+
+Responses are sent back via EXTENDED_RESPONSE (0x0402) as string notifications to the phone app.
+
+### Accelerometer Wake-up Events
+
+The service handles accelerometer wake-up messages from the nRF (message type 0x0200):
+
+- **Suspend wake-up (0x0201):** Published to Redis `bmx:interrupt` as `"wake-suspend"`. The nRF sends this immediately when movement is detected during iMX suspend.
+- **Hibernation wake-up (0x0202):** Published to Redis `bmx:interrupt` as `"wake-hibernation"`. The nRF sends this after the VERSION handshake on the next boot, if the wake-up from hibernation was caused by accelerometer movement.
+
+The alarm-service subscribes to `bmx:interrupt` to trigger alarm escalation.
 
 ### Power Management
 
@@ -385,6 +445,9 @@ The service subscribes to these Redis channels to monitor for state changes:
 - `engine-ecu` - Monitors for odometer/mileage changes
 - `system` - Monitors for MDB firmware version changes
 - `ble` - Monitors for pin-code removal notifications
+- `navigation` - Monitors for destination changes → sends navigation active status (0/1) to nRF
+- `usb` - Monitors for USB mode changes → sends UMS status (0/1) to nRF
+- `keycard` - Monitors for `command-result` field → relays response to phone via extended response
 
 When a subscribed field changes, the service:
 1. Receives the field name via pub/sub

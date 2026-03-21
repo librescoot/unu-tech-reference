@@ -78,6 +78,50 @@ Primary battery monitoring
 | 9a5900f2 | Secondary Cycles | Integer |
 | 9a5900f5 | Secondary SoC | 0-100% |
 
+### Scooter Info Service (9a59a040)
+
+System-level telemetry and configuration
+
+| Characteristic | Description | Values |
+|---------------|-------------|---------|
+| 9a59a041 | iMX Software Version | Version string (read-only) |
+| 9a59a042 | Mileage/Odometer | Integer, km (read-only) |
+| 9a59a043 | System Time | Unix timestamp string (write-only) |
+| 9a59a044 | Navigation Active | 0 = no destination, 1 = destination set (read+notify) |
+| 9a59a045 | UMS Status | 0 = normal, 1 = USB Mass Storage mode (read+notify) |
+
+### Extended Commands Service (9a590400)
+
+Unified extensible command/response channel for phone app interaction
+
+| Characteristic | Description | Values |
+|---------------|-------------|---------|
+| 9a590401 | Command | Write-only, up to 128 bytes. Null-terminated string command (MITM-protected) |
+| 9a590402 | Response | Read+notify, up to 512 bytes. Response string from iMX (MITM-protected) |
+
+**Supported commands:**
+
+| Command | Description | Response |
+|---------|-------------|----------|
+| `nav:dest lat,lon[,name]` | Set navigation destination | `nav:ok` |
+| `nav:clear` | Clear navigation destination | `nav:ok` |
+| `nav:fav:add lat,lon,name` | Save a location | `nav:fav:added:<id>` |
+| `nav:fav:delete <id>` | Delete saved location | `nav:ok` |
+| `nav:fav:navigate <id>` | Navigate to saved location | `nav:ok` |
+| `nav:fav:list` | List saved locations | `nav:fav:count:<n>` then `nav:fav:<id>:lat,lon,name` per entry |
+| `usb:ums` | Enter USB Mass Storage mode | `usb:ok` |
+| `usb:normal` | Exit USB Mass Storage mode | `usb:ok` |
+| `keycard:list` | List keycards | Response via keycard-service |
+| `keycard:count` | Count keycards | Response via keycard-service |
+| `keycard:add:<uid>` | Add keycard | Response via keycard-service |
+| `keycard:remove:<uid>` | Remove keycard | Response via keycard-service |
+| `time:set <unix_timestamp>` | Set system clock | `time:ok` |
+| `config:apn <value>` | Set cellular APN | `config:ok` |
+| `config:hibernate-timer <seconds>` | Set hibernation timeout | `config:ok` |
+| `config:update-channel <channel>` | Set OTA update channel (stable/testing/nightly) | `config:ok` |
+
+Error responses follow the pattern `<prefix>:error:<details>`.
+
 ### System Info Service (9a59a000)
 
 | Characteristic | Description | Values |
