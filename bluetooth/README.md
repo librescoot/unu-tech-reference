@@ -121,7 +121,8 @@ Unified extensible command/response channel for phone app interaction
 | `config:update-channel <channel>` | Set OTA update channel (stable/testing/nightly) | `config:ok` |
 | `status:maps-available` | Query if offline maps are installed | `status:maps-available:true` or `false` |
 | `status:navigation-available` | Query if routing engine is available | `status:navigation-available:true` or `false` |
-| `cap:list` | Enumerate supported capability categories | `cap:count:<n>` then `cap:<name>` per capability |
+| `cap:list` | Enumerate supported capability categories | `cap:count:<n>` then `cap:<name>` per category |
+| `cap:<category>` | List commands for a category | `cap:<category>:count:<n>` then `cap:<category>:<command>` per command |
 
 Error responses follow the pattern `<prefix>:error:<details>`.
 
