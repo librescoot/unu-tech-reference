@@ -362,6 +362,7 @@ Extended commands arrive as string payloads via the EXTENDED_COMMAND BLE charact
 - `config:apn <value>` → `HSET settings cellular.apn <value>`
 - `config:hibernate-timer <seconds>` → `HSET settings hibernation-timer <value>`
 - `config:update-channel <stable|testing|nightly>` → sets `settings:updates.mdb.channel` and `settings:updates.dbc.channel`
+- `config:auto-standby-seconds <seconds>` → `HSET settings scooter.auto-standby-seconds <value>` (auto-lock idle timeout when parked, 0=disabled, 0-3600; last 60s shown as a cancellable countdown on the dashboard)
 
 **Status queries (read-only):**
 - `status:maps-available` → reads `dashboard:maps-available` (set by scootui-qt)

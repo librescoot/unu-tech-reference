@@ -57,7 +57,7 @@ Settings are organized by section. Examples:
 - `hibernation-timer` - Hibernation timeout in seconds (0=disabled)
 
 **Scooter settings:**
-- `scooter.auto-standby-seconds` - Auto-lock timeout when parked in seconds (0=disabled)
+- `scooter.auto-standby-seconds` - Auto-lock timeout when parked in seconds (default: 900 = 15 minutes; 0=disabled; max 3600). The last 60 s are shown as a cancellable countdown on the dashboard; any user input (brake, kickstand, seatbox button) resets the timer.
 - `scooter.brake-hibernation` - Enable brake lever hibernation ("enabled"/"disabled")
 
 **Update settings:**
@@ -117,7 +117,7 @@ ignore-seatbox = "false"
 apn = "internet.provider.com"
 
 [scooter]
-auto-standby-seconds = "0"
+auto-standby-seconds = "900"
 brake-hibernation = "enabled"
 
 [dashboard]

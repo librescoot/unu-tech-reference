@@ -119,6 +119,7 @@ Unified extensible command/response channel for phone app interaction
 | `config:apn <value>` | Set cellular APN | `config:ok` |
 | `config:hibernate-timer <seconds>` | Set hibernation timeout | `config:ok` |
 | `config:update-channel <channel>` | Set OTA update channel (stable/testing/nightly) | `config:ok` |
+| `config:auto-standby-seconds <seconds>` | Set auto-lock idle timeout when parked (0=disabled, 0-3600) | `config:ok` |
 | `status:maps-available` | Query if offline maps are installed | `status:maps-available:true` or `false` |
 | `status:navigation-available` | Query if routing engine is available | `status:navigation-available:true` or `false` |
 | `cap:list` | Enumerate supported capability categories | `cap:count:<n>` then `cap:<name>` per category |
