@@ -138,7 +138,7 @@ Unified extensible command/response channel for phone app interaction
 | `alarm:disable` | Disable alarm system | `alarm:ok` |
 | `alarm:arm` | Arm alarm (runtime, bypasses enabled setting) | `alarm:ok` |
 | `alarm:disarm` | Disarm alarm | `alarm:ok` |
-| `alarm:start` / `alarm:start:<N>` | Trigger alarm (optional duration in seconds) | `alarm:ok` |
+| `alarm:start` / `alarm:start:<N>` | Trigger alarm; duration in seconds, default from settings | `alarm:ok` |
 | `alarm:stop` | Stop active alarm | `alarm:ok` |
 | `status:maps-available` | Query if offline maps are installed | `status:maps-available:true` or `false` |
 | `status:navigation-available` | Query if routing engine is available | `status:navigation-available:true` or `false` |

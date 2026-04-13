@@ -147,10 +147,11 @@ The service consumes commands from:
 
 The service writes requests to:
 - `scooter:state` - State change requests ("lock", "unlock", "lock-hibernate")
-- `scooter:power` - Power requests ("hibernate", "hibernate-manual")
+- `scooter:power` - Power requests ("hibernate", "hibernate-manual", "reboot")
 - `scooter:seatbox` - Seatbox commands ("open")
 - `scooter:blinker` - Blinker commands ("left", "right", "both", "off")
 - `scooter:keycard` - Keycard management commands ("list", "count", "add:<uid>", "remove:<uid>")
+- `scooter:alarm` - Alarm commands ("enable", "disable", "arm", "disarm", "start:<seconds>", "stop")
 
 These are triggered by BLE characteristic writes received from the nRF52 (BLE events or extended commands).
 
@@ -364,6 +365,17 @@ Extended commands arrive as string payloads via the EXTENDED_COMMAND BLE charact
 - `config:update-channel <stable|testing|nightly>` → sets `settings:updates.mdb.channel` and `settings:updates.dbc.channel`
 - `config:auto-standby-seconds <seconds>` → `HSET settings scooter.auto-standby-seconds <value>` (auto-lock idle timeout when parked, 0=disabled, 0-3600; last 60s shown as a cancellable countdown on the dashboard)
 
+**Alarm:**
+- `alarm:enable` → `LPUSH scooter:alarm enable`
+- `alarm:disable` → `LPUSH scooter:alarm disable`
+- `alarm:arm` → `LPUSH scooter:alarm arm`
+- `alarm:disarm` → `LPUSH scooter:alarm disarm`
+- `alarm:start` → `LPUSH scooter:alarm start` (duration default from settings)
+- `alarm:start:<N>` → `LPUSH scooter:alarm start:<N>`
+- `alarm:stop` → `LPUSH scooter:alarm stop`
+
+The alarm-service processes the command and the response (`alarm:ok`) is returned via EXTENDED_RESPONSE (0x0402).
+
 **Status queries (read-only):**
 - `status:maps-available` → reads `dashboard:maps-available` (set by scootui-qt)
 - `status:navigation-available` → reads `dashboard:navigation-available` (set by scootui-qt)
@@ -391,6 +403,16 @@ The service handles hibernation requests from the nRF52:
 - nRF sends hibernation request (type=manual)
 - If vehicle state is "parked": `LPUSH scooter:state lock-hibernate`
 - Otherwise: `LPUSH scooter:power hibernate-manual`
+
+**Soft reboot:**
+- nRF receives "reboot" from the BLE power control characteristic
+- Service forwards: `LPUSH scooter:power reboot`
+- pm-service triggers a Linux-only reboot (same path as post-OTA reboots)
+
+**Hard reboot:**
+- nRF receives "hard-reboot" from the BLE power control characteristic
+- nRF notifies iMX that a power cycle is imminent, then controls the power rails directly
+- iMX reboots automatically when power is restored
 
 When power-manager enters hibernation state, the service:
 1. Disables data streaming to nRF52
