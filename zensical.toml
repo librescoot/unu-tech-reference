@@ -1,0 +1,95 @@
+[project]
+site_name = "LibreScoot Tech Reference"
+site_description = "Hardware and software reference for the LibreScoot electric scooter platform"
+site_url = "https://reference.librescoot.org/"
+repo_url = "https://github.com/librescoot/unu-tech-reference"
+repo_name = "librescoot/unu-tech-reference"
+copyright = "Copyright &copy; 2025-2026 LibreScoot contributors"
+
+extra_css = ["stylesheets/extra.css"]
+
+nav = [
+    { "Home" = "index.md" },
+    { "Hardware" = [
+        { "Electronics" = "electronic/README.md" },
+        { "Mechanical" = "mechanical/README.md" },
+        { "Wiring & Connectors" = "wiring/README.md" },
+    ]},
+    { "Power" = [
+        { "Main Battery" = "battery/README.md" },
+        { "Battery Charger" = "battery-charger/README.md" },
+    ]},
+    { "Communication" = [
+        { "Bluetooth" = "bluetooth/README.md" },
+        { "Redis" = "redis/README.md" },
+        { "nRF52840" = "nrf/README.md" },
+        { "UART Protocol" = "nrf/UART.md" },
+        { "Power Management" = "nrf/power-management.md" },
+    ]},
+    { "Software" = [
+        { "System States" = "states/README.md" },
+        { "Services" = "services/README.md" },
+        { "Services Overview" = "services/librescoot-services.md" },
+        { "alarm-service" = "services/librescoot-alarm.md" },
+        { "battery-service" = "services/librescoot-battery.md" },
+        { "bluetooth-service" = "services/librescoot-bluetooth.md" },
+        { "ecu-service" = "services/librescoot-ecu.md" },
+        { "keycard-service" = "services/librescoot-keycard.md" },
+        { "modem-service" = "services/librescoot-modem.md" },
+        { "pm-service" = "services/librescoot-pm.md" },
+        { "scootui" = "services/librescoot-scootui.md" },
+        { "settings-service" = "services/librescoot-settings.md" },
+        { "ums-service" = "services/librescoot-ums.md" },
+        { "vehicle-service" = "services/librescoot-vehicle.md" },
+        { "Dashboard" = "dashboard/README.md" },
+        { "Dashboard Redis" = "dashboard/REDIS.md" },
+    ]},
+    { "Tools" = [
+        { "lsc CLI" = "tools/lsc.md" },
+    ]},
+]
+
+[project.theme]
+language = "en"
+features = [
+    "content.action.edit",
+    "content.code.copy",
+    "content.code.select",
+    "content.tooltips",
+    "navigation.footer",
+    "navigation.indexes",
+    "navigation.instant",
+    "navigation.instant.prefetch",
+    "navigation.path",
+    "navigation.sections",
+    "navigation.top",
+    "navigation.tracking",
+    "search.highlight",
+    "toc.follow",
+]
+
+[project.theme.font]
+text = "Inter"
+code = "JetBrains Mono"
+
+[[project.theme.palette]]
+scheme = "slate"
+primary = "custom"
+accent = "cyan"
+toggle.icon = "lucide/sun"
+toggle.name = "Switch to light mode"
+
+[[project.theme.palette]]
+scheme = "default"
+primary = "custom"
+accent = "cyan"
+toggle.icon = "lucide/moon"
+toggle.name = "Switch to dark mode"
+
+[[project.extra.social]]
+icon = "fontawesome/brands/github"
+link = "https://github.com/librescoot"
+
+[[project.extra.social]]
+icon = "fontawesome/brands/discord"
+link = "https://discord.gg/VrumFruSzJ"
