@@ -154,7 +154,7 @@ System-level telemetry and configuration
 | Characteristic | Description | Values |
 |---------------|-------------|---------|
 | 9a59a041 | iMX Software Version | Version string (read-only) |
-| 9a59a042 | Mileage/Odometer | Integer, km (read-only) |
+| 9a59a042 | Mileage/Odometer | Integer, meters (read-only) |
 | 9a59a043 | System Time | Unix timestamp string (write-only) |
 | 9a59a044 | Navigation Active | 0 = no destination, 1 = destination set (read+notify) |
 | 9a59a045 | UMS Status | 0 = normal, 1 = USB Mass Storage mode (read+notify) |
