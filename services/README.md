@@ -15,7 +15,7 @@ LibreScoot provides the open-source services that run on the scooter. All servic
 | [librescoot-keycard](librescoot-keycard.md) | NFC keycard authentication | `keycard` | PN7150 (I2C), LP5662 LED (I2C), Redis |
 | [librescoot-modem](librescoot-modem.md) | Cellular and GPS | `internet`, `gps`, `modem` | ModemManager, gpsd, Redis |
 | [librescoot-pm](librescoot-pm.md) | System power management | `power-manager` | systemd-logind (D-Bus), Redis |
-| [librescoot-scootui](librescoot-scootui.md) | Dashboard UI (Qt/QML) | `dashboard` | All services (via Redis) |
+| [scootui-qt](librescoot-scootui.md) | Dashboard UI (Qt/QML) | `dashboard` | All services (via Redis) |
 | [librescoot-alarm](librescoot-alarm.md) | Motion-based alarm system | `alarm`, `bmx` | BMX055 (I2C), Redis |
 | [librescoot-settings](librescoot-settings.md) | Persistent settings sync | `settings` | NetworkManager, Redis |
 | [librescoot-ums](librescoot-ums.md) | USB Mass Storage / file transfer | `usb` | USB gadget (g_ether/g_mass_storage), Redis |
@@ -25,7 +25,7 @@ LibreScoot provides the open-source services that run on the scooter. All servic
 
 ```mermaid
 graph TB
-    UI["scootui<br/>Qt/QML UI on DBC"]
+    UI["scootui-qt<br/>Qt/QML UI on DBC"]
     Redis["Redis<br/>Pub/Sub + Hashes + Lists"]
 
     PM["pm-service<br/>Power Management"]
@@ -130,7 +130,7 @@ Services store state in Redis hashes:
 2. `battery-service` detects batteries
 3. `keycard-service` authenticates user
 4. `vehicle-service` transitions to ready-to-drive
-5. `scootui` displays status
+5. `scootui-qt` displays status
 
 ### Power Management Flow
 1. `vehicle-service` requests shutdown
