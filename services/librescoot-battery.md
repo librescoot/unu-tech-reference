@@ -433,4 +433,4 @@ LibreScoot battery-service maintains full Redis compatibility with original firm
 - [Electronic Components](../electronic/README.md) - PN7150 NFC reader details
 - [Redis Operations](../redis/README.md) - Battery hash fields
 - [States](../states/README.md) - Battery state definitions
-- [LibreScoot Services](librescoot-services.md) - Battery service details
+- [LibreScoot Services](README.md) - Service overview

@@ -123,4 +123,4 @@ make build-local  # Host
 
 - [Electronic Components](../electronic/README.md) — PN7150 and LP5662 hardware
 - [Redis Operations](../redis/README.md) — Keycard hash details
-- [LibreScoot Services](librescoot-services.md)
+- [LibreScoot Services](README.md)

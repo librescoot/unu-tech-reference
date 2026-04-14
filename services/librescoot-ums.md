@@ -139,6 +139,6 @@ make build-amd64  # AMD64
 
 ## Related Documentation
 
-- [LibreScoot Services](librescoot-services.md)
+- [LibreScoot Services](README.md)
 - [Settings Service](librescoot-settings.md)
 - [Update Service](librescoot-update.md)

@@ -461,4 +461,4 @@ redis-cli LPUSH scooter:governor powersave
 - [nRF Power Management](../nrf/power-management.md) - Hibernation details
 - [Redis Operations](../redis/README.md) - Power manager hash fields
 - [Vehicle States](../states/README.md) - How vehicle state affects power management
-- [LibreScoot Services](librescoot-services.md) - PM service details
+- [LibreScoot Services](README.md) - Service overview

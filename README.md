@@ -76,7 +76,7 @@ LibreScoot provides open-source replacement firmware for unu Scooter Pro systems
 - **Update Services**: OTA updates, version tracking
 - **Communication Services**: nRF52 UART protocol
 
-For complete LibreScoot service documentation, see [LibreScoot Services](services/librescoot-services.md).
+For complete LibreScoot service documentation, see [LibreScoot Services](services/README.md).
 
 ## System States
 

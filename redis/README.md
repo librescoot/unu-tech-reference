@@ -482,9 +482,9 @@ LibreScoot adds per-component update tracking:
 | error-message:mdb | string | MDB error message | "" |
 | error-message:dbc | string | DBC error message | "" |
 
-**Update status values:** `idle`, `downloading`, `installing`, `rebooting`, `error`
+**Update status values:** `idle`, `downloading`, `preparing`, `installing`, `pending-reboot`, `error`
 
-See [update-service documentation](../services/librescoot-services.md#update-service) for details.
+See [update-service documentation](../services/librescoot-update.md) for details.
 
 ### Version Information - LibreScoot Only
 

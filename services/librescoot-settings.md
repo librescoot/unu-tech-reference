@@ -416,6 +416,6 @@ This is a LibreScoot-only service. Benefits:
 ## Related Documentation
 
 - [Redis Operations](../redis/README.md) - Settings hash structure
-- [LibreScoot Services](librescoot-services.md) - How other services use settings
+- [LibreScoot Services](README.md) - Service overview
 - [Update Service](librescoot-update.md) - Update channel configuration
 - [Alarm Service](librescoot-alarm.md) - Alarm settings

@@ -573,6 +573,6 @@ sudo cp lsc /usr/bin/
 ## Related Documentation
 
 - [Redis Interface](../redis/README.md) - Redis hashes, lists, and channels
-- [LibreScoot Services](../services/librescoot-services.md) - Service architecture
+- [LibreScoot Services](../services/README.md) - Service architecture
 - [Settings Service](../services/librescoot-settings.md) - Configuration management
-- [OTA Updates](../services/librescoot-services.md#update-service) - Update system
+- [OTA Updates](../services/librescoot-update.md) - Update system

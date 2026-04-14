@@ -513,6 +513,6 @@ LibreScoot vehicle-service integrates with:
 
 - [Vehicle States](../states/README.md) - Complete state machine documentation
 - [Redis Operations](../redis/README.md) - Redis protocol and data structures
-- [LibreScoot Services Overview](librescoot-services.md) - All LibreScoot services
+- [LibreScoot Services Overview](README.md) - All LibreScoot services
 - [i.MX PWM LED kernel module](https://github.com/unumotors/kernel-module-imx-pwm-led) - LED hardware interface
 

@@ -363,4 +363,4 @@ The alarm service is a LibreScoot-only feature providing:
 - [BMX055 Datasheet](../electronic/README.md) - Accelerometer/gyroscope specifications
 - [Redis Operations](../redis/README.md) - Alarm hash fields
 - [Vehicle States](../states/README.md) - How vehicle state affects alarm arming
-- [LibreScoot Services](librescoot-services.md) - Complete service overview
+- [LibreScoot Services](README.md) - Complete service overview
