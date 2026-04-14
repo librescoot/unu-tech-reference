@@ -11,13 +11,17 @@ Usage of battery-service:
   -battery1-active
         Enable battery 1 as active in addition to battery 0 (default: inactive)
   -dangerously-ignore-seatbox
-        Keep active batteries active when seatbox opens (DANGEROUS)
+        Keep active batteries active when seatbox opens, suppress all seatbox events (DANGEROUS, legacy)
+  -keep-active-on-seatbox-open
+        Keep a running battery active across seatbox open, but let seatbox events flow normally so asleep batteries go through the wake-up cycle and newly inserted batteries are detected without delay
   -debug
         Enable debug logging for detailed NCI/DATA messages
   -device0 string
         Battery 0 NFC device (default "/dev/pn5xx_i2c0")
   -device1 string
         Battery 1 NFC device (default "/dev/pn5xx_i2c1")
+  -disable-battery1
+        Disable battery 1 reader entirely
   -heartbeat-timeout uint
         Heartbeat timeout for standby mode in seconds (default 40)
   -log int
@@ -32,8 +36,6 @@ Usage of battery-service:
         Redis server port (default 6379)
   -redis-server string
         Redis server address (default "127.0.0.1")
-  -test-main-power
-        Enable main power test mode
   -version
         Show version information
 ```

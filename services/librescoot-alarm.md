@@ -20,7 +20,7 @@ LibreScoot alarm-service v1.0.0+
 --seatbox-trigger=true         Trigger alarm on unauthorized seatbox opening
 --hair-trigger=false           Enable hair trigger mode (immediate short alarm on first motion)
 --hair-trigger-duration=3      Hair trigger alarm duration in seconds
---l1-cooldown=15               Level 1 cooldown duration in seconds
+--l1-cooldown=5                Level 1 cooldown duration in seconds
 --version                      Print version and exit
 ```
 
@@ -97,7 +97,7 @@ The alarm service implements an 8-state finite state machine:
 ```
 init → waiting_enabled → disarmed → delay_armed (5s) → armed
                                          ↑                ↓ motion detected
-                                         |        trigger_level_1_wait (15s cooldown)
+                                         |        trigger_level_1_wait (5s cooldown, configurable)
                                          |                ↓
                                          |        trigger_level_1 (5s check)
                                          |                ↓ major movement
@@ -112,7 +112,7 @@ init → waiting_enabled → disarmed → delay_armed (5s) → armed
 - **disarmed**: Alarm enabled but vehicle not in stand-by
 - **delay_armed**: 5-second delay before arming (allows user to leave)
 - **armed**: Armed and monitoring for motion
-- **trigger_level_1_wait**: 15-second cooldown after motion detected (with hair trigger: immediate short alarm)
+- **trigger_level_1_wait**: Cooldown after motion detected (default 5s, configurable via `--l1-cooldown`; with hair trigger: immediate short alarm)
 - **trigger_level_1**: 5-second check for continued movement
 - **trigger_level_2**: Full alarm activated (horn + hazards, 50s duration, max 4 cycles)
 
@@ -348,9 +348,9 @@ Use `journalctl -u alarm-service` (or your systemd unit name) to view logs.
 - **Horn control** - Via vehicle service or dedicated GPIO
 - **Blinker control** - Via vehicle service LED system
 
-## Differences from unu Firmware
+## LibreScoot Feature
 
-This is a **new LibreScoot feature** not present in original unu firmware. The alarm service provides:
+The alarm service is a LibreScoot-only feature providing:
 
 - Motion-based theft detection
 - Multi-level alarm system

@@ -2,9 +2,7 @@
 
 ## Description
 
-The settings service is a **new LibreScoot service** that provides bidirectional synchronization between Redis and persistent TOML configuration files. It enables persistent storage of scooter settings across reboots and provides automatic network configuration management.
-
-This service has **no equivalent in unu firmware**.
+The settings service is a LibreScoot-only service that provides bidirectional synchronization between Redis and persistent TOML configuration files. It enables persistent storage of scooter settings across reboots and provides automatic network configuration management.
 
 ## Version
 
@@ -13,7 +11,11 @@ LibreScoot settings-service v1.0.0+
 ## Command-Line Options
 
 ```
-REDIS_ADDR=localhost:6379    Redis server address (environment variable)
+REDIS_ADDR=localhost:6379             Redis server address (environment variable)
+-settings-file <path>                 Path to settings TOML file (default: /data/settings.toml)
+-wireguard-config-dir <path>          Path to WireGuard config directory (default: /data/wireguard)
+-schema <path>                        Path to settings schema JSON (default: /usr/share/settings-service/settings.schema.json)
+-version                              Print version and exit
 ```
 
 ## Redis Operations
@@ -45,10 +47,12 @@ Settings are organized by section. Examples:
 - `alarm.hairtrigger-duration` - Hair trigger alarm duration in seconds
 - `alarm.l1-cooldown` - Level 1 cooldown duration in seconds
 
-**Battery settings:**
-- `battery.ignore-seatbox` - Ignore seatbox state for battery management ("true"/"false")
-
 - `scooter.max-voltage-delta` - Maximum voltage difference between batteries in mV before dual battery activation is refused (default: 1000; 0 to disable)
+- `scooter.battery-ignores-seatbox` - Runtime override of `--dangerously-ignore-seatbox` (default: false)
+- `scooter.battery-keep-active-on-seatbox-open` - Keep active battery on across seatbox opens (default: false)
+- `scooter.dual-battery` - Enable dual battery mode (default: false)
+- `scooter.dbc-blinker-led` - Blink DBC boot LED with blinkers ("enabled"/"disabled"; default: "disabled")
+- `scooter.enable-horn` - Horn enable mode ("true"/"false"/"in-drive"; default: "true")
 
 **Cellular settings:**
 - `cellular.apn` - Cellular APN for data connection
@@ -57,7 +61,7 @@ Settings are organized by section. Examples:
 - `hibernation-timer` - Hibernation timeout in seconds (0=disabled)
 
 **Scooter settings:**
-- `scooter.auto-standby-seconds` - Auto-lock timeout when parked in seconds (default: 900 = 15 minutes; 0=disabled; max 3600). The last 60 s are shown as a cancellable countdown on the dashboard; any user input (brake, kickstand, seatbox button) resets the timer.
+- `scooter.auto-standby-seconds` - Auto-lock timeout when parked in seconds (default: 0 = disabled; max 3600). The last 60 s are shown as a cancellable countdown on the dashboard; any user input (brake, kickstand, seatbox button) resets the timer.
 - `scooter.brake-hibernation` - Enable brake lever hibernation ("enabled"/"disabled")
 
 **Update settings:**
@@ -65,14 +69,15 @@ Settings are organized by section. Examples:
 - `updates.mdb.check-interval` - Update check interval as Go duration ("6h", "24h", "never")
 - `updates.mdb.method` - Update method (full/delta)
 - `updates.mdb.dry-run` - Dry-run mode ("true"/"false")
-- `updates.mdb.github-releases-url` - GitHub Releases API endpoint
+- `updates.mdb.releases-url` - Releases API endpoint
 - `updates.mdb.last-check-time` - Last check timestamp (ISO8601)
 - `updates.dbc.channel` - DBC update channel
 - `updates.dbc.check-interval` - DBC update check interval as Go duration
 - `updates.dbc.method` - DBC update method (full/delta)
 - `updates.dbc.dry-run` - DBC dry-run mode
-- `updates.dbc.github-releases-url` - DBC GitHub Releases API endpoint
+- `updates.dbc.releases-url` - DBC releases API endpoint
 - `updates.dbc.last-check-time` - DBC last check timestamp
+- `updates.mdb.orchestrate-dbc` - Auto power-on DBC and trigger update check when newer DBC release available (default: false)
 
 **Dashboard settings:**
 - `dashboard.show-raw-speed` - Show raw uncorrected speed ("true"/"false")
@@ -81,18 +86,27 @@ Settings are organized by section. Examples:
 - `dashboard.show-bluetooth` - Bluetooth indicator visibility
 - `dashboard.show-cloud` - Cloud indicator visibility
 - `dashboard.show-internet` - Internet indicator visibility
-- `dashboard.battery-display-mode` - Battery display mode (percentage/range)
-- `dashboard.blinker-style` - Blinker indicator style (default/overlay)
+- `dashboard.blinker-style` - Blinker indicator style (icon/overlay)
 - `dashboard.language` - UI language (en, de, ...)
 - `dashboard.map.type` - Map tile source (online/offline)
 - `dashboard.map.render-mode` - Map rendering mode (vector/raster)
 - `dashboard.theme` - UI theme (light/dark/auto)
 - `dashboard.mode` - Default screen mode (speedometer/navigation)
 - `dashboard.valhalla-url` - Valhalla routing service endpoint
+- `dashboard.app` - Display app to launch on DBC boot ("scootui-qt"/"scootui-tui"; default: "scootui-qt")
+- `dashboard.power-display-mode` - Power display unit (kw/amps; default: "kw")
+- `dashboard.battery-display-mode` - Battery display mode (percentage/range)
+- `dashboard.hop-on-combo` - Custom hop-on unlock combo, pipe-delimited tokens (empty = no combo)
+- `dashboard.maps.check-for-updates` - Auto-check for map updates weekly when online (default: true)
+- `dashboard.maps.auto-download` - Auto-download map updates (default: false)
+- `dashboard.maps-available` - Offline map tiles available (system-managed; default: false)
+- `dashboard.navigation-available` - Full navigation available (system-managed; default: false)
 
 **ECU settings:**
 - `engine-ecu.kers` - KERS enable/disable ("enabled"/"disabled"; default: "enabled")
-- `engine-ecu.kers-power` - KERS regenerative braking current in mA (default: 10000)
+- `engine-ecu.kers-power` - KERS regenerative braking current in mA
+- `engine-ecu.boost` - Enable motor boost mode (default: false)
+- `engine-ecu.kers-power-dual` - KERS current in mA when both batteries active
 
 ## File Operations
 
@@ -110,15 +124,13 @@ hairtrigger = "false"
 hairtrigger-duration = "3"
 l1-cooldown = "15"
 
-[battery]
-ignore-seatbox = "false"
-
 [cellular]
 apn = "internet.provider.com"
 
 [scooter]
-auto-standby-seconds = "900"
+auto-standby-seconds = "0"
 brake-hibernation = "enabled"
+battery-ignores-seatbox = "false"
 
 [dashboard]
 theme = "dark"
@@ -204,6 +216,10 @@ On startup, if `/data/settings.toml` exists:
 5. Each setting published to `settings` channel
 
 This ensures Redis reflects the persistent configuration.
+
+### Key: `settings:schema`
+
+On startup, the service publishes the raw schema JSON to this string key so other services can introspect available settings and their metadata.
 
 #### APN Special Handling
 
@@ -387,17 +403,15 @@ Services should:
 3. Apply new settings immediately
 4. Fall back to defaults if setting not present
 
-## Differences from unu Firmware
+## LibreScoot Feature
 
-This is a **new LibreScoot service** with no unu equivalent. Benefits:
+This is a LibreScoot-only service. Benefits:
 
 - **Persistent configuration:** Settings survive reboots
 - **Easy backup:** Single TOML file contains all settings
 - **Network management:** Automatic APN and WireGuard configuration
 - **Flexibility:** Any service can add new settings
 - **No cloud dependency:** All configuration is local
-
-unu firmware stores some settings in Redis but they're lost on reboot, requiring cloud sync.
 
 ## Related Documentation
 

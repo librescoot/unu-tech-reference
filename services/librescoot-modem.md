@@ -8,23 +8,25 @@ The modem service manages the cellular modem (SimCom SIM7100E) for internet conn
 
 ```
 Usage of modem-service:
+  -debug
+        Enable debug logging
   -gpsd-server string
         GPSD server address (default "localhost:2947")
   -interface string
         Network interface to monitor (default "wwan0")
   -internet-check-time duration
         Internet check interval (default 30s)
-  -polling-time duration
-        Polling interval (default 5s) [Note: Currently unused in code]
   -redis-url string
         Redis URL (default "redis://127.0.0.1:6379")
+  -supl-server string
+        SUPL server for A-GPS (default "supl.google.com:7275")
+  -version
+        Print version and exit
 ```
 
 **Active polling intervals:**
 - Modem health checks: Controlled by `-internet-check-time` (default: 30s)
 - GPS updates: Fixed at 1 second (GPSUpdateInterval constant)
-
-Note: The `-polling-time` option is defined but not currently used by the service.
 
 ## Redis Operations
 

@@ -4,7 +4,7 @@ This directory contains documentation for each system service running on the sco
 
 ## LibreScoot Services
 
-LibreScoot provides open-source replacement services for the unu Scooter Pro. For a comprehensive overview of all LibreScoot services, their features, and architecture, see **[LibreScoot Services Documentation](librescoot-services.md)**.
+LibreScoot provides the open-source services that run on the scooter. For an overview of all LibreScoot services, their features, and architecture, see **[LibreScoot Services Documentation](librescoot-services.md)**.
 
 ## LibreScoot Service Overview
 
@@ -17,10 +17,11 @@ LibreScoot provides open-source replacement services for the unu Scooter Pro. Fo
 | [librescoot-keycard](librescoot-keycard.md) | NFC keycard authentication | `keycard` | PN7150 (I2C), LP5662 LED (I2C), Redis |
 | [librescoot-modem](librescoot-modem.md) | Cellular and GPS | `internet`, `gps`, `modem` | ModemManager, gpsd, Redis |
 | [librescoot-pm](librescoot-pm.md) | System power management | `power-manager` | systemd-logind (D-Bus), Redis |
-| [librescoot-scootui](librescoot-scootui.md) | Primary user interface | `dashboard` | All services (via Redis) |
+| [librescoot-scootui](librescoot-scootui.md) | Dashboard UI (Qt/QML) | `dashboard` | All services (via Redis) |
 | [librescoot-alarm](librescoot-alarm.md) | Motion-based alarm system | `alarm`, `bmx` | BMX055 (I2C), Redis |
 | [librescoot-settings](librescoot-settings.md) | Persistent settings sync | `settings` | NetworkManager, Redis |
 | [librescoot-ums](librescoot-ums.md) | USB Mass Storage / file transfer | `usb` | USB gadget (g_ether/g_mass_storage), Redis |
+| [librescoot-update](librescoot-update.md) | OTA update management (MDB + DBC) | `ota` | Mender, Redis, release index |
 
 ## Service Architecture
 
@@ -39,6 +40,7 @@ graph TB
     ALM["alarm-service<br/>Motion Alarm"]
     SET["settings-service<br/>Config Sync"]
     UMS["ums-service<br/>USB Mass Storage"]
+    UPD["update-service<br/>OTA Updates"]
 
     LOGIND["systemd-logind<br/>D-Bus"]
     NRF["nRF52840<br/>UART"]
@@ -62,6 +64,7 @@ graph TB
     ALM <--> Redis
     SET <--> Redis
     UMS <--> Redis
+    UPD <--> Redis
 
     PM <--> LOGIND
     BT <--> NRF

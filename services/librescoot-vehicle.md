@@ -23,14 +23,20 @@ Usage of vehicle-service:
 - `brake:left` - Left brake state ("on", "off")
 - `brake:right` - Right brake state ("on", "off")
 - `blinker:state` - Blinker active state ("on", "off")
+- `blinker:start_nanos` - Monotonic start time of current blinker cycle (for UI sync)
 - `blinker:switch` - Blinker switch position ("left", "right", "both", "off")
 - `horn:button` - Horn button state ("on", "off")
 - `seatbox:button` - Seatbox button state ("on", "off")
 - `seatbox:lock` - Seatbox lock state ("open", "closed")
 - `kickstand` - Kickstand position ("up", "down")
-- `main-power` - Main power state ("on", "off")
 - `handlebar:position` - Handlebar position ("on-place", "off-place")
 - `handlebar:lock-sensor` - Handlebar lock sensor ("locked", "unlocked")
+- `hop-on-active` - Hop-on mode active ("true", "false"); suppressed in silent entries
+- `dbc-updating` - DBC update in progress flag
+- `dashboard:power` - Dashboard power state ("on", "off")
+- `update:status` - Aggregated update status surface for UI
+- `auto-standby-remaining` - Seconds remaining until auto-standby (absent when timer not running)
+- `auto-standby-deadline` - Unix timestamp of auto-standby deadline (absent when timer not running)
 
 **Published channel:** `vehicle`
 
@@ -40,6 +46,10 @@ Usage of vehicle-service:
 - `scooter:seatbox` - Seatbox commands ("open")
 - `scooter:horn` - Horn commands ("on", "off")
 - `scooter:blinker` - Blinker commands ("left", "right", "both", "off")
+- `scooter:hop-on` - Hop-on mode commands:
+  - `engage` - Enter hop-on mode (LED cue, opportunistic steering lock, publishes `hop-on-active`)
+  - `engage-silent` - Enter hop-on silently (learning mode: no LED cue, no steering lock, no publish)
+  - `release` - Exit hop-on mode
 - `scooter:led:cue` - LED cue playback commands (integer cue index)
 - `scooter:led:fade` - LED fade playback commands ("channel:fadeIndex")
 - `scooter:update` - Update commands ("start", "complete", "start-dbc", "complete-dbc", "cycle-dashboard-power")
@@ -80,23 +90,26 @@ The service implements the canonical vehicle state machine with these states:
 - `waiting-seatbox` - Waiting for seatbox to close
 - `shutting-down` - Transitioning to power down (~4s)
 - `updating` - OTA firmware update in progress
-- `waiting-hibernation` - Manual hibernation sequence (15s initial hold, then 30s confirmation timeout)
-- `waiting-hibernation-advanced` - Deprecated (unused in current implementation)
-- `waiting-hibernation-seatbox` - Hibernation confirmation phase with seatbox open notification
-- `waiting-hibernation-confirm` - Final 3-second non-abortable hibernation confirmation
+- `hibernation` - Manual hibernation super-state (entered via brake-lever hold from `parked`)
+- `hibernation-initial-hold` - 15-second initial brake hold phase
+- `hibernation-awaiting-confirm` - Confirmation phase (30s timeout after brakes released; continuous hold also auto-confirms)
+- `hibernation-seatbox` - Confirmation blocked by open seatbox; prompts user to close it
+- `hibernation-confirm` - Final 3-second non-abortable hibernation confirmation
+- `hop-on` - Hop-on/hop-off mode (rider briefly off, motor disabled, optional steering lock)
 
 ### Hibernation State Machine
 
 The manual hibernation sequence works as follows:
 
-1. **Idle** → **Initial Hold** (15s): Both brakes pressed continuously
-2. **Initial Hold** → **Waiting Hibernation**: After 15s, enter confirmation phase
-3. **Waiting Hibernation**: User can release brakes or keep holding
+1. **parked** → **hibernation-initial-hold** (15s): Both brakes pressed continuously
+2. **hibernation-initial-hold** → **hibernation-awaiting-confirm**: After 15s, enter confirmation phase
+3. **hibernation-awaiting-confirm**: User can release brakes or keep holding
    - If brakes released: 30s timeout starts (can be reset by touching brakes)
    - If brakes held continuously for 30s total: auto-confirm (skip seatbox check)
    - If brakes re-pressed after release: hold for 15s to auto-confirm
 4. **Keycard tap** or **continuous hold timeout**: Check safety conditions (kickstand down, seatbox closed)
-5. **Waiting Hibernation Confirm**: 3-second final countdown before hibernation
+   - If seatbox open: transition to `hibernation-seatbox` and wait for user to close it
+5. **hibernation-confirm**: 3-second final countdown before hibernation
 
 See [States Documentation](../states/README.md) for complete state machine.
 
@@ -503,17 +516,3 @@ LibreScoot vehicle-service integrates with:
 - [LibreScoot Services Overview](librescoot-services.md) - All LibreScoot services
 - [i.MX PWM LED kernel module](https://github.com/unumotors/kernel-module-imx-pwm-led) - LED hardware interface
 
-## Source Code
-
-- **Repository:** `/home/teal/src/librescoot/vehicle-service/`
-- **Language:** Go 1.21+
-- **License:** CC BY-NC-SA 4.0 (Creative Commons Attribution-NonCommercial-ShareAlike 4.0)
-- **Main files:**
-  - `cmd/vehicle-service/main.go` - Entry point
-  - `internal/core/system.go` - Main system logic
-  - `internal/core/state_transitions.go` - State machine
-  - `internal/core/redis_handlers.go` - Redis command handlers
-  - `internal/messaging/redis.go` - Redis client
-  - `internal/hardware/io.go` - GPIO operations
-  - `internal/hardware/leds.go` - LED control
-  - `internal/hardware/constants.go` - Hardware constants

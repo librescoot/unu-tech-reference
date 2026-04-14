@@ -13,7 +13,8 @@ The Bluetooth service provides the BLE (Bluetooth Low Energy) interface for the 
 --redis-pass string   Redis password (default "")
 --redis-db int        Redis database number (default 0)
 --log-level int       Log level (0=none, 1=error, 2=warning, 3=info, 4=debug) (default 3)
---ltc-toggle          Enable LTC4020 toggle on float/bulk charge
+--firmware-dir string  Directory containing nRF firmware files (default "/usr/share/nrf-fw")
+--auto-update          Automatically update nRF firmware on startup if newer version available (default true)
 ```
 
 ## Redis Operations
@@ -22,7 +23,6 @@ The Bluetooth service provides the BLE (Bluetooth Low Energy) interface for the 
 
 **Fields written:**
 - `mac-address` - Bluetooth MAC address (received from nRF52)
-- `nrf-fw-version` - nRF52 firmware version string
 - `connection-status` - BLE connection status string
 - `pin-code` - Temporary pairing PIN code (when pairing is active)
 
@@ -77,12 +77,15 @@ The Bluetooth service provides the BLE (Bluetooth Low Energy) interface for the 
 ### Hash: `system`
 
 **Fields written:**
-- `mdb-version` - MDB firmware version string (read from this hash, forwarded to nRF52)
+- `nrf-fw-version` - nRF52 firmware version string (received from nRF52 during initialization)
+
+**Fields read (not written by this service):**
+- `mdb-version` - MDB firmware version string (forwarded to nRF52 when it changes)
 
 ### Hash: `engine-ecu`
 
 **Fields written:**
-- `odometer` - Odometer/mileage value in km (received from nRF52)
+- `odometer` - Odometer/mileage value in meters (received from nRF52)
 
 ### Hash: `navigation`
 
@@ -92,7 +95,7 @@ The Bluetooth service provides the BLE (Bluetooth Low Energy) interface for the 
 - `destination` - Legacy combined coordinates "lat,lon" (from extended command `nav:dest` or BLE event `navi:start`)
 - `address` - Destination name/address (from extended command `nav:dest lat,lon,name`)
 
-**Fields deleted:** All above fields cleared by `nav:clear` extended command.
+**Fields cleared:** `nav:clear` sets all navigation fields (latitude, longitude, destination, address, timestamp) to empty strings (does not HDEL).
 
 **Published channel:** `navigation` (when fields change)
 
@@ -115,6 +118,13 @@ The Bluetooth service provides the BLE (Bluetooth Low Energy) interface for the 
 - `mode` - USB mode ("ums" or "normal", from extended command `usb:ums`/`usb:normal` or legacy BLE events)
 
 **Published channel:** `usb` (when mode field changes)
+
+### Hash: `scooter` (written)
+
+**Fields written:**
+- `temperature` - External temperature in tenths of °C (from nRF vehicle state message)
+
+**Published channel:** `scooter`
 
 ### Hash: `dashboard`
 
@@ -142,6 +152,12 @@ The service consumes commands from:
 - `delete-bond` - Delete current bond
 - `delete-all-bonds` - Delete all bonded devices
 - `remove` - Remove pairing PIN from display
+- `ltc-enable` - Enable LTC4020 aux charger (safe mode)
+- `ltc-disable` - Disable LTC4020 aux charger
+- `ltc-force-enable` - Force-enable LTC4020 aux charger (bypasses safety check)
+- `ltc-force-disable` - Force-disable LTC4020 aux charger
+- `ltc-status` - Query LTC4020 charger status
+- `firmware-update` - Trigger immediate nRF firmware update
 
 ### Lists produced (LPUSH)
 
@@ -288,6 +304,7 @@ The service handles various USOCK message types from the nRF52. See [nRF UART Pr
 - `0x0040` - Auxiliary battery data
 - `0x0060` - CB battery detailed information (MAX1730X fuel gauge data)
 - `0x0100` - Power mux status
+- `0x0120` - LTC4020 aux charger control (bidirectional)
 - `0x0200` - Accelerometer wake-up events (suspend/hibernation)
 - `0x0400` - Extended commands (string commands from phone app)
 - `0x0800` - Power management (hibernation requests from nRF)
@@ -305,6 +322,7 @@ The service handles various USOCK message types from the nRF52. See [nRF UART Pr
 - `0x0800` - Power management state updates
 - `0x00C0` - Data stream enable/disable/sync
 - `0x00E0` - Battery status (presence, charge, cycle count for both slots)
+- `0x0120` - LTC4020 aux charger control (bidirectional)
 - `0xA000` - Request BLE firmware version
 - `0xA040` - Scooter info (firmware version, mileage, navigation active, UMS status)
 - `0xA080` - Request BLE MAC address, remove PIN
@@ -357,7 +375,7 @@ Extended commands arrive as string payloads via the EXTENDED_COMMAND BLE charact
 - `keycard:list`, `keycard:count`, `keycard:add:<uid>`, `keycard:remove:<uid>` → forwarded to `scooter:keycard` Redis list; response returned asynchronously via `keycard` hash `command-result` field
 
 **Time:**
-- `time:set <unix_timestamp>` → sets system clock via `Settimeofday` syscall
+- `time:set <unix_timestamp>` → sets system clock via `timedatectl set-time`
 
 **Configuration:**
 - `config:apn <value>` → `HSET settings cellular.apn <value>`
@@ -375,6 +393,15 @@ Extended commands arrive as string payloads via the EXTENDED_COMMAND BLE charact
 - `alarm:stop` → `LPUSH scooter:alarm stop`
 
 The alarm-service processes the command and the response (`alarm:ok`) is returned via EXTENDED_RESPONSE (0x0402).
+
+**LTC4020 aux charger control:**
+- `ltc:enable` — safe-enable LTC4020 charger (rejected if unsafe)
+- `ltc:disable` — disable LTC4020 charger
+- `ltc:force-enable` — force-enable LTC4020 charger (bypasses safety check)
+- `ltc:force-disable` — force-disable LTC4020 charger
+- `ltc:status` — query charger state; responds with `ltc:status:on` or `ltc:status:off`
+
+Response codes: `ltc:ok` (success), `ltc:error:unsafe` (rejected as unsafe), `ltc:error:invalid` (invalid state).
 
 **Status queries (read-only):**
 - `status:maps-available` → reads `dashboard:maps-available` (set by scootui-qt)

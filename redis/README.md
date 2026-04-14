@@ -523,7 +523,7 @@ Each entry contains:
 
 ## Command Channels
 
-The scooter accepts control commands via Redis list-based channels using `LPUSH`. Commands are queued and processed by the unu-vehicle service.
+The scooter accepts control commands via Redis list-based channels using `LPUSH`. Commands are queued and processed by the vehicle service.
 
 ### Scooter State Control (`scooter:state`)
 

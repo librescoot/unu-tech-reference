@@ -1,10 +1,10 @@
 # LibreScoot Services
 
-LibreScoot is an open-source replacement firmware for unu Scooter Pro systems. This document describes the services that comprise the LibreScoot platform.
+LibreScoot is an open-source firmware for unu Scooter Pro hardware. This document describes the services that comprise the LibreScoot platform.
 
 ## Overview
 
-LibreScoot services replace the proprietary unu services with open-source alternatives that provide enhanced functionality, better configurability, and community-driven development. All services communicate via Redis and follow a consistent architecture pattern.
+All LibreScoot services communicate via Redis and follow a consistent architecture pattern.
 
 ## Service Catalog
 
@@ -121,9 +121,8 @@ NFC keycard authentication system.
 **Configuration:**
 - NFC device: `/dev/pn5xx_i2c2`
 - LED device: `/dev/i2c-2`
-- Authorized UIDs: `/etc/reunu-keycard/authorized_uids.txt`
-- Master UIDs: `/etc/reunu-keycard/master_uids.txt`
-- Block list: `/home/root/blocklist`
+- Authorized UIDs: `/data/keycard/authorized_uids.txt`
+- Master UIDs: `/data/keycard/master_uids.txt`
 
 **Redis Interface:**
 - Writes: `keycard` hash
@@ -413,26 +412,6 @@ All services are managed by systemd:
 - Service files in `/etc/systemd/system/`
 - Started via `systemctl start <service>`
 - Logs via `journalctl -u <service>`
-
-## LibreScoot vs unu Services Mapping
-
-| LibreScoot Service | Replaces unu Service | Notes |
-|--------------------|---------------------|-------|
-| alarm-service | (new feature) | Motion-based alarm not in original unu |
-| battery-service | unu-battery | Enhanced with more configuration options |
-| bluetooth-service | unu-bluetooth | USOCK protocol implementation |
-| dbc-backlight-service | (dashboard component) | Separate service for adaptive backlight |
-| dbc-illumination-service | (dashboard component) | OPT3001 sensor monitoring |
-| ecu-service | unu-engine-ecu | Added Votol ECU support |
-| keycard-service | unu-keycard | Enhanced with block list support |
-| modem-service | modem-service | Enhanced GPS integration via gpsd and multi-strategy recovery |
-| pm-service | unu-pm | Enhanced with inhibitor management |
-| settings-service | (new feature) | TOML-based persistent configuration |
-| ums-service | (new feature) | USB gadget mode switching and file transfer |
-| vehicle-service | unu-vehicle | Core vehicle state machine |
-| update-service | unu-activation (partial) | Component-specific OTA updates |
-| version-service | (new feature) | Version tracking per component |
-| teal-nrf52-service | (nRF communication) | Low-level UART protocol handler |
 
 ## License
 

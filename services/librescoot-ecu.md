@@ -53,7 +53,8 @@ Usage of ecu-service:
 
 **Fields read:**
 - `engine-ecu.kers` - KERS enable/disable ("enabled"/"disabled"; default: enabled)
-- `engine-ecu.kers-power` - KERS regenerative braking current in mA (default: 10000)
+- `engine-ecu.kers-power` - KERS regenerative braking current in mA for single-battery operation (default: 10000)
+- `engine-ecu.kers-power-dual` - KERS regenerative braking current in mA when both batteries are active (optional; when unset, `kers-power` is used for both cases)
 
 Loaded on startup; updated live via `settings` pub/sub.
 
@@ -318,7 +319,7 @@ Use `journalctl -u ecu-service` to view logs.
 ### When to Use Each ECU Type
 
 - Use `-ecu_type bosch` for:
-  - Bosch motor controllers (common in Unu scooters)
+  - Bosch motor controllers
   - When KERS control via CAN is required
   - When throttle state monitoring is needed
 

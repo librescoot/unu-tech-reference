@@ -1,244 +1,221 @@
-# librescoot-scootui (scootui / scootui-qt)
+# librescoot-scootui (scootui-qt)
+
+> The original Flutter/Dart scootui is deprecated and replaced by this Qt/QML version.
 
 ## Description
 
 ScootUI is the primary user interface for LibreScoot. It runs on the DBC (Dashboard Computer) and communicates with all LibreScoot services via Redis.
 
-There are two implementations:
-
-### scootui-qt (Qt/QML)
-Native Qt 6 / QML application targeting the i.MX6-based DBC. Current production target.
-
-- Qt 6 / QML — UI framework
-- QMapLibre — vector map rendering
-- Valhalla — routing engine
-- Redis — real-time data via MDB
-- CMake — build system
-
-### scootui (Flutter)
-Original implementation in Flutter/Dart. Bloc/Cubit state management, Flutter Map, MBTiles for offline maps.
-
-Both expose the same Redis interface and `settings` keys.
-
-ScootUI replaces the proprietary unu-dashboard-ui with an open-source, community-developed interface.
+- **Qt 6 / QML** — UI framework
+- **QMapLibre** — Vector map rendering
+- **Valhalla** — Routing engine
+- **hiredis** — Redis client (async pub/sub + worker thread for polling)
+- **CMake** — Build system
 
 ## Features
 
 ### Real-time Telemetry Display
 - Speed (raw or wheel-corrected), power output, battery levels
-- Odometer, trip meter
-- GPS status, connectivity indicators
+- Odometer, trip meter, GPS status, connectivity indicators
 - System warnings and fault codes
 
-### Multiple View Modes
-- **Cluster View** - Speedometer and vehicle status dashboard
-- **Map View** - Navigation with turn-by-turn directions
-- **Destination Selection** - Address input and route planning
-- **OTA Update Interface** - System update progress and control
+### View Modes
+- **Cluster** — Speedometer and vehicle status
+- **Map** — 3D-tilted navigation with turn-by-turn directions
+- **Destination** — Saved locations and destination input
+- **Navigation Setup** — Route preview and confirmation
+- **OTA Update** — System update progress and control
 
 ### Navigation
-- Online and offline map support (MBTiles)
-- Integration with BRouter for routing
-- Turn-by-turn directions
-- GPS tracking
+- Offline vector map support (MBTiles via QMapLibre)
+- Online map tiles (CartoDB) as alternative
+- Valhalla routing (on-device or remote)
+- Speed limit indicators from vector tiles
+- Auto-rotating map with heading tracking
 
-### System Integration
-- Connects to Redis-based MDB (Main Driver Board)
-- Monitors battery, engine, GPS, Bluetooth, and all vehicle systems
-- OTA update support for MDB and DBC
+### Other
 - Alarm status display
-- Modem health monitoring
+- Hop-on / hop-off combo lock screen
+- Light and dark themes with auto-switching
+- Configurable blinker overlay styles
+- Multi-language support
 
-### Adaptable Design
-- Light and dark themes
-- Configurable dashboard elements
+## Build
 
-## Configuration
+### Desktop (simulator mode)
 
-ScootUI uses Redis for dynamic configuration. Settings are stored in the `settings` hash.
-
-### Dashboard Display Settings
-
-| Key | Values | Default | Description |
-|-----|--------|---------|-------------|
-| `dashboard.show-raw-speed` | `true`/`false` | `false` | Show ECU speed vs wheel-corrected |
-| `dashboard.show-gps` | `always`/`active-or-error`/`error`/`never` | `error` | GPS icon visibility |
-| `dashboard.show-bluetooth` | `always`/`active-or-error`/`error`/`never` | `active-or-error` | Bluetooth icon visibility |
-| `dashboard.show-cloud` | `always`/`active-or-error`/`error`/`never` | `error` | Cloud connection icon visibility |
-| `dashboard.show-internet` | `always`/`active-or-error`/`error`/`never` | `always` | Cellular icon visibility |
-
-### Map Settings
-
-| Key | Values | Default | Description |
-|-----|--------|---------|-------------|
-| `dashboard.map.type` | `online`/`offline` | `offline` | Map source (CartoDB online or local MBTiles) |
-| `dashboard.map.render-mode` | `vector`/`raster` | `raster` | Offline map rendering mode |
-
-**Examples:**
 ```bash
-# Show raw GPS speed
-redis-cli HSET settings dashboard.show-raw-speed true
-redis-cli PUBLISH settings dashboard.show-raw-speed
-
-# Always show GPS indicator
-redis-cli HSET settings dashboard.show-gps always
-redis-cli PUBLISH settings dashboard.show-gps
-
-# Switch to online maps
-redis-cli HSET settings dashboard.map.type online
-redis-cli PUBLISH settings dashboard.map.type
-
-# Use vector rendering for offline maps
-redis-cli HSET settings dashboard.map.render-mode vector
-redis-cli PUBLISH settings dashboard.map.render-mode
+./run-desktop.sh
 ```
+
+Or manually:
+
+```bash
+cmake -B build -DDESKTOP_MODE=ON -DCMAKE_BUILD_TYPE=Debug
+cmake --build build -j$(nproc)
+SCOOTUI_REDIS_HOST=none ./build/bin/scootui
+```
+
+`SCOOTUI_REDIS_HOST=none` disables Redis and activates the built-in simulator.
+
+### Target (cross-compile for i.MX6 armhf)
+
+```bash
+./cross-build.sh [Release|Debug]
+```
+
+Produces `deploy-armhf/` with binary, Qt plugins, and launcher. Deploy:
+
+```bash
+scp -r deploy-armhf/* target:/opt/scootui/
+ssh target /opt/scootui/run-scootui.sh
+```
+
+### Make shortcuts
+
+```bash
+make build    # Configure and build
+make run      # Build and run
+make clean    # Remove build directory
+```
+
+## Environment Variables
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `SCOOTUI_REDIS_HOST` | `192.168.7.1` | Redis host. `none` = simulator mode. Supports `host:port`. |
+| `SCOOTUI_RESOLUTION` | `480x480` | Display resolution (`WIDTHxHEIGHT`) |
+| `SCOOTUI_SETTINGS_PATH` | _(none)_ | Path to persistent settings file |
 
 ## Redis Operations
 
-### Subscriptions (SUBSCRIBE)
+### Subscriptions (pub/sub + periodic HGETALL)
 
-The dashboard subscribes to these channels:
-- `aux-battery`
-- `battery:0`, `battery:1`
-- `ble`
-- `cb-battery`
-- `dashboard`
-- `engine-ecu`
-- `gps`
-- `internet`
-- `navigation`
-- `navigation:coord`
-- `scooter`
-- `scooter-activation`
-- `settings`
-- `system`
-- `vehicle`
+| Channel | Store | Poll interval |
+|---------|-------|--------------|
+| `engine-ecu` | EngineStore | 200 ms |
+| `vehicle` | VehicleStore, AutoStandbyStore | 500–1000 ms |
+| `buttons` | VehicleStore, ShortcutMenuStore | event-driven |
+| `battery:0`, `battery:1` | BatteryStore | 30 s |
+| `gps` | GpsStore | 1 s |
+| `ble` | BluetoothStore | 5 s |
+| `internet` | InternetStore | 5 s |
+| `navigation` | NavigationStore | 5 s |
+| `settings` | SettingsStore | 5 s |
+| `ota` | OtaStore | 5 s |
+| `usb` | UsbStore | 5 s |
+| `speed-limit` | SpeedLimitStore | 5 s |
+| `cb-battery` | CbBatteryStore | 30 s |
+| `aux-battery` | AuxBatteryStore | 30 s |
+| `dashboard` | DashboardStore | 500 ms |
 
-### BLPOP Command Lists
-
-The dashboard uses BLPOP to read commands:
-- `scooter:dashboard-mode` - Mode control (speedometer/navigation/debug)
-- `scooter:navigation` - Navigation commands (never written by dashboard)
-- `scooter:state` - State commands (dashboard only writes "lock")
-
-### HGET/HGETALL Reads
-
-The dashboard reads from approximately 16 different Redis hashes. See [dashboard/REDIS.md](../dashboard/REDIS.md) for complete list.
+Additionally polled (no subscription): `system`, `version:mdb`, `version:dbc` (30 s).
 
 ### HSET Writes
 
-The dashboard writes to:
-- `dashboard ready` - Set to "true" after serial number read
-- `dashboard serial-number` - Hardware serial from sysfs
-- `dashboard mode` - Current display mode
-- `system dbc-version` - Version from /etc/os-release
-- `navigation status` - Navigation status updates
-- `scooter state` - Triggered by user actions
+| Hash | Field | Value | When |
+|------|-------|-------|------|
+| `dashboard` | `ready` | `true` | Startup and every Redis reconnect |
+| `dashboard` | `serial-number` | Hardware serial | Startup (if readable) |
+| `dashboard` | `backlight-enabled` | `true`/`false` | On backlight control |
+| `navigation` | `destination` | `lat,lon` | When destination is set |
+| `settings` | `dashboard.*` | user values | On settings changes via menu |
+| `usb` | `mode` | `normal`/`ums-by-dbc` | On USB mode change |
 
 ### LPUSH Commands
 
-The dashboard only pushes:
-- `LPUSH scooter:state lock` - On battery timeout notifications
+| List | Commands | Written by |
+|------|----------|-----------|
+| `scooter:blinker` | `left`, `right`, `both`, `off` | Blinker/hazard controls |
+| `scooter:hop-on` | `engage`, `engage-silent`, `release` | HopOnStore |
 
-See [dashboard/REDIS.md](../dashboard/REDIS.md) for complete Redis operations reference.
+### HDEL
 
-## Display Modes
+- `navigation destination`, `latitude`, `longitude`, `address`, `timestamp` — on destination clear
 
-- **speedometer** - Default mode showing speed and status
-- **navigation** - Map view with route guidance (vestigial, non-functional)
-- **debug** - Development diagnostics (partially broken)
+### LRANGE
 
-Activate debug mode:
-```bash
-LPUSH scooter:dashboard-mode debug
-```
+- `usb:log` (indices 0–19) — UMS transfer log, polled while `usb status` is `processing`
+
+## Settings
+
+Settings are stored in the `settings` Redis hash. Managed by settings-service.
+
+| Key | Values | Default | Description |
+|-----|--------|---------|-------------|
+| `dashboard.show-raw-speed` | `true`/`false` | `false` | Raw ECU speed vs wheel-corrected |
+| `dashboard.show-gps` | `always`/`active-or-error`/`error`/`never` | `error` | GPS icon visibility |
+| `dashboard.show-bluetooth` | `always`/`active-or-error`/`error`/`never` | `active-or-error` | Bluetooth icon |
+| `dashboard.show-cloud` | `always`/`active-or-error`/`error`/`never` | `error` | Cloud connection icon |
+| `dashboard.show-internet` | `always`/`active-or-error`/`error`/`never` | `always` | Cellular icon |
+| `dashboard.show-clock` | `true`/`false` | `true` | Clock visibility |
+| `dashboard.theme` | `light`/`dark`/`auto` | `auto` | UI theme |
+| `dashboard.blinker-style` | `icon`/`overlay` | `icon` | Blinker indicator style |
+| `dashboard.language` | `en`, `de`, … | `en` | UI language |
+| `dashboard.battery-display-mode` | `percentage`/`range` | `percentage` | Battery display |
+| `dashboard.power-display-mode` | `kw`/`amps` | `kw` | Power unit |
+| `dashboard.mode` | `speedometer`/`navigation` | `speedometer` | Default screen |
+| `dashboard.map.type` | `online`/`offline` | `offline` | Map source |
+| `dashboard.map.render-mode` | `vector`/`raster` | `raster` | Offline map rendering |
+| `dashboard.map.traffic-overlay` | `true`/`false` | `false` | Traffic overlay (online only) |
+| `dashboard.valhalla-url` | URL | `http://127.0.0.1:8002/` | Valhalla routing endpoint |
+| `dashboard.maps.check-for-updates` | `true`/`false` | `true` | Auto-check for map updates |
+| `dashboard.maps.auto-download` | `true`/`false` | `false` | Auto-download map updates |
+| `dashboard.hop-on-combo` | pipe-delimited tokens | _(empty)_ | Custom hop-on unlock combo |
 
 ## Hardware Interfaces
 
-### Display
+### Serial Number
 
-- Integrated display on Dashboard Controller (DBC)
-- Resolution and specs vary by hardware version
+Primary: `/sys/devices/soc0/serial_number`
 
-### System Files Read
+Fallback (OTP fuses): `/sys/fsl_otp/HW_OCOTP_CFG0` + `HW_OCOTP_CFG1`
 
-**Serial Number:**
-- `/sys/fsl_otp/HW_OCOTP_CFG0` - Hardware serial (hex)
-- `/sys/fsl_otp/HW_OCOTP_CFG1` - Hardware serial (hex)
+### Boot Animation
 
-**OS Version:**
-- `/etc/os-release` - VERSION_ID and BUILD_ID fields
+On Linux startup:
+1. Fades in framebuffer overlay: `imx-overlay-alpha fade 0 255 1000` (skipped on kernel 6.6 imx-drm)
+2. Stops boot animation: `systemctl stop boot-animation.service`
 
-### System Commands
+### Shutdown
 
-- `poweroff` - Executed during shutdown (unless `--disable-poweroff`)
+On SIGTERM or `vehicle state` → `shutting-down`: `ShutdownStore::forceBlackout()` blacks out the display.
 
-## Configuration
+## Map Tiles
 
-### Systemd Unit
+Offline tiles expected at `/data/maps/map.mbtiles` on the DBC. The app watches `/data/maps/` via inotify and reloads map services when the file appears or changes.
 
-- **Unit file:** Likely `/usr/lib/systemd/system/unu-dashboard-ui.service` (on DBC)
-- **Started by:** systemd at boot
-- **Restart policy:** Always
+## Project Structure
 
-## Observable Behavior
-
-### Startup Sequence
-
-1. Connects to Redis (default 127.0.0.1:6379, or custom via `-b`/`-p`)
-2. Subscribes to all service channels
-3. Reads OS version from `/etc/os-release`
-4. Sets `system dbc-version` to VERSION_ID+BUILD_ID
-5. Reads hardware serial from sysfs
-6. Sets `dashboard serial-number`
-7. Sets `dashboard ready true` (only if serial read succeeds)
-8. Starts in speedometer mode
-9. Begins polling non-published properties
-
-### Shutdown Behavior
-
-When `vehicle state` becomes "shutting-down":
-1. Sets `dashboard ready false`
-2. Executes `poweroff` command after 2-second delay
-3. Can be disabled with `--disable-poweroff` flag
-
-### Battery Timeout Notifications
-
-When battery charge becomes critically low:
-- Dashboard receives timeout notification (AutomaticTurnOffMainBatteryNotification or AutomaticTurnOffAuxBatteryNotification)
-- Automatically executes: `LPUSH scooter:state lock`
-- This triggers vehicle shutdown
-
-## UI Components
-
-- **Status bar:** Time, connection status, odometer, battery, Bluetooth, seatbox
-- **Central display:** Speedometer, navigation, or debug view
-- **Notifications:** Battery warnings, system alerts, faults
-
-See [dashboard/README.md](../dashboard/README.md) for UI details.
-
-## Log Output
-
-The dashboard logs to journald. Common messages:
-- `"Could not read serial number. NOT setting dashboard:ready = true"`
-- `"Could not load translations for any of the languages requested"`
-- `"Power off is disabled."`
-- `"Could not power off the system!"`
-- `"Could not set up keep-alive socket, Redis connection handling might not work properly"`
-- `"Could not find enum for [value]"`
-
-Use `journalctl -u unu-dashboard-ui` to view logs (service name may vary).
+```
+src/
+  core/           App initialization, environment config
+  models/         Data models and enums
+  repositories/   Redis (hiredis-based) and in-memory MDB implementations
+  stores/         QML-exposed state stores
+  services/       System services (navigation, settings, map, input, ...)
+  routing/        Valhalla client and route models
+  simulator/      Simulator service (desktop mode only)
+  l10n/           Translations
+qml/
+  screens/        Main UI screens
+  widgets/        Reusable UI components
+  overlays/       Modal overlays (menu, toast, ...)
+  simulator/      Simulator panel (desktop mode only)
+  theme/          Theme definitions
+```
 
 ## Dependencies
 
-- **Redis server** - All other services via Redis
-- **Qt/QML runtime** - Graphics framework
-- **Display hardware** - Integrated display on DBC
-- **Serial number files** - Must be readable from sysfs
+- Redis server
+- Qt 6.4+ (Quick, Qml, Svg, Network, Sql, Concurrent)
+- QMapLibre (required on target; optional in desktop mode)
+- hiredis
+- Valhalla routing engine
 
 ## Related Documentation
 
-- **[dashboard/README.md](../dashboard/README.md)** - Complete dashboard documentation
-- **[dashboard/REDIS.md](../dashboard/REDIS.md)** - Comprehensive Redis operations reference
-- [Redis Operations](../redis/README.md) - Dashboard hash fields
-- [States](../states/README.md) - How dashboard displays vehicle states
+- [dashboard/README.md](../dashboard/README.md) — Complete dashboard documentation
+- [dashboard/REDIS.md](../dashboard/REDIS.md) — Redis operations reference
+- [Redis Operations](../redis/README.md) — Dashboard hash fields
+- [States](../states/README.md) — Vehicle state display
