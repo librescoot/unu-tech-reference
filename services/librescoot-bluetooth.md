@@ -23,7 +23,7 @@ The Bluetooth service provides the BLE (Bluetooth Low Energy) interface for the 
 
 **Fields written:**
 - `mac-address` - Bluetooth MAC address (received from nRF52)
-- `connection-status` - BLE connection status string
+- `status` - BLE connection status string
 - `pin-code` - Temporary pairing PIN code (when pairing is active)
 
 **Published channel:** `ble` (when pin-code field changes)
