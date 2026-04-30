@@ -32,7 +32,6 @@ Provides scooter state information
 | 9a590021 | Operating State | - "stand-by"<br>- "off"<br>- "parked"<br>- "shutting-down"<br>- "ready-to-drive"<br>- "updating" |
 | 9a590022 | Seatbox State | - "open"<br>- "closed"<br>- "unknown" |
 | 9a590023 | Handlebar Lock | - "locked"<br>- "unlocked" |
-| 9a590024 | Temperature | NTCALUG01A thermistor, tenths of °C |
 
 ### Battery Service (9a590040)
 
