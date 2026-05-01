@@ -30,6 +30,8 @@ Provides scooter state information
 | Characteristic | Description | Values |
 |---------------|-------------|---------|
 | 9a590021 | Operating State | - "stand-by"<br>- "off"<br>- "parked"<br>- "shutting-down"<br>- "ready-to-drive"<br>- "updating" |
+
+The set above is the full set BLE clients ever observe. When the scooter is in the internal `hop-on` state, the firmware cloaks the characteristic as `"stand-by"` so mobile apps with no concept of hop-on still see a locked scooter and offer their unlock affordance. `hop-on-learning` is collapsed to `"parked"` upstream (in bluetooth-service) and never reaches the firmware as a distinct value. See [Vehicle States](../states/README.md#vehicle-states).
 | 9a590022 | Seatbox State | - "open"<br>- "closed"<br>- "unknown" |
 | 9a590023 | Handlebar Lock | - "locked"<br>- "unlocked" |
 

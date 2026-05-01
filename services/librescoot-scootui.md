@@ -127,7 +127,7 @@ Additionally polled (no subscription): `system`, `version:mdb`, `version:dbc` (3
 | List | Commands | Written by |
 |------|----------|-----------|
 | `scooter:blinker` | `left`, `right`, `both`, `off` | Blinker/hazard controls |
-| `scooter:hop-on` | `engage`, `engage-silent`, `release` | HopOnStore |
+| `scooter:hop-on` | `engage`, `engage-learning`, `release` | HopOnStore |
 
 ### HDEL
 

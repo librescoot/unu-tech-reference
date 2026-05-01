@@ -11,6 +11,8 @@ These are the exact string values that appear in Redis and BLE:
 - **"unknown"** - Initial/uninitialized state
 - **"stand-by"** - Systems powered but motor disabled, ready for authentication
 - **"parked"** - Vehicle unlocked with kickstand down or not ready to drive
+- **"hop-on"** - Locked hop-on / hop-off mode: rider briefly off, motor disabled, optional steering lock; dashboard renders a lock overlay
+- **"hop-on-learning"** - Combo-learning sibling of hop-on: same input gating but no user-facing LED cue, no steering-lock attempt, no lock screen
 - **"ready-to-drive"** - Full system power, motor enabled, kickstand up, all conditions met
 - **"waiting-seatbox"** - Transitional state waiting for seatbox to close
 - **"shutting-down"** - Transitional state before powering down (~5s)
@@ -19,6 +21,17 @@ These are the exact string values that appear in Redis and BLE:
 - **"waiting-hibernation-advanced"** - Advanced hibernation wait (brakes held for 10s+)
 - **"waiting-hibernation-seatbox"** - Hibernation wait with seatbox open notification
 - **"waiting-hibernation-confirm"** - Hibernation confirmation screen (3s)
+
+**At-rest grouping.** Internally, `parked`, `hop-on`, and `hop-on-learning` are children of an `at-rest` parent state in the FSM. The parent owns the auto-standby timer, so the timer keeps running across hop-on detours without manual handoff. The parent is never published as `vehicle:state` — only its leaves are.
+
+**External representation of the hop-on family.** vehicle-service publishes the leaf states as-is. Downstream consumers collapse them when their audience does not need to distinguish:
+
+| Leaf state          | Cloud (uplink, radio-gaga) | nRF wire value | BLE characteristic 9a590021 string |
+|---------------------|----------------------------|----------------|-----------------------------------|
+| `hop-on`            | `stand-by` (locked)        | 6 (`HOP_ON`)   | `stand-by` (cloaked by firmware)  |
+| `hop-on-learning`   | `parked`                   | 1 (`PARKED`)   | `parked`                          |
+
+The wire value 6 is dedicated so the firmware picks `POWER_MODE_ACTIVE` (parked-equivalent rails: PMIC_EN2 on, AUX battery) while still surfacing the BLE state-string as `stand-by` to mobile apps that have no concept of hop-on. See [nRF UART Protocol](../nrf/UART.md) and [BLE Services](../bluetooth/README.md).
 
 **Note**: Vehicle states are separate from power manager states (tracked in `power-manager:state`). Vehicle states represent the operational mode of the scooter, while power manager states represent the system's power/suspend state.
 
@@ -41,6 +54,13 @@ stateDiagram-v2
     parked --> shutting-down: lock request
     parked --> waiting-hibernation-confirm: lock-hibernate request
     parked --> waiting-hibernation: hibernation timer (manual)
+
+    parked --> hop-on: scooter:hop-on engage
+    parked --> hop-on-learning: scooter:hop-on engage-learning
+    hop-on --> parked: scooter:hop-on release / unlock request
+    hop-on-learning --> parked: scooter:hop-on release / unlock request
+    hop-on --> shutting-down: lock / keycard / auto-standby
+    hop-on-learning --> shutting-down: lock / keycard / auto-standby
 
     waiting-seatbox --> ready-to-drive: seatbox closed + conditions met
     waiting-seatbox --> parked: seatbox closed (not ready)

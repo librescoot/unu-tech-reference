@@ -106,7 +106,8 @@ Each message type contains sub-types as CBOR map keys:
 - 0x0072: Charge Status
 
 **Vehicle State (0x0020):**
-- 0x0021: Vehicle state (0=stand-by, 1=parked, 2=ready-to-drive, 3=shutting-down, 4=updating)
+- 0x0021: Vehicle state (0=stand-by, 1=parked, 2=ready-to-drive, 3=shutting-down, 4=updating, 5=off, 6=hop-on)
+  - **6 (hop-on)** uses parked-equivalent power rails (`POWER_MODE_ACTIVE`, PMIC_EN2 on, AUX battery) but advertises whitelist-only and presents the 9a590021 BLE state-string as `stand-by` so mobile apps that don't know about hop-on still see a "locked" scooter. `hop-on-learning` collapses to `1 (parked)` on the wire — externally parked-equivalent.
 - 0x0022: Seatbox lock (0=closed, 1=open)
 - 0x0023: Handlebar lock (0=locked, 1=unlocked)
 

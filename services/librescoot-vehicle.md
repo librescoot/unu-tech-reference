@@ -31,7 +31,6 @@ Usage of vehicle-service:
 - `kickstand` - Kickstand position ("up", "down")
 - `handlebar:position` - Handlebar position ("on-place", "off-place")
 - `handlebar:lock-sensor` - Handlebar lock sensor ("locked", "unlocked")
-- `hop-on-active` - Hop-on mode active ("true", "false"); suppressed in silent entries
 - `dbc-updating` - DBC update in progress flag
 - `dashboard:power` - Dashboard power state ("on", "off")
 - `update:status` - Aggregated update status surface for UI
@@ -47,9 +46,9 @@ Usage of vehicle-service:
 - `scooter:horn` - Horn commands ("on", "off")
 - `scooter:blinker` - Blinker commands ("left", "right", "both", "off")
 - `scooter:hop-on` - Hop-on mode commands:
-  - `engage` - Enter hop-on mode (LED cue, opportunistic steering lock, publishes `hop-on-active`)
-  - `engage-silent` - Enter hop-on silently (learning mode: no LED cue, no steering lock, no publish)
-  - `release` - Exit hop-on mode
+  - `engage` - Enter the locked hop-on state (lock screen, LED cue, opportunistic steering lock; publishes `state=hop-on`)
+  - `engage-learning` - Enter combo-learning state quietly (no LED cue, no steering lock, no lock screen; publishes `state=hop-on-learning`)
+  - `release` - Exit either hop-on sub-state back to `parked`
 - `scooter:led:cue` - LED cue playback commands (integer cue index)
 - `scooter:led:fade` - LED fade playback commands ("channel:fadeIndex")
 - `scooter:update` - Update commands ("start", "complete", "start-dbc", "complete-dbc", "cycle-dashboard-power")
@@ -95,7 +94,9 @@ The service implements the canonical vehicle state machine with these states:
 - `hibernation-awaiting-confirm` - Confirmation phase (30s timeout after brakes released; continuous hold also auto-confirms)
 - `hibernation-seatbox` - Confirmation blocked by open seatbox; prompts user to close it
 - `hibernation-confirm` - Final 3-second non-abortable hibernation confirmation
-- `hop-on` - Hop-on/hop-off mode (rider briefly off, motor disabled, optional steering lock)
+- `at-rest` - Parent state grouping `parked`, `hop-on`, `hop-on-learning`. Owns the auto-standby timer; sibling transitions inside the group don't disturb it. Never the leaf, so `vehicle:state` never reads `at-rest`.
+- `hop-on` - Hop-on/hop-off mode (rider briefly off, motor disabled, optional steering lock, lock screen rendered by dashboard). Physical inputs are gated declaratively via `BlockedEvents` on the FSM state.
+- `hop-on-learning` - Combo-learning sibling of `hop-on`: same input gating (no horn / blinker / brake LED / seatbox open / hibernation hold) but no LED cue, no steering-lock attempt, no lock screen. The dashboard renders its own learn overlay.
 
 ### Hibernation State Machine
 
