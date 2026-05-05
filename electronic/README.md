@@ -106,7 +106,7 @@
   - Keycard authentication (unlocking/locking)
 
 #### Keycard Status LED Controller
-- LP5662 LED controller
+- LP5562 LED controller
 - I2C interface (default: /dev/i2c-2)
 - Controls tri-color LED status indicator:
   - Green: Authentication success

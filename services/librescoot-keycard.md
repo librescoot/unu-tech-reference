@@ -11,8 +11,8 @@ Handles NFC-based authentication for the scooter. Detects keycards via the PN715
   --data-dir string     Directory for UID storage (default: /data/keycard)
   --redis string        Redis server address (default: localhost:6379)
   --log int             Log level 0-3 (0=error, 3=debug) (default: 2)
-  --led-device string   I2C device for LP5662 LED (empty = script-based control)
-  --led-address string  I2C address for LP5662 LED (default: 0x30)
+  --led-device string   I2C device for LP5562 LED (empty = script-based control)
+  --led-address string  I2C address for LP5562 LED (default: 0x30)
   --debug               Enable debug logging
 ```
 
@@ -56,7 +56,7 @@ Responses are written to `keycard command-result`.
 
 ### LED Controllers
 
-**I2C LED (LP5662 tri-color):**
+**I2C LED (LP5562 tri-color):**
 - I2C bus 2, address `0x30`
 - Enabled with `--led-device /dev/i2c-2`
 - Green: authorized card; Red: unauthorized; Amber: lookup in progress; Blinking: master learning mode
@@ -121,6 +121,6 @@ make build-local  # Host
 
 ## Related Documentation
 
-- [Electronic Components](../electronic/README.md) — PN7150 and LP5662 hardware
+- [Electronic Components](../electronic/README.md) — PN7150 and LP5562 hardware
 - [Redis Operations](../redis/README.md) — Keycard hash details
 - [LibreScoot Services](README.md)

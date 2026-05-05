@@ -12,7 +12,7 @@ LibreScoot provides the open-source services that run on the scooter. All servic
 | [librescoot-battery](librescoot-battery.md) | Main battery monitoring via NFC | `battery:0`, `battery:1` | PN7150 NFC readers (I2C), Redis |
 | [librescoot-vehicle](librescoot-vehicle.md) | Vehicle state machine coordinator | `vehicle` | GPIO inputs, PWM outputs, Redis |
 | [librescoot-ecu](librescoot-ecu.md) | Motor controller interface | `engine-ecu` | ECU (CAN bus), Redis |
-| [librescoot-keycard](librescoot-keycard.md) | NFC keycard authentication | `keycard` | PN7150 (I2C), LP5662 LED (I2C), Redis |
+| [librescoot-keycard](librescoot-keycard.md) | NFC keycard authentication | `keycard` | PN7150 (I2C), LP5562 LED (I2C), Redis |
 | [librescoot-modem](librescoot-modem.md) | Cellular and GPS | `internet`, `gps`, `modem` | ModemManager, gpsd, Redis |
 | [librescoot-pm](librescoot-pm.md) | System power management | `power-manager` | systemd-logind (D-Bus), Redis |
 | [scootui-qt](librescoot-scootui.md) | Dashboard UI (Qt/QML) | `dashboard` | All services (via Redis) |
@@ -44,7 +44,7 @@ graph TB
     NRF["nRF52840<br/>UART"]
     GPIO["GPIO/PWM<br/>Inputs/Outputs"]
     CAN["ECU Motor Controller<br/>CAN Bus"]
-    NFC1["PN7150 + LP5662<br/>NFC + LED via I2C"]
+    NFC1["PN7150 + LP5562<br/>NFC + LED via I2C"]
     NFC2["PN7150 x2<br/>Battery NFC via I2C"]
     MODEM["ModemManager<br/>mmcli + gpsd"]
     BMX["BMX055<br/>Accelerometer/Gyro via I2C"]
