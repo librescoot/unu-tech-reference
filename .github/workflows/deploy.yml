@@ -1,10 +1,16 @@
-name: Deploy to GitHub Pages
+name: Deploy versioned docs
 
-# Versioned reference docs:
-#   - `stable` branch → site root (canonical for visitors)
-#   - `main` branch → /dev/ subpath (development preview, may include
-#     unreleased features)
-# A push to either branch rebuilds + redeploys the combined site.
+# Versioned docs via squidfunk's Zensical-compatible mike fork. mike
+# maintains one subdirectory per deployed version on the `gh-pages`
+# branch, plus a versions.json that the Material header version
+# selector reads. GitHub Pages serves the gh-pages branch directly.
+#
+# Branch -> action mapping:
+#   stable  -> mike deploy v1.0.3 stable latest  (and set-default latest)
+#   main    -> mike deploy dev
+#
+# When promoting a new stable release: bump the version on the stable
+# branch's deploy command, push.
 
 on:
   push:
@@ -12,39 +18,34 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
-  pages: write
-  id-token: write
+  # mike pushes to gh-pages — needs write to repo contents.
+  contents: write
 
+# Don't cancel in-progress deploys; mike fetches gh-pages, mutates it,
+# pushes back. Cancellation mid-flight could leave gh-pages in a weird
+# state. Queue instead.
 concurrency:
-  group: pages
-  cancel-in-progress: true
+  group: mike-deploy
+  cancel-in-progress: false
 
 jobs:
-  build:
+  deploy:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout stable (canonical)
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
         with:
-          ref: stable
-          path: stable
-
-      - name: Checkout main (dev preview)
-        uses: actions/checkout@v4
-        with:
-          ref: main
-          path: dev
+          fetch-depth: 0
 
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
 
-      - name: Install zensical
-        run: pip install zensical
+      - name: Install zensical + mike (squidfunk fork)
+        run: |
+          pip install zensical
+          pip install git+https://github.com/squidfunk/mike
 
-      - name: Build stable → site root
-        working-directory: stable
+      - name: Prepare docs/ tree
         run: |
           mkdir -p docs
           cp README.md docs/index.md
@@ -52,41 +53,18 @@ jobs:
             [ -d "$d" ] && cp -r "$d" "docs/$d"
           done
           [ -d stylesheets ] && cp -r stylesheets docs/stylesheets || true
-          python -m zensical build
-          mkdir -p "$GITHUB_WORKSPACE/_site"
-          cp -r site/. "$GITHUB_WORKSPACE/_site/"
 
-      - name: Build main → /dev/
-        working-directory: dev
+      - name: Configure git for mike
         run: |
-          # Override site_url so canonical / RSS / sitemap URLs point at /dev/.
-          # Internal links are relative so they work either way.
-          sed -i 's|^site_url = .*|site_url = "https://reference.librescoot.org/dev/"|' zensical.toml
-          mkdir -p docs
-          cp README.md docs/index.md
-          for d in battery battery-charger bluetooth dashboard electronic mechanical nrf redis services states tools wiring; do
-            [ -d "$d" ] && cp -r "$d" "docs/$d"
-          done
-          [ -d stylesheets ] && cp -r stylesheets docs/stylesheets || true
-          python -m zensical build
-          mkdir -p "$GITHUB_WORKSPACE/_site/dev"
-          cp -r site/. "$GITHUB_WORKSPACE/_site/dev/"
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
 
-      - name: Add CNAME
-        run: echo 'reference.librescoot.org' > "$GITHUB_WORKSPACE/_site/CNAME"
+      - name: Deploy stable -> v1.0.3 + stable + latest aliases
+        if: github.ref == 'refs/heads/stable'
+        run: |
+          mike deploy --push --update-aliases v1.0.3 stable latest
+          mike set-default --push latest
 
-      - uses: actions/configure-pages@v5
-
-      - uses: actions/upload-pages-artifact@v3
-        with:
-          path: _site
-
-  deploy:
-    needs: build
-    runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    steps:
-      - id: deployment
-        uses: actions/deploy-pages@v4
+      - name: Deploy main -> dev
+        if: github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch'
+        run: mike deploy --push dev
