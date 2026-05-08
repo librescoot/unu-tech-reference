@@ -1,8 +1,14 @@
 name: Deploy to GitHub Pages
 
+# Versioned reference docs:
+#   - `stable` branch → site root (canonical for visitors)
+#   - `main` branch → /dev/ subpath (development preview, may include
+#     unreleased features)
+# A push to either branch rebuilds + redeploys the combined site.
+
 on:
   push:
-    branches: [main]
+    branches: [main, stable]
   workflow_dispatch:
 
 permissions:
@@ -18,7 +24,17 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout stable (canonical)
+        uses: actions/checkout@v4
+        with:
+          ref: stable
+          path: stable
+
+      - name: Checkout main (dev preview)
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          path: dev
 
       - uses: actions/setup-python@v5
         with:
@@ -27,26 +43,43 @@ jobs:
       - name: Install zensical
         run: pip install zensical
 
-      - name: Prepare docs directory
+      - name: Build stable → site root
+        working-directory: stable
         run: |
           mkdir -p docs
           cp README.md docs/index.md
           for d in battery battery-charger bluetooth dashboard electronic mechanical nrf redis services states tools wiring; do
-            cp -r "$d" "docs/$d"
+            [ -d "$d" ] && cp -r "$d" "docs/$d"
           done
-          cp -r stylesheets docs/stylesheets
+          [ -d stylesheets ] && cp -r stylesheets docs/stylesheets || true
+          python -m zensical build
+          mkdir -p "$GITHUB_WORKSPACE/_site"
+          cp -r site/. "$GITHUB_WORKSPACE/_site/"
 
-      - name: Build
-        run: python -m zensical build
+      - name: Build main → /dev/
+        working-directory: dev
+        run: |
+          # Override site_url so canonical / RSS / sitemap URLs point at /dev/.
+          # Internal links are relative so they work either way.
+          sed -i 's|^site_url = .*|site_url = "https://reference.librescoot.org/dev/"|' zensical.toml
+          mkdir -p docs
+          cp README.md docs/index.md
+          for d in battery battery-charger bluetooth dashboard electronic mechanical nrf redis services states tools wiring; do
+            [ -d "$d" ] && cp -r "$d" "docs/$d"
+          done
+          [ -d stylesheets ] && cp -r stylesheets docs/stylesheets || true
+          python -m zensical build
+          mkdir -p "$GITHUB_WORKSPACE/_site/dev"
+          cp -r site/. "$GITHUB_WORKSPACE/_site/dev/"
 
       - name: Add CNAME
-        run: echo 'reference.librescoot.org' > site/CNAME
+        run: echo 'reference.librescoot.org' > "$GITHUB_WORKSPACE/_site/CNAME"
 
       - uses: actions/configure-pages@v5
 
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: site
+          path: _site
 
   deploy:
     needs: build
