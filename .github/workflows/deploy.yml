@@ -68,3 +68,19 @@ jobs:
       - name: Deploy main -> dev
         if: github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch'
         run: mike deploy --push dev
+
+      # mike doesn't preserve a top-level CNAME across deploys (each
+      # deploy operates on a single version subdirectory), so re-stamp
+      # it after every deploy. Without this, switching the GitHub Pages
+      # source to gh-pages drops the custom domain.
+      - name: Re-stamp CNAME on gh-pages
+        run: |
+          git fetch origin gh-pages
+          git worktree add /tmp/ghpages origin/gh-pages
+          cd /tmp/ghpages
+          if [ "$(cat CNAME 2>/dev/null)" != "reference.librescoot.org" ]; then
+            echo "reference.librescoot.org" > CNAME
+            git add CNAME
+            git commit -m "ci: ensure CNAME is reference.librescoot.org"
+            git push origin HEAD:gh-pages
+          fi
