@@ -35,6 +35,7 @@ nav = [
         { "ecu-service" = "services/librescoot-ecu.md" },
         { "keycard-service" = "services/librescoot-keycard.md" },
         { "modem-service" = "services/librescoot-modem.md" },
+        { "motion-service" = "services/librescoot-motion.md" },
         { "pm-service" = "services/librescoot-pm.md" },
         { "scootui-qt" = "services/librescoot-scootui.md" },
         { "settings-service" = "services/librescoot-settings.md" },
@@ -93,3 +94,11 @@ link = "https://github.com/librescoot"
 [[project.extra.social]]
 icon = "fontawesome/brands/discord"
 link = "https://discord.gg/VrumFruSzJ"
+
+# Versioned docs via mike (squidfunk's Zensical-compatible fork). The
+# version selector dropdown in the Material header reads versions.json
+# at the gh-pages root, where mike writes one entry per deployed version.
+# Default version (served at /) is whichever alias is set via
+# `mike set-default`. We use `latest` -> currently v1.0.3.
+[project.extra.version]
+provider = "mike"
