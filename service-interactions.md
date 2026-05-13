@@ -1,4 +1,4 @@
-# LibreScoot Service Interaction Map
+# Librescoot Service Interaction Map
 
 Generated from source analysis of all service repositories.
 

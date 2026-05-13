@@ -163,6 +163,6 @@ make tidy fmt test # Lint and test
 
 ## Related Documentation
 
-- [LibreScoot Services](README.md)
+- [Librescoot Services](README.md)
 - [Power Management](librescoot-pm.md) — inhibitor integration
 - [UMS Service](librescoot-ums.md) — USB-based update delivery

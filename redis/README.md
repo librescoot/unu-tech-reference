@@ -322,9 +322,9 @@ hgetall settings
 | cloud:key | string | Cloud key path | "/etc/keys/unu-cloud-production.pub" |
 | cloud:mqtt-url | string | MQTT server URL | "zeus-iot-v3.unumotors.com:8883" |
 
-#### LibreScoot Additional Settings
+#### Librescoot Additional Settings
 
-LibreScoot adds persistent settings managed by the settings-service:
+Librescoot adds persistent settings managed by the settings-service:
 
 | Field | Type | Description | Example |
 |-------|------|-------------|----------|
@@ -367,7 +367,7 @@ LibreScoot adds persistent settings managed by the settings-service:
 
 See [settings-service documentation](../services/librescoot-settings.md) for details on persistent settings.
 
-### Alarm System (`alarm`) - LibreScoot Only
+### Alarm System (`alarm`) - Librescoot Only
 
 ```
 hgetall alarm
@@ -386,7 +386,7 @@ hgetall alarm
 
 See [alarm-service documentation](../services/librescoot-alarm.md) for details.
 
-### BMX055 Motion Sensor (`bmx`) - LibreScoot Only
+### BMX055 Motion Sensor (`bmx`) - Librescoot Only
 
 ```
 hgetall bmx
@@ -403,9 +403,9 @@ hgetall bmx
 
 The alarm-service manages BMX055 configuration automatically based on alarm state.
 
-### Dashboard Backlight (`dashboard`) - LibreScoot Enhancement
+### Dashboard Backlight (`dashboard`) - Librescoot Enhancement
 
-LibreScoot adds these fields to the dashboard hash:
+Librescoot adds these fields to the dashboard hash:
 
 | Field | Type | Description | Example |
 |-------|------|-------------|----------|
@@ -416,9 +416,9 @@ LibreScoot adds these fields to the dashboard hash:
 The `dbc-illumination-service` monitors the OPT3001 sensor and publishes to `illumination`.
 The `dbc-backlight-service` reads `illumination` and adjusts `backlight` automatically.
 
-### GPS State (`gps`) - LibreScoot Enhancement
+### GPS State (`gps`) - Librescoot Enhancement
 
-LibreScoot adds GPS state tracking:
+Librescoot adds GPS state tracking:
 
 | Field | Type | Description | Example |
 |-------|------|-------------|----------|
@@ -430,7 +430,7 @@ LibreScoot adds GPS state tracking:
 - `fix-established` - Valid GPS fix obtained (2D or 3D)
 - `error` - GPS configuration or connection failed
 
-### Modem Management (`modem`) - LibreScoot Only
+### Modem Management (`modem`) - Librescoot Only
 
 ```
 hgetall modem
@@ -446,9 +446,9 @@ hgetall modem
 | is-roaming | "true"/"false" | Roaming status | "false" |
 | registration-fail | string | Registration failure reason | "" |
 
-### Internet Connectivity (`internet`) - LibreScoot Enhancement
+### Internet Connectivity (`internet`) - Librescoot Enhancement
 
-LibreScoot adds modem health tracking:
+Librescoot adds modem health tracking:
 
 | Field | Type | Description | Example |
 |-------|------|-------------|----------|
@@ -461,9 +461,9 @@ LibreScoot adds modem health tracking:
 - `recovery-failed-waiting-reboot` - Recovery failed, waiting for reboot
 - `permanent-failure-needs-replacement` - Hardware failure
 
-### OTA Updates (`ota`) - LibreScoot Enhancement
+### OTA Updates (`ota`) - Librescoot Enhancement
 
-LibreScoot adds per-component update tracking:
+Librescoot adds per-component update tracking:
 
 | Field | Type | Description | Example |
 |-------|------|-------------|----------|
@@ -486,7 +486,7 @@ LibreScoot adds per-component update tracking:
 
 See [update-service documentation](../services/librescoot-update.md) for details.
 
-### Version Information - LibreScoot Only
+### Version Information - Librescoot Only
 
 #### MDB Version (`version:mdb`)
 
@@ -587,7 +587,7 @@ redis-cli -h 192.168.7.1 LPUSH scooter:blinker off
 
 **Available commands**: `left`, `right`, `both`, `off`
 
-### Alarm Control (`scooter:alarm`) - LibreScoot Only
+### Alarm Control (`scooter:alarm`) - Librescoot Only
 
 Controls the motion-based alarm system.
 
@@ -607,7 +607,7 @@ redis-cli -h 192.168.7.1 LPUSH scooter:alarm stop
 
 **Available commands**: `enable`, `disable`, `start:<seconds>`, `stop`
 
-### BMX Sensor Control (`scooter:bmx`) - LibreScoot Only
+### BMX Sensor Control (`scooter:bmx`) - Librescoot Only
 
 Controls BMX055 accelerometer/gyroscope configuration. Typically used by alarm-service.
 
@@ -624,9 +624,9 @@ redis-cli -h 192.168.7.1 LPUSH scooter:bmx interrupt:enable
 
 **Available commands**: `sensitivity:<LOW|MEDIUM|HIGH>`, `pin:<NONE|INT1|INT2>`, `interrupt:<enable|disable>`
 
-### Power Control (`scooter:power`) - LibreScoot Enhanced
+### Power Control (`scooter:power`) - Librescoot Enhanced
 
-LibreScoot adds more power control commands:
+Librescoot adds more power control commands:
 
 ```bash
 # Request running state (highest priority)
@@ -650,7 +650,7 @@ redis-cli -h 192.168.7.1 LPUSH scooter:power reboot
 
 **Available commands**: `run`, `suspend`, `hibernate`, `hibernate-manual`, `hibernate-timer`, `reboot`
 
-### Modem Control (`scooter:modem`) - LibreScoot Only
+### Modem Control (`scooter:modem`) - Librescoot Only
 
 Controls modem power state and GPS.
 
@@ -670,7 +670,7 @@ redis-cli -h 192.168.7.1 LPUSH scooter:modem gps:disable
 
 **Available commands**: `enable`, `disable`, `gps:enable`, `gps:disable`
 
-### Update Control (`scooter:update`) - LibreScoot Only
+### Update Control (`scooter:update`) - Librescoot Only
 
 Controls OTA update system.
 
@@ -687,4 +687,4 @@ redis-cli -h 192.168.7.1 LPUSH scooter:update check-now
 - Services subscribe to these channels using `BRPOP` and process commands sequentially
 - State changes resulting from commands are published to the corresponding hash fields and pub/sub channels
 - Command results can be monitored by subscribing to the relevant state hashes (e.g., `vehicle` hash for lock/unlock state)
-- LibreScoot adds several new command channels for alarm, BMX, modem, and update control
+- Librescoot adds several new command channels for alarm, BMX, modem, and update control

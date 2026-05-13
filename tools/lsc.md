@@ -1,10 +1,10 @@
-# lsc - LibreScoot Control CLI
+# lsc - Librescoot Control CLI
 
-`lsc` is a command-line interface for controlling and monitoring LibreScoot electric scooters via Redis. It provides a convenient, user-friendly interface to all LibreScoot services and features.
+`lsc` is a command-line interface for controlling and monitoring Librescoot electric scooters via Redis. It provides a convenient, user-friendly interface to all Librescoot services and features.
 
 ## Overview
 
-The `lsc` tool acts as a bridge between human operators and the LibreScoot Redis-based communication system. Instead of manually crafting Redis commands, you can use intuitive commands to:
+The `lsc` tool acts as a bridge between human operators and the Librescoot Redis-based communication system. Instead of manually crafting Redis commands, you can use intuitive commands to:
 
 - Control vehicle state (lock/unlock, hibernate)
 - Monitor system status and diagnostics
@@ -15,7 +15,7 @@ The `lsc` tool acts as a bridge between human operators and the LibreScoot Redis
 
 ## Installation
 
-The `lsc` binary is typically installed to `/usr/bin/lsc` on LibreScoot systems.
+The `lsc` binary is typically installed to `/usr/bin/lsc` on Librescoot systems.
 
 **Manual installation:**
 ```bash
@@ -510,7 +510,7 @@ lsc gps status --json | jq '.latitude, .longitude'
 
 ## Architecture
 
-`lsc` communicates with LibreScoot services via Redis:
+`lsc` communicates with Librescoot services via Redis:
 
 ### Command Pattern
 Commands are sent using LPUSH to command lists:
@@ -573,6 +573,6 @@ sudo cp lsc /usr/bin/
 ## Related Documentation
 
 - [Redis Interface](../redis/README.md) - Redis hashes, lists, and channels
-- [LibreScoot Services](../services/README.md) - Service architecture
+- [Librescoot Services](../services/README.md) - Service architecture
 - [Settings Service](../services/librescoot-settings.md) - Configuration management
 - [OTA Updates](../services/librescoot-update.md) - Update system

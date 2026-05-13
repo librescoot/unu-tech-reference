@@ -2,11 +2,11 @@
 
 ## Description
 
-The settings service is a LibreScoot-only service that provides bidirectional synchronization between Redis and persistent TOML configuration files. It enables persistent storage of scooter settings across reboots and provides automatic network configuration management.
+The settings service is a Librescoot-only service that provides bidirectional synchronization between Redis and persistent TOML configuration files. It enables persistent storage of scooter settings across reboots and provides automatic network configuration management.
 
 ## Version
 
-LibreScoot settings-service v1.0.0+
+Librescoot settings-service v1.0.0+
 
 ## Command-Line Options
 
@@ -357,7 +357,7 @@ The service is typically installed via systemd:
 
 ```ini
 [Unit]
-Description=LibreScoot Settings Service
+Description=Librescoot Settings Service
 After=redis.service
 Requires=redis.service
 
@@ -390,7 +390,7 @@ Use `journalctl -u librescoot-settings` to view logs.
 
 ## Integration with Other Services
 
-All LibreScoot services can use the settings system:
+All Librescoot services can use the settings system:
 
 - **alarm-service**: Reads `alarm.enabled`, `alarm.honk`
 - **update-service**: Reads `updates.{component}.*` settings
@@ -403,9 +403,9 @@ Services should:
 3. Apply new settings immediately
 4. Fall back to defaults if setting not present
 
-## LibreScoot Feature
+## Librescoot Feature
 
-This is a LibreScoot-only service. Benefits:
+This is a Librescoot-only service. Benefits:
 
 - **Persistent configuration:** Settings survive reboots
 - **Easy backup:** Single TOML file contains all settings
@@ -416,6 +416,6 @@ This is a LibreScoot-only service. Benefits:
 ## Related Documentation
 
 - [Redis Operations](../redis/README.md) - Settings hash structure
-- [LibreScoot Services](README.md) - Service overview
+- [Librescoot Services](README.md) - Service overview
 - [Update Service](librescoot-update.md) - Update channel configuration
 - [Alarm Service](librescoot-alarm.md) - Alarm settings

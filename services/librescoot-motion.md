@@ -8,7 +8,7 @@ The repo is at [`github.com/librescoot/motion-service`](https://github.com/libre
 
 ## Version
 
-LibreScoot motion-service v0.1+ (semver via git tags; PV from `git describe`).
+Librescoot motion-service v0.1+ (semver via git tags; PV from `git describe`).
 
 ## Command-Line Options
 
@@ -173,7 +173,7 @@ BMM150 in `forced` mode at 5 Hz with `high-accuracy` REPXY/REPZ presets (47/83 r
 `librescoot-motion.service`:
 ```
 [Unit]
-Description=LibreScoot Motion Service (BMX055 IMU)
+Description=Librescoot Motion Service (BMX055 IMU)
 After=network.target redis.service
 Wants=redis.service
 

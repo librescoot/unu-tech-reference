@@ -356,9 +356,9 @@ journalctl -u battery-service --since today # Today's logs
 - `github.com/redis/go-redis/v9` - Redis client
 - `golang.org/x/sys` - System calls for I2C and systemd integration
 
-## LibreScoot Implementation
+## Librescoot Implementation
 
-The LibreScoot **battery-service** is a complete Go reimplementation with architectural improvements:
+The Librescoot **battery-service** is a complete Go reimplementation with architectural improvements:
 
 ### Key Features
 
@@ -410,7 +410,7 @@ make clean
 
 ### Compatibility
 
-LibreScoot battery-service maintains full Redis compatibility with original firmware:
+Librescoot battery-service maintains full Redis compatibility with original firmware:
 
 **Compatible interfaces:**
 - Same hash fields in `battery:0` and `battery:1`
@@ -433,4 +433,4 @@ LibreScoot battery-service maintains full Redis compatibility with original firm
 - [Electronic Components](../electronic/README.md) - PN7150 NFC reader details
 - [Redis Operations](../redis/README.md) - Battery hash fields
 - [States](../states/README.md) - Battery state definitions
-- [LibreScoot Services](README.md) - Service overview
+- [Librescoot Services](README.md) - Service overview

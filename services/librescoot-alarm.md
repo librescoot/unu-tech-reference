@@ -6,7 +6,7 @@ Motion-based security alarm for the scooter. alarm-service is a pure FSM/policy 
 
 ## Version
 
-LibreScoot alarm-service v0.10+ (Phase 4 of the motion-service refactor).
+Librescoot alarm-service v0.10+ (Phase 4 of the motion-service refactor).
 
 ## Command-Line Options
 
@@ -249,4 +249,4 @@ The `Wants=`/`After=librescoot-motion.service` ordering ensures the chip is in a
 
 - [librescoot-motion](librescoot-motion.md) — chip owner; provider of `motion:interrupt` + `motion:rpc/prepare-hibernation`
 - [Vehicle states](../states/README.md) — how vehicle state affects alarm arming
-- [LibreScoot Services](README.md) — complete service overview
+- [Librescoot Services](README.md) — complete service overview

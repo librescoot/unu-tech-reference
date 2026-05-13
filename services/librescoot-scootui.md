@@ -4,7 +4,7 @@
 
 ## Description
 
-ScootUI is the primary user interface for LibreScoot. It runs on the DBC (Dashboard Computer) and communicates with all LibreScoot services via Redis.
+ScootUI is the primary user interface for Librescoot. It runs on the DBC (Dashboard Computer) and communicates with all Librescoot services via Redis.
 
 - **Qt 6 / QML** — UI framework
 - **QMapLibre** — Vector map rendering

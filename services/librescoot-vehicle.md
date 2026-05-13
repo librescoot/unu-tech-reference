@@ -383,9 +383,9 @@ journalctl -u librescoot-vehicle.service --since "10 minutes ago"
 - **update-service** - For OTA update coordination
 - **power-manager** - For hibernation execution
 
-## LibreScoot Implementation Details
+## Librescoot Implementation Details
 
-The LibreScoot **vehicle-service** is a Go-based implementation with the following architecture:
+The Librescoot **vehicle-service** is a Go-based implementation with the following architecture:
 
 ### Technical Implementation
 
@@ -409,7 +409,7 @@ The LibreScoot **vehicle-service** is a Go-based implementation with the followi
 
 ### LED Channel Mapping
 
-LibreScoot vehicle-service controls 8 PWM LED channels:
+Librescoot vehicle-service controls 8 PWM LED channels:
 
 | Index | LED Name              | Description                    | Mode     |
 |-------|-----------------------|--------------------------------|----------|
@@ -492,16 +492,16 @@ make build-amd64
 
 ### Compatibility
 
-LibreScoot vehicle-service maintains Redis protocol compatibility:
+Librescoot vehicle-service maintains Redis protocol compatibility:
 - Same hash fields and structure as original implementation
 - Same command interface (LPUSH to command lists)
 - Same PUBSUB channel usage
-- Compatible with any dashboard that follows the LibreScoot Redis protocol
+- Compatible with any dashboard that follows the Librescoot Redis protocol
 - No changes required to other services
 
 ### Integration Points
 
-LibreScoot vehicle-service integrates with:
+Librescoot vehicle-service integrates with:
 - **Redis** - Central message bus (required)
 - **Dashboard service** - Waits for ready signal before allowing drive
 - **Settings service** - Reads persistent behavior settings
@@ -514,6 +514,6 @@ LibreScoot vehicle-service integrates with:
 
 - [Vehicle States](../states/README.md) - Complete state machine documentation
 - [Redis Operations](../redis/README.md) - Redis protocol and data structures
-- [LibreScoot Services Overview](README.md) - All LibreScoot services
+- [Librescoot Services Overview](README.md) - All Librescoot services
 - [i.MX PWM LED kernel module](https://github.com/unumotors/kernel-module-imx-pwm-led) - LED hardware interface
 

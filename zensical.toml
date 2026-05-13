@@ -1,10 +1,10 @@
 [project]
-site_name = "LibreScoot Tech Reference"
-site_description = "Hardware and software reference for the LibreScoot electric scooter platform"
+site_name = "Librescoot Tech Reference"
+site_description = "Hardware and software reference for the Librescoot electric scooter platform"
 site_url = "https://reference.librescoot.org/"
 repo_url = "https://github.com/librescoot/unu-tech-reference"
 repo_name = "librescoot/unu-tech-reference"
-copyright = "Copyright &copy; 2025-2026 LibreScoot contributors"
+copyright = "Copyright &copy; 2025-2026 Librescoot contributors"
 
 extra_css = ["stylesheets/extra.css"]
 

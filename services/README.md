@@ -2,7 +2,7 @@
 
 This directory contains documentation for each system service running on the scooter. Each service is documented individually with its Redis operations, external interfaces, and behavior patterns.
 
-LibreScoot provides the open-source services that run on the scooter. All services communicate via Redis and follow a consistent architecture pattern.
+Librescoot provides the open-source services that run on the scooter. All services communicate via Redis and follow a consistent architecture pattern.
 
 ## Service Overview
 
