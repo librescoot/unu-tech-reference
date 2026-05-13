@@ -6,7 +6,7 @@
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width,initial-scale=1">
       
-        <meta name="description" content="Hardware and software reference for the LibreScoot electric scooter platform">
+        <meta name="description" content="Hardware and software reference for the Librescoot electric scooter platform">
       
       
       
@@ -21,11 +21,11 @@
       
       
       <link rel="icon" href="../../assets/images/favicon.png">
-      <meta name="generator" content="zensical-0.0.40">
+      <meta name="generator" content="zensical-0.0.41">
     
     
       
-        <title>lsc - LibreScoot Control CLI - LibreScoot Tech Reference</title>
+        <title>lsc - Librescoot Control CLI - Librescoot Tech Reference</title>
       
     
     
@@ -103,7 +103,7 @@
 
 <header class="md-header md-header--shadow" data-md-component="header">
   <nav class="md-header__inner md-grid" aria-label="Header">
-    <a href="../.." title="LibreScoot Tech Reference" class="md-header__button md-logo" aria-label="LibreScoot Tech Reference" data-md-component="logo">
+    <a href="../.." title="Librescoot Tech Reference" class="md-header__button md-logo" aria-label="Librescoot Tech Reference" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-book-open" viewBox="0 0 24 24"><path d="M12 7v14M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"/></svg>
@@ -117,13 +117,13 @@
       <div class="md-header__ellipsis">
         <div class="md-header__topic">
           <span class="md-ellipsis">
-            LibreScoot Tech Reference
+            Librescoot Tech Reference
           </span>
         </div>
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              lsc - LibreScoot Control CLI
+              lsc - Librescoot Control CLI
             
           </span>
         </div>
@@ -212,13 +212,13 @@
 
 <nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
-    <a href="../.." title="LibreScoot Tech Reference" class="md-nav__button md-logo" aria-label="LibreScoot Tech Reference" data-md-component="logo">
+    <a href="../.." title="Librescoot Tech Reference" class="md-nav__button md-logo" aria-label="Librescoot Tech Reference" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-book-open" viewBox="0 0 24 24"><path d="M12 7v14M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"/></svg>
 
     </a>
-    LibreScoot Tech Reference
+    Librescoot Tech Reference
   </label>
   
     <div class="md-nav__source">
@@ -2226,6 +2226,7 @@
     <li class="md-path__item">
       <a href="../.." class="md-path__link">
         
+  
   <span class="md-ellipsis">
     Home
   </span>
@@ -2241,9 +2242,17 @@
   
     
     
+      
+        
+      
+    
+    
+    
+    
       <li class="md-path__item">
         <a href="././" class="md-path__link">
           
+  
   <span class="md-ellipsis">
     Tools
   </span>
@@ -2270,10 +2279,10 @@
   
 
 
-<h1 id="lsc-librescoot-control-cli">lsc - LibreScoot Control CLI<a class="headerlink" href="#lsc-librescoot-control-cli" title="Permanent link">&para;</a></h1>
-<p><code>lsc</code> is a command-line interface for controlling and monitoring LibreScoot electric scooters via Redis. It provides a convenient, user-friendly interface to all LibreScoot services and features.</p>
+<h1 id="lsc-librescoot-control-cli">lsc - Librescoot Control CLI<a class="headerlink" href="#lsc-librescoot-control-cli" title="Permanent link">&para;</a></h1>
+<p><code>lsc</code> is a command-line interface for controlling and monitoring Librescoot electric scooters via Redis. It provides a convenient, user-friendly interface to all Librescoot services and features.</p>
 <h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">&para;</a></h2>
-<p>The <code>lsc</code> tool acts as a bridge between human operators and the LibreScoot Redis-based communication system. Instead of manually crafting Redis commands, you can use intuitive commands to:</p>
+<p>The <code>lsc</code> tool acts as a bridge between human operators and the Librescoot Redis-based communication system. Instead of manually crafting Redis commands, you can use intuitive commands to:</p>
 <ul>
 <li>Control vehicle state (lock/unlock, hibernate)</li>
 <li>Monitor system status and diagnostics</li>
@@ -2283,7 +2292,7 @@
 <li>Control hardware components</li>
 </ul>
 <h2 id="installation">Installation<a class="headerlink" href="#installation" title="Permanent link">&para;</a></h2>
-<p>The <code>lsc</code> binary is typically installed to <code>/usr/bin/lsc</code> on LibreScoot systems.</p>
+<p>The <code>lsc</code> binary is typically installed to <code>/usr/bin/lsc</code> on Librescoot systems.</p>
 <p><strong>Manual installation:</strong>
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="c1"># From the lsc source directory</span>
 </span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>make<span class="w"> </span>build<span class="w">              </span><span class="c1"># Build for ARM</span>
@@ -2679,7 +2688,7 @@
 </span><span id="__span-22-8"><a id="__codelineno-22-8" name="__codelineno-22-8" href="#__codelineno-22-8"></a>lsc<span class="w"> </span>gps<span class="w"> </span>status<span class="w"> </span>--json<span class="w"> </span><span class="p">|</span><span class="w"> </span>jq<span class="w"> </span><span class="s1">&#39;.latitude, .longitude&#39;</span>
 </span></code></pre></div>
 <h2 id="architecture">Architecture<a class="headerlink" href="#architecture" title="Permanent link">&para;</a></h2>
-<p><code>lsc</code> communicates with LibreScoot services via Redis:</p>
+<p><code>lsc</code> communicates with Librescoot services via Redis:</p>
 <h3 id="command-pattern">Command Pattern<a class="headerlink" href="#command-pattern" title="Permanent link">&para;</a></h3>
 <p>Commands are sent using LPUSH to command lists:
 <div class="language-text highlight"><pre><span></span><code><span id="__span-23-1"><a id="__codelineno-23-1" name="__codelineno-23-1" href="#__codelineno-23-1"></a>LPUSH scooter:state lock
@@ -2728,7 +2737,7 @@
 <h2 id="related-documentation">Related Documentation<a class="headerlink" href="#related-documentation" title="Permanent link">&para;</a></h2>
 <ul>
 <li><a href="../../redis/">Redis Interface</a> - Redis hashes, lists, and channels</li>
-<li><a href="../../services/">LibreScoot Services</a> - Service architecture</li>
+<li><a href="../../services/">Librescoot Services</a> - Service architecture</li>
 <li><a href="../../services/librescoot-settings/">Settings Service</a> - Configuration management</li>
 <li><a href="../../services/librescoot-update/">OTA Updates</a> - Update system</li>
 </ul>
@@ -2793,7 +2802,7 @@
       <div class="md-copyright">
   
     <div class="md-copyright__highlight">
-      Copyright &copy; 2025-2026 LibreScoot contributors
+      Copyright &copy; 2025-2026 Librescoot contributors
     </div>
   
   
