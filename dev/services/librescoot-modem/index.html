@@ -1108,6 +1108,17 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#settings-consumed-hash-settings" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Settings consumed (Hash: <code>settings</code>)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -1194,6 +1205,23 @@
       </span>
     </span>
   </a>
+  
+    <nav class="md-nav" aria-label="Network Configuration">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#apn-reconciliation" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        APN Reconciliation
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
         
@@ -1850,6 +1878,17 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#settings-consumed-hash-settings" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Settings consumed (Hash: <code>settings</code>)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -1936,6 +1975,23 @@
       </span>
     </span>
   </a>
+  
+    <nav class="md-nav" aria-label="Network Configuration">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#apn-reconciliation" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        APN Reconciliation
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
         
@@ -2266,6 +2322,8 @@
 - <code>is-roaming</code> - Roaming status ("true", "false")
 - <code>registration-fail</code> - Registration failure reason (if any)
 - <code>error-state</code> - Consolidated error state ("ok", "powered-off", "sim-missing", "sim-inactive", "sim-locked", "registration-denied", "registration-failed", "disconnected", "no-modem", "status-error")
+- <code>pin-action</code> - Outcome of last SIM PIN reconcile ("unconfigured", "ok", "unlocked", "lock-enabled", "wrong-pin", "low-retries-bail", "puk-required", "error")
+- <code>apn-action</code> - Outcome of last APN reconcile ("no-sim", "unconfigured", "ok", "applied", "iccid-changed-cleared", "error")
 - <code>gps:filter</code> - GPS filter setting read by service ("on" or "off") - determines if main gps hash contains raw or filtered data</p>
 <p><strong>Published channel:</strong> <code>modem</code> (publishes field name on change)</p>
 <h3 id="hash-gps-main">Hash: <code>gps</code> (main)<a class="headerlink" href="#hash-gps-main" title="Permanent link">&para;</a></h3>
@@ -2294,6 +2352,17 @@
 <p>Contains Kalman-filtered GPS data with same fields as main <code>gps</code> hash.</p>
 <h3 id="lists-consumed-brpop">Lists consumed (BRPOP)<a class="headerlink" href="#lists-consumed-brpop" title="Permanent link">&para;</a></h3>
 <p>None - the service does not consume command lists.</p>
+<h3 id="settings-consumed-hash-settings">Settings consumed (Hash: <code>settings</code>)<a class="headerlink" href="#settings-consumed-hash-settings" title="Permanent link">&para;</a></h3>
+<p>Watched via the settings hash and applied on change:</p>
+<ul>
+<li><code>cellular.apn</code> - LTE attach + data bearer APN. Empty = use SIM operator defaults.</li>
+<li><code>cellular.username</code> - APN username (PAP/CHAP). Empty = none.</li>
+<li><code>cellular.password</code> - APN password (PAP/CHAP). Empty = none. Never logged.</li>
+<li><code>cellular.auth</code> - Auth type for the data bearer: <code>none</code> (default), <code>pap</code>, or <code>chap</code>.</li>
+<li><code>cellular.sim-pin</code> - PIN for SIM unlock or lock-enable. Never logged.</li>
+<li><code>modem.gps</code> - GPS enable toggle (<code>true</code>/<code>false</code>).</li>
+<li><code>modem.cell-location</code> - Enable cell-tower geolocation fallback (<code>true</code>/<code>false</code>).</li>
+</ul>
 <h2 id="hardware-interfaces">Hardware Interfaces<a class="headerlink" href="#hardware-interfaces" title="Permanent link">&para;</a></h2>
 <h3 id="cellular-modem">Cellular Modem<a class="headerlink" href="#cellular-modem" title="Permanent link">&para;</a></h3>
 <ul>
@@ -2330,11 +2399,21 @@
 <li><strong>Type:</strong> Simple</li>
 </ul>
 <h3 id="network-configuration">Network Configuration<a class="headerlink" href="#network-configuration" title="Permanent link">&para;</a></h3>
-<p>The modem typically uses:
-- <strong>APN:</strong> Configured externally (via NetworkManager or ModemManager)
-- <strong>Interface:</strong> wwan0 (default) or ppp0
-- <strong>DNS:</strong> Provided by mobile operator
-- <strong>Connectivity test:</strong> Ping to 8.8.8.8 (Google DNS)</p>
+<ul>
+<li><strong>Interface:</strong> wwan0 (default) or ppp0</li>
+<li><strong>DNS:</strong> Provided by mobile operator</li>
+<li><strong>Connectivity test:</strong> Ping to 8.8.8.8 (Google DNS)</li>
+</ul>
+<h4 id="apn-reconciliation">APN Reconciliation<a class="headerlink" href="#apn-reconciliation" title="Permanent link">&para;</a></h4>
+<p>The service reconciles <code>cellular.apn</code>, <code>cellular.username</code>, <code>cellular.password</code>, and <code>cellular.auth</code> from the <code>settings</code> hash against two backends on every monitor tick (gated to skip when the SIM is locked or missing):</p>
+<ol>
+<li><strong>NetworkManager <code>wwan</code> GSM profile</strong> &mdash; sets the data bearer APN/user/password via <code>nmcli connection modify</code>. NM brings the bearer back up via <code>nmcli connection down</code> + <code>up</code> after the change.</li>
+<li><strong>ModemManager initial-EPS-bearer settings</strong> &mdash; sets the LTE attach context via the <code>org.freedesktop.ModemManager1.Modem.Modem3gpp.SetInitialEpsBearerSettings</code> D-Bus method. This persists in modem NVRAM and governs the APN used during LTE attach (before any data session).</li>
+</ol>
+<p><strong>SIM7100E quirk:</strong> ModemManager's generic 3GPP code writes <code>AT+CGDCONT=0</code> (cid=0) for the initial EPS bearer, which simtech firmware ignores at attach time. The service additionally sends <code>AT+CGDCONT=1,"IP","&lt;apn&gt;"</code> and <code>AT+CGAUTH=1,&lt;type&gt;,"&lt;user&gt;","&lt;pass&gt;"</code> via the <code>Modem.Command</code> D-Bus method so the SIM7100E actually picks up the new APN. Both paths are taken on every apply; the AT path is the decisive one on this hardware.</p>
+<p><strong>Reattach:</strong> After a successful apply, the service sends <code>AT+COPS=2</code> followed by <code>AT+COPS=0</code> in a background goroutine, forcing the modem to deregister and re-register with the carrier. Without this, a freshly-written CGDCONT only takes effect on the next reboot &mdash; symptoms include "stuck on EDGE" when the new attach APN was needed for the LTE core to accept the connection.</p>
+<p><strong>SIM swap:</strong> The service tracks the ICCID of the SIM that was last applied to. When ModemManager reports a different ICCID, both NM and the modem are cleared to defaults (<code>apn-action=iccid-changed-cleared</code>) so the new SIM uses its operator's defaults. The user must re-set <code>cellular.apn</code> etc. for the new SIM, which re-arms reconciliation.</p>
+<p><strong>AT value safety:</strong> Settings values containing <code>"</code>, <code>\r</code>, or <code>\n</code> are rejected before being interpolated into AT commands &mdash; SIMCom AT has no escape mechanism inside string literals.</p>
 <h2 id="observable-behavior">Observable Behavior<a class="headerlink" href="#observable-behavior" title="Permanent link">&para;</a></h2>
 <h3 id="startup-sequence">Startup Sequence<a class="headerlink" href="#startup-sequence" title="Permanent link">&para;</a></h3>
 <ol>
