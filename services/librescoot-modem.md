@@ -57,6 +57,8 @@ Usage of modem-service:
 - `is-roaming` - Roaming status ("true", "false")
 - `registration-fail` - Registration failure reason (if any)
 - `error-state` - Consolidated error state ("ok", "powered-off", "sim-missing", "sim-inactive", "sim-locked", "registration-denied", "registration-failed", "disconnected", "no-modem", "status-error")
+- `pin-action` - Outcome of last SIM PIN reconcile ("unconfigured", "ok", "unlocked", "lock-enabled", "wrong-pin", "low-retries-bail", "puk-required", "error")
+- `apn-action` - Outcome of last APN reconcile ("no-sim", "unconfigured", "ok", "applied", "iccid-changed-cleared", "error")
 - `gps:filter` - GPS filter setting read by service ("on" or "off") - determines if main gps hash contains raw or filtered data
 
 **Published channel:** `modem` (publishes field name on change)
@@ -96,6 +98,18 @@ Contains Kalman-filtered GPS data with same fields as main `gps` hash.
 ### Lists consumed (BRPOP)
 
 None - the service does not consume command lists.
+
+### Settings consumed (Hash: `settings`)
+
+Watched via the settings hash and applied on change:
+
+- `cellular.apn` - LTE attach + data bearer APN. Empty = use SIM operator defaults.
+- `cellular.username` - APN username (PAP/CHAP). Empty = none.
+- `cellular.password` - APN password (PAP/CHAP). Empty = none. Never logged.
+- `cellular.auth` - Auth type for the data bearer: `none` (default), `pap`, or `chap`.
+- `cellular.sim-pin` - PIN for SIM unlock or lock-enable. Never logged.
+- `modem.gps` - GPS enable toggle (`true`/`false`).
+- `modem.cell-location` - Enable cell-tower geolocation fallback (`true`/`false`).
 
 ## Hardware Interfaces
 
@@ -138,11 +152,24 @@ The service can control modem power via GPIO pin 110:
 
 ### Network Configuration
 
-The modem typically uses:
-- **APN:** Configured externally (via NetworkManager or ModemManager)
 - **Interface:** wwan0 (default) or ppp0
 - **DNS:** Provided by mobile operator
 - **Connectivity test:** Ping to 8.8.8.8 (Google DNS)
+
+#### APN Reconciliation
+
+The service reconciles `cellular.apn`, `cellular.username`, `cellular.password`, and `cellular.auth` from the `settings` hash against two backends on every monitor tick (gated to skip when the SIM is locked or missing):
+
+1. **NetworkManager `wwan` GSM profile** &mdash; sets the data bearer APN/user/password via `nmcli connection modify`. NM brings the bearer back up via `nmcli connection down` + `up` after the change.
+2. **ModemManager initial-EPS-bearer settings** &mdash; sets the LTE attach context via the `org.freedesktop.ModemManager1.Modem.Modem3gpp.SetInitialEpsBearerSettings` D-Bus method. This persists in modem NVRAM and governs the APN used during LTE attach (before any data session).
+
+**SIM7100E quirk:** ModemManager's generic 3GPP code writes `AT+CGDCONT=0` (cid=0) for the initial EPS bearer, which simtech firmware ignores at attach time. The service additionally sends `AT+CGDCONT=1,"IP","<apn>"` and `AT+CGAUTH=1,<type>,"<user>","<pass>"` via the `Modem.Command` D-Bus method so the SIM7100E actually picks up the new APN. Both paths are taken on every apply; the AT path is the decisive one on this hardware.
+
+**Reattach:** After a successful apply, the service sends `AT+COPS=2` followed by `AT+COPS=0` in a background goroutine, forcing the modem to deregister and re-register with the carrier. Without this, a freshly-written CGDCONT only takes effect on the next reboot &mdash; symptoms include "stuck on EDGE" when the new attach APN was needed for the LTE core to accept the connection.
+
+**SIM swap:** The service tracks the ICCID of the SIM that was last applied to. When ModemManager reports a different ICCID, both NM and the modem are cleared to defaults (`apn-action=iccid-changed-cleared`) so the new SIM uses its operator's defaults. The user must re-set `cellular.apn` etc. for the new SIM, which re-arms reconciliation.
+
+**AT value safety:** Settings values containing `"`, `\r`, or `\n` are rejected before being interpolated into AT commands &mdash; SIMCom AT has no escape mechanism inside string literals.
 
 ## Observable Behavior
 
