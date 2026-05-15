@@ -1141,6 +1141,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#hash-gps" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Hash: <code>gps</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#hash-system" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
@@ -1403,6 +1414,78 @@
       </span>
     </span>
   </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hibernate-for-nrf-driven-scheduled-wake" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Hibernate-for (nRF-driven scheduled wake)
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Hibernate-for (nRF-driven scheduled wake)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#ad-hoc" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Ad-hoc
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#scheduled" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Scheduled
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#wake-timer-arm-and-ack-flow" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Wake-timer arm-and-ACK flow
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#time-sync-gate" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Time-sync gate
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#clock-jump-resilience" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Clock-jump resilience
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
         
@@ -1950,6 +2033,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#hash-gps" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Hash: <code>gps</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#hash-system" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
@@ -2216,6 +2310,78 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#hibernate-for-nrf-driven-scheduled-wake" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Hibernate-for (nRF-driven scheduled wake)
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Hibernate-for (nRF-driven scheduled wake)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#ad-hoc" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Ad-hoc
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#scheduled" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Scheduled
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#wake-timer-arm-and-ack-flow" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Wake-timer arm-and-ACK flow
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#time-sync-gate" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Time-sync gate
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#clock-jump-resilience" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Clock-jump resilience
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#wakeup-from-suspend" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
@@ -2464,6 +2630,11 @@
 <h1 id="librescoot-pm-pm-service">librescoot-pm (pm-service)<a class="headerlink" href="#librescoot-pm-pm-service" title="Permanent link">&para;</a></h1>
 <h2 id="description">Description<a class="headerlink" href="#description" title="Permanent link">&para;</a></h2>
 <p>The power manager (pm-service) controls system power states including suspend, hibernation, and reboot. It monitors service activity via a Unix socket inhibitor interface, tracks busy services via Redis, implements delays before power transitions, and manages a hibernation timer. The service uses a finite state machine (FSM) backed by librefsm to drive all power state transitions.</p>
+<p>Two user-facing hibernation features are layered on top of the base FSM:</p>
+<ul>
+<li><strong><code>hibernate-for &lt;duration&gt;</code></strong> — ad-hoc command to hibernate for a specific duration. The nRF52 arms a single-shot wake timer before the iMX6 powers off and pulls the iMX6 back up when the timer expires.</li>
+<li><strong>Scheduled hibernation</strong> — a 5-field cron expression plus a wake-by duration. Fires automatically when the scooter is locked (<code>stand-by</code>); if the cron triggers while the user is riding or parked-unlocked, the request defers until the next transition into <code>stand-by</code> and the wake time is preserved (so a <code>22:00 + 8h</code> schedule still wakes at <code>06:00</code> even if the user actually locks at <code>23:00</code>).</li>
+</ul>
 <h2 id="command-line-options">Command-Line Options<a class="headerlink" href="#command-line-options" title="Permanent link">&para;</a></h2>
 <div class="language-text highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>Usage of pm-service:
 </span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>  -default-state string
@@ -2490,12 +2661,15 @@
 <h3 id="hash-power-manager">Hash: <code>power-manager</code><a class="headerlink" href="#hash-power-manager" title="Permanent link">&para;</a></h3>
 <p><strong>Fields written:</strong>
 - <code>state</code> - Power manager state (see States section below)
-- <code>wakeup-source</code> - IRQ number of wakeup source (e.g., "45" for RTC)</p>
+- <code>wakeup-source</code> - IRQ number of wakeup source (e.g., "45" for RTC)
+- <code>wake-timer-seconds</code> - Requested wake-timer duration for the next nRF52 wake (decimal seconds; <code>0</code> disarms). Written when a <code>hibernate-for</code> flow enters <code>low-power-imminent</code>, before <code>EnterIssuingLowPower</code> blocks for the ACK.</p>
 <p><strong>Fields read:</strong>
-- None (hibernation timer settings in <code>settings</code> hash)</p>
+- <code>wake-timer-armed</code> - Set to <code>"true"</code> by bluetooth-service when the nRF52 acknowledges the wake-timer arm, <code>"false"</code> on disarm. pm-service blocks (up to <code>pm.wake-timer-ack-timeout</code>) on this field flipping to <code>true</code> in <code>EnterIssuingLowPower</code>; on timeout it aborts the hibernation rather than power off without a confirmed wake source.</p>
 <p><strong>Published channel:</strong> <code>power-manager</code>
 - <code>state</code> - Published when power state changes
-- <code>wakeup-source</code> - Published when system wakes from suspend</p>
+- <code>wakeup-source</code> - Published when system wakes from suspend
+- <code>wake-timer-seconds</code> - Published when pm-service requests a wake-timer change
+- <code>wake-timer-armed</code> - Published by bluetooth-service when the nRF52 ACK arrives</p>
 <h3 id="hash-power-managerbusy-services">Hash: <code>power-manager:busy-services</code><a class="headerlink" href="#hash-power-managerbusy-services" title="Permanent link">&para;</a></h3>
 <p><strong>Fields written:</strong>
 - <code>&lt;who&gt; &lt;why&gt; &lt;what&gt;</code> = <code>&lt;type&gt;</code> — inhibitor entry
@@ -2512,9 +2686,18 @@
 <p>pm-service subscribes to the <code>power:inhibits</code> channel and syncs entries into its inhibitor manager as manual inhibitors, so <code>update-service</code> power inhibits (e.g. during DBC boot partition writes) actually block suspend/hibernate/poweroff.</p>
 <h3 id="hash-settings">Hash: <code>settings</code><a class="headerlink" href="#hash-settings" title="Permanent link">&para;</a></h3>
 <p><strong>Fields read:</strong>
-- <code>hibernation-timer</code> - Hibernation timer duration in seconds</p>
+- <code>pm.hibernation-timer</code> - Inactivity-based hibernation timer duration in seconds (0 = disabled)
+- <code>pm.default-state</code> - Default target power state when idle (<code>run</code> / <code>suspend</code>)
+- <code>pm.scheduled-hibernate-enabled</code> - Bool: enable cron-driven scheduled hibernation
+- <code>pm.scheduled-hibernate-cron</code> - 5-field cron expression (e.g. <code>0 22 * * *</code>)
+- <code>pm.scheduled-hibernate-duration</code> - Wake-by duration (Go duration syntax: <code>8h</code>, <code>30m</code>, ...)
+- <code>pm.wake-timer-max-seconds</code> - Safety cap on a single wake-timer arm (default 604800 = 1 week)
+- <code>pm.wake-timer-ack-timeout</code> - How long to wait for the nRF52 ACK before aborting (default <code>10s</code>)</p>
 <p><strong>Subscribed channel:</strong> <code>settings</code>
-- <code>hibernation-timer</code> - Notification when hibernation timer setting changes</p>
+- Each of the fields above triggers a re-read on change.</p>
+<h3 id="hash-gps">Hash: <code>gps</code><a class="headerlink" href="#hash-gps" title="Permanent link">&para;</a></h3>
+<p><strong>Fields read:</strong>
+- <code>active</code> - Polled by pm-service (every 30 s, immediate first check) as the proxy for "the wall clock has been bootstrapped from GPS". modem-service calls <code>chronyc settime</code> in the same loop iteration that flips <code>gps.active</code> to <code>true</code> on a valid fix. The scheduler latches this signal — once observed <code>true</code>, the wall-clock validity gate stays open even if the GPS fix is later lost (chrony retains the bootstrap). NTP-only scooters with a broken or absent GPS receiver would never flip this; that's a documented limitation.</p>
 <h3 id="hash-system">Hash: <code>system</code><a class="headerlink" href="#hash-system" title="Permanent link">&para;</a></h3>
 <p><strong>Fields written:</strong>
 - <code>cpu:governor</code> - CPU governor setting (ondemand, powersave, performance)</p>
@@ -2528,6 +2711,8 @@
 <li><code>hibernate</code> - Request hibernation</li>
 <li><code>hibernate-manual</code> - Manual hibernation (user-initiated)</li>
 <li><code>hibernate-timer</code> - Timer-based hibernation</li>
+<li><code>hibernate-for:&lt;seconds&gt;</code> - Ad-hoc hibernate-for. The integer suffix is the wake-timer duration in seconds (clamped to <code>pm.wake-timer-max-seconds</code>).</li>
+<li><code>hibernate-cancel</code> - Return target to <code>run</code> and disarm any pending wake timer.</li>
 <li>
 <p><code>reboot</code> - System reboot</p>
 </li>
@@ -2545,9 +2730,10 @@
 </ul>
 <h3 id="hash-subscriptions-field-updates">Hash subscriptions (field updates)<a class="headerlink" href="#hash-subscriptions-field-updates" title="Permanent link">&para;</a></h3>
 <ul>
-<li><code>vehicle</code> → <code>state</code> - Vehicle state monitoring (stand-by, parked, etc.)</li>
+<li><code>vehicle</code> → <code>state</code> - Vehicle state monitoring (stand-by, parked, etc.); also drives scheduled-hibernation deferral</li>
 <li><code>battery:0</code> → <code>state</code> - Battery slot 0 state monitoring (idle, active, charging)</li>
 <li><code>battery:1</code> → <code>state</code> - Battery slot 1 state monitoring (idle, active, charging)</li>
+<li><code>power-manager</code> → <code>wake-timer-armed</code> - Wake-timer ACK from the nRF52 (via bluetooth-service)</li>
 </ul>
 <h2 id="power-manager-states">Power Manager States<a class="headerlink" href="#power-manager-states" title="Permanent link">&para;</a></h2>
 <p>The FSM has these internal states:</p>
@@ -2555,7 +2741,7 @@
 <li><code>running</code> - Normal operation</li>
 <li><code>pre-suspend</code> - Waiting out the pre-suspend delay (natural suspend path only); publishes <code>&lt;target&gt;-pending</code> to Redis (e.g. <code>suspending-pending</code>)</li>
 <li><code>suspend-imminent</code> - Suspend imminent timer running; publishes <code>suspending-imminent</code></li>
-<li><code>hibernate-imminent</code> - Hibernate/reboot imminent timer running</li>
+<li><code>low-power-imminent</code> - Generic prep state for any non-suspend low-power transition (hibernate, hibernate-manual, hibernate-timer, hibernate-for, reboot); the published Redis label is target-derived (e.g. <code>hibernating-for-imminent</code>)</li>
 <li><code>waiting-inhibitors</code> - Waiting for blocking inhibitors to clear</li>
 <li><code>issuing-low-power</code> - Power command issued to systemd</li>
 <li><code>suspended</code> - System has returned from suspend (transient)</li>
@@ -2594,6 +2780,10 @@
 <td><code>hibernating-timer-imminent</code></td>
 </tr>
 <tr>
+<td>hibernate-for-imminent</td>
+<td><code>hibernating-for-imminent</code></td>
+</tr>
+<tr>
 <td>reboot-imminent</td>
 <td><code>reboot-imminent</code></td>
 </tr>
@@ -2612,6 +2802,10 @@
 <tr>
 <td>issuing hibernate-timer</td>
 <td><code>hibernating-timer</code></td>
+</tr>
+<tr>
+<td>issuing hibernate-for</td>
+<td><code>hibernating-for</code></td>
 </tr>
 <tr>
 <td>issuing reboot</td>
@@ -2735,6 +2929,52 @@
 <li>Issues systemd <code>poweroff</code> command</li>
 <li>System powers down</li>
 </ol>
+<h3 id="hibernate-for-nrf-driven-scheduled-wake">Hibernate-for (nRF-driven scheduled wake)<a class="headerlink" href="#hibernate-for-nrf-driven-scheduled-wake" title="Permanent link">&para;</a></h3>
+<p>The <code>hibernate-for</code> family of commands hibernates the system for a specific duration and relies on the nRF52 to wake the iMX6 back up. The wake source is independent of the iMX6's own RTC because <code>systemctl poweroff</code> fully cuts iMX6 power; only the nRF52 keeps running during hibernation.</p>
+<h4 id="ad-hoc">Ad-hoc<a class="headerlink" href="#ad-hoc" title="Permanent link">&para;</a></h4>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>redis-cli<span class="w"> </span>LPUSH<span class="w"> </span>scooter:power<span class="w"> </span><span class="s2">&quot;hibernate-for:300&quot;</span><span class="w">   </span><span class="c1"># hibernate for 5 minutes</span>
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>redis-cli<span class="w"> </span>LPUSH<span class="w"> </span>scooter:power<span class="w"> </span><span class="s2">&quot;hibernate-cancel&quot;</span><span class="w">    </span><span class="c1"># abort and disarm</span>
+</span></code></pre></div>
+<p><code>lsc hibernate-for &lt;duration&gt;</code> is a convenience wrapper. Over BLE, mobile apps can issue <code>pm:hibernate-for &lt;duration&gt;</code> / <code>pm:hibernate-cancel</code> via the extended-command channel.</p>
+<h4 id="scheduled">Scheduled<a class="headerlink" href="#scheduled" title="Permanent link">&para;</a></h4>
+<p>Cron-driven schedule, defined entirely through settings:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>lsc<span class="w"> </span>settings<span class="w"> </span><span class="nb">set</span><span class="w"> </span>pm.scheduled-hibernate-cron<span class="w"> </span><span class="s2">&quot;0 22 * * *&quot;</span>
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>lsc<span class="w"> </span>settings<span class="w"> </span><span class="nb">set</span><span class="w"> </span>pm.scheduled-hibernate-duration<span class="w"> </span>8h
+</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>lsc<span class="w"> </span>settings<span class="w"> </span><span class="nb">set</span><span class="w"> </span>pm.scheduled-hibernate-enabled<span class="w"> </span><span class="nb">true</span>
+</span></code></pre></div>
+<p>Wake-by semantics: the cron fire time + duration is treated as the desired wake-by wall-clock target. If the scooter is in <code>stand-by</code> (locked, idle) at fire time, the hibernation goes out immediately with that remaining-time value. If the scooter is in <code>parked</code>, <code>ready-to-drive</code>, or any other state, the request is <strong>deferred</strong> until the next transition into <code>stand-by</code>. The wake-by time is preserved across the defer, so a <code>22:00 + 8h</code> schedule still wakes at <code>06:00</code> even if the user locks at <code>23:00</code>. If the target time has already passed by the time <code>stand-by</code> is reached, the pending fire is dropped with a <code>Pending wake target already in the past on standby; dropping</code> log line.</p>
+<h4 id="wake-timer-arm-and-ack-flow">Wake-timer arm-and-ACK flow<a class="headerlink" href="#wake-timer-arm-and-ack-flow" title="Permanent link">&para;</a></h4>
+<p>Both flows go through the same FSM transitions as <code>hibernate-manual</code> (event <code>EvPowerHibernateFor</code>), with an extra arm-and-block step around the systemd call:</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>EnterLowPowerImminent       Publishes wake-timer-seconds=&lt;N&gt; on power-manager
+</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>        │                   (HSET + PUBLISH)
+</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>        ▼
+</span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a>suspend-imminent timer (5 s default)
+</span><span id="__span-5-5"><a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a>        │
+</span><span id="__span-5-6"><a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a>        ▼
+</span><span id="__span-5-7"><a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a>EnterWaitingInhibitors
+</span><span id="__span-5-8"><a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a>        │
+</span><span id="__span-5-9"><a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a>        ▼
+</span><span id="__span-5-10"><a id="__codelineno-5-10" name="__codelineno-5-10" href="#__codelineno-5-10"></a>EnterIssuingLowPower        Blocks for wake-timer-armed=true on power-manager,
+</span><span id="__span-5-11"><a id="__codelineno-5-11" name="__codelineno-5-11" href="#__codelineno-5-11"></a>                            up to pm.wake-timer-ack-timeout (default 10 s).
+</span><span id="__span-5-12"><a id="__codelineno-5-12" name="__codelineno-5-12" href="#__codelineno-5-12"></a>        │
+</span><span id="__span-5-13"><a id="__codelineno-5-13" name="__codelineno-5-13" href="#__codelineno-5-13"></a>        ├─ on ACK → systemctl poweroff
+</span><span id="__span-5-14"><a id="__codelineno-5-14" name="__codelineno-5-14" href="#__codelineno-5-14"></a>        └─ on timeout → emit EvPowerRun, abort
+</span></code></pre></div>
+<p>bluetooth-service is the bridge: it watches <code>power-manager:wake-timer-seconds</code>, forwards the value to the nRF52 over UART (subtype 0x0805 under 0x0800), and writes <code>wake-timer-armed</code> back when the nRF52 echoes the ACK.</p>
+<p>The system never powers off without a confirmed wake source. If bluetooth-service is down or the nRF52 fails to ACK, the hibernation is aborted and the FSM returns to <code>running</code>.</p>
+<h4 id="time-sync-gate">Time-sync gate<a class="headerlink" href="#time-sync-gate" title="Permanent link">&para;</a></h4>
+<p>The scheduler refuses to dispatch any cron occurrence until the wall clock has been confirmed plausible. A polling goroutine (immediate check + every 30 s) reads <code>gps.active</code>; once it observes <code>"true"</code>, the time-sync latch flips on permanently for the session. Reasoning:</p>
+<ul>
+<li>The iMX6 boots with the system-image build timestamp seeded into the clock, so year-based heuristics ("is the clock recent?") falsely pass.</li>
+<li>modem-service calls <code>chronyc settime</code> in the same loop iteration that flips <code>gps.active</code> to <code>true</code> on a valid GPS fix, so <code>gps.active=true</code> is a reliable proxy for "chrony has been bootstrapped". chrony.conf has <code>manual</code>, so settime samples accumulate, and <code>local stratum 1</code> is present (which is what makes <code>chronyc tracking</code> an unreliable gate on its own).</li>
+<li>A <code>Scheduled hibernation fire suppressed: wall clock not time-synced</code> log line means the latch hasn't flipped yet.</li>
+</ul>
+<h4 id="clock-jump-resilience">Clock-jump resilience<a class="headerlink" href="#clock-jump-resilience" title="Permanent link">&para;</a></h4>
+<p>A separate 30 s monitor loop in the scheduler compares monotonic elapsed vs wall-clock elapsed. A delta beyond ±60 s indicates a wall-clock jump (typical when chrony first converges from a wrong startup time). On jump:</p>
+<ol>
+<li>The cron entry is re-installed so the next-fire is recomputed against the new wall clock.</li>
+<li>Any pending deferred wake target is re-evaluated; if it's now in the past, the pending fire is dropped.</li>
+</ol>
 <h3 id="wakeup-from-suspend">Wakeup from Suspend<a class="headerlink" href="#wakeup-from-suspend" title="Permanent link">&para;</a></h3>
 <ol>
 <li>Wakeup source triggers (serial port, RTC, etc.)</li>
@@ -2786,7 +3026,7 @@
 <h3 id="key-components">Key Components<a class="headerlink" href="#key-components" title="Permanent link">&para;</a></h3>
 <p><strong>FSM (<code>internal/fsm/definition.go</code>, <code>internal/fsm/types.go</code>)</strong>
 - Defines all states, events, and transitions using librefsm
-- States: <code>running</code>, <code>pre-suspend</code>, <code>suspend-imminent</code>, <code>hibernate-imminent</code>, <code>waiting-inhibitors</code>, <code>issuing-low-power</code>, <code>suspended</code>
+- States: <code>running</code>, <code>pre-suspend</code>, <code>suspend-imminent</code>, <code>low-power-imminent</code>, <code>waiting-inhibitors</code>, <code>issuing-low-power</code>, <code>suspended</code>
 - Priority-based transition guards</p>
 <p><strong>Inhibitor Manager (<code>internal/inhibitor/inhibitor.go</code>)</strong>
 - Manages Unix socket for connection-based inhibitors (always <code>block</code> type)
@@ -2799,6 +3039,11 @@
 - Tracks whether vehicle is in an idle state (not <code>ready-to-drive</code>)
 - Configurable timer duration (default 5 days); set to 0 to disable
 - Fires <code>EvHibernationTimerExpired</code> into the FSM on expiry</p>
+<p><strong>Hibernation Scheduler (<code>internal/hibernation/scheduler.go</code>)</strong>
+- Cron-driven scheduler for <code>pm.scheduled-hibernate-*</code> settings (uses <code>github.com/robfig/cron/v3</code>, standard 5-field parser)
+- Latches a wall-clock validity gate based on <code>gps.active</code>; suppresses fires until first observed <code>"true"</code>
+- Defers cron fires while the vehicle is not in <code>stand-by</code> and dispatches on the next standby transition with the remaining time until the original wake-by target
+- 30 s background monitor detects wall-clock jumps and rebuilds the cron entry / re-evaluates pending deferred wakes accordingly</p>
 <p><strong>Service Coordinator (<code>internal/service/service.go</code>)</strong>
 - Implements the FSM <code>Actions</code> interface
 - Coordinates all components (FSM, inhibitors, hibernation timer)
@@ -2808,7 +3053,7 @@
 <p>Power state transitions follow strict priority rules (highest to lowest):</p>
 <ol>
 <li><strong>run</strong> - Cancels all lower priority states</li>
-<li><strong>hibernate-manual</strong> - User-initiated hibernation (brake + keycard)</li>
+<li><strong>hibernate-manual</strong> / <strong>hibernate-for</strong> - Explicit user-initiated hibernation (brake + keycard, or <code>hibernate-for &lt;duration&gt;</code>)</li>
 <li><strong>hibernate</strong> - Low battery or explicit hibernate command</li>
 <li><strong>hibernate-timer</strong> - Timer-based auto-hibernation</li>
 <li><strong>suspend/reboot</strong> - Normal suspend or reboot operations</li>
@@ -2816,11 +3061,11 @@
 <p>When a higher priority state is requested, lower priority requests are ignored. To change from high to low priority, first request <code>run</code> to reset, then request the desired state.</p>
 <h3 id="cpu-governor-management">CPU Governor Management<a class="headerlink" href="#cpu-governor-management" title="Permanent link">&para;</a></h3>
 <p>The service manages CPU frequency scaling via <code>/sys/devices/system/cpu/cpu0/cpufreq/scaling_governor</code>:</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="c1"># Set CPU governor</span>
-</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>redis-cli<span class="w"> </span>LPUSH<span class="w"> </span>scooter:governor<span class="w"> </span>powersave
-</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>
-</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="c1"># Current governor published to Redis</span>
-</span><span id="__span-3-5"><a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>redis-cli<span class="w"> </span>HGET<span class="w"> </span>system<span class="w"> </span>cpu:governor
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="c1"># Set CPU governor</span>
+</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>redis-cli<span class="w"> </span>LPUSH<span class="w"> </span>scooter:governor<span class="w"> </span>powersave
+</span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>
+</span><span id="__span-6-4"><a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="c1"># Current governor published to Redis</span>
+</span><span id="__span-6-5"><a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a>redis-cli<span class="w"> </span>HGET<span class="w"> </span>system<span class="w"> </span>cpu:governor
 </span></code></pre></div>
 <p>Supported governors: <code>ondemand</code>, <code>powersave</code>, <code>performance</code>.</p>
 <h3 id="wakeup-source-management">Wakeup Source Management<a class="headerlink" href="#wakeup-source-management" title="Permanent link">&para;</a></h3>
@@ -2829,29 +3074,29 @@
 - <code>/sys/class/tty/ttymxc1/power/wakeup</code> → <code>enabled</code></p>
 <p>After wakeup, reads IRQ from <code>/sys/power/pm_wakeup_irq</code> and publishes to Redis.</p>
 <h3 id="building-and-testing">Building and Testing<a class="headerlink" href="#building-and-testing" title="Permanent link">&para;</a></h3>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="c1"># Build for ARM target (armv7eabi)</span>
-</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>make<span class="w"> </span>build
-</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>
-</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="c1"># Build for local architecture</span>
-</span><span id="__span-4-5"><a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a>make<span class="w"> </span>build-local
-</span><span id="__span-4-6"><a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a>
-</span><span id="__span-4-7"><a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a><span class="c1"># Install to /usr/bin</span>
-</span><span id="__span-4-8"><a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a>sudo<span class="w"> </span>make<span class="w"> </span>install
-</span><span id="__span-4-9"><a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a>
-</span><span id="__span-4-10"><a id="__codelineno-4-10" name="__codelineno-4-10" href="#__codelineno-4-10"></a><span class="c1"># Run with dry-run mode (no actual power transitions)</span>
-</span><span id="__span-4-11"><a id="__codelineno-4-11" name="__codelineno-4-11" href="#__codelineno-4-11"></a>./pm-service<span class="w"> </span>-dry-run
-</span><span id="__span-4-12"><a id="__codelineno-4-12" name="__codelineno-4-12" href="#__codelineno-4-12"></a>
-</span><span id="__span-4-13"><a id="__codelineno-4-13" name="__codelineno-4-13" href="#__codelineno-4-13"></a><span class="c1"># Monitor power state changes</span>
-</span><span id="__span-4-14"><a id="__codelineno-4-14" name="__codelineno-4-14" href="#__codelineno-4-14"></a>redis-cli<span class="w"> </span>SUBSCRIBE<span class="w"> </span>power-manager
-</span><span id="__span-4-15"><a id="__codelineno-4-15" name="__codelineno-4-15" href="#__codelineno-4-15"></a>
-</span><span id="__span-4-16"><a id="__codelineno-4-16" name="__codelineno-4-16" href="#__codelineno-4-16"></a><span class="c1"># Check busy services</span>
-</span><span id="__span-4-17"><a id="__codelineno-4-17" name="__codelineno-4-17" href="#__codelineno-4-17"></a>redis-cli<span class="w"> </span>HGETALL<span class="w"> </span>power-manager:busy-services
-</span><span id="__span-4-18"><a id="__codelineno-4-18" name="__codelineno-4-18" href="#__codelineno-4-18"></a>
-</span><span id="__span-4-19"><a id="__codelineno-4-19" name="__codelineno-4-19" href="#__codelineno-4-19"></a><span class="c1"># Request hibernation</span>
-</span><span id="__span-4-20"><a id="__codelineno-4-20" name="__codelineno-4-20" href="#__codelineno-4-20"></a>redis-cli<span class="w"> </span>LPUSH<span class="w"> </span>scooter:power<span class="w"> </span>hibernate
-</span><span id="__span-4-21"><a id="__codelineno-4-21" name="__codelineno-4-21" href="#__codelineno-4-21"></a>
-</span><span id="__span-4-22"><a id="__codelineno-4-22" name="__codelineno-4-22" href="#__codelineno-4-22"></a><span class="c1"># Change CPU governor</span>
-</span><span id="__span-4-23"><a id="__codelineno-4-23" name="__codelineno-4-23" href="#__codelineno-4-23"></a>redis-cli<span class="w"> </span>LPUSH<span class="w"> </span>scooter:governor<span class="w"> </span>powersave
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="c1"># Build for ARM target (armv7eabi)</span>
+</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>make<span class="w"> </span>build
+</span><span id="__span-7-3"><a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a>
+</span><span id="__span-7-4"><a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="c1"># Build for local architecture</span>
+</span><span id="__span-7-5"><a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a>make<span class="w"> </span>build-local
+</span><span id="__span-7-6"><a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a>
+</span><span id="__span-7-7"><a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a><span class="c1"># Install to /usr/bin</span>
+</span><span id="__span-7-8"><a id="__codelineno-7-8" name="__codelineno-7-8" href="#__codelineno-7-8"></a>sudo<span class="w"> </span>make<span class="w"> </span>install
+</span><span id="__span-7-9"><a id="__codelineno-7-9" name="__codelineno-7-9" href="#__codelineno-7-9"></a>
+</span><span id="__span-7-10"><a id="__codelineno-7-10" name="__codelineno-7-10" href="#__codelineno-7-10"></a><span class="c1"># Run with dry-run mode (no actual power transitions)</span>
+</span><span id="__span-7-11"><a id="__codelineno-7-11" name="__codelineno-7-11" href="#__codelineno-7-11"></a>./pm-service<span class="w"> </span>-dry-run
+</span><span id="__span-7-12"><a id="__codelineno-7-12" name="__codelineno-7-12" href="#__codelineno-7-12"></a>
+</span><span id="__span-7-13"><a id="__codelineno-7-13" name="__codelineno-7-13" href="#__codelineno-7-13"></a><span class="c1"># Monitor power state changes</span>
+</span><span id="__span-7-14"><a id="__codelineno-7-14" name="__codelineno-7-14" href="#__codelineno-7-14"></a>redis-cli<span class="w"> </span>SUBSCRIBE<span class="w"> </span>power-manager
+</span><span id="__span-7-15"><a id="__codelineno-7-15" name="__codelineno-7-15" href="#__codelineno-7-15"></a>
+</span><span id="__span-7-16"><a id="__codelineno-7-16" name="__codelineno-7-16" href="#__codelineno-7-16"></a><span class="c1"># Check busy services</span>
+</span><span id="__span-7-17"><a id="__codelineno-7-17" name="__codelineno-7-17" href="#__codelineno-7-17"></a>redis-cli<span class="w"> </span>HGETALL<span class="w"> </span>power-manager:busy-services
+</span><span id="__span-7-18"><a id="__codelineno-7-18" name="__codelineno-7-18" href="#__codelineno-7-18"></a>
+</span><span id="__span-7-19"><a id="__codelineno-7-19" name="__codelineno-7-19" href="#__codelineno-7-19"></a><span class="c1"># Request hibernation</span>
+</span><span id="__span-7-20"><a id="__codelineno-7-20" name="__codelineno-7-20" href="#__codelineno-7-20"></a>redis-cli<span class="w"> </span>LPUSH<span class="w"> </span>scooter:power<span class="w"> </span>hibernate
+</span><span id="__span-7-21"><a id="__codelineno-7-21" name="__codelineno-7-21" href="#__codelineno-7-21"></a>
+</span><span id="__span-7-22"><a id="__codelineno-7-22" name="__codelineno-7-22" href="#__codelineno-7-22"></a><span class="c1"># Change CPU governor</span>
+</span><span id="__span-7-23"><a id="__codelineno-7-23" name="__codelineno-7-23" href="#__codelineno-7-23"></a>redis-cli<span class="w"> </span>LPUSH<span class="w"> </span>scooter:governor<span class="w"> </span>powersave
 </span></code></pre></div>
 <h3 id="integration-points">Integration Points<a class="headerlink" href="#integration-points" title="Permanent link">&para;</a></h3>
 <p><strong>With vehicle-service:</strong>

@@ -3069,6 +3069,18 @@
 <td>Hibernation level</td>
 <td>"L1"/"L2"</td>
 </tr>
+<tr>
+<td>wake-timer-seconds</td>
+<td>integer</td>
+<td>Requested nRF52 wake-timer duration in seconds (<code>0</code> = disarm). Written by pm-service before hibernate-for poweroff.</td>
+<td>"300"</td>
+</tr>
+<tr>
+<td>wake-timer-armed</td>
+<td>"true"/"false"</td>
+<td>nRF52 ACK echo published by bluetooth-service after the wake-timer arm request</td>
+<td>"true"</td>
+</tr>
 </tbody>
 </table>
 <h3 id="power-manager-busy-services-power-managerbusy-services">Power Manager Busy Services (<code>power-manager:busy-services</code>)<a class="headerlink" href="#power-manager-busy-services-power-managerbusy-services" title="Permanent link">&para;</a></h3>
@@ -3562,6 +3574,48 @@
 <td>integer (sec)</td>
 <td>Hibernation timeout (0=disabled)</td>
 <td>"432000"</td>
+</tr>
+<tr>
+<td>pm.hibernation-timer</td>
+<td>integer (sec)</td>
+<td>New name for hibernation-timer (idle-driven auto-hibernate; 0=disabled)</td>
+<td>"259200"</td>
+</tr>
+<tr>
+<td>pm.default-state</td>
+<td>string</td>
+<td>Default target power state when idle (run / suspend)</td>
+<td>"run"</td>
+</tr>
+<tr>
+<td>pm.scheduled-hibernate-enabled</td>
+<td>"true"/"false"</td>
+<td>Enable cron-driven scheduled hibernation</td>
+<td>"true"</td>
+</tr>
+<tr>
+<td>pm.scheduled-hibernate-cron</td>
+<td>string</td>
+<td>5-field cron expression for scheduled hibernation</td>
+<td>"0 22 * * *"</td>
+</tr>
+<tr>
+<td>pm.scheduled-hibernate-duration</td>
+<td>duration</td>
+<td>Wake-by duration applied at each cron fire</td>
+<td>"8h"</td>
+</tr>
+<tr>
+<td>pm.wake-timer-max-seconds</td>
+<td>integer (sec)</td>
+<td>Safety cap on a single hibernate-for / scheduled wake-timer arm</td>
+<td>"604800"</td>
+</tr>
+<tr>
+<td>pm.wake-timer-ack-timeout</td>
+<td>duration</td>
+<td>How long pm-service waits for the nRF52 wake-timer ACK before aborting hibernation</td>
+<td>"10s"</td>
 </tr>
 <tr>
 <td>scooter.auto-standby-seconds</td>
@@ -4145,10 +4199,16 @@ The <code>dbc-backlight-service</code> reads <code>illumination</code> and adjus
 </span><span id="__span-32-13"><a id="__codelineno-32-13" name="__codelineno-32-13" href="#__codelineno-32-13"></a><span class="c1"># Timer-based hibernation</span>
 </span><span id="__span-32-14"><a id="__codelineno-32-14" name="__codelineno-32-14" href="#__codelineno-32-14"></a>redis-cli<span class="w"> </span>-h<span class="w"> </span><span class="m">192</span>.168.7.1<span class="w"> </span>LPUSH<span class="w"> </span>scooter:power<span class="w"> </span>hibernate-timer
 </span><span id="__span-32-15"><a id="__codelineno-32-15" name="__codelineno-32-15" href="#__codelineno-32-15"></a>
-</span><span id="__span-32-16"><a id="__codelineno-32-16" name="__codelineno-32-16" href="#__codelineno-32-16"></a><span class="c1"># Reboot system</span>
-</span><span id="__span-32-17"><a id="__codelineno-32-17" name="__codelineno-32-17" href="#__codelineno-32-17"></a>redis-cli<span class="w"> </span>-h<span class="w"> </span><span class="m">192</span>.168.7.1<span class="w"> </span>LPUSH<span class="w"> </span>scooter:power<span class="w"> </span>reboot
+</span><span id="__span-32-16"><a id="__codelineno-32-16" name="__codelineno-32-16" href="#__codelineno-32-16"></a><span class="c1"># Hibernate for a specific duration; nRF52 wakes the iMX6 after N seconds</span>
+</span><span id="__span-32-17"><a id="__codelineno-32-17" name="__codelineno-32-17" href="#__codelineno-32-17"></a>redis-cli<span class="w"> </span>-h<span class="w"> </span><span class="m">192</span>.168.7.1<span class="w"> </span>LPUSH<span class="w"> </span>scooter:power<span class="w"> </span><span class="s2">&quot;hibernate-for:300&quot;</span>
+</span><span id="__span-32-18"><a id="__codelineno-32-18" name="__codelineno-32-18" href="#__codelineno-32-18"></a>
+</span><span id="__span-32-19"><a id="__codelineno-32-19" name="__codelineno-32-19" href="#__codelineno-32-19"></a><span class="c1"># Cancel a pending hibernate-for and disarm the wake timer</span>
+</span><span id="__span-32-20"><a id="__codelineno-32-20" name="__codelineno-32-20" href="#__codelineno-32-20"></a>redis-cli<span class="w"> </span>-h<span class="w"> </span><span class="m">192</span>.168.7.1<span class="w"> </span>LPUSH<span class="w"> </span>scooter:power<span class="w"> </span>hibernate-cancel
+</span><span id="__span-32-21"><a id="__codelineno-32-21" name="__codelineno-32-21" href="#__codelineno-32-21"></a>
+</span><span id="__span-32-22"><a id="__codelineno-32-22" name="__codelineno-32-22" href="#__codelineno-32-22"></a><span class="c1"># Reboot system</span>
+</span><span id="__span-32-23"><a id="__codelineno-32-23" name="__codelineno-32-23" href="#__codelineno-32-23"></a>redis-cli<span class="w"> </span>-h<span class="w"> </span><span class="m">192</span>.168.7.1<span class="w"> </span>LPUSH<span class="w"> </span>scooter:power<span class="w"> </span>reboot
 </span></code></pre></div>
-<p><strong>Available commands</strong>: <code>run</code>, <code>suspend</code>, <code>hibernate</code>, <code>hibernate-manual</code>, <code>hibernate-timer</code>, <code>reboot</code></p>
+<p><strong>Available commands</strong>: <code>run</code>, <code>suspend</code>, <code>hibernate</code>, <code>hibernate-manual</code>, <code>hibernate-timer</code>, <code>hibernate-for:&lt;seconds&gt;</code>, <code>hibernate-cancel</code>, <code>reboot</code></p>
 <h3 id="modem-control-scootermodem-librescoot-only">Modem Control (<code>scooter:modem</code>) - Librescoot Only<a class="headerlink" href="#modem-control-scootermodem-librescoot-only" title="Permanent link">&para;</a></h3>
 <p>Controls modem power state and GPS.</p>
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-33-1"><a id="__codelineno-33-1" name="__codelineno-33-1" href="#__codelineno-33-1"></a><span class="c1"># Enable modem</span>

@@ -2531,7 +2531,16 @@ This 3.3V power also supplies the combined accelerometer/gyroscope/magnetometer 
 <li>
 <p><strong>Remote Activation</strong>:</p>
 </li>
-<li>Requested via Bluetooth command.</li>
+<li>
+<p>Requested via Bluetooth command.</p>
+</li>
+<li>
+<p><strong>Programmed Wake Timer</strong>:</p>
+</li>
+<li>The iMX6 can arm a single-shot <code>app_timer</code> on the nRF52 before powering off via UART subtype <code>0x0805</code> (<code>WAKE_TIMER_SET</code>, uint32 seconds; <code>0</code> disarms).</li>
+<li>When the timer expires, the nRF52 re-enables iMX6 power using the same code path as the accelerometer-wake.</li>
+<li>Any other wake source that fires first (brake, accelerometer, manual BLE) disarms the pending wake via <code>power_management_stop_all_timers()</code>.</li>
+<li>Used by pm-service's <code>hibernate-for &lt;duration&gt;</code> ad-hoc command and the cron-driven scheduled-hibernation feature; see <a href="../../services/librescoot-pm/">pm-service docs</a> for the iMX6 side.</li>
 </ol>
 <h3 id="low-battery-wakeup-behavior">Low Battery Wakeup Behavior<a class="headerlink" href="#low-battery-wakeup-behavior" title="Permanent link">&para;</a></h3>
 <p>When in hibernation Level 1 (L1), if the CB battery state of charge drops to 10% or below, the system will wake up once to send a low battery warning. This ensures the user is notified before the battery is completely depleted.</p>

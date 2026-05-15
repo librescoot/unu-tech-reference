@@ -2025,6 +2025,16 @@
 <td><code>alarm:ok</code></td>
 </tr>
 <tr>
+<td><code>pm:hibernate-for &lt;duration&gt;</code></td>
+<td>Hibernate for the given duration (Go syntax: <code>30s</code>, <code>10m</code>, <code>8h</code>); nRF52 wakes the iMX6 after the duration</td>
+<td><code>pm:ok</code></td>
+</tr>
+<tr>
+<td><code>pm:hibernate-cancel</code></td>
+<td>Cancel a pending hibernate-for and disarm the wake timer</td>
+<td><code>pm:ok</code></td>
+</tr>
+<tr>
 <td><code>status:maps-available</code></td>
 <td>Query if offline maps are installed</td>
 <td><code>status:maps-available:true</code> or <code>false</code></td>
