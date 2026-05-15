@@ -245,8 +245,14 @@ The system can wake from hibernation through:
    - CB battery state of charge drops below the wake-up threshold (10%).
    - This allows the system to wake up once to send a low battery warning.
 
-4. **Remote Activation**:
+3. **Remote Activation**:
    - Requested via Bluetooth command.
+
+4. **Programmed Wake Timer**:
+   - The iMX6 can arm a single-shot `app_timer` on the nRF52 before powering off via UART subtype `0x0805` (`WAKE_TIMER_SET`, uint32 seconds; `0` disarms).
+   - When the timer expires, the nRF52 re-enables iMX6 power using the same code path as the accelerometer-wake.
+   - Any other wake source that fires first (brake, accelerometer, manual BLE) disarms the pending wake via `power_management_stop_all_timers()`.
+   - Used by pm-service's `hibernate-for <duration>` ad-hoc command and the cron-driven scheduled-hibernation feature; see [pm-service docs](../services/librescoot-pm.md) for the iMX6 side.
 
 ### Low Battery Wakeup Behavior
 

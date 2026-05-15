@@ -139,6 +139,8 @@ hgetall power-manager
 | nrf-reset-count | integer | nRF reset counter | "2" |
 | nrf-reset-reason | hex string | nRF reset reason code | "0x00000001" |
 | hibernate-level | string | Hibernation level | "L1"/"L2" |
+| wake-timer-seconds | integer | Requested nRF52 wake-timer duration in seconds (`0` = disarm). Written by pm-service before hibernate-for poweroff. | "300" |
+| wake-timer-armed | "true"/"false" | nRF52 ACK echo published by bluetooth-service after the wake-timer arm request | "true" |
 
 ### Power Manager Busy Services (`power-manager:busy-services`)
 ```
@@ -338,6 +340,13 @@ Librescoot adds persistent settings managed by the settings-service:
 | battery.ignore-seatbox | "true"/"false" | Ignore seatbox state for battery management | "false" |
 | cellular.apn | string | Cellular APN | "internet.provider.com" |
 | hibernation-timer | integer (sec) | Hibernation timeout (0=disabled) | "432000" |
+| pm.hibernation-timer | integer (sec) | New name for hibernation-timer (idle-driven auto-hibernate; 0=disabled) | "259200" |
+| pm.default-state | string | Default target power state when idle (run / suspend) | "run" |
+| pm.scheduled-hibernate-enabled | "true"/"false" | Enable cron-driven scheduled hibernation | "true" |
+| pm.scheduled-hibernate-cron | string | 5-field cron expression for scheduled hibernation | "0 22 * * *" |
+| pm.scheduled-hibernate-duration | duration | Wake-by duration applied at each cron fire | "8h" |
+| pm.wake-timer-max-seconds | integer (sec) | Safety cap on a single hibernate-for / scheduled wake-timer arm | "604800" |
+| pm.wake-timer-ack-timeout | duration | How long pm-service waits for the nRF52 wake-timer ACK before aborting hibernation | "10s" |
 | scooter.auto-standby-seconds | integer (sec) | Auto-lock timeout when parked (0=disabled) | "0" |
 | scooter.brake-hibernation | "enabled"/"disabled" | Enable brake lever hibernation | "enabled" |
 | updates.mdb.channel | string | MDB update channel | "nightly" |
@@ -644,11 +653,17 @@ redis-cli -h 192.168.7.1 LPUSH scooter:power hibernate-manual
 # Timer-based hibernation
 redis-cli -h 192.168.7.1 LPUSH scooter:power hibernate-timer
 
+# Hibernate for a specific duration; nRF52 wakes the iMX6 after N seconds
+redis-cli -h 192.168.7.1 LPUSH scooter:power "hibernate-for:300"
+
+# Cancel a pending hibernate-for and disarm the wake timer
+redis-cli -h 192.168.7.1 LPUSH scooter:power hibernate-cancel
+
 # Reboot system
 redis-cli -h 192.168.7.1 LPUSH scooter:power reboot
 ```
 
-**Available commands**: `run`, `suspend`, `hibernate`, `hibernate-manual`, `hibernate-timer`, `reboot`
+**Available commands**: `run`, `suspend`, `hibernate`, `hibernate-manual`, `hibernate-timer`, `hibernate-for:<seconds>`, `hibernate-cancel`, `reboot`
 
 ### Modem Control (`scooter:modem`) - Librescoot Only
 

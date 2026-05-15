@@ -80,8 +80,24 @@ lsc power suspend
 # Set power state to hibernate (power off)
 lsc power hibernate
 
+# Hibernate for a specific duration; nRF52 wakes the iMX6 afterwards
+lsc hibernate-for 8h
+lsc power hibernate-for 30m       # equivalent
+
+# Cancel a pending hibernate-for and disarm the wake timer
+lsc hibernate-cancel
+lsc power hibernate-cancel        # equivalent
+
 # Reboot the system
 lsc power reboot
+```
+
+Schedule a recurring hibernation via the settings interface:
+
+```bash
+lsc settings set pm.scheduled-hibernate-cron "0 22 * * *"
+lsc settings set pm.scheduled-hibernate-duration 8h
+lsc settings set pm.scheduled-hibernate-enabled true
 ```
 
 **Redis operations:**

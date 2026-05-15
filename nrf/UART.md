@@ -121,6 +121,8 @@ Each message type contains sub-types as CBOR map keys:
 - 0x0801: PM State (1=running, 2=suspending, 3=hibernating, etc.)
 - 0x0802: Power Request (hibernation level: 0=L1, 1=L2)
 - 0x0803: Hibernation Request (0=automatic, 1=manual)
+- 0x0804: Reboot Request (nRF → iMX6)
+- 0x0805: Wake Timer Set (iMX6 → nRF, uint32 seconds). Arms a single-shot `app_timer` on the nRF52 that wakes the iMX6 after the given duration; `0` disarms any pending timer. Long durations are chunked at 500 s (under the 24-bit hardware compare at the default 32.768 kHz RTC prescaler) and re-armed internally. Any unrelated wake source (brake, accelerometer, manual BLE) calls `power_management_stop_all_timers()` and disarms a pending wake. The nRF echoes the same subtype back as an ACK with the value it stored; bluetooth-service publishes `power-manager:wake-timer-armed` based on the echo.
 
 **Power Mux (0x0100):**
 - 0x0101: Power Mux State (0=AUX battery, 1=CB battery)

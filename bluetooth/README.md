@@ -141,6 +141,8 @@ Unified extensible command/response channel for phone app interaction
 | `alarm:disarm` | Disarm alarm | `alarm:ok` |
 | `alarm:start` / `alarm:start:<N>` | Trigger alarm; duration in seconds, default from settings | `alarm:ok` |
 | `alarm:stop` | Stop active alarm | `alarm:ok` |
+| `pm:hibernate-for <duration>` | Hibernate for the given duration (Go syntax: `30s`, `10m`, `8h`); nRF52 wakes the iMX6 after the duration | `pm:ok` |
+| `pm:hibernate-cancel` | Cancel a pending hibernate-for and disarm the wake timer | `pm:ok` |
 | `status:maps-available` | Query if offline maps are installed | `status:maps-available:true` or `false` |
 | `status:navigation-available` | Query if routing engine is available | `status:navigation-available:true` or `false` |
 | `cap:list` | Enumerate supported capability categories | `cap:count:<n>` then `cap:<name>` per category |
