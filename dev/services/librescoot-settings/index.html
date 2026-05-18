@@ -23,7 +23,7 @@
       
       
       <link rel="icon" href="../../assets/images/favicon.png">
-      <meta name="generator" content="zensical-0.0.41">
+      <meta name="generator" content="zensical-0.0.42">
     
     
       
@@ -2321,6 +2321,8 @@
 <li><code>scooter.max-voltage-delta</code> - Maximum voltage difference between batteries in mV before dual battery activation is refused (default: 1000; 0 to disable)</li>
 <li><code>scooter.battery-ignores-seatbox</code> - Runtime override of <code>--dangerously-ignore-seatbox</code> (default: false)</li>
 <li><code>scooter.battery-keep-active-on-seatbox-open</code> - Keep active battery on across seatbox opens (default: false)</li>
+<li><code>scooter.battery-aux-low-keep-active-enter-mv</code> - Aux battery voltage in mV below which the keep-active-on-seatbox-open override engages automatically (default: 11500). Hysteresis pairs with the exit threshold.</li>
+<li><code>scooter.battery-aux-low-keep-active-exit-mv</code> - Aux battery voltage in mV at or above which the aux-low keep-active override disengages (default: 12000). Must be greater than the enter threshold.</li>
 <li><code>scooter.dual-battery</code> - Enable dual battery mode (default: false)</li>
 <li><code>scooter.dbc-blinker-led</code> - Blink DBC boot LED with blinkers ("enabled"/"disabled"; default: "disabled")</li>
 <li><code>scooter.enable-horn</code> - Horn enable mode ("true"/"false"/"in-drive"; default: "true")</li>
@@ -2752,7 +2754,7 @@
       <script id="__config" type="application/json">{"annotate":null,"base":"../..","features":["content.action.edit","content.code.copy","content.code.select","content.tooltips","navigation.footer","navigation.indexes","navigation.instant","navigation.instant.prefetch","navigation.path","navigation.sections","navigation.top","navigation.tracking","search.highlight","toc.follow"],"search":"../../assets/javascripts/workers/search.e2d2d235.min.js","tags":null,"translations":{"clipboard.copied":"Copied to clipboard","clipboard.copy":"Copy to clipboard","search.result.more.one":"1 more on this page","search.result.more.other":"# more on this page","search.result.none":"No matching documents","search.result.one":"1 matching document","search.result.other":"# matching documents","search.result.placeholder":"Type to start searching","search.result.term.missing":"Missing","select.version":"Select version"},"version":{"provider":"mike"}}</script>
     
     
-      <script src="../../assets/javascripts/bundle.dbc0afdc.min.js"></script>
+      <script src="../../assets/javascripts/bundle.6e5f0216.min.js"></script>
       
     
   </body>

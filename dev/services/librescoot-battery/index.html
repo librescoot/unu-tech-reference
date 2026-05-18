@@ -23,7 +23,7 @@
       
       
       <link rel="icon" href="../../assets/images/favicon.png">
-      <meta name="generator" content="zensical-0.0.41">
+      <meta name="generator" content="zensical-0.0.42">
     
     
       
@@ -957,6 +957,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#hash-aux-battery" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Hash: <code>aux-battery</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#hash-vehicle" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
@@ -1829,6 +1840,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#hash-aux-battery" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Hash: <code>aux-battery</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#hash-vehicle" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
@@ -2326,7 +2348,15 @@
   - <code>fault</code> - Fault status changed</p>
 <h3 id="hash-settings">Hash: <code>settings</code><a class="headerlink" href="#hash-settings" title="Permanent link">&para;</a></h3>
 <p><strong>Fields read:</strong>
-- <code>scooter.max-voltage-delta</code> - Max voltage difference between batteries in mV before battery 1 activation is refused (default: 1000; 0 to disable). Updated live via <code>settings</code> pub/sub.</p>
+- <code>scooter.max-voltage-delta</code> - Max voltage difference between batteries in mV before battery 1 activation is refused (default: 1000; 0 to disable). Updated live via <code>settings</code> pub/sub.
+- <code>scooter.battery-aux-low-keep-active-enter-mv</code> - Aux battery voltage in mV below which the keep-active-on-seatbox-open override engages automatically (default: 11500). Hot-reloaded via <code>settings</code> pub/sub.
+- <code>scooter.battery-aux-low-keep-active-exit-mv</code> - Aux battery voltage in mV at or above which the aux-low keep-active override disengages (default: 12000). Must be greater than the enter threshold. Hot-reloaded via <code>settings</code> pub/sub.</p>
+<h3 id="hash-aux-battery">Hash: <code>aux-battery</code><a class="headerlink" href="#hash-aux-battery" title="Permanent link">&para;</a></h3>
+<p><strong>Fields read:</strong>
+- <code>voltage</code> - Auxiliary (12 V) battery voltage in mV; consumed to drive the aux-low keep-active override.</p>
+<p><strong>Subscribed channels:</strong>
+- <code>aux-battery</code> - Aux battery field change notifications
+  - <code>voltage</code> - Recomputes the keep-active-on-seatbox-open override using Schmitt-trigger hysteresis (engages when below the enter threshold, disengages when at or above the exit threshold). On a transition, active readers are restarted so the FSM walks through the wake-up sequence.</p>
 <h3 id="hash-vehicle">Hash: <code>vehicle</code><a class="headerlink" href="#hash-vehicle" title="Permanent link">&para;</a></h3>
 <p><strong>Fields read:</strong>
 - <code>state</code> - Vehicle state (monitored to adjust battery behavior)
@@ -2786,7 +2816,7 @@
       <script id="__config" type="application/json">{"annotate":null,"base":"../..","features":["content.action.edit","content.code.copy","content.code.select","content.tooltips","navigation.footer","navigation.indexes","navigation.instant","navigation.instant.prefetch","navigation.path","navigation.sections","navigation.top","navigation.tracking","search.highlight","toc.follow"],"search":"../../assets/javascripts/workers/search.e2d2d235.min.js","tags":null,"translations":{"clipboard.copied":"Copied to clipboard","clipboard.copy":"Copy to clipboard","search.result.more.one":"1 more on this page","search.result.more.other":"# more on this page","search.result.none":"No matching documents","search.result.one":"1 matching document","search.result.other":"# matching documents","search.result.placeholder":"Type to start searching","search.result.term.missing":"Missing","select.version":"Select version"},"version":{"provider":"mike"}}</script>
     
     
-      <script src="../../assets/javascripts/bundle.dbc0afdc.min.js"></script>
+      <script src="../../assets/javascripts/bundle.6e5f0216.min.js"></script>
       
     
   </body>
