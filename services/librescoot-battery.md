@@ -73,6 +73,17 @@ Usage of battery-service:
 
 **Fields read:**
 - `scooter.max-voltage-delta` - Max voltage difference between batteries in mV before battery 1 activation is refused (default: 1000; 0 to disable). Updated live via `settings` pub/sub.
+- `scooter.battery-aux-low-keep-active-enter-mv` - Aux battery voltage in mV below which the keep-active-on-seatbox-open override engages automatically (default: 11500). Hot-reloaded via `settings` pub/sub.
+- `scooter.battery-aux-low-keep-active-exit-mv` - Aux battery voltage in mV at or above which the aux-low keep-active override disengages (default: 12000). Must be greater than the enter threshold. Hot-reloaded via `settings` pub/sub.
+
+### Hash: `aux-battery`
+
+**Fields read:**
+- `voltage` - Auxiliary (12 V) battery voltage in mV; consumed to drive the aux-low keep-active override.
+
+**Subscribed channels:**
+- `aux-battery` - Aux battery field change notifications
+  - `voltage` - Recomputes the keep-active-on-seatbox-open override using Schmitt-trigger hysteresis (engages when below the enter threshold, disengages when at or above the exit threshold). On a transition, active readers are restarted so the FSM walks through the wake-up sequence.
 
 ### Hash: `vehicle`
 

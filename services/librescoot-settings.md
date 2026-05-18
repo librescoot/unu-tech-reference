@@ -50,6 +50,8 @@ Settings are organized by section. Examples:
 - `scooter.max-voltage-delta` - Maximum voltage difference between batteries in mV before dual battery activation is refused (default: 1000; 0 to disable)
 - `scooter.battery-ignores-seatbox` - Runtime override of `--dangerously-ignore-seatbox` (default: false)
 - `scooter.battery-keep-active-on-seatbox-open` - Keep active battery on across seatbox opens (default: false)
+- `scooter.battery-aux-low-keep-active-enter-mv` - Aux battery voltage in mV below which the keep-active-on-seatbox-open override engages automatically (default: 11500). Hysteresis pairs with the exit threshold.
+- `scooter.battery-aux-low-keep-active-exit-mv` - Aux battery voltage in mV at or above which the aux-low keep-active override disengages (default: 12000). Must be greater than the enter threshold.
 - `scooter.dual-battery` - Enable dual battery mode (default: false)
 - `scooter.dbc-blinker-led` - Blink DBC boot LED with blinkers ("enabled"/"disabled"; default: "disabled")
 - `scooter.enable-horn` - Horn enable mode ("true"/"false"/"in-drive"; default: "true")
