@@ -25,7 +25,7 @@ Librescoot alarm-service v0.10+ (Phase 4 of the motion-service refactor).
 
 `--i2c-bus`, `--evdev-device`, `--evdev-keycode`, `--poller-interval-ms` are gone. motion-service owns the chip.
 
-These flags only take effect when explicitly passed; each one then writes its value to the `settings` hash on startup. The production unit passes none of them, so the settings-service schema defaults apply (notably `alarm.duration` defaults to **60**, not the compiled-in flag default of 10).
+These flags only take effect when explicitly passed; each one then writes its value to the `settings` hash on startup. The production unit passes none of them, so the settings-service schema defaults apply (notably `alarm.duration` defaults to **30**, not the compiled-in flag default of 10).
 
 ## Redis Operations
 

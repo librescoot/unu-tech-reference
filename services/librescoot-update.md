@@ -89,8 +89,7 @@ Lifecycle commands (`start`, `complete`, `start-dbc`, `complete-dbc`) are **publ
 ### Lists published (LPUSH)
 
 - `scooter:power` → `reboot` — triggers system reboot after MDB update installs
-
-The power client also carries a helper for requesting CPU governor changes via `scooter:governor` (consumed by pm-service), currently unused.
+- `scooter:governor` → `ondemand` — requested at download start (full and delta paths) so pm-service switches the CPU out of powersave
 
 ### Hash: `power:inhibits` (written via inhibitor client)
 

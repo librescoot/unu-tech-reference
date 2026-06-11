@@ -355,7 +355,7 @@ Librescoot adds persistent settings managed by the settings-service:
 |-------|------|-------------|----------|
 | alarm.enabled | "true"/"false" | Alarm system enabled | "true" |
 | alarm.honk | "true"/"false" | Horn enabled during alarm | "false" |
-| alarm.duration | integer (sec) | Alarm duration in seconds | "60" |
+| alarm.duration | integer (sec) | Alarm duration in seconds | "30" |
 | alarm.seatbox-trigger | "true"/"false" | Trigger alarm on unauthorized seatbox opening | "true" |
 | alarm.hairtrigger | "true"/"false" | Hair trigger mode (immediate short alarm on first motion) | "false" |
 | alarm.hairtrigger-duration | integer (sec) | Hair trigger alarm duration in seconds | "3" |
@@ -738,7 +738,7 @@ See [update-service documentation](../services/librescoot-update.md).
 
 ### CPU Governor Control (`scooter:governor`) - Librescoot Only
 
-Consumed by pm-service; switches the CPU frequency governor.
+Consumed by pm-service; switches the CPU frequency governor. vehicle-service and update-service push `ondemand` here (when leaving stand-by, and at download start, respectively).
 
 ```bash
 redis-cli -h 192.168.7.1 LPUSH scooter:governor performance
