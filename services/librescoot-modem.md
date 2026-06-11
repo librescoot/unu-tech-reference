@@ -59,11 +59,10 @@ Usage of modem-service:
 - `error-state` - Consolidated error state ("ok", "powered-off", "sim-missing", "sim-inactive", "sim-locked", "registration-denied", "registration-failed", "disconnected", "no-modem", "status-error")
 - `pin-action` - Outcome of last SIM PIN reconcile ("unconfigured", "ok", "unlocked", "lock-enabled", "wrong-pin", "low-retries-bail", "puk-required", "error")
 - `apn-action` - Outcome of last APN reconcile ("no-sim", "unconfigured", "ok", "applied", "iccid-changed-cleared", "error")
-- `gps:filter` - GPS filter setting read by service ("on" or "off") - determines if main gps hash contains raw or filtered data
 
 **Published channel:** `modem` (publishes field name on change)
 
-### Hash: `gps` (main)
+### Hash: `gps`
 
 **Fields written:**
 - `latitude` - GPS latitude (decimal degrees, 6 decimal places)
@@ -79,25 +78,26 @@ Usage of modem-service:
 - `vdop` - Vertical dilution of precision
 - `pdop` - Position (3D) dilution of precision
 - `eph` - Estimated horizontal position error in meters
+- `eps` - Estimated speed error in m/s
+- `ept` - Estimated time error in seconds
+- `satellites-used` - Satellites used in the fix
+- `satellites-visible` - Satellites in view
 - `active` - GPS has valid fix (boolean)
 - `connected` - Connected to gpsd (boolean)
 - `state` - GPS state ("off", "searching", "fix-established", "error")
+- `mode` - GNSS positioning mode ("standalone", "ue-based"; assisted ue-based mode is currently disabled, so always "standalone")
 
-**Published channel:** `gps` (publishes "timestamp" only on GPS recovery events)
+**Published channel:** `gps` (publishes "timestamp" only on GPS recovery events; routine updates are silent)
 
-**Note:** Main `gps` hash contains either raw or filtered GPS data based on `modem:gps:filter` setting.
+### Pub/sub channel: `gps:tpv`
 
-### Hash: `gps:raw`
-
-Contains unfiltered GPS data from gpsd with same fields as main `gps` hash.
-
-### Hash: `gps:filtered`
-
-Contains Kalman-filtered GPS data with same fields as main `gps` hash.
+Full TPV snapshot (same fields as the `gps` hash, JSON object) published for every fix. Subscribe here for a continuous position stream instead of polling the hash.
 
 ### Lists consumed (BRPOP)
 
-None - the service does not consume command lists.
+- `scooter:modem` - `enable`, `disable`
+
+GPS has no commands: the GNSS positioning mode is derived automatically from connectivity state, gated by the `modem.gps` setting. The legacy `gps:enable` / `gps:disable` commands are gone.
 
 ### Settings consumed (Hash: `settings`)
 

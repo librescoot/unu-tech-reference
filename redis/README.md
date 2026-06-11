@@ -92,7 +92,7 @@ hgetall aux-battery
 | charge | integer (%) | Battery charge level | "25" |
 | charge-status | string | Charging status | "not-charging" |
 
-### Connectivity Battery (`cb-battery`)
+### Connectivity Battery Box (`cb-battery`)
 ```
 hgetall cb-battery
 ```
@@ -264,40 +264,63 @@ hgetall keycard
 
 **Note**: This hash expires after 10 seconds. Authentication events are also published to the `keycard:authentication` channel.
 
-### Navigation System
-The navigation system uses two related hashes:
+Keycard management commands go through the `scooter:keycard` list:
 
-Main Navigation Status (`navigation`)
+```bash
+redis-cli -h 192.168.7.1 LPUSH scooter:keycard learn:start
+```
+
+**Available commands**: `list`, `count`, `add:<uid>`, `remove:<uid>`, `set-master:<uid>` (`NONE` to disable), `learn:start`, `learn:stop`, `learn:master:start`, `learn:master:stop`, `reset`
+
+Command results land in the `keycard` hash field `command-result`. During teach-in flows, per-tap progress events (`card-learned:<uid>`, `master-learned:<uid>`, `mode-entered:master`, ...) are published on the `keycard:events` channel. See [keycard-service documentation](../services/librescoot-keycard.md).
+
+### Navigation (`navigation`)
 ```
 hgetall navigation
 ```
 
-| Field | Type | Description | Example |
-|-------|------|-------------|----------|
-| status | string | Navigation status | "unset" |
-
-Navigation Coordinates (`navigation:coord`)
-```
-hgetall navigation:coord
-```
+Destination for the dashboard's navigation mode. Written by bluetooth-service (BLE nav commands) and `lsc nav`; consumed by scootui-qt.
 
 | Field | Type | Description | Example |
 |-------|------|-------------|----------|
-| location | ? | probably packed coords? | "378993323372" |
+| destination | "lat,lon" | Destination coordinates (6 decimal places) | "52.520008,13.404954" |
+| latitude | string | Destination latitude | "52.520008" |
+| longitude | string | Destination longitude | "13.404954" |
+| address | string | Human-readable destination name (optional) | "Alexanderplatz" |
+| timestamp | string | Last destination update | "2026-06-11T12:00:00Z" |
+
+Clearing navigation sets all fields to empty strings rather than deleting them, so hash watchers get notified.
 
 ### GPS Data (`gps`)
 ```
 hgetall gps
 ```
 
+Published by modem-service from gpsd data.
+
 | Field | Type | Description | Example |
 |-------|------|-------------|----------|
-| latitude | string | Current latitude (6 decimal places) | "0.000000" |
-| longitude | string | Current longitude (6 decimal places) | "0.000000" |
-| altitude | string | Current altitude (6 decimal places) | "0.000000" |
-| timestamp | string | GPS timestamp (ISO format) | "0000-00-00T00:00:00" |
-| speed | string | GPS speed (6 decimal places) | "0.000000" |
-| course | string | GPS course (6 decimal places) | "0.000000" |
+| latitude | string | Current latitude (6 decimal places) | "52.520008" |
+| longitude | string | Current longitude (6 decimal places) | "13.404954" |
+| altitude | string | Current altitude in meters (6 decimal places) | "34.500000" |
+| speed | string | Speed in km/h (6 decimal places) | "0.000000" |
+| course | string | Course over ground in degrees (6 decimal places) | "0.000000" |
+| timestamp | string | GPS timestamp (RFC3339) | "2026-06-11T12:00:00Z" |
+| updated | string | When the hash was last refreshed (RFC3339) | "2026-06-11T12:00:00Z" |
+| state | string | GPS state ("off"/"searching"/"fix-established"/"error") | "fix-established" |
+| mode | string | GNSS positioning mode (currently always "standalone") | "standalone" |
+| fix | string | Fix mode ("none"/"2d"/"3d") | "3d" |
+| snr | float | Mean signal-to-noise ratio (dBHz) | "32.4" |
+| hdop / vdop / pdop | float | Horizontal / vertical / position dilution of precision | "1.2" |
+| eph / eps / ept | float | Estimated position (m) / speed (m/s) / time (s) error | "8.5" |
+| satellites-used | integer | Satellites used in the fix | "9" |
+| satellites-visible | integer | Satellites in view | "14" |
+| active | "true"/"false" | GPS has a valid fix | "true" |
+| connected | "true"/"false" | Connected to gpsd | "true" |
+
+The hash is updated silently; a pub/sub notification on `timestamp` is published only when GPS recovers after an outage. For a continuous stream, subscribe to the **`gps:tpv`** channel, which carries the full snapshot (same fields, JSON) for every fix.
+
+GPS has no commands; modem-service manages it automatically (see `scooter:modem` below). The legacy `gps:raw` and `gps:filtered` hashes no longer exist.
 
 ### Over-the-Air Updates (`ota`)
 ```
@@ -374,6 +397,12 @@ Librescoot adds persistent settings managed by the settings-service:
 | dashboard.mode | string | Default screen mode (speedometer/navigation) | "speedometer" |
 | dashboard.valhalla-url | string | Valhalla routing service endpoint | "http://localhost:8002/" |
 
+The full settings schema (types, defaults, ranges, labels) is served as a JSON document in the `settings:schema` key by settings-service:
+
+```bash
+redis-cli -h 192.168.7.1 GET settings:schema
+```
+
 See [settings-service documentation](../services/librescoot-settings.md) for details on persistent settings.
 
 ### Alarm System (`alarm`) - Librescoot Only
@@ -395,22 +424,38 @@ hgetall alarm
 
 See [alarm-service documentation](../services/librescoot-alarm.md) for details.
 
-### BMX055 Motion Sensor (`bmx`) - Librescoot Only
+### Motion / IMU (`motion`) - Librescoot Only
 
 ```
-hgetall bmx
+hgetall motion
 ```
+
+motion-service owns the BMX055 9-axis IMU and publishes its state here. The legacy `bmx` hash and `scooter:bmx` command list are gone.
 
 | Field | Type | Description | Example |
 |-------|------|-------------|----------|
-| initialized | "true"/"false" | BMX sensor initialization status | "true" |
-| interrupt | string | Interrupt status | "active" |
-| sensitivity | string | Current sensitivity level | "MEDIUM" |
-| pin | string | Interrupt pin configuration | "INT2" |
+| initialized | "true"/"false" | Sensors are up | "true" |
+| streaming | "enabled"/"disabled" | Telemetry streaming state | "enabled" |
+| polling-rate-hz | integer | Sensor poll rate | "10" |
+| current-profile | string | Chip profile (idle/armed-awake/armed-hibernation/level1/waiting) | "idle" |
+| interrupt / pin / sensitivity / threshold / duration | string | Current motion-engine config | "disabled" |
+| last-interrupt-timestamp | integer (unix-ms) | Last motion interrupt | "1777996408778" |
+| error-count / last-error | string | Diagnostic counters | "0" |
+| wake-cause | integer (unix-ms) | Written once at startup if the chip woke the system from hibernation; alarm-service reads + deletes it | "1777996408778" |
+| heading | integer (0-359°) | Magnetic heading | "192" |
+| heading-deg / heading-accuracy / heading-tilt / heading-tilt-comp | string | Smoothed heading, 1-σ accuracy, tilt, tilt-compensation flag | "192.50" |
 
-**Sensitivity levels:** `LOW`, `MEDIUM`, `HIGH`
+**Pub/sub channels:**
+- `motion:sensors` (10 Hz) - JSON sensor reading: `timestamp`, `accel`, `gyro`, optional `mag`, each axis as `{x, y, z, magnitude, unit}`
+- `motion:heading` (5 Hz) - JSON heading payload (`heading_deg`, `accuracy_deg`, `tilt_deg`, ...)
+- `motion:interrupt` - JSON motion event: `{"type": "edge"|"wake-hibernation", "timestamp": ..., "engine": "any-motion"|"slow-motion"}`
+- `motion:ready` - fired once at startup after the first profile-apply; payload is a unix-ms timestamp
 
-The alarm-service manages BMX055 configuration automatically based on alarm state.
+**RPC channel `motion:rpc`** (redis-ipc CallServer): methods `prepare-hibernation`, `get-calibration`, `clear-latch`, `soft-reset`.
+
+Chip configuration is reactive: motion-service derives the profile from the `alarm` and `power-manager` hashes, consumers never write registers. The `bmx:interrupt` channel survives only as a relay: bluetooth-service publishes `wake-suspend` / `wake-hibernation` there when the nRF52 reports an accelerometer wake event.
+
+See [motion-service documentation](../services/librescoot-motion.md) for profiles, payload schemas, and the hibernation handshake.
 
 ### Dashboard Backlight (`dashboard`) - Librescoot Enhancement
 
@@ -424,20 +469,6 @@ Librescoot adds these fields to the dashboard hash:
 
 The `dbc-illumination-service` monitors the OPT3001 sensor and publishes to `illumination`.
 The `dbc-backlight-service` reads `illumination` and adjusts `backlight` automatically.
-
-### GPS State (`gps`) - Librescoot Enhancement
-
-Librescoot adds GPS state tracking:
-
-| Field | Type | Description | Example |
-|-------|------|-------------|----------|
-| state | string | GPS state | "fix-established" |
-
-**GPS states:**
-- `off` - GPS is disabled
-- `searching` - Actively searching for GPS signal
-- `fix-established` - Valid GPS fix obtained (2D or 3D)
-- `error` - GPS configuration or connection failed
 
 ### Modem Management (`modem`) - Librescoot Only
 
@@ -601,11 +632,15 @@ redis-cli -h 192.168.7.1 LPUSH scooter:blinker off
 Controls the motion-based alarm system.
 
 ```bash
-# Enable alarm system
+# Enable alarm system (persists settings.alarm.enabled=true)
 redis-cli -h 192.168.7.1 LPUSH scooter:alarm enable
 
-# Disable alarm system
+# Disable alarm system (persists settings.alarm.enabled=false)
 redis-cli -h 192.168.7.1 LPUSH scooter:alarm disable
+
+# Runtime arm/disarm (does not change settings.alarm.enabled)
+redis-cli -h 192.168.7.1 LPUSH scooter:alarm arm
+redis-cli -h 192.168.7.1 LPUSH scooter:alarm disarm
 
 # Manual alarm trigger (30 seconds)
 redis-cli -h 192.168.7.1 LPUSH scooter:alarm start:30
@@ -614,24 +649,23 @@ redis-cli -h 192.168.7.1 LPUSH scooter:alarm start:30
 redis-cli -h 192.168.7.1 LPUSH scooter:alarm stop
 ```
 
-**Available commands**: `enable`, `disable`, `start:<seconds>`, `stop`
+**Available commands**: `enable`, `disable`, `arm`, `disarm`, `start:<seconds>`, `stop`
 
-### BMX Sensor Control (`scooter:bmx`) - Librescoot Only
+### Motion Sensor Control (`scooter:motion`) - Librescoot Only
 
-Controls BMX055 accelerometer/gyroscope configuration. Typically used by alarm-service.
+Legacy/dev command queue for motion-service. Production chip configuration is reactive (derived from the `alarm` and `power-manager` hashes), so these are only for manual testing.
 
 ```bash
-# Configure sensitivity
-redis-cli -h 192.168.7.1 LPUSH scooter:bmx sensitivity:MEDIUM
+# Override slow/no-motion sensitivity
+redis-cli -h 192.168.7.1 LPUSH scooter:motion sensitivity:MEDIUM
 
-# Configure interrupt pin
-redis-cli -h 192.168.7.1 LPUSH scooter:bmx pin:INT2
-
-# Enable interrupt
-redis-cli -h 192.168.7.1 LPUSH scooter:bmx interrupt:enable
+# Change sensor polling rate
+redis-cli -h 192.168.7.1 LPUSH scooter:motion polling:20
 ```
 
-**Available commands**: `sensitivity:<LOW|MEDIUM|HIGH>`, `pin:<NONE|INT1|INT2>`, `interrupt:<enable|disable>`
+**Available commands**: `sensitivity:<LOW|MEDIUM|HIGH>`, `pin:<NONE|INT1|INT2>`, `interrupt:<enable|disable>`, `reset`, `polling:<1-100>`, `streaming:<enable|disable>`
+
+The old `scooter:bmx` list is gone.
 
 ### Power Control (`scooter:power`) - Librescoot Enhanced
 
@@ -667,7 +701,7 @@ redis-cli -h 192.168.7.1 LPUSH scooter:power reboot
 
 ### Modem Control (`scooter:modem`) - Librescoot Only
 
-Controls modem power state and GPS.
+Controls modem power state.
 
 ```bash
 # Enable modem
@@ -675,26 +709,42 @@ redis-cli -h 192.168.7.1 LPUSH scooter:modem enable
 
 # Disable modem
 redis-cli -h 192.168.7.1 LPUSH scooter:modem disable
-
-# Enable GPS
-redis-cli -h 192.168.7.1 LPUSH scooter:modem gps:enable
-
-# Disable GPS
-redis-cli -h 192.168.7.1 LPUSH scooter:modem gps:disable
 ```
 
-**Available commands**: `enable`, `disable`, `gps:enable`, `gps:disable`
+**Available commands**: `enable`, `disable`
 
-### Update Control (`scooter:update`) - Librescoot Only
+There are no GPS commands; modem-service manages GPS automatically based on connectivity state. The `modem.gps` setting toggles GPS overall.
 
-Controls OTA update system.
+### Update Control (`scooter:update`, `scooter:update:mdb`, `scooter:update:dbc`) - Librescoot Only
+
+Controls the OTA update system. Per-component lists target one updater instance.
 
 ```bash
-# Force immediate update check (both MDB and DBC)
-redis-cli -h 192.168.7.1 LPUSH scooter:update check-now
+# Force immediate update check on one component
+redis-cli -h 192.168.7.1 LPUSH scooter:update:mdb check-now
+
+# Install from a local file (optional checksum)
+redis-cli -h 192.168.7.1 LPUSH scooter:update:dbc "update-from-file:/data/ota/image.mender#sha256=<hex>"
+
+# Install from a URL
+redis-cli -h 192.168.7.1 LPUSH scooter:update:mdb "update-from-url:https://example.com/update.mender"
 ```
 
-**Available commands**: `check-now`
+**Per-component commands** (`scooter:update:mdb` / `scooter:update:dbc`): `check-now`, `update-from-file:<path>[#sha256=<hex>]`, `update-from-url:<url>[#sha256=<hex>]`
+
+The shared `scooter:update` list is consumed by **vehicle-service**, not the updaters: update-service pushes lifecycle commands (`start`, `complete`, `start-dbc`, `complete-dbc`) there to drive the vehicle's `updating` state.
+
+See [update-service documentation](../services/librescoot-update.md).
+
+### CPU Governor Control (`scooter:governor`) - Librescoot Only
+
+Consumed by pm-service; switches the CPU frequency governor.
+
+```bash
+redis-cli -h 192.168.7.1 LPUSH scooter:governor performance
+```
+
+**Available commands**: `ondemand`, `powersave`, `performance`
 
 ### Command Channel Notes
 
@@ -702,4 +752,4 @@ redis-cli -h 192.168.7.1 LPUSH scooter:update check-now
 - Services subscribe to these channels using `BRPOP` and process commands sequentially
 - State changes resulting from commands are published to the corresponding hash fields and pub/sub channels
 - Command results can be monitored by subscribing to the relevant state hashes (e.g., `vehicle` hash for lock/unlock state)
-- Librescoot adds several new command channels for alarm, BMX, modem, and update control
+- Librescoot adds several new command channels for alarm, motion, modem, keycard, governor, and update control

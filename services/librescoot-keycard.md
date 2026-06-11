@@ -43,9 +43,20 @@ Management commands via LPUSH:
 | `remove:<uid>` | `ok` or `error:<reason>` (cannot remove last card) |
 | `set-master:<uid>` | Sets master UID; use `NONE` to disable; clears authorized list |
 | `learn:start` | Enter learn mode programmatically |
-| `learn:stop` | Exit learn mode, saving learned cards |
+| `learn:stop` | Exit learn mode, saving learned cards (additive) |
+| `learn:master:start` | Enter master teach-in mode; next non-registered tap becomes master |
+| `learn:master:stop` | Exit master teach-in mode without committing |
+| `reset` | Reset all auth state (master + authorized cards) |
 
 Responses are written to `keycard command-result`.
+
+### Channel: `keycard:events` (published)
+
+Transient per-tap progress events during teach-in flows, for real-time subscribers (installer, BLE bridge). Format `<event>` or `<event>:<uid>`:
+
+- Master teach-in: `mode-entered:master`, `mode-exited:master`, `master-learned:<uid>`, `rejected:already-authorized:<uid>`, `error:save-failed:<uid>`
+- Learn mode: `card-learned:<uid>` (queued for commit on `learn:stop`), `card-duplicate:<uid>`
+- Reset: `reset`
 
 ## Hardware
 
@@ -93,7 +104,7 @@ Activated by presenting master UID or via `learn:start`:
 1. PWM LEDs 3 + 7 turn on
 2. Each new card presented: added to session queue, Green LED flash
 3. Present master UID again or `learn:stop` to exit
-4. If cards were learned: **replaces** entire authorized list in `authorized_uids.txt`
+4. Learned cards are **appended** to the authorized list in `authorized_uids.txt` (additive)
 5. If no cards learned: existing list unchanged
 6. PWM LEDs 3 + 7 turn off
 

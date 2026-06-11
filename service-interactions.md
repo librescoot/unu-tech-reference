@@ -488,7 +488,7 @@ Note: version-service does NOT publish to the `os-release` channel. It runs once
 | `settings` | settings-service (from TOML), update-service (last-check-time) | vehicle-service, battery-service, ecu-service, alarm-service, pm-service |
 | `os-release` | version-service (one-shot) | Nothing (dead key — see gaps) |
 | `usb` | ums-service | ums-service (self), scootui |
-| `bmx` | alarm-service (initialized field) | alarm-service subscriber |
+| `motion` | motion-service | alarm-service (wake-cause), scootui (heading), monitoring |
 
 ### Set Keys
 

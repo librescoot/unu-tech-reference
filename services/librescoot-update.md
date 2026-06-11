@@ -79,17 +79,18 @@ All fields are namespaced by component (`mdb` or `dbc`):
 - `scooter:update:{component}` — component-specific commands:
   - `check-now` — trigger immediate update check
   - `update-from-file:/path/to/file.mender` — install from local file
-  - `update-from-file:/path/to/file.mender:sha256:<hex>` — with checksum
+  - `update-from-file:/path/to/file.mender#sha256=<hex>` - with checksum
   - `update-from-url:https://...` — install from URL
-  - `update-from-url:https://...:sha256:<hex>` — with checksum
+  - `update-from-url:https://...#sha256=<hex>` - with checksum
+  - the legacy checksum form `:sha256:<hex>` is still accepted; `#sha256=` is preferred (keeps the source a valid URL)
 
-- `scooter:update` — shared lifecycle commands (both instances listen):
-  - `start-dbc` — signal DBC update is starting
-  - `complete-dbc` — signal DBC update completed
+Lifecycle commands (`start`, `complete`, `start-dbc`, `complete-dbc`) are **published** to the shared `scooter:update` list, which vehicle-service consumes to drive its `updating` state. update-service does not listen there itself.
 
 ### Lists published (LPUSH)
 
 - `scooter:power` → `reboot` — triggers system reboot after MDB update installs
+
+The power client also carries a helper for requesting CPU governor changes via `scooter:governor` (consumed by pm-service), currently unused.
 
 ### Hash: `power:inhibits` (written via inhibitor client)
 
@@ -118,17 +119,15 @@ redis-cli PUBLISH settings updates.dbc.dry-run
 ## Commands
 
 ```bash
-# Force immediate check (both instances)
-redis-cli LPUSH scooter:update check-now
-
-# Force check on one component only
+# Force immediate check (per component)
 redis-cli LPUSH scooter:update:mdb check-now
+redis-cli LPUSH scooter:update:dbc check-now
 
 # Install from local file
 redis-cli LPUSH scooter:update:dbc "update-from-file:/data/ota/librescoot-dbc-nightly-20251212T024719.mender"
 
 # Install from URL
-redis-cli LPUSH scooter:update:mdb "update-from-url:https://example.com/update.mender:sha256:abc123..."
+redis-cli LPUSH scooter:update:mdb "update-from-url:https://example.com/update.mender#sha256=abc123..."
 ```
 
 ## Update Method
