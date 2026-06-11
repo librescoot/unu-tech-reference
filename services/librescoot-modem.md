@@ -74,7 +74,7 @@ Usage of modem-service:
 - `timestamp` - GPS timestamp (RFC3339 format)
 - `updated` - Last update timestamp (RFC3339 format)
 - `fix` - GPS fix mode ("none", "2d", "3d")
-- `quality` - GPS quality metric (EPT - estimated time precision)
+- `snr` - GPS signal-to-noise ratio
 - `hdop` - Horizontal dilution of precision
 - `vdop` - Vertical dilution of precision
 - `pdop` - Position (3D) dilution of precision
