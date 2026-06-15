@@ -2,23 +2,25 @@ name: Deploy versioned docs
 
 # Versioned docs via squidfunk's Zensical-compatible mike fork. mike
 # maintains one subdirectory per deployed version on the `gh-pages`
-# branch, plus a versions.json that the Material header version
-# selector reads. GitHub Pages serves the gh-pages branch directly.
+# branch, plus a versions.json that the Material header version selector
+# reads. GitHub Pages serves the gh-pages branch directly.
 #
-# Branch -> action mapping:
-#   stable  -> mike deploy v1.0.3 stable latest  (and set-default latest)
-#   main    -> mike deploy dev
+# The deployed version is derived from the pushed branch:
+#   main          -> mike deploy dev
+#   docs/vX.Y.Z   -> mike deploy vX.Y.Z   (frozen release snapshot)
 #
-# When promoting a new stable release: bump the version on the stable
-# branch's deploy command, push.
+# The release whose name matches LATEST_STABLE also gets the `stable` and
+# `latest` aliases and becomes the default version served at `/`. To
+# promote a new stable release: push its docs/vX.Y.Z branch and bump
+# LATEST_STABLE below.
 
 on:
   push:
-    branches: [main, stable]
+    branches: [main, "docs/v*"]
   workflow_dispatch:
 
 permissions:
-  # mike pushes to gh-pages — needs write to repo contents.
+  # mike pushes to gh-pages - needs write to repo contents.
   contents: write
 
 # Don't cancel in-progress deploys; mike fetches gh-pages, mutates it,
@@ -27,6 +29,9 @@ permissions:
 concurrency:
   group: mike-deploy
   cancel-in-progress: false
+
+env:
+  LATEST_STABLE: "v1.0.5"
 
 jobs:
   deploy:
@@ -59,15 +64,32 @@ jobs:
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
 
-      - name: Deploy stable -> v1.0.3 + stable + latest aliases
-        if: github.ref == 'refs/heads/stable'
+      - name: Determine version from branch
+        id: ver
         run: |
-          mike deploy --push --update-aliases v1.0.3 stable latest
+          ref="${GITHUB_REF_NAME}"
+          if [ "$ref" = "main" ]; then
+            echo "version=dev" >> "$GITHUB_OUTPUT"
+            echo "is_stable=false" >> "$GITHUB_OUTPUT"
+          else
+            v="${ref#docs/}"
+            echo "version=$v" >> "$GITHUB_OUTPUT"
+            if [ "$v" = "$LATEST_STABLE" ]; then
+              echo "is_stable=true" >> "$GITHUB_OUTPUT"
+            else
+              echo "is_stable=false" >> "$GITHUB_OUTPUT"
+            fi
+          fi
+
+      - name: Deploy latest stable (with aliases + default)
+        if: steps.ver.outputs.is_stable == 'true'
+        run: |
+          mike deploy --push --update-aliases "${{ steps.ver.outputs.version }}" stable latest
           mike set-default --push latest
 
-      - name: Deploy main -> dev
-        if: github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch'
-        run: mike deploy --push dev
+      - name: Deploy version
+        if: steps.ver.outputs.is_stable != 'true'
+        run: mike deploy --push "${{ steps.ver.outputs.version }}"
 
       # mike doesn't preserve a top-level CNAME across deploys (each
       # deploy operates on a single version subdirectory), so re-stamp
