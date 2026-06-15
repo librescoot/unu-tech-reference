@@ -23,7 +23,7 @@
       
       
       <link rel="icon" href="../assets/images/favicon.png">
-      <meta name="generator" content="zensical-0.0.40">
+      <meta name="generator" content="zensical-0.0.45">
     
     
       
@@ -2477,6 +2477,7 @@
     <li class="md-path__item">
       <a href="./.." class="md-path__link">
         
+  
   <span class="md-ellipsis">
     Home
   </span>
@@ -2492,9 +2493,27 @@
   
     
     
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+    
       <li class="md-path__item">
         <a href="../bluetooth/" class="md-path__link">
           
+  
   <span class="md-ellipsis">
     Communication
   </span>
@@ -2613,7 +2632,7 @@
 </tr>
 <tr>
 <td>state</td>
-<td>"stand-by"/"ready-to-drive"/"off"/"parked"/"booting"/"shutting-down"/"hibernating"/"hibernating-imminent"/"suspending"/"suspending-imminent"/"updating"</td>
+<td>"init"/"stand-by"/"parked"/"hop-on"/"hop-on-learning"/"ready-to-drive"/"waiting-seatbox"/"shutting-down"/"updating"/"waiting-hibernation"/"waiting-hibernation-advanced"/"waiting-hibernation-seatbox"/"waiting-hibernation-confirm"</td>
 <td>Vehicle operating state</td>
 <td>"stand-by"</td>
 </tr>
@@ -2638,12 +2657,6 @@
 </tr>
 </thead>
 <tbody>
-<tr>
-<td>state</td>
-<td>"on"/"off"</td>
-<td>ECU power state</td>
-<td>"off"</td>
-</tr>
 <tr>
 <td>kers-reason-off</td>
 <td>string</td>
@@ -3263,7 +3276,7 @@
 </tr>
 </tbody>
 </table>
-<p><strong>Note</strong>: This hash expires after 10 seconds. Authentication events are also published to the <code>keycard:authentication</code> channel.</p>
+<p><strong>Note</strong>: This hash expires after 10 seconds. Authentication is published on the <code>keycard</code> channel (the field name <code>authentication</code> is sent as the message payload), not on a separate <code>keycard:authentication</code> channel.</p>
 <h3 id="navigation-system">Navigation System<a class="headerlink" href="#navigation-system" title="Permanent link">&para;</a></h3>
 <p>The navigation system uses two related hashes:</p>
 <p>Main Navigation Status (<code>navigation</code>)
@@ -3824,8 +3837,8 @@ The <code>dbc-backlight-service</code> reads <code>illumination</code> and adjus
 <tr>
 <td>sim-state</td>
 <td>string</td>
-<td>SIM card state</td>
-<td>"active"</td>
+<td>SIM card state ("present"/"missing"/"locked"/"inactive")</td>
+<td>"present"</td>
 </tr>
 <tr>
 <td>sim-lock</td>
@@ -4261,7 +4274,7 @@ The <code>dbc-backlight-service</code> reads <code>illumination</code> and adjus
       <script id="__config" type="application/json">{"annotate":null,"base":"..","features":["content.action.edit","content.code.copy","content.code.select","content.tooltips","navigation.footer","navigation.indexes","navigation.instant","navigation.instant.prefetch","navigation.path","navigation.sections","navigation.top","navigation.tracking","search.highlight","toc.follow"],"search":"../assets/javascripts/workers/search.e2d2d235.min.js","tags":null,"translations":{"clipboard.copied":"Copied to clipboard","clipboard.copy":"Copy to clipboard","search.result.more.one":"1 more on this page","search.result.more.other":"# more on this page","search.result.none":"No matching documents","search.result.one":"1 matching document","search.result.other":"# matching documents","search.result.placeholder":"Type to start searching","search.result.term.missing":"Missing","select.version":"Select version"},"version":{"provider":"mike"}}</script>
     
     
-      <script src="../assets/javascripts/bundle.dbc0afdc.min.js"></script>
+      <script src="../assets/javascripts/bundle.6e5f0216.min.js"></script>
       
     
   </body>
