@@ -56,6 +56,7 @@ Settings are organized by section. Examples:
 
 **Cellular settings:**
 - `cellular.apn` - Cellular APN for data connection
+- `cellular.sim-pin` - PIN for SIM unlock and lock-enable (4-8 digits, empty = leave SIM as-is)
 
 **Power management settings:**
 - `hibernation-timer` - Hibernation timeout in seconds (0=disabled)

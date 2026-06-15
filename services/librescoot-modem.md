@@ -57,8 +57,11 @@ Usage of modem-service:
 - `is-roaming` - Roaming status ("true", "false")
 - `registration-fail` - Registration failure reason (if any)
 - `error-state` - Consolidated error state ("ok", "powered-off", "sim-missing", "sim-inactive", "sim-locked", "registration-denied", "registration-failed", "disconnected", "no-modem", "status-error")
+- `pin-action` - Outcome of the last SIM PIN reconcile ("unconfigured", "unlocked", "lock-enabled", "wrong-pin", "low-retries-bail", "puk-required")
 
 **Published channel:** `modem` (publishes field name on change)
+
+**SIM PIN:** when `cellular.sim-pin` is set in `settings`, modem-service unlocks a PIN-locked SIM and enables SIM lock with that PIN; the outcome is reported in `pin-action`. An empty `cellular.sim-pin` leaves the SIM as-is.
 
 ### Hash: `gps` (main)
 

@@ -336,6 +336,7 @@ LibreScoot adds persistent settings managed by the settings-service:
 | alarm.l1-cooldown | integer (sec) | Level 1 cooldown duration in seconds | "15" |
 | battery.ignore-seatbox | "true"/"false" | Ignore seatbox state for battery management | "false" |
 | cellular.apn | string | Cellular APN | "internet.provider.com" |
+| cellular.sim-pin | string | PIN for SIM unlock and lock-enable (4-8 digits, empty = leave SIM as-is) | "1234" |
 | hibernation-timer | integer (sec) | Hibernation timeout (0=disabled) | "432000" |
 | scooter.auto-standby-seconds | integer (sec) | Auto-lock timeout when parked (0=disabled) | "0" |
 | scooter.brake-hibernation | "enabled"/"disabled" | Enable brake lever hibernation | "enabled" |
