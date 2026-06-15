@@ -2213,6 +2213,7 @@
 </span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>--version                      Print version and exit
 </span></code></pre></div>
 <p><code>--i2c-bus</code>, <code>--evdev-device</code>, <code>--evdev-keycode</code>, <code>--poller-interval-ms</code> are gone. motion-service owns the chip.</p>
+<p>These flags only take effect when explicitly passed; each one then writes its value to the <code>settings</code> hash on startup. The production unit passes none of them, so the settings-service schema defaults apply (notably <code>alarm.duration</code> defaults to <strong>30</strong>, not the compiled-in flag default of 10).</p>
 <h2 id="redis-operations">Redis Operations<a class="headerlink" href="#redis-operations" title="Permanent link">&para;</a></h2>
 <h3 id="hash-alarm">Hash: <code>alarm</code><a class="headerlink" href="#hash-alarm" title="Permanent link">&para;</a></h3>
 <p><strong>Fields written:</strong>

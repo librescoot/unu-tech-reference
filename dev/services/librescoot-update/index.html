@@ -2016,20 +2016,16 @@
 <li><code>scooter:update:{component}</code> — component-specific commands:</li>
 <li><code>check-now</code> — trigger immediate update check</li>
 <li><code>update-from-file:/path/to/file.mender</code> — install from local file</li>
-<li><code>update-from-file:/path/to/file.mender:sha256:&lt;hex&gt;</code> — with checksum</li>
+<li><code>update-from-file:/path/to/file.mender#sha256=&lt;hex&gt;</code> - with checksum</li>
 <li><code>update-from-url:https://...</code> — install from URL</li>
-<li>
-<p><code>update-from-url:https://...:sha256:&lt;hex&gt;</code> — with checksum</p>
-</li>
-<li>
-<p><code>scooter:update</code> — shared lifecycle commands (both instances listen):</p>
-</li>
-<li><code>start-dbc</code> — signal DBC update is starting</li>
-<li><code>complete-dbc</code> — signal DBC update completed</li>
+<li><code>update-from-url:https://...#sha256=&lt;hex&gt;</code> - with checksum</li>
+<li>the legacy checksum form <code>:sha256:&lt;hex&gt;</code> is still accepted; <code>#sha256=</code> is preferred (keeps the source a valid URL)</li>
 </ul>
+<p>Lifecycle commands (<code>start</code>, <code>complete</code>, <code>start-dbc</code>, <code>complete-dbc</code>) are <strong>published</strong> to the shared <code>scooter:update</code> list, which vehicle-service consumes to drive its <code>updating</code> state. update-service does not listen there itself.</p>
 <h3 id="lists-published-lpush">Lists published (LPUSH)<a class="headerlink" href="#lists-published-lpush" title="Permanent link">&para;</a></h3>
 <ul>
 <li><code>scooter:power</code> → <code>reboot</code> — triggers system reboot after MDB update installs</li>
+<li><code>scooter:governor</code> → <code>ondemand</code> — requested at download start (full and delta paths) so pm-service switches the CPU out of powersave</li>
 </ul>
 <h3 id="hash-powerinhibits-written-via-inhibitor-client">Hash: <code>power:inhibits</code> (written via inhibitor client)<a class="headerlink" href="#hash-powerinhibits-written-via-inhibitor-client" title="Permanent link">&para;</a></h3>
 <p>Written during download/install to prevent suspend/hibernate. See <a href="../librescoot-pm/">pm-service docs</a> for inhibitor details.</p>
@@ -2051,17 +2047,15 @@
 </span><span id="__span-1-15"><a id="__codelineno-1-15" name="__codelineno-1-15" href="#__codelineno-1-15"></a>redis-cli<span class="w"> </span>PUBLISH<span class="w"> </span>settings<span class="w"> </span>updates.dbc.dry-run
 </span></code></pre></div>
 <h2 id="commands">Commands<a class="headerlink" href="#commands" title="Permanent link">&para;</a></h2>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="c1"># Force immediate check (both instances)</span>
-</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>redis-cli<span class="w"> </span>LPUSH<span class="w"> </span>scooter:update<span class="w"> </span>check-now
-</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>
-</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="c1"># Force check on one component only</span>
-</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>redis-cli<span class="w"> </span>LPUSH<span class="w"> </span>scooter:update:mdb<span class="w"> </span>check-now
-</span><span id="__span-2-6"><a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>
-</span><span id="__span-2-7"><a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="c1"># Install from local file</span>
-</span><span id="__span-2-8"><a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a>redis-cli<span class="w"> </span>LPUSH<span class="w"> </span>scooter:update:dbc<span class="w"> </span><span class="s2">&quot;update-from-file:/data/ota/librescoot-dbc-nightly-20251212T024719.mender&quot;</span>
-</span><span id="__span-2-9"><a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a>
-</span><span id="__span-2-10"><a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a><span class="c1"># Install from URL</span>
-</span><span id="__span-2-11"><a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a>redis-cli<span class="w"> </span>LPUSH<span class="w"> </span>scooter:update:mdb<span class="w"> </span><span class="s2">&quot;update-from-url:https://example.com/update.mender:sha256:abc123...&quot;</span>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="c1"># Force immediate check (per component)</span>
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>redis-cli<span class="w"> </span>LPUSH<span class="w"> </span>scooter:update:mdb<span class="w"> </span>check-now
+</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>redis-cli<span class="w"> </span>LPUSH<span class="w"> </span>scooter:update:dbc<span class="w"> </span>check-now
+</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>
+</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="c1"># Install from local file</span>
+</span><span id="__span-2-6"><a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>redis-cli<span class="w"> </span>LPUSH<span class="w"> </span>scooter:update:dbc<span class="w"> </span><span class="s2">&quot;update-from-file:/data/ota/librescoot-dbc-nightly-20251212T024719.mender&quot;</span>
+</span><span id="__span-2-7"><a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a>
+</span><span id="__span-2-8"><a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a><span class="c1"># Install from URL</span>
+</span><span id="__span-2-9"><a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a>redis-cli<span class="w"> </span>LPUSH<span class="w"> </span>scooter:update:mdb<span class="w"> </span><span class="s2">&quot;update-from-url:https://example.com/update.mender#sha256=abc123...&quot;</span>
 </span></code></pre></div>
 <h2 id="update-method">Update Method<a class="headerlink" href="#update-method" title="Permanent link">&para;</a></h2>
 <ul>

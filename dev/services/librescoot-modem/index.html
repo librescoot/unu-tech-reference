@@ -1065,10 +1065,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#hash-gps-main" class="md-nav__link">
+  <a href="#hash-gps" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
-        Hash: <code>gps</code> (main)
+        Hash: <code>gps</code>
       </span>
     </span>
   </a>
@@ -1076,21 +1076,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#hash-gpsraw" class="md-nav__link">
+  <a href="#pubsub-channel-gpstpv" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
-        Hash: <code>gps:raw</code>
-      </span>
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#hash-gpsfiltered" class="md-nav__link">
-    <span class="md-ellipsis">
-      <span class="md-typeset">
-        Hash: <code>gps:filtered</code>
+        Pub/sub channel: <code>gps:tpv</code>
       </span>
     </span>
   </a>
@@ -1835,10 +1824,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#hash-gps-main" class="md-nav__link">
+  <a href="#hash-gps" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
-        Hash: <code>gps</code> (main)
+        Hash: <code>gps</code>
       </span>
     </span>
   </a>
@@ -1846,21 +1835,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#hash-gpsraw" class="md-nav__link">
+  <a href="#pubsub-channel-gpstpv" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
-        Hash: <code>gps:raw</code>
-      </span>
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#hash-gpsfiltered" class="md-nav__link">
-    <span class="md-ellipsis">
-      <span class="md-typeset">
-        Hash: <code>gps:filtered</code>
+        Pub/sub channel: <code>gps:tpv</code>
       </span>
     </span>
   </a>
@@ -2323,10 +2301,9 @@
 - <code>registration-fail</code> - Registration failure reason (if any)
 - <code>error-state</code> - Consolidated error state ("ok", "powered-off", "sim-missing", "sim-inactive", "sim-locked", "registration-denied", "registration-failed", "disconnected", "no-modem", "status-error")
 - <code>pin-action</code> - Outcome of last SIM PIN reconcile ("unconfigured", "ok", "unlocked", "lock-enabled", "wrong-pin", "low-retries-bail", "puk-required", "error")
-- <code>apn-action</code> - Outcome of last APN reconcile ("no-sim", "unconfigured", "ok", "applied", "iccid-changed-cleared", "error")
-- <code>gps:filter</code> - GPS filter setting read by service ("on" or "off") - determines if main gps hash contains raw or filtered data</p>
+- <code>apn-action</code> - Outcome of last APN reconcile ("no-sim", "unconfigured", "ok", "applied", "iccid-changed-cleared", "error")</p>
 <p><strong>Published channel:</strong> <code>modem</code> (publishes field name on change)</p>
-<h3 id="hash-gps-main">Hash: <code>gps</code> (main)<a class="headerlink" href="#hash-gps-main" title="Permanent link">&para;</a></h3>
+<h3 id="hash-gps">Hash: <code>gps</code><a class="headerlink" href="#hash-gps" title="Permanent link">&para;</a></h3>
 <p><strong>Fields written:</strong>
 - <code>latitude</code> - GPS latitude (decimal degrees, 6 decimal places)
 - <code>longitude</code> - GPS longitude (decimal degrees, 6 decimal places)
@@ -2341,17 +2318,22 @@
 - <code>vdop</code> - Vertical dilution of precision
 - <code>pdop</code> - Position (3D) dilution of precision
 - <code>eph</code> - Estimated horizontal position error in meters
+- <code>eps</code> - Estimated speed error in m/s
+- <code>ept</code> - Estimated time error in seconds
+- <code>satellites-used</code> - Satellites used in the fix
+- <code>satellites-visible</code> - Satellites in view
 - <code>active</code> - GPS has valid fix (boolean)
 - <code>connected</code> - Connected to gpsd (boolean)
-- <code>state</code> - GPS state ("off", "searching", "fix-established", "error")</p>
-<p><strong>Published channel:</strong> <code>gps</code> (publishes "timestamp" only on GPS recovery events)</p>
-<p><strong>Note:</strong> Main <code>gps</code> hash contains either raw or filtered GPS data based on <code>modem:gps:filter</code> setting.</p>
-<h3 id="hash-gpsraw">Hash: <code>gps:raw</code><a class="headerlink" href="#hash-gpsraw" title="Permanent link">&para;</a></h3>
-<p>Contains unfiltered GPS data from gpsd with same fields as main <code>gps</code> hash.</p>
-<h3 id="hash-gpsfiltered">Hash: <code>gps:filtered</code><a class="headerlink" href="#hash-gpsfiltered" title="Permanent link">&para;</a></h3>
-<p>Contains Kalman-filtered GPS data with same fields as main <code>gps</code> hash.</p>
+- <code>state</code> - GPS state ("off", "searching", "fix-established", "error")
+- <code>mode</code> - GNSS positioning mode ("standalone", "ue-based"; assisted ue-based mode is currently disabled, so always "standalone")</p>
+<p><strong>Published channel:</strong> <code>gps</code> (publishes "timestamp" only on GPS recovery events; routine updates are silent)</p>
+<h3 id="pubsub-channel-gpstpv">Pub/sub channel: <code>gps:tpv</code><a class="headerlink" href="#pubsub-channel-gpstpv" title="Permanent link">&para;</a></h3>
+<p>Full TPV snapshot (same fields as the <code>gps</code> hash, JSON object) published for every fix. Subscribe here for a continuous position stream instead of polling the hash.</p>
 <h3 id="lists-consumed-brpop">Lists consumed (BRPOP)<a class="headerlink" href="#lists-consumed-brpop" title="Permanent link">&para;</a></h3>
-<p>None - the service does not consume command lists.</p>
+<ul>
+<li><code>scooter:modem</code> - <code>enable</code>, <code>disable</code></li>
+</ul>
+<p>GPS has no commands: the GNSS positioning mode is derived automatically from connectivity state, gated by the <code>modem.gps</code> setting. The legacy <code>gps:enable</code> / <code>gps:disable</code> commands are gone.</p>
 <h3 id="settings-consumed-hash-settings">Settings consumed (Hash: <code>settings</code>)<a class="headerlink" href="#settings-consumed-hash-settings" title="Permanent link">&para;</a></h3>
 <p>Watched via the settings hash and applied on change:</p>
 <ul>

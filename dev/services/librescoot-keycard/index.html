@@ -1037,6 +1037,17 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#channel-keycardevents-published" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Channel: <code>keycard:events</code> (published)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -1645,6 +1656,17 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#channel-keycardevents-published" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Channel: <code>keycard:events</code> (published)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -1955,11 +1977,30 @@
 </tr>
 <tr>
 <td><code>learn:stop</code></td>
-<td>Exit learn mode, saving learned cards</td>
+<td>Exit learn mode, saving learned cards (additive)</td>
+</tr>
+<tr>
+<td><code>learn:master:start</code></td>
+<td>Enter master teach-in mode; next non-registered tap becomes master</td>
+</tr>
+<tr>
+<td><code>learn:master:stop</code></td>
+<td>Exit master teach-in mode without committing</td>
+</tr>
+<tr>
+<td><code>reset</code></td>
+<td>Reset all auth state (master + authorized cards)</td>
 </tr>
 </tbody>
 </table>
 <p>Responses are written to <code>keycard command-result</code>.</p>
+<h3 id="channel-keycardevents-published">Channel: <code>keycard:events</code> (published)<a class="headerlink" href="#channel-keycardevents-published" title="Permanent link">&para;</a></h3>
+<p>Transient per-tap progress events during teach-in flows, for real-time subscribers (installer, BLE bridge). Format <code>&lt;event&gt;</code> or <code>&lt;event&gt;:&lt;uid&gt;</code>:</p>
+<ul>
+<li>Master teach-in: <code>mode-entered:master</code>, <code>mode-exited:master</code>, <code>master-learned:&lt;uid&gt;</code>, <code>rejected:already-authorized:&lt;uid&gt;</code>, <code>error:save-failed:&lt;uid&gt;</code></li>
+<li>Learn mode: <code>card-learned:&lt;uid&gt;</code> (queued for commit on <code>learn:stop</code>), <code>card-duplicate:&lt;uid&gt;</code></li>
+<li>Reset: <code>reset</code></li>
+</ul>
 <h2 id="hardware">Hardware<a class="headerlink" href="#hardware" title="Permanent link">&para;</a></h2>
 <h3 id="nfc-reader">NFC Reader<a class="headerlink" href="#nfc-reader" title="Permanent link">&para;</a></h3>
 <ul>
@@ -2017,7 +2058,7 @@
 1. PWM LEDs 3 + 7 turn on
 2. Each new card presented: added to session queue, Green LED flash
 3. Present master UID again or <code>learn:stop</code> to exit
-4. If cards were learned: <strong>replaces</strong> entire authorized list in <code>authorized_uids.txt</code>
+4. Learned cards are <strong>appended</strong> to the authorized list in <code>authorized_uids.txt</code> (additive)
 5. If no cards learned: existing list unchanged
 6. PWM LEDs 3 + 7 turn off</p>
 <h2 id="file-locations">File Locations<a class="headerlink" href="#file-locations" title="Permanent link">&para;</a></h2>
