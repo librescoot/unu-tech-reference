@@ -93,3 +93,10 @@ link = "https://github.com/librescoot"
 [[project.extra.social]]
 icon = "fontawesome/brands/discord"
 link = "https://discord.gg/VrumFruSzJ"
+
+# Versioned docs via mike (squidfunk's Zensical-compatible fork). The
+# version selector dropdown reads versions.json at the gh-pages root,
+# where mike writes one entry per deployed version. This branch is a
+# frozen release snapshot deployed by .github/workflows/deploy.yml.
+[project.extra.version]
+provider = "mike"

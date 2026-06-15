@@ -1,59 +1,108 @@
-name: Deploy to GitHub Pages
+name: Deploy versioned docs
+
+# Versioned docs via squidfunk's Zensical-compatible mike fork. mike
+# maintains one subdirectory per deployed version on the `gh-pages`
+# branch, plus a versions.json that the Material header version selector
+# reads. GitHub Pages serves the gh-pages branch directly.
+#
+# The deployed version is derived from the pushed branch:
+#   main          -> mike deploy dev
+#   docs/vX.Y.Z   -> mike deploy vX.Y.Z   (frozen release snapshot)
+#
+# The release whose name matches LATEST_STABLE also gets the `stable` and
+# `latest` aliases and becomes the default version served at `/`. To
+# promote a new stable release: push its docs/vX.Y.Z branch and bump
+# LATEST_STABLE below.
 
 on:
   push:
-    branches: [main]
+    branches: [main, "docs/v*"]
   workflow_dispatch:
 
 permissions:
-  contents: read
-  pages: write
-  id-token: write
+  # mike pushes to gh-pages - needs write to repo contents.
+  contents: write
 
+# Don't cancel in-progress deploys; mike fetches gh-pages, mutates it,
+# pushes back. Cancellation mid-flight could leave gh-pages in a weird
+# state. Queue instead.
 concurrency:
-  group: pages
-  cancel-in-progress: true
+  group: mike-deploy
+  cancel-in-progress: false
+
+env:
+  LATEST_STABLE: "v1.0.5"
 
 jobs:
-  build:
+  deploy:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
 
-      - name: Install zensical
-        run: pip install zensical
+      - name: Install zensical + mike (squidfunk fork)
+        run: |
+          pip install zensical
+          pip install git+https://github.com/squidfunk/mike
 
-      - name: Prepare docs directory
+      - name: Prepare docs/ tree
         run: |
           mkdir -p docs
           cp README.md docs/index.md
           for d in battery battery-charger bluetooth dashboard electronic mechanical nrf redis services states tools wiring; do
-            cp -r "$d" "docs/$d"
+            [ -d "$d" ] && cp -r "$d" "docs/$d"
           done
-          cp -r stylesheets docs/stylesheets
+          [ -d stylesheets ] && cp -r stylesheets docs/stylesheets || true
 
-      - name: Build
-        run: python -m zensical build
+      - name: Configure git for mike
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
 
-      - name: Add CNAME
-        run: echo 'reference.librescoot.org' > site/CNAME
+      - name: Determine version from branch
+        id: ver
+        run: |
+          ref="${GITHUB_REF_NAME}"
+          if [ "$ref" = "main" ]; then
+            echo "version=dev" >> "$GITHUB_OUTPUT"
+            echo "is_stable=false" >> "$GITHUB_OUTPUT"
+          else
+            v="${ref#docs/}"
+            echo "version=$v" >> "$GITHUB_OUTPUT"
+            if [ "$v" = "$LATEST_STABLE" ]; then
+              echo "is_stable=true" >> "$GITHUB_OUTPUT"
+            else
+              echo "is_stable=false" >> "$GITHUB_OUTPUT"
+            fi
+          fi
 
-      - uses: actions/configure-pages@v5
+      - name: Deploy latest stable (with aliases + default)
+        if: steps.ver.outputs.is_stable == 'true'
+        run: |
+          mike deploy --push --update-aliases "${{ steps.ver.outputs.version }}" stable latest
+          mike set-default --push latest
 
-      - uses: actions/upload-pages-artifact@v3
-        with:
-          path: site
+      - name: Deploy version
+        if: steps.ver.outputs.is_stable != 'true'
+        run: mike deploy --push "${{ steps.ver.outputs.version }}"
 
-  deploy:
-    needs: build
-    runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    steps:
-      - id: deployment
-        uses: actions/deploy-pages@v4
+      # mike doesn't preserve a top-level CNAME across deploys (each
+      # deploy operates on a single version subdirectory), so re-stamp
+      # it after every deploy. Without this, switching the GitHub Pages
+      # source to gh-pages drops the custom domain.
+      - name: Re-stamp CNAME on gh-pages
+        run: |
+          git fetch origin gh-pages
+          git worktree add /tmp/ghpages origin/gh-pages
+          cd /tmp/ghpages
+          if [ "$(cat CNAME 2>/dev/null)" != "reference.librescoot.org" ]; then
+            echo "reference.librescoot.org" > CNAME
+            git add CNAME
+            git commit -m "ci: ensure CNAME is reference.librescoot.org"
+            git push origin HEAD:gh-pages
+          fi
