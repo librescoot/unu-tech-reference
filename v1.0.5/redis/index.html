@@ -1,0 +1,4317 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Hardware and software reference for the LibreScoot electric scooter platform">
+      
+      
+      
+        <link rel="canonical" href="https://reference.librescoot.org/v1.0.5/redis/">
+      
+      
+        <link rel="prev" href="../bluetooth/">
+      
+      
+        <link rel="next" href="../nrf/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="zensical-0.0.45">
+    
+    
+      
+        <title>Redis Interface Documentation - LibreScoot Tech Reference</title>
+      
+    
+    
+      
+        
+      
+      <link rel="stylesheet" href="../assets/stylesheets/modern/main.fba56155.min.css">
+      
+        
+          
+        
+        <link rel="stylesheet" href="../assets/stylesheets/modern/palette.dfe2e883.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter:300,300i,400,400i,500,500i,700,700i%7CJetBrains+Mono:400,400i,700,700i&amp;display=fallback">
+        <style>:root{--md-text-font:"Inter";--md-code-font:"JetBrains Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../stylesheets/extra.css">
+    
+    <script>__md_scope=new URL("..",location),__md_scope.pathname.endsWith("/")||(__md_scope=new URL(__md_scope.pathname+"/",location)),__md_hash=e=>[...e].reduce(((e,t)=>(e<<5)-e+t.charCodeAt(0)),0),__md_get=(e,t=localStorage,_=__md_scope)=>JSON.parse(t.getItem(_.pathname+"."+e)),__md_set=(e,t,_=localStorage,a=__md_scope)=>{try{_.setItem(a.pathname+"."+e,JSON.stringify(t))}catch(e){}},document.documentElement.setAttribute("data-platform",navigator.platform)</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="slate" data-md-color-primary="custom" data-md-color-accent="cyan">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer" aria-label="Navigation"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#redis-interface-documentation" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+      <div data-md-color-scheme="default" data-md-component="outdated" hidden>
+        
+      </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="./.." title="LibreScoot Tech Reference" class="md-header__button md-logo" aria-label="LibreScoot Tech Reference" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-book-open" viewBox="0 0 24 24"><path d="M12 7v14M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer" aria-label="Navigation">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-menu" viewBox="0 0 24 24"><path d="M4 5h16M4 12h16M4 19h16"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            LibreScoot Tech Reference
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Redis Interface Documentation
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="none" data-md-color-scheme="slate" data-md-color-primary="custom" data-md-color-accent="cyan"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="none" data-md-color-scheme="default" data-md-color-primary="custom" data-md-color-accent="cyan"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-moon" viewBox="0 0 24 24"><path d="M20.985 12.486a9 9 0 1 1-9.473-9.472c.405-.022.617.46.402.803a6 6 0 0 0 8.268 8.268c.344-.215.825-.004.803.401"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search" aria-label="Search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-search" viewBox="0 0 24 24"><path d="m21 21-4.34-4.34"/><circle cx="11" cy="11" r="8"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog" aria-label="Search">
+  <button type="button" class="md-search__button">
+    Search
+  </button>
+</div>
+      
+    
+    <div class="md-header__source">
+      
+        <a href="https://github.com/librescoot/unu-tech-reference" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2026 Fonticons, Inc.--><path fill="currentColor" d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    librescoot/unu-tech-reference
+  </div>
+</a>
+      
+    </div>
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="./.." title="LibreScoot Tech Reference" class="md-nav__button md-logo" aria-label="LibreScoot Tech Reference" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-book-open" viewBox="0 0 24 24"><path d="M12 7v14M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"/></svg>
+
+    </a>
+    LibreScoot Tech Reference
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/librescoot/unu-tech-reference" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2026 Fonticons, Inc.--><path fill="currentColor" d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    librescoot/unu-tech-reference
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="./.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Home
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../electronic/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Hardware
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_2" id="__nav_2_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+  Hardware
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../mechanical/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Mechanical
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../wiring/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Wiring & Connectors
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../battery/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Power
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_3" id="__nav_3_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+  Power
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../battery-charger/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Battery Charger
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" checked>
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../bluetooth/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Communication
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_4" id="__nav_4_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+  Communication
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Redis
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="././" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Redis
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+
+<nav class="md-nav md-nav--secondary" aria-label="On this page">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      On this page
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#connection-details" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Connection Details
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#key-structure" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Key Structure
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Key Structure">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#vehicle-state-vehicle" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Vehicle State (<code>vehicle</code>)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#engine-ecu-engine-ecu" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Engine ECU (<code>engine-ecu</code>)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#battery-management-battery0-and-battery1" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Battery Management (<code>battery:0</code> and <code>battery:1</code>)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#auxiliary-battery-aux-battery" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Auxiliary Battery (<code>aux-battery</code>)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#connectivity-battery-cb-battery" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Connectivity Battery (<code>cb-battery</code>)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#system-information-system" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        System Information (<code>system</code>)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#power-management-power-manager" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Power Management (<code>power-manager</code>)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#power-manager-busy-services-power-managerbusy-services" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Power Manager Busy Services (<code>power-manager:busy-services</code>)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#power-multiplexing-power-mux" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Power Multiplexing (<code>power-mux</code>)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#internet-connectivity-internet" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Internet Connectivity (<code>internet</code>)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dashboard-interface-dashboard" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Dashboard Interface (<code>dashboard</code>)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#bluetooth-interface-ble" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Bluetooth Interface (<code>ble</code>)
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Bluetooth Interface (ble)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#bluetooth-commands" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Bluetooth Commands
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#bluetooth-event-subscriptions" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Bluetooth Event Subscriptions
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#bluetooth-triggered-redis-requests" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Bluetooth-Triggered Redis Requests
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#keycard-authentication-keycard" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Keycard Authentication (<code>keycard</code>)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#navigation-system" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Navigation System
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#gps-data-gps" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        GPS Data (<code>gps</code>)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#over-the-air-updates-ota" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Over-the-Air Updates (<code>ota</code>)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#settings-settings" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Settings (<code>settings</code>)
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Settings (settings)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#librescoot-additional-settings" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        LibreScoot Additional Settings
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#alarm-system-alarm-librescoot-only" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Alarm System (<code>alarm</code>) - LibreScoot Only
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#bmx055-motion-sensor-bmx-librescoot-only" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        BMX055 Motion Sensor (<code>bmx</code>) - LibreScoot Only
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dashboard-backlight-dashboard-librescoot-enhancement" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Dashboard Backlight (<code>dashboard</code>) - LibreScoot Enhancement
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#gps-state-gps-librescoot-enhancement" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        GPS State (<code>gps</code>) - LibreScoot Enhancement
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#modem-management-modem-librescoot-only" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Modem Management (<code>modem</code>) - LibreScoot Only
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#internet-connectivity-internet-librescoot-enhancement" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Internet Connectivity (<code>internet</code>) - LibreScoot Enhancement
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ota-updates-ota-librescoot-enhancement" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        OTA Updates (<code>ota</code>) - LibreScoot Enhancement
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#version-information-librescoot-only" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Version Information - LibreScoot Only
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Version Information - LibreScoot Only">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#mdb-version-versionmdb" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        MDB Version (<code>version:mdb</code>)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dbc-version-versiondbc" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        DBC Version (<code>version:dbc</code>)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#event-streams" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Event Streams
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Event Streams">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#fault-events-eventsfaults" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Fault Events (<code>events:faults</code>)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#command-channels" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Command Channels
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Command Channels">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#scooter-state-control-scooterstate" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Scooter State Control (<code>scooter:state</code>)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#seatbox-control-scooterseatbox" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Seatbox Control (<code>scooter:seatbox</code>)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#horn-control-scooterhorn" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Horn Control (<code>scooter:horn</code>)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#blinker-control-scooterblinker" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Blinker Control (<code>scooter:blinker</code>)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#alarm-control-scooteralarm-librescoot-only" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Alarm Control (<code>scooter:alarm</code>) - LibreScoot Only
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#bmx-sensor-control-scooterbmx-librescoot-only" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        BMX Sensor Control (<code>scooter:bmx</code>) - LibreScoot Only
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#power-control-scooterpower-librescoot-enhanced" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Power Control (<code>scooter:power</code>) - LibreScoot Enhanced
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#modem-control-scootermodem-librescoot-only" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Modem Control (<code>scooter:modem</code>) - LibreScoot Only
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#update-control-scooterupdate-librescoot-only" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Update Control (<code>scooter:update</code>) - LibreScoot Only
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#command-channel-notes" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Command Channel Notes
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../nrf/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  nRF52840
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../nrf/UART/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  UART Protocol
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../nrf/power-management/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Power Management
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../states/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Software
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_5" id="__nav_5_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+  Software
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../services/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Services
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../services/librescoot-alarm/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  alarm-service
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../services/librescoot-battery/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  battery-service
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../services/librescoot-bluetooth/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  bluetooth-service
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../services/librescoot-ecu/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  ecu-service
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../services/librescoot-keycard/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  keycard-service
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../services/librescoot-modem/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  modem-service
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../services/librescoot-pm/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  pm-service
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../services/librescoot-scootui/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  scootui-qt
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../services/librescoot-settings/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  settings-service
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../services/librescoot-ums/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  ums-service
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../services/librescoot-update/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  update-service
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../services/librescoot-vehicle/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  vehicle-service
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../dashboard/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Dashboard
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../dashboard/REDIS/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Dashboard Redis
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Tools
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+  Tools
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tools/lsc/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  lsc CLI
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  
+                    
+                    
+                    
+                      
+                    
+                    
+                      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+                      <div class="md-sidebar-button__wrapper">
+                        <label class="md-sidebar-button" for="__toc"></label>
+                      </div>
+                    
+                  
+                  <div class="md-sidebar__inner">
+                    
+
+
+<nav class="md-nav md-nav--secondary" aria-label="On this page">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      On this page
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#connection-details" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Connection Details
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#key-structure" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Key Structure
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Key Structure">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#vehicle-state-vehicle" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Vehicle State (<code>vehicle</code>)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#engine-ecu-engine-ecu" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Engine ECU (<code>engine-ecu</code>)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#battery-management-battery0-and-battery1" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Battery Management (<code>battery:0</code> and <code>battery:1</code>)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#auxiliary-battery-aux-battery" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Auxiliary Battery (<code>aux-battery</code>)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#connectivity-battery-cb-battery" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Connectivity Battery (<code>cb-battery</code>)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#system-information-system" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        System Information (<code>system</code>)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#power-management-power-manager" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Power Management (<code>power-manager</code>)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#power-manager-busy-services-power-managerbusy-services" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Power Manager Busy Services (<code>power-manager:busy-services</code>)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#power-multiplexing-power-mux" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Power Multiplexing (<code>power-mux</code>)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#internet-connectivity-internet" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Internet Connectivity (<code>internet</code>)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dashboard-interface-dashboard" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Dashboard Interface (<code>dashboard</code>)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#bluetooth-interface-ble" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Bluetooth Interface (<code>ble</code>)
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Bluetooth Interface (ble)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#bluetooth-commands" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Bluetooth Commands
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#bluetooth-event-subscriptions" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Bluetooth Event Subscriptions
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#bluetooth-triggered-redis-requests" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Bluetooth-Triggered Redis Requests
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#keycard-authentication-keycard" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Keycard Authentication (<code>keycard</code>)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#navigation-system" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Navigation System
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#gps-data-gps" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        GPS Data (<code>gps</code>)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#over-the-air-updates-ota" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Over-the-Air Updates (<code>ota</code>)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#settings-settings" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Settings (<code>settings</code>)
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Settings (settings)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#librescoot-additional-settings" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        LibreScoot Additional Settings
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#alarm-system-alarm-librescoot-only" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Alarm System (<code>alarm</code>) - LibreScoot Only
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#bmx055-motion-sensor-bmx-librescoot-only" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        BMX055 Motion Sensor (<code>bmx</code>) - LibreScoot Only
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dashboard-backlight-dashboard-librescoot-enhancement" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Dashboard Backlight (<code>dashboard</code>) - LibreScoot Enhancement
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#gps-state-gps-librescoot-enhancement" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        GPS State (<code>gps</code>) - LibreScoot Enhancement
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#modem-management-modem-librescoot-only" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Modem Management (<code>modem</code>) - LibreScoot Only
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#internet-connectivity-internet-librescoot-enhancement" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Internet Connectivity (<code>internet</code>) - LibreScoot Enhancement
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ota-updates-ota-librescoot-enhancement" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        OTA Updates (<code>ota</code>) - LibreScoot Enhancement
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#version-information-librescoot-only" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Version Information - LibreScoot Only
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Version Information - LibreScoot Only">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#mdb-version-versionmdb" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        MDB Version (<code>version:mdb</code>)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dbc-version-versiondbc" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        DBC Version (<code>version:dbc</code>)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#event-streams" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Event Streams
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Event Streams">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#fault-events-eventsfaults" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Fault Events (<code>events:faults</code>)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#command-channels" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Command Channels
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Command Channels">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#scooter-state-control-scooterstate" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Scooter State Control (<code>scooter:state</code>)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#seatbox-control-scooterseatbox" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Seatbox Control (<code>scooter:seatbox</code>)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#horn-control-scooterhorn" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Horn Control (<code>scooter:horn</code>)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#blinker-control-scooterblinker" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Blinker Control (<code>scooter:blinker</code>)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#alarm-control-scooteralarm-librescoot-only" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Alarm Control (<code>scooter:alarm</code>) - LibreScoot Only
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#bmx-sensor-control-scooterbmx-librescoot-only" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        BMX Sensor Control (<code>scooter:bmx</code>) - LibreScoot Only
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#power-control-scooterpower-librescoot-enhanced" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Power Control (<code>scooter:power</code>) - LibreScoot Enhanced
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#modem-control-scootermodem-librescoot-only" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Modem Control (<code>scooter:modem</code>) - LibreScoot Only
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#update-control-scooterupdate-librescoot-only" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Update Control (<code>scooter:update</code>) - LibreScoot Only
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#command-channel-notes" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Command Channel Notes
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+                
+
+
+
+  
+
+
+  <nav class="md-path" aria-label="Navigation" >
+    <ol class="md-path__list">
+      
+        
+  
+  
+    <li class="md-path__item">
+      <a href="./.." class="md-path__link">
+        
+  
+  <span class="md-ellipsis">
+    Home
+  </span>
+
+      </a>
+    </li>
+  
+
+      
+      
+        
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+    
+      <li class="md-path__item">
+        <a href="../bluetooth/" class="md-path__link">
+          
+  
+  <span class="md-ellipsis">
+    Communication
+  </span>
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ol>
+  </nav>
+
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+  
+    <a href="https://github.com/librescoot/unu-tech-reference/edit/master/docs/redis/README.md" title="Edit this page" class="md-content__button md-icon" rel="edit">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-file-pen" viewBox="0 0 24 24"><path d="M12.659 22H18a2 2 0 0 0 2-2V8a2.4 2.4 0 0 0-.706-1.706l-3.588-3.588A2.4 2.4 0 0 0 14 2H6a2 2 0 0 0-2 2v9.34"/><path d="M14 2v5a1 1 0 0 0 1 1h5M10.378 12.622a1 1 0 0 1 3 3.003L8.36 20.637a2 2 0 0 1-.854.506l-2.867.837a.5.5 0 0 1-.62-.62l.836-2.869a2 2 0 0 1 .506-.853z"/></svg>
+    </a>
+  
+  
+
+
+<h1 id="redis-interface-documentation">Redis Interface Documentation<a class="headerlink" href="#redis-interface-documentation" title="Permanent link">&para;</a></h1>
+<h2 id="connection-details">Connection Details<a class="headerlink" href="#connection-details" title="Permanent link">&para;</a></h2>
+<p>The scooter runs a Redis instance on the MDB accessible at:
+- Host: 192.168.7.1<br />
+- Port: 6379</p>
+<p>Local connection command:
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>redis-cli<span class="w"> </span>-h<span class="w"> </span><span class="m">192</span>.168.7.1<span class="w"> </span>-p<span class="w"> </span><span class="m">6379</span>
+</span></code></pre></div></p>
+<h2 id="key-structure">Key Structure<a class="headerlink" href="#key-structure" title="Permanent link">&para;</a></h2>
+<p>The Redis database uses hash sets for system state storage. All fields default to empty strings ("") when data is unavailable unless otherwise noted.</p>
+<p>For potential values, also see the <a href="../bluetooth/">Bluetooth reference</a>.</p>
+<h3 id="vehicle-state-vehicle">Vehicle State (<code>vehicle</code>)<a class="headerlink" href="#vehicle-state-vehicle" title="Permanent link">&para;</a></h3>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>hgetall vehicle
+</span></code></pre></div>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Description</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>handlebar:position</td>
+<td>"on-place"/"off-place"</td>
+<td>Handlebar position</td>
+<td>"on-place"</td>
+</tr>
+<tr>
+<td>handlebar:lock-sensor</td>
+<td>"locked"/"unlocked"</td>
+<td>Handlebar lock state</td>
+<td>"unlocked"</td>
+</tr>
+<tr>
+<td>main-power</td>
+<td>"on"/"off"</td>
+<td>Main power state</td>
+<td>"off"</td>
+</tr>
+<tr>
+<td>kickstand</td>
+<td>"up"/"down"</td>
+<td>Side stand position</td>
+<td>"down"</td>
+</tr>
+<tr>
+<td>seatbox:button</td>
+<td>"on"/"off"</td>
+<td>Seat open button state</td>
+<td>"off"</td>
+</tr>
+<tr>
+<td>seatbox:lock</td>
+<td>"open"/"closed"</td>
+<td>Seat lock state</td>
+<td>"closed"</td>
+</tr>
+<tr>
+<td>horn:button</td>
+<td>"on"/"off"</td>
+<td>Horn button state</td>
+<td>"off"</td>
+</tr>
+<tr>
+<td>brake:left</td>
+<td>"on"/"off"</td>
+<td>Left brake state</td>
+<td>"off"</td>
+</tr>
+<tr>
+<td>brake:right</td>
+<td>"on"/"off"</td>
+<td>Right brake state</td>
+<td>"off"</td>
+</tr>
+<tr>
+<td>blinker:switch</td>
+<td>"left"/"right"/"both"/"off"</td>
+<td>Blinker switch position</td>
+<td>"off"</td>
+</tr>
+<tr>
+<td>blinker:state</td>
+<td>"on"/"off"</td>
+<td>Blinker active state</td>
+<td>"off"</td>
+</tr>
+<tr>
+<td>state</td>
+<td>"init"/"stand-by"/"parked"/"hop-on"/"hop-on-learning"/"ready-to-drive"/"waiting-seatbox"/"shutting-down"/"updating"/"waiting-hibernation"/"waiting-hibernation-advanced"/"waiting-hibernation-seatbox"/"waiting-hibernation-confirm"</td>
+<td>Vehicle operating state</td>
+<td>"stand-by"</td>
+</tr>
+<tr>
+<td>auto-standby-deadline</td>
+<td>integer (Unix timestamp)</td>
+<td>When auto-standby will trigger (only present when timer active)</td>
+<td>"1734567890"</td>
+</tr>
+</tbody>
+</table>
+<h3 id="engine-ecu-engine-ecu">Engine ECU (<code>engine-ecu</code>)<a class="headerlink" href="#engine-ecu-engine-ecu" title="Permanent link">&para;</a></h3>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>hgetall engine-ecu
+</span></code></pre></div>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Description</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>kers-reason-off</td>
+<td>string</td>
+<td>Reason KERS is disabled</td>
+<td>"none"</td>
+</tr>
+<tr>
+<td>kers</td>
+<td>"on"/"off"</td>
+<td>KERS active state</td>
+<td>"on"</td>
+</tr>
+<tr>
+<td>motor:voltage</td>
+<td>integer (mV)</td>
+<td>Motor voltage</td>
+<td>"52140"</td>
+</tr>
+<tr>
+<td>motor:current</td>
+<td>integer (mA)</td>
+<td>Motor current</td>
+<td>"0"</td>
+</tr>
+<tr>
+<td>rpm</td>
+<td>integer</td>
+<td>Motor RPM</td>
+<td>"0"</td>
+</tr>
+<tr>
+<td>speed</td>
+<td>integer (km/h)</td>
+<td>Vehicle speed</td>
+<td>"0"</td>
+</tr>
+<tr>
+<td>throttle</td>
+<td>"on"/"off"</td>
+<td>Throttle state</td>
+<td>"off"</td>
+</tr>
+<tr>
+<td>fw-version</td>
+<td>hex string</td>
+<td>ECU firmware version</td>
+<td>"0445400C"</td>
+</tr>
+<tr>
+<td>odometer</td>
+<td>integer (m)</td>
+<td>Total distance</td>
+<td>"632900"</td>
+</tr>
+<tr>
+<td>temperature</td>
+<td>integer (°C)</td>
+<td>ECU temperature</td>
+<td>"16"</td>
+</tr>
+</tbody>
+</table>
+<h3 id="battery-management-battery0-and-battery1">Battery Management (<code>battery:0</code> and <code>battery:1</code>)<a class="headerlink" href="#battery-management-battery0-and-battery1" title="Permanent link">&para;</a></h3>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>hgetall battery:0
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>hgetall battery:1
+</span></code></pre></div>
+<p>Note: When battery is not present (<code>"present": "false"</code>), all fields will show default values as shown in examples.</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Description</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>present</td>
+<td>"true"/"false"</td>
+<td>Battery presence</td>
+<td>"false"</td>
+</tr>
+<tr>
+<td>state</td>
+<td>string</td>
+<td>Battery state</td>
+<td>"unknown"</td>
+</tr>
+<tr>
+<td>voltage</td>
+<td>integer (mV)</td>
+<td>Battery voltage</td>
+<td>"0"</td>
+</tr>
+<tr>
+<td>current</td>
+<td>integer (mA)</td>
+<td>Battery current</td>
+<td>"0"</td>
+</tr>
+<tr>
+<td>charge</td>
+<td>integer (%)</td>
+<td>Battery charge level</td>
+<td>"0"</td>
+</tr>
+<tr>
+<td>temperature:0-3</td>
+<td>integer (°C)</td>
+<td>Battery temperature sensors</td>
+<td>"0"</td>
+</tr>
+<tr>
+<td>temperature-state</td>
+<td>string</td>
+<td>Temperature status</td>
+<td>"unknown"</td>
+</tr>
+<tr>
+<td>cycle-count</td>
+<td>integer</td>
+<td>Battery cycle count</td>
+<td>"0"</td>
+</tr>
+<tr>
+<td>state-of-health</td>
+<td>integer (%)</td>
+<td>Battery health</td>
+<td>"0"</td>
+</tr>
+<tr>
+<td>serial-number</td>
+<td>string</td>
+<td>Battery serial number</td>
+<td>""</td>
+</tr>
+<tr>
+<td>manufacturing-date</td>
+<td>string</td>
+<td>Manufacturing date</td>
+<td>""</td>
+</tr>
+<tr>
+<td>fw-version</td>
+<td>string</td>
+<td>Firmware version</td>
+<td>""</td>
+</tr>
+</tbody>
+</table>
+<h3 id="auxiliary-battery-aux-battery">Auxiliary Battery (<code>aux-battery</code>)<a class="headerlink" href="#auxiliary-battery-aux-battery" title="Permanent link">&para;</a></h3>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>hgetall aux-battery
+</span></code></pre></div>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Description</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>data-stream-enable</td>
+<td>"0"/"1"</td>
+<td>Enable data streaming</td>
+<td>"0"</td>
+</tr>
+<tr>
+<td>voltage</td>
+<td>integer (mV)</td>
+<td>Battery voltage</td>
+<td>"11919"</td>
+</tr>
+<tr>
+<td>charge</td>
+<td>integer (%)</td>
+<td>Battery charge level</td>
+<td>"25"</td>
+</tr>
+<tr>
+<td>charge-status</td>
+<td>string</td>
+<td>Charging status</td>
+<td>"not-charging"</td>
+</tr>
+</tbody>
+</table>
+<h3 id="connectivity-battery-cb-battery">Connectivity Battery (<code>cb-battery</code>)<a class="headerlink" href="#connectivity-battery-cb-battery" title="Permanent link">&para;</a></h3>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>hgetall cb-battery
+</span></code></pre></div>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Description</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>charge</td>
+<td>integer (%)</td>
+<td>Battery charge level</td>
+<td>"72"</td>
+</tr>
+<tr>
+<td>current</td>
+<td>integer (μA)</td>
+<td>Current draw</td>
+<td>"-51041"</td>
+</tr>
+<tr>
+<td>remaining-capacity</td>
+<td>integer (μWh)</td>
+<td>Remaining capacity</td>
+<td>"16830000"</td>
+</tr>
+<tr>
+<td>temperature</td>
+<td>integer (°C)</td>
+<td>Battery temperature</td>
+<td>"21"</td>
+</tr>
+<tr>
+<td>cycle-count</td>
+<td>integer</td>
+<td>Battery cycle count</td>
+<td>"5"</td>
+</tr>
+<tr>
+<td>time-to-empty</td>
+<td>integer (sec)</td>
+<td>Time until empty</td>
+<td>"368634"</td>
+</tr>
+<tr>
+<td>time-to-full</td>
+<td>integer (sec)</td>
+<td>Time until full</td>
+<td>"368634"</td>
+</tr>
+<tr>
+<td>cell-voltage</td>
+<td>integer (μV)</td>
+<td>Cell voltage</td>
+<td>"4016328"</td>
+</tr>
+<tr>
+<td>full-capacity</td>
+<td>integer (μWh)</td>
+<td>Total capacity</td>
+<td>"23270000"</td>
+</tr>
+<tr>
+<td>state-of-health</td>
+<td>integer (%)</td>
+<td>Battery health</td>
+<td>"94"</td>
+</tr>
+<tr>
+<td>present</td>
+<td>"true"/"false"</td>
+<td>Battery presence</td>
+<td>"true"</td>
+</tr>
+<tr>
+<td>charge-status</td>
+<td>string</td>
+<td>Charging status</td>
+<td>"not-charging"</td>
+</tr>
+<tr>
+<td>part-number</td>
+<td>string</td>
+<td>Part identification</td>
+<td>"MAX17301"</td>
+</tr>
+<tr>
+<td>serial-number</td>
+<td>string</td>
+<td>Serial number</td>
+<td>"T-CBB 2107245036"</td>
+</tr>
+<tr>
+<td>unique-id</td>
+<td>string</td>
+<td>Unique identifier</td>
+<td>"420000508ff2c826"</td>
+</tr>
+</tbody>
+</table>
+<h3 id="system-information-system">System Information (<code>system</code>)<a class="headerlink" href="#system-information-system" title="Permanent link">&para;</a></h3>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>hgetall system
+</span></code></pre></div>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Description</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>mdb-version</td>
+<td>string</td>
+<td>MDB firmware version</td>
+<td>"v1.15.0+430538"</td>
+</tr>
+<tr>
+<td>environment</td>
+<td>string</td>
+<td>System environment</td>
+<td>"production"</td>
+</tr>
+<tr>
+<td>nrf-fw-version</td>
+<td>string</td>
+<td>NRF firmware version</td>
+<td>"v1.12.0"</td>
+</tr>
+<tr>
+<td>dbc-version</td>
+<td>string</td>
+<td>Dashboard computer version</td>
+<td>"v1.15.0+430553"</td>
+</tr>
+</tbody>
+</table>
+<h3 id="power-management-power-manager">Power Management (<code>power-manager</code>)<a class="headerlink" href="#power-management-power-manager" title="Permanent link">&para;</a></h3>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>hgetall power-manager
+</span></code></pre></div>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Description</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>state</td>
+<td>string</td>
+<td>Current power state</td>
+<td>"suspending"</td>
+</tr>
+<tr>
+<td>wakeup-source</td>
+<td>string</td>
+<td>Source that woke system</td>
+<td>"78"</td>
+</tr>
+<tr>
+<td>nrf-reset-count</td>
+<td>integer</td>
+<td>nRF reset counter</td>
+<td>"2"</td>
+</tr>
+<tr>
+<td>nrf-reset-reason</td>
+<td>hex string</td>
+<td>nRF reset reason code</td>
+<td>"0x00000001"</td>
+</tr>
+<tr>
+<td>hibernate-level</td>
+<td>string</td>
+<td>Hibernation level</td>
+<td>"L1"/"L2"</td>
+</tr>
+</tbody>
+</table>
+<h3 id="power-manager-busy-services-power-managerbusy-services">Power Manager Busy Services (<code>power-manager:busy-services</code>)<a class="headerlink" href="#power-manager-busy-services-power-managerbusy-services" title="Permanent link">&para;</a></h3>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>hgetall power-manager:busy-services
+</span></code></pre></div>
+<p>Stores systemd inhibitors preventing suspend. Cleared and repopulated on updates.</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Description</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><who> <why> <what></td>
+<td>string</td>
+<td>Service inhibitor</td>
+<td>"block" or "delay"</td>
+</tr>
+</tbody>
+</table>
+<p>Published to <code>power-manager:busy-services</code> channel with value "updated" when changed.</p>
+<h3 id="power-multiplexing-power-mux">Power Multiplexing (<code>power-mux</code>)<a class="headerlink" href="#power-multiplexing-power-mux" title="Permanent link">&para;</a></h3>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>hgetall power-mux
+</span></code></pre></div>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Description</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>selected-input</td>
+<td>"cb"/"aux"</td>
+<td>Selected power input source</td>
+<td>"cb"</td>
+</tr>
+</tbody>
+</table>
+<h3 id="internet-connectivity-internet">Internet Connectivity (<code>internet</code>)<a class="headerlink" href="#internet-connectivity-internet" title="Permanent link">&para;</a></h3>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>hgetall internet
+</span></code></pre></div>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Description</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>modem-state</td>
+<td>string</td>
+<td>Modem power state</td>
+<td>"off"</td>
+</tr>
+<tr>
+<td>status</td>
+<td>string</td>
+<td>Connection status</td>
+<td>"disconnected"</td>
+</tr>
+<tr>
+<td>unu-cloud</td>
+<td>string</td>
+<td>Cloud connection status</td>
+<td>"disconnected"</td>
+</tr>
+<tr>
+<td>ip-address</td>
+<td>string</td>
+<td>IP address</td>
+<td>"1.2.3.4"</td>
+</tr>
+<tr>
+<td>access-tech</td>
+<td>string</td>
+<td>Access technology</td>
+<td>"LTE"</td>
+</tr>
+<tr>
+<td>signal-quality</td>
+<td>integer</td>
+<td>Signal strength (0-100)</td>
+<td>"0"</td>
+</tr>
+<tr>
+<td>sim-imei</td>
+<td>string</td>
+<td>SIM IMEI</td>
+<td>""</td>
+</tr>
+<tr>
+<td>sim-iccid</td>
+<td>string</td>
+<td>SIM ICCID</td>
+<td>""</td>
+</tr>
+</tbody>
+</table>
+<h3 id="dashboard-interface-dashboard">Dashboard Interface (<code>dashboard</code>)<a class="headerlink" href="#dashboard-interface-dashboard" title="Permanent link">&para;</a></h3>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>hgetall dashboard
+</span></code></pre></div>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Description</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>ready</td>
+<td>"true"/"false"</td>
+<td>Dashboard ready state</td>
+<td>"false"</td>
+</tr>
+<tr>
+<td>mode</td>
+<td>string</td>
+<td>Current display mode</td>
+<td>"speedometer"</td>
+</tr>
+<tr>
+<td>serial-number</td>
+<td>string</td>
+<td>Dashboard serial number</td>
+<td>"379999993"</td>
+</tr>
+</tbody>
+</table>
+<p>See <a href="../dashboard/">Dashboard</a>.</p>
+<h3 id="bluetooth-interface-ble">Bluetooth Interface (<code>ble</code>)<a class="headerlink" href="#bluetooth-interface-ble" title="Permanent link">&para;</a></h3>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-12-1"><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a>hgetall ble
+</span></code></pre></div>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Description</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>mac-address</td>
+<td>string</td>
+<td>Bluetooth MAC address (lowercase with colons)</td>
+<td>"ce:df:f6:c0:ff:ee"</td>
+</tr>
+<tr>
+<td>status</td>
+<td>string</td>
+<td>Connection status</td>
+<td>"disconnected"</td>
+</tr>
+<tr>
+<td>pin-code</td>
+<td>string</td>
+<td>Pairing PIN code (temporary, removed after pairing)</td>
+<td>"123456"</td>
+</tr>
+</tbody>
+</table>
+<h4 id="bluetooth-commands">Bluetooth Commands<a class="headerlink" href="#bluetooth-commands" title="Permanent link">&para;</a></h4>
+<p>The Bluetooth service accepts commands via the <code>scooter:bluetooth</code> Redis list. Commands are sent as strings:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-13-1"><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a><span class="c1"># Send a command to the Bluetooth service</span>
+</span><span id="__span-13-2"><a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a>redis-cli<span class="w"> </span>-h<span class="w"> </span><span class="m">192</span>.168.7.1<span class="w"> </span>LPUSH<span class="w"> </span>scooter:bluetooth<span class="w"> </span><span class="s2">&quot;command-name&quot;</span>
+</span></code></pre></div>
+<p>Available commands:
+- <code>advertising-start-with-whitelisting</code> - Start BLE advertising with whitelist filtering (only paired devices can connect)
+- <code>advertising-restart-no-whitelisting</code> - Restart advertising without whitelist restrictions (any device can connect)
+- <code>advertising-stop</code> - Stop BLE advertising completely
+- <code>delete-all-bonds</code> - Remove all paired/bonded devices from the system</p>
+<h4 id="bluetooth-event-subscriptions">Bluetooth Event Subscriptions<a class="headerlink" href="#bluetooth-event-subscriptions" title="Permanent link">&para;</a></h4>
+<p>The Bluetooth service subscribes to several Redis channels and automatically updates the nRF52 module when values change:</p>
+<p><strong>Vehicle State Updates:</strong>
+- <code>vehicle:state</code> - Vehicle operating state changes
+- <code>vehicle:seatbox:lock</code> - Seatbox lock status changes
+- <code>vehicle:handlebar:lock-sensor</code> - Handlebar lock status changes</p>
+<p><strong>Battery Status Updates:</strong>
+- <code>battery:0:state</code> - Main battery 0 state changes
+- <code>battery:0:present</code> - Main battery 0 presence detection
+- <code>battery:0:charge</code> - Main battery 0 charge level
+- <code>battery:1:state</code> - Main battery 1 state changes
+- <code>battery:1:present</code> - Main battery 1 presence detection
+- <code>battery:1:charge</code> - Main battery 1 charge level</p>
+<p><strong>Power Management Updates:</strong>
+- <code>power-manager:state</code> - Power state changes trigger automatic data stream management</p>
+<h4 id="bluetooth-triggered-redis-requests">Bluetooth-Triggered Redis Requests<a class="headerlink" href="#bluetooth-triggered-redis-requests" title="Permanent link">&para;</a></h4>
+<p>The Bluetooth service can write requests to Redis when receiving commands via BLE:</p>
+<p><strong>Scooter Control:</strong>
+- <code>scooter:state</code> → <code>unlock</code> / <code>lock</code> / <code>lock-hibernate</code>
+- <code>scooter:seatbox</code> → <code>open</code>
+- <code>scooter:blinker</code> → <code>right</code> / <code>left</code> / <code>both</code> / <code>off</code></p>
+<p><strong>Power Management:</strong>
+- <code>scooter:power</code> → <code>hibernate</code> / <code>hibernate-manual</code></p>
+<h3 id="keycard-authentication-keycard">Keycard Authentication (<code>keycard</code>)<a class="headerlink" href="#keycard-authentication-keycard" title="Permanent link">&para;</a></h3>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-14-1"><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a>hgetall keycard
+</span></code></pre></div>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Description</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>authentication</td>
+<td>"passed"/"failed"</td>
+<td>Authentication result</td>
+<td>"passed"</td>
+</tr>
+<tr>
+<td>type</td>
+<td>string</td>
+<td>Card type</td>
+<td>"scooter"/"factory"/"activation"</td>
+</tr>
+<tr>
+<td>uid</td>
+<td>string</td>
+<td>Card UID (hex)</td>
+<td>"04a1b2c3"</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Note</strong>: This hash expires after 10 seconds. Authentication is published on the <code>keycard</code> channel (the field name <code>authentication</code> is sent as the message payload), not on a separate <code>keycard:authentication</code> channel.</p>
+<h3 id="navigation-system">Navigation System<a class="headerlink" href="#navigation-system" title="Permanent link">&para;</a></h3>
+<p>The navigation system uses two related hashes:</p>
+<p>Main Navigation Status (<code>navigation</code>)
+<div class="language-text highlight"><pre><span></span><code><span id="__span-15-1"><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a>hgetall navigation
+</span></code></pre></div></p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Description</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>status</td>
+<td>string</td>
+<td>Navigation status</td>
+<td>"unset"</td>
+</tr>
+</tbody>
+</table>
+<p>Navigation Coordinates (<code>navigation:coord</code>)
+<div class="language-text highlight"><pre><span></span><code><span id="__span-16-1"><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a>hgetall navigation:coord
+</span></code></pre></div></p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Description</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>location</td>
+<td>?</td>
+<td>probably packed coords?</td>
+<td>"378993323372"</td>
+</tr>
+</tbody>
+</table>
+<h3 id="gps-data-gps">GPS Data (<code>gps</code>)<a class="headerlink" href="#gps-data-gps" title="Permanent link">&para;</a></h3>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-17-1"><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a>hgetall gps
+</span></code></pre></div>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Description</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>latitude</td>
+<td>string</td>
+<td>Current latitude (6 decimal places)</td>
+<td>"0.000000"</td>
+</tr>
+<tr>
+<td>longitude</td>
+<td>string</td>
+<td>Current longitude (6 decimal places)</td>
+<td>"0.000000"</td>
+</tr>
+<tr>
+<td>altitude</td>
+<td>string</td>
+<td>Current altitude (6 decimal places)</td>
+<td>"0.000000"</td>
+</tr>
+<tr>
+<td>timestamp</td>
+<td>string</td>
+<td>GPS timestamp (ISO format)</td>
+<td>"0000-00-00T00:00:00"</td>
+</tr>
+<tr>
+<td>speed</td>
+<td>string</td>
+<td>GPS speed (6 decimal places)</td>
+<td>"0.000000"</td>
+</tr>
+<tr>
+<td>course</td>
+<td>string</td>
+<td>GPS course (6 decimal places)</td>
+<td>"0.000000"</td>
+</tr>
+</tbody>
+</table>
+<h3 id="over-the-air-updates-ota">Over-the-Air Updates (<code>ota</code>)<a class="headerlink" href="#over-the-air-updates-ota" title="Permanent link">&para;</a></h3>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-18-1"><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a>hgetall ota
+</span></code></pre></div>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Description</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>system</td>
+<td>string</td>
+<td>Update system type</td>
+<td>"foundries"</td>
+</tr>
+<tr>
+<td>migration</td>
+<td>string</td>
+<td>Migration status</td>
+<td>"successful"</td>
+</tr>
+<tr>
+<td>status</td>
+<td>string</td>
+<td>Update status</td>
+<td>"initializing"</td>
+</tr>
+<tr>
+<td>fresh-update</td>
+<td>"true"/"false"</td>
+<td>Fresh update flag</td>
+<td>"false"</td>
+</tr>
+</tbody>
+</table>
+<h3 id="settings-settings">Settings (<code>settings</code>)<a class="headerlink" href="#settings-settings" title="Permanent link">&para;</a></h3>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-19-1"><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a>hgetall settings
+</span></code></pre></div>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Description</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>customer:type</td>
+<td>string</td>
+<td>Customer type</td>
+<td>"D2C"</td>
+</tr>
+<tr>
+<td>cloud:mqtt-ca</td>
+<td>string</td>
+<td>MQTT CA certificate path</td>
+<td>"/etc/keys/unu-mqtt-production.pub"</td>
+</tr>
+<tr>
+<td>cloud:url</td>
+<td>string</td>
+<td>Cloud URL</td>
+<td>"cloud-iot-v1.unumotors.com"</td>
+</tr>
+<tr>
+<td>cloud:key</td>
+<td>string</td>
+<td>Cloud key path</td>
+<td>"/etc/keys/unu-cloud-production.pub"</td>
+</tr>
+<tr>
+<td>cloud:mqtt-url</td>
+<td>string</td>
+<td>MQTT server URL</td>
+<td>"zeus-iot-v3.unumotors.com:8883"</td>
+</tr>
+</tbody>
+</table>
+<h4 id="librescoot-additional-settings">LibreScoot Additional Settings<a class="headerlink" href="#librescoot-additional-settings" title="Permanent link">&para;</a></h4>
+<p>LibreScoot adds persistent settings managed by the settings-service:</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Description</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>alarm.enabled</td>
+<td>"true"/"false"</td>
+<td>Alarm system enabled</td>
+<td>"true"</td>
+</tr>
+<tr>
+<td>alarm.honk</td>
+<td>"true"/"false"</td>
+<td>Horn enabled during alarm</td>
+<td>"false"</td>
+</tr>
+<tr>
+<td>alarm.duration</td>
+<td>integer (sec)</td>
+<td>Alarm duration in seconds</td>
+<td>"60"</td>
+</tr>
+<tr>
+<td>alarm.seatbox-trigger</td>
+<td>"true"/"false"</td>
+<td>Trigger alarm on unauthorized seatbox opening</td>
+<td>"true"</td>
+</tr>
+<tr>
+<td>alarm.hairtrigger</td>
+<td>"true"/"false"</td>
+<td>Hair trigger mode (immediate short alarm on first motion)</td>
+<td>"false"</td>
+</tr>
+<tr>
+<td>alarm.hairtrigger-duration</td>
+<td>integer (sec)</td>
+<td>Hair trigger alarm duration in seconds</td>
+<td>"3"</td>
+</tr>
+<tr>
+<td>alarm.l1-cooldown</td>
+<td>integer (sec)</td>
+<td>Level 1 cooldown duration in seconds</td>
+<td>"15"</td>
+</tr>
+<tr>
+<td>battery.ignore-seatbox</td>
+<td>"true"/"false"</td>
+<td>Ignore seatbox state for battery management</td>
+<td>"false"</td>
+</tr>
+<tr>
+<td>cellular.apn</td>
+<td>string</td>
+<td>Cellular APN</td>
+<td>"internet.provider.com"</td>
+</tr>
+<tr>
+<td>cellular.sim-pin</td>
+<td>string</td>
+<td>PIN for SIM unlock and lock-enable (4-8 digits, empty = leave SIM as-is)</td>
+<td>"1234"</td>
+</tr>
+<tr>
+<td>hibernation-timer</td>
+<td>integer (sec)</td>
+<td>Hibernation timeout (0=disabled)</td>
+<td>"432000"</td>
+</tr>
+<tr>
+<td>pm.scheduled-hibernate-enabled</td>
+<td>"true"/"false"</td>
+<td>Enable cron-driven scheduled hibernation (schema-defined; pm-service does not act on it in v1.0.5)</td>
+<td>"false"</td>
+</tr>
+<tr>
+<td>pm.scheduled-hibernate-cron</td>
+<td>string</td>
+<td>5-field cron expression for scheduled hibernation (empty disables)</td>
+<td>"0 22 * * *"</td>
+</tr>
+<tr>
+<td>pm.scheduled-hibernate-duration</td>
+<td>duration</td>
+<td>Wake-by duration applied at each cron fire</td>
+<td>"8h"</td>
+</tr>
+<tr>
+<td>pm.wake-timer-max-seconds</td>
+<td>integer (sec)</td>
+<td>Safety cap on the wake-timer duration sent to the nRF52</td>
+<td>"604800"</td>
+</tr>
+<tr>
+<td>pm.wake-timer-ack-timeout</td>
+<td>duration</td>
+<td>How long pm-service waits for the nRF52 wake-timer ACK</td>
+<td>"10s"</td>
+</tr>
+<tr>
+<td>scooter.auto-standby-seconds</td>
+<td>integer (sec)</td>
+<td>Auto-lock timeout when parked (0=disabled)</td>
+<td>"0"</td>
+</tr>
+<tr>
+<td>scooter.brake-hibernation</td>
+<td>"enabled"/"disabled"</td>
+<td>Enable brake lever hibernation</td>
+<td>"enabled"</td>
+</tr>
+<tr>
+<td>updates.mdb.channel</td>
+<td>string</td>
+<td>MDB update channel</td>
+<td>"nightly"</td>
+</tr>
+<tr>
+<td>updates.mdb.check-interval</td>
+<td>duration</td>
+<td>MDB update check interval ("never" to disable)</td>
+<td>"6h"</td>
+</tr>
+<tr>
+<td>updates.mdb.dry-run</td>
+<td>"true"/"false"</td>
+<td>MDB update dry-run mode</td>
+<td>"false"</td>
+</tr>
+<tr>
+<td>updates.mdb.method</td>
+<td>string</td>
+<td>MDB update method</td>
+<td>"full" or "delta"</td>
+</tr>
+<tr>
+<td>updates.mdb.github-releases-url</td>
+<td>string</td>
+<td>GitHub Releases API endpoint for MDB</td>
+<td>"<a href="https://api.github.com/repos/librescoot/librescoot/releases">https://api.github.com/repos/librescoot/librescoot/releases</a>"</td>
+</tr>
+<tr>
+<td>updates.mdb.last-check-time</td>
+<td>string (ISO8601)</td>
+<td>Last MDB update check timestamp</td>
+<td>"2025-01-15T10:30:00Z"</td>
+</tr>
+<tr>
+<td>updates.dbc.channel</td>
+<td>string</td>
+<td>DBC update channel</td>
+<td>"stable"</td>
+</tr>
+<tr>
+<td>updates.dbc.check-interval</td>
+<td>duration</td>
+<td>DBC update check interval ("never" to disable)</td>
+<td>"6h"</td>
+</tr>
+<tr>
+<td>updates.dbc.dry-run</td>
+<td>"true"/"false"</td>
+<td>DBC update dry-run mode</td>
+<td>"false"</td>
+</tr>
+<tr>
+<td>updates.dbc.method</td>
+<td>string</td>
+<td>DBC update method</td>
+<td>"full" or "delta"</td>
+</tr>
+<tr>
+<td>updates.dbc.github-releases-url</td>
+<td>string</td>
+<td>GitHub Releases API endpoint for DBC</td>
+<td>"<a href="https://api.github.com/repos/librescoot/librescoot/releases">https://api.github.com/repos/librescoot/librescoot/releases</a>"</td>
+</tr>
+<tr>
+<td>updates.dbc.last-check-time</td>
+<td>string (ISO8601)</td>
+<td>Last DBC update check timestamp</td>
+<td>"2025-01-15T10:30:00Z"</td>
+</tr>
+<tr>
+<td>dashboard.show-raw-speed</td>
+<td>"true"/"false"</td>
+<td>Show raw uncorrected speed from ECU</td>
+<td>"false"</td>
+</tr>
+<tr>
+<td>dashboard.show-clock</td>
+<td>string</td>
+<td>Clock visibility (always/never)</td>
+<td>"always"</td>
+</tr>
+<tr>
+<td>dashboard.show-gps</td>
+<td>string</td>
+<td>GPS indicator visibility (always/active-or-error/error/never)</td>
+<td>"error"</td>
+</tr>
+<tr>
+<td>dashboard.show-bluetooth</td>
+<td>string</td>
+<td>Bluetooth indicator visibility</td>
+<td>"active-or-error"</td>
+</tr>
+<tr>
+<td>dashboard.show-cloud</td>
+<td>string</td>
+<td>Cloud indicator visibility</td>
+<td>"error"</td>
+</tr>
+<tr>
+<td>dashboard.show-internet</td>
+<td>string</td>
+<td>Internet indicator visibility</td>
+<td>"always"</td>
+</tr>
+<tr>
+<td>dashboard.battery-display-mode</td>
+<td>string</td>
+<td>Battery display mode (percentage/range)</td>
+<td>"percentage"</td>
+</tr>
+<tr>
+<td>dashboard.map.type</td>
+<td>string</td>
+<td>Map tile source (online/offline)</td>
+<td>"offline"</td>
+</tr>
+<tr>
+<td>dashboard.map.render-mode</td>
+<td>string</td>
+<td>Map rendering mode (vector/raster)</td>
+<td>"raster"</td>
+</tr>
+<tr>
+<td>dashboard.theme</td>
+<td>string</td>
+<td>UI theme (light/dark/auto)</td>
+<td>"dark"</td>
+</tr>
+<tr>
+<td>dashboard.mode</td>
+<td>string</td>
+<td>Default screen mode (speedometer/navigation)</td>
+<td>"speedometer"</td>
+</tr>
+<tr>
+<td>dashboard.valhalla-url</td>
+<td>string</td>
+<td>Valhalla routing service endpoint</td>
+<td>"<a href="http://localhost:8002/">http://localhost:8002/</a>"</td>
+</tr>
+</tbody>
+</table>
+<p>See <a href="../services/librescoot-settings/">settings-service documentation</a> for details on persistent settings.</p>
+<h3 id="alarm-system-alarm-librescoot-only">Alarm System (<code>alarm</code>) - LibreScoot Only<a class="headerlink" href="#alarm-system-alarm-librescoot-only" title="Permanent link">&para;</a></h3>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-20-1"><a id="__codelineno-20-1" name="__codelineno-20-1" href="#__codelineno-20-1"></a>hgetall alarm
+</span></code></pre></div>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Description</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>status</td>
+<td>string</td>
+<td>Current alarm status</td>
+<td>"armed"</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Possible status values:</strong>
+- <code>disabled</code> - Alarm system is disabled
+- <code>disarmed</code> - Alarm enabled but not armed (vehicle not in stand-by)
+- <code>armed</code> - Alarm is armed and monitoring for motion
+- <code>level-1-triggered</code> - Level 1 alarm (notification only)
+- <code>level-2-triggered</code> - Level 2 alarm (horn + hazards)</p>
+<p>See <a href="../services/librescoot-alarm/">alarm-service documentation</a> for details.</p>
+<h3 id="bmx055-motion-sensor-bmx-librescoot-only">BMX055 Motion Sensor (<code>bmx</code>) - LibreScoot Only<a class="headerlink" href="#bmx055-motion-sensor-bmx-librescoot-only" title="Permanent link">&para;</a></h3>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-21-1"><a id="__codelineno-21-1" name="__codelineno-21-1" href="#__codelineno-21-1"></a>hgetall bmx
+</span></code></pre></div>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Description</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>initialized</td>
+<td>"true"/"false"</td>
+<td>BMX sensor initialization status</td>
+<td>"true"</td>
+</tr>
+<tr>
+<td>interrupt</td>
+<td>string</td>
+<td>Interrupt status</td>
+<td>"active"</td>
+</tr>
+<tr>
+<td>sensitivity</td>
+<td>string</td>
+<td>Current sensitivity level</td>
+<td>"MEDIUM"</td>
+</tr>
+<tr>
+<td>pin</td>
+<td>string</td>
+<td>Interrupt pin configuration</td>
+<td>"INT2"</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Sensitivity levels:</strong> <code>LOW</code>, <code>MEDIUM</code>, <code>HIGH</code></p>
+<p>The alarm-service manages BMX055 configuration automatically based on alarm state.</p>
+<h3 id="dashboard-backlight-dashboard-librescoot-enhancement">Dashboard Backlight (<code>dashboard</code>) - LibreScoot Enhancement<a class="headerlink" href="#dashboard-backlight-dashboard-librescoot-enhancement" title="Permanent link">&para;</a></h3>
+<p>LibreScoot adds these fields to the dashboard hash:</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Description</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>illumination</td>
+<td>integer (lux)</td>
+<td>Ambient light level</td>
+<td>"42"</td>
+</tr>
+<tr>
+<td>backlight</td>
+<td>integer</td>
+<td>Current backlight brightness</td>
+<td>"9700"</td>
+</tr>
+<tr>
+<td>brightness</td>
+<td>integer (lux)</td>
+<td>Alias for illumination</td>
+<td>"42"</td>
+</tr>
+</tbody>
+</table>
+<p>The <code>dbc-illumination-service</code> monitors the OPT3001 sensor and publishes to <code>illumination</code>.
+The <code>dbc-backlight-service</code> reads <code>illumination</code> and adjusts <code>backlight</code> automatically.</p>
+<h3 id="gps-state-gps-librescoot-enhancement">GPS State (<code>gps</code>) - LibreScoot Enhancement<a class="headerlink" href="#gps-state-gps-librescoot-enhancement" title="Permanent link">&para;</a></h3>
+<p>LibreScoot adds GPS state tracking:</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Description</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>state</td>
+<td>string</td>
+<td>GPS state</td>
+<td>"fix-established"</td>
+</tr>
+</tbody>
+</table>
+<p><strong>GPS states:</strong>
+- <code>off</code> - GPS is disabled
+- <code>searching</code> - Actively searching for GPS signal
+- <code>fix-established</code> - Valid GPS fix obtained (2D or 3D)
+- <code>error</code> - GPS configuration or connection failed</p>
+<h3 id="modem-management-modem-librescoot-only">Modem Management (<code>modem</code>) - LibreScoot Only<a class="headerlink" href="#modem-management-modem-librescoot-only" title="Permanent link">&para;</a></h3>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-22-1"><a id="__codelineno-22-1" name="__codelineno-22-1" href="#__codelineno-22-1"></a>hgetall modem
+</span></code></pre></div>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Description</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>power-state</td>
+<td>string</td>
+<td>Modem power state</td>
+<td>"on"</td>
+</tr>
+<tr>
+<td>sim-state</td>
+<td>string</td>
+<td>SIM card state ("present"/"missing"/"locked"/"inactive")</td>
+<td>"present"</td>
+</tr>
+<tr>
+<td>sim-lock</td>
+<td>string</td>
+<td>SIM lock status</td>
+<td>"disabled"</td>
+</tr>
+<tr>
+<td>operator-name</td>
+<td>string</td>
+<td>Network operator name</td>
+<td>"T-Mobile"</td>
+</tr>
+<tr>
+<td>operator-code</td>
+<td>string</td>
+<td>Network operator code</td>
+<td>"26201"</td>
+</tr>
+<tr>
+<td>is-roaming</td>
+<td>"true"/"false"</td>
+<td>Roaming status</td>
+<td>"false"</td>
+</tr>
+<tr>
+<td>registration-fail</td>
+<td>string</td>
+<td>Registration failure reason</td>
+<td>""</td>
+</tr>
+</tbody>
+</table>
+<h3 id="internet-connectivity-internet-librescoot-enhancement">Internet Connectivity (<code>internet</code>) - LibreScoot Enhancement<a class="headerlink" href="#internet-connectivity-internet-librescoot-enhancement" title="Permanent link">&para;</a></h3>
+<p>LibreScoot adds modem health tracking:</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Description</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>modem-health</td>
+<td>string</td>
+<td>Modem recovery state</td>
+<td>"normal"</td>
+</tr>
+<tr>
+<td>sim-imsi</td>
+<td>string</td>
+<td>SIM IMSI</td>
+<td>"262010123456789"</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Modem health states:</strong>
+- <code>normal</code> - Modem operating normally
+- <code>recovering</code> - Attempting recovery
+- <code>recovery-failed-waiting-reboot</code> - Recovery failed, waiting for reboot
+- <code>permanent-failure-needs-replacement</code> - Hardware failure</p>
+<h3 id="ota-updates-ota-librescoot-enhancement">OTA Updates (<code>ota</code>) - LibreScoot Enhancement<a class="headerlink" href="#ota-updates-ota-librescoot-enhancement" title="Permanent link">&para;</a></h3>
+<p>LibreScoot adds per-component update tracking:</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Description</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>status:mdb</td>
+<td>string</td>
+<td>MDB update status</td>
+<td>"downloading"</td>
+</tr>
+<tr>
+<td>status:dbc</td>
+<td>string</td>
+<td>DBC update status</td>
+<td>"idle"</td>
+</tr>
+<tr>
+<td>update-version:mdb</td>
+<td>string</td>
+<td>MDB target version</td>
+<td>"20251009t162327"</td>
+</tr>
+<tr>
+<td>update-version:dbc</td>
+<td>string</td>
+<td>DBC target version</td>
+<td>"20251008t143210"</td>
+</tr>
+<tr>
+<td>download-progress:mdb</td>
+<td>integer (0-100)</td>
+<td>MDB download progress</td>
+<td>"45"</td>
+</tr>
+<tr>
+<td>download-progress:dbc</td>
+<td>integer (0-100)</td>
+<td>DBC download progress</td>
+<td>"0"</td>
+</tr>
+<tr>
+<td>download-bytes:mdb</td>
+<td>integer</td>
+<td>MDB bytes downloaded</td>
+<td>"47185920"</td>
+</tr>
+<tr>
+<td>download-bytes:dbc</td>
+<td>integer</td>
+<td>DBC bytes downloaded</td>
+<td>"0"</td>
+</tr>
+<tr>
+<td>download-total:mdb</td>
+<td>integer</td>
+<td>MDB total download size</td>
+<td>"104857600"</td>
+</tr>
+<tr>
+<td>download-total:dbc</td>
+<td>integer</td>
+<td>DBC total download size</td>
+<td>"0"</td>
+</tr>
+<tr>
+<td>error:mdb</td>
+<td>string</td>
+<td>MDB error type</td>
+<td>""</td>
+</tr>
+<tr>
+<td>error:dbc</td>
+<td>string</td>
+<td>DBC error type</td>
+<td>""</td>
+</tr>
+<tr>
+<td>error-message:mdb</td>
+<td>string</td>
+<td>MDB error message</td>
+<td>""</td>
+</tr>
+<tr>
+<td>error-message:dbc</td>
+<td>string</td>
+<td>DBC error message</td>
+<td>""</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Update status values:</strong> <code>idle</code>, <code>downloading</code>, <code>preparing</code>, <code>installing</code>, <code>pending-reboot</code>, <code>error</code></p>
+<p>See <a href="../services/librescoot-update/">update-service documentation</a> for details.</p>
+<h3 id="version-information-librescoot-only">Version Information - LibreScoot Only<a class="headerlink" href="#version-information-librescoot-only" title="Permanent link">&para;</a></h3>
+<h4 id="mdb-version-versionmdb">MDB Version (<code>version:mdb</code>)<a class="headerlink" href="#mdb-version-versionmdb" title="Permanent link">&para;</a></h4>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-23-1"><a id="__codelineno-23-1" name="__codelineno-23-1" href="#__codelineno-23-1"></a>hgetall version:mdb
+</span></code></pre></div>
+<p>Contains all fields from <code>/etc/os-release</code> with lowercase keys (e.g., <code>version_id</code>, <code>build_id</code>).</p>
+<h4 id="dbc-version-versiondbc">DBC Version (<code>version:dbc</code>)<a class="headerlink" href="#dbc-version-versiondbc" title="Permanent link">&para;</a></h4>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-24-1"><a id="__codelineno-24-1" name="__codelineno-24-1" href="#__codelineno-24-1"></a>hgetall version:dbc
+</span></code></pre></div>
+<p>Contains all fields from <code>/etc/os-release</code> with lowercase keys.</p>
+<p>The version-service populates these hashes on startup from the OS release information.</p>
+<h3 id="event-streams">Event Streams<a class="headerlink" href="#event-streams" title="Permanent link">&para;</a></h3>
+<h4 id="fault-events-eventsfaults">Fault Events (<code>events:faults</code>)<a class="headerlink" href="#fault-events-eventsfaults" title="Permanent link">&para;</a></h4>
+<p>Stream of system fault events using XADD:</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-25-1"><a id="__codelineno-25-1" name="__codelineno-25-1" href="#__codelineno-25-1"></a>XREAD STREAMS events:faults 0
+</span></code></pre></div>
+<p>Each entry contains:
+- <code>group</code> - Component group (e.g., "cb-battery", "modem")
+- <code>code</code> - Fault code
+- <code>description</code> - Human-readable fault description</p>
+<h2 id="command-channels">Command Channels<a class="headerlink" href="#command-channels" title="Permanent link">&para;</a></h2>
+<p>The scooter accepts control commands via Redis list-based channels using <code>LPUSH</code>. Commands are queued and processed by the vehicle service.</p>
+<h3 id="scooter-state-control-scooterstate">Scooter State Control (<code>scooter:state</code>)<a class="headerlink" href="#scooter-state-control-scooterstate" title="Permanent link">&para;</a></h3>
+<p>Controls the lock/unlock state of the scooter.</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-26-1"><a id="__codelineno-26-1" name="__codelineno-26-1" href="#__codelineno-26-1"></a><span class="c1"># Lock the scooter</span>
+</span><span id="__span-26-2"><a id="__codelineno-26-2" name="__codelineno-26-2" href="#__codelineno-26-2"></a>redis-cli<span class="w"> </span>-h<span class="w"> </span><span class="m">192</span>.168.7.1<span class="w"> </span>LPUSH<span class="w"> </span>scooter:state<span class="w"> </span>lock
+</span><span id="__span-26-3"><a id="__codelineno-26-3" name="__codelineno-26-3" href="#__codelineno-26-3"></a>
+</span><span id="__span-26-4"><a id="__codelineno-26-4" name="__codelineno-26-4" href="#__codelineno-26-4"></a><span class="c1"># Unlock the scooter</span>
+</span><span id="__span-26-5"><a id="__codelineno-26-5" name="__codelineno-26-5" href="#__codelineno-26-5"></a>redis-cli<span class="w"> </span>-h<span class="w"> </span><span class="m">192</span>.168.7.1<span class="w"> </span>LPUSH<span class="w"> </span>scooter:state<span class="w"> </span>unlock
+</span><span id="__span-26-6"><a id="__codelineno-26-6" name="__codelineno-26-6" href="#__codelineno-26-6"></a>
+</span><span id="__span-26-7"><a id="__codelineno-26-7" name="__codelineno-26-7" href="#__codelineno-26-7"></a><span class="c1"># Lock and request hibernation</span>
+</span><span id="__span-26-8"><a id="__codelineno-26-8" name="__codelineno-26-8" href="#__codelineno-26-8"></a>redis-cli<span class="w"> </span>-h<span class="w"> </span><span class="m">192</span>.168.7.1<span class="w"> </span>LPUSH<span class="w"> </span>scooter:state<span class="w"> </span>lock-hibernate
+</span></code></pre></div>
+<p><strong>Available commands</strong>: <code>lock</code>, <code>unlock</code>, <code>lock-hibernate</code></p>
+<h3 id="seatbox-control-scooterseatbox">Seatbox Control (<code>scooter:seatbox</code>)<a class="headerlink" href="#seatbox-control-scooterseatbox" title="Permanent link">&para;</a></h3>
+<p>Controls the seatbox lock mechanism.</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-27-1"><a id="__codelineno-27-1" name="__codelineno-27-1" href="#__codelineno-27-1"></a><span class="c1"># Open the seatbox</span>
+</span><span id="__span-27-2"><a id="__codelineno-27-2" name="__codelineno-27-2" href="#__codelineno-27-2"></a>redis-cli<span class="w"> </span>-h<span class="w"> </span><span class="m">192</span>.168.7.1<span class="w"> </span>LPUSH<span class="w"> </span>scooter:seatbox<span class="w"> </span>open
+</span></code></pre></div>
+<p><strong>Available commands</strong>: <code>open</code></p>
+<h3 id="horn-control-scooterhorn">Horn Control (<code>scooter:horn</code>)<a class="headerlink" href="#horn-control-scooterhorn" title="Permanent link">&para;</a></h3>
+<p>Controls the horn/buzzer.</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-28-1"><a id="__codelineno-28-1" name="__codelineno-28-1" href="#__codelineno-28-1"></a><span class="c1"># Turn horn on</span>
+</span><span id="__span-28-2"><a id="__codelineno-28-2" name="__codelineno-28-2" href="#__codelineno-28-2"></a>redis-cli<span class="w"> </span>-h<span class="w"> </span><span class="m">192</span>.168.7.1<span class="w"> </span>LPUSH<span class="w"> </span>scooter:horn<span class="w"> </span>on
+</span><span id="__span-28-3"><a id="__codelineno-28-3" name="__codelineno-28-3" href="#__codelineno-28-3"></a>
+</span><span id="__span-28-4"><a id="__codelineno-28-4" name="__codelineno-28-4" href="#__codelineno-28-4"></a><span class="c1"># Turn horn off</span>
+</span><span id="__span-28-5"><a id="__codelineno-28-5" name="__codelineno-28-5" href="#__codelineno-28-5"></a>redis-cli<span class="w"> </span>-h<span class="w"> </span><span class="m">192</span>.168.7.1<span class="w"> </span>LPUSH<span class="w"> </span>scooter:horn<span class="w"> </span>off
+</span></code></pre></div>
+<p><strong>Available commands</strong>: <code>on</code>, <code>off</code></p>
+<h3 id="blinker-control-scooterblinker">Blinker Control (<code>scooter:blinker</code>)<a class="headerlink" href="#blinker-control-scooterblinker" title="Permanent link">&para;</a></h3>
+<p>Controls the turn signals/blinkers.</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-29-1"><a id="__codelineno-29-1" name="__codelineno-29-1" href="#__codelineno-29-1"></a><span class="c1"># Left blinker</span>
+</span><span id="__span-29-2"><a id="__codelineno-29-2" name="__codelineno-29-2" href="#__codelineno-29-2"></a>redis-cli<span class="w"> </span>-h<span class="w"> </span><span class="m">192</span>.168.7.1<span class="w"> </span>LPUSH<span class="w"> </span>scooter:blinker<span class="w"> </span>left
+</span><span id="__span-29-3"><a id="__codelineno-29-3" name="__codelineno-29-3" href="#__codelineno-29-3"></a>
+</span><span id="__span-29-4"><a id="__codelineno-29-4" name="__codelineno-29-4" href="#__codelineno-29-4"></a><span class="c1"># Right blinker</span>
+</span><span id="__span-29-5"><a id="__codelineno-29-5" name="__codelineno-29-5" href="#__codelineno-29-5"></a>redis-cli<span class="w"> </span>-h<span class="w"> </span><span class="m">192</span>.168.7.1<span class="w"> </span>LPUSH<span class="w"> </span>scooter:blinker<span class="w"> </span>right
+</span><span id="__span-29-6"><a id="__codelineno-29-6" name="__codelineno-29-6" href="#__codelineno-29-6"></a>
+</span><span id="__span-29-7"><a id="__codelineno-29-7" name="__codelineno-29-7" href="#__codelineno-29-7"></a><span class="c1"># Hazard mode (both blinkers)</span>
+</span><span id="__span-29-8"><a id="__codelineno-29-8" name="__codelineno-29-8" href="#__codelineno-29-8"></a>redis-cli<span class="w"> </span>-h<span class="w"> </span><span class="m">192</span>.168.7.1<span class="w"> </span>LPUSH<span class="w"> </span>scooter:blinker<span class="w"> </span>both
+</span><span id="__span-29-9"><a id="__codelineno-29-9" name="__codelineno-29-9" href="#__codelineno-29-9"></a>
+</span><span id="__span-29-10"><a id="__codelineno-29-10" name="__codelineno-29-10" href="#__codelineno-29-10"></a><span class="c1"># Turn off blinkers</span>
+</span><span id="__span-29-11"><a id="__codelineno-29-11" name="__codelineno-29-11" href="#__codelineno-29-11"></a>redis-cli<span class="w"> </span>-h<span class="w"> </span><span class="m">192</span>.168.7.1<span class="w"> </span>LPUSH<span class="w"> </span>scooter:blinker<span class="w"> </span>off
+</span></code></pre></div>
+<p><strong>Available commands</strong>: <code>left</code>, <code>right</code>, <code>both</code>, <code>off</code></p>
+<h3 id="alarm-control-scooteralarm-librescoot-only">Alarm Control (<code>scooter:alarm</code>) - LibreScoot Only<a class="headerlink" href="#alarm-control-scooteralarm-librescoot-only" title="Permanent link">&para;</a></h3>
+<p>Controls the motion-based alarm system.</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-30-1"><a id="__codelineno-30-1" name="__codelineno-30-1" href="#__codelineno-30-1"></a><span class="c1"># Enable alarm system</span>
+</span><span id="__span-30-2"><a id="__codelineno-30-2" name="__codelineno-30-2" href="#__codelineno-30-2"></a>redis-cli<span class="w"> </span>-h<span class="w"> </span><span class="m">192</span>.168.7.1<span class="w"> </span>LPUSH<span class="w"> </span>scooter:alarm<span class="w"> </span><span class="nb">enable</span>
+</span><span id="__span-30-3"><a id="__codelineno-30-3" name="__codelineno-30-3" href="#__codelineno-30-3"></a>
+</span><span id="__span-30-4"><a id="__codelineno-30-4" name="__codelineno-30-4" href="#__codelineno-30-4"></a><span class="c1"># Disable alarm system</span>
+</span><span id="__span-30-5"><a id="__codelineno-30-5" name="__codelineno-30-5" href="#__codelineno-30-5"></a>redis-cli<span class="w"> </span>-h<span class="w"> </span><span class="m">192</span>.168.7.1<span class="w"> </span>LPUSH<span class="w"> </span>scooter:alarm<span class="w"> </span>disable
+</span><span id="__span-30-6"><a id="__codelineno-30-6" name="__codelineno-30-6" href="#__codelineno-30-6"></a>
+</span><span id="__span-30-7"><a id="__codelineno-30-7" name="__codelineno-30-7" href="#__codelineno-30-7"></a><span class="c1"># Manual alarm trigger (30 seconds)</span>
+</span><span id="__span-30-8"><a id="__codelineno-30-8" name="__codelineno-30-8" href="#__codelineno-30-8"></a>redis-cli<span class="w"> </span>-h<span class="w"> </span><span class="m">192</span>.168.7.1<span class="w"> </span>LPUSH<span class="w"> </span>scooter:alarm<span class="w"> </span>start:30
+</span><span id="__span-30-9"><a id="__codelineno-30-9" name="__codelineno-30-9" href="#__codelineno-30-9"></a>
+</span><span id="__span-30-10"><a id="__codelineno-30-10" name="__codelineno-30-10" href="#__codelineno-30-10"></a><span class="c1"># Stop alarm immediately</span>
+</span><span id="__span-30-11"><a id="__codelineno-30-11" name="__codelineno-30-11" href="#__codelineno-30-11"></a>redis-cli<span class="w"> </span>-h<span class="w"> </span><span class="m">192</span>.168.7.1<span class="w"> </span>LPUSH<span class="w"> </span>scooter:alarm<span class="w"> </span>stop
+</span></code></pre></div>
+<p><strong>Available commands</strong>: <code>enable</code>, <code>disable</code>, <code>start:&lt;seconds&gt;</code>, <code>stop</code></p>
+<h3 id="bmx-sensor-control-scooterbmx-librescoot-only">BMX Sensor Control (<code>scooter:bmx</code>) - LibreScoot Only<a class="headerlink" href="#bmx-sensor-control-scooterbmx-librescoot-only" title="Permanent link">&para;</a></h3>
+<p>Controls BMX055 accelerometer/gyroscope configuration. Typically used by alarm-service.</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-31-1"><a id="__codelineno-31-1" name="__codelineno-31-1" href="#__codelineno-31-1"></a><span class="c1"># Configure sensitivity</span>
+</span><span id="__span-31-2"><a id="__codelineno-31-2" name="__codelineno-31-2" href="#__codelineno-31-2"></a>redis-cli<span class="w"> </span>-h<span class="w"> </span><span class="m">192</span>.168.7.1<span class="w"> </span>LPUSH<span class="w"> </span>scooter:bmx<span class="w"> </span>sensitivity:MEDIUM
+</span><span id="__span-31-3"><a id="__codelineno-31-3" name="__codelineno-31-3" href="#__codelineno-31-3"></a>
+</span><span id="__span-31-4"><a id="__codelineno-31-4" name="__codelineno-31-4" href="#__codelineno-31-4"></a><span class="c1"># Configure interrupt pin</span>
+</span><span id="__span-31-5"><a id="__codelineno-31-5" name="__codelineno-31-5" href="#__codelineno-31-5"></a>redis-cli<span class="w"> </span>-h<span class="w"> </span><span class="m">192</span>.168.7.1<span class="w"> </span>LPUSH<span class="w"> </span>scooter:bmx<span class="w"> </span>pin:INT2
+</span><span id="__span-31-6"><a id="__codelineno-31-6" name="__codelineno-31-6" href="#__codelineno-31-6"></a>
+</span><span id="__span-31-7"><a id="__codelineno-31-7" name="__codelineno-31-7" href="#__codelineno-31-7"></a><span class="c1"># Enable interrupt</span>
+</span><span id="__span-31-8"><a id="__codelineno-31-8" name="__codelineno-31-8" href="#__codelineno-31-8"></a>redis-cli<span class="w"> </span>-h<span class="w"> </span><span class="m">192</span>.168.7.1<span class="w"> </span>LPUSH<span class="w"> </span>scooter:bmx<span class="w"> </span>interrupt:enable
+</span></code></pre></div>
+<p><strong>Available commands</strong>: <code>sensitivity:&lt;LOW|MEDIUM|HIGH&gt;</code>, <code>pin:&lt;NONE|INT1|INT2&gt;</code>, <code>interrupt:&lt;enable|disable&gt;</code></p>
+<h3 id="power-control-scooterpower-librescoot-enhanced">Power Control (<code>scooter:power</code>) - LibreScoot Enhanced<a class="headerlink" href="#power-control-scooterpower-librescoot-enhanced" title="Permanent link">&para;</a></h3>
+<p>LibreScoot adds more power control commands:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-32-1"><a id="__codelineno-32-1" name="__codelineno-32-1" href="#__codelineno-32-1"></a><span class="c1"># Request running state (highest priority)</span>
+</span><span id="__span-32-2"><a id="__codelineno-32-2" name="__codelineno-32-2" href="#__codelineno-32-2"></a>redis-cli<span class="w"> </span>-h<span class="w"> </span><span class="m">192</span>.168.7.1<span class="w"> </span>LPUSH<span class="w"> </span>scooter:power<span class="w"> </span>run
+</span><span id="__span-32-3"><a id="__codelineno-32-3" name="__codelineno-32-3" href="#__codelineno-32-3"></a>
+</span><span id="__span-32-4"><a id="__codelineno-32-4" name="__codelineno-32-4" href="#__codelineno-32-4"></a><span class="c1"># Request suspend</span>
+</span><span id="__span-32-5"><a id="__codelineno-32-5" name="__codelineno-32-5" href="#__codelineno-32-5"></a>redis-cli<span class="w"> </span>-h<span class="w"> </span><span class="m">192</span>.168.7.1<span class="w"> </span>LPUSH<span class="w"> </span>scooter:power<span class="w"> </span><span class="nb">suspend</span>
+</span><span id="__span-32-6"><a id="__codelineno-32-6" name="__codelineno-32-6" href="#__codelineno-32-6"></a>
+</span><span id="__span-32-7"><a id="__codelineno-32-7" name="__codelineno-32-7" href="#__codelineno-32-7"></a><span class="c1"># Request hibernation</span>
+</span><span id="__span-32-8"><a id="__codelineno-32-8" name="__codelineno-32-8" href="#__codelineno-32-8"></a>redis-cli<span class="w"> </span>-h<span class="w"> </span><span class="m">192</span>.168.7.1<span class="w"> </span>LPUSH<span class="w"> </span>scooter:power<span class="w"> </span>hibernate
+</span><span id="__span-32-9"><a id="__codelineno-32-9" name="__codelineno-32-9" href="#__codelineno-32-9"></a>
+</span><span id="__span-32-10"><a id="__codelineno-32-10" name="__codelineno-32-10" href="#__codelineno-32-10"></a><span class="c1"># Manual hibernation (user-initiated)</span>
+</span><span id="__span-32-11"><a id="__codelineno-32-11" name="__codelineno-32-11" href="#__codelineno-32-11"></a>redis-cli<span class="w"> </span>-h<span class="w"> </span><span class="m">192</span>.168.7.1<span class="w"> </span>LPUSH<span class="w"> </span>scooter:power<span class="w"> </span>hibernate-manual
+</span><span id="__span-32-12"><a id="__codelineno-32-12" name="__codelineno-32-12" href="#__codelineno-32-12"></a>
+</span><span id="__span-32-13"><a id="__codelineno-32-13" name="__codelineno-32-13" href="#__codelineno-32-13"></a><span class="c1"># Timer-based hibernation</span>
+</span><span id="__span-32-14"><a id="__codelineno-32-14" name="__codelineno-32-14" href="#__codelineno-32-14"></a>redis-cli<span class="w"> </span>-h<span class="w"> </span><span class="m">192</span>.168.7.1<span class="w"> </span>LPUSH<span class="w"> </span>scooter:power<span class="w"> </span>hibernate-timer
+</span><span id="__span-32-15"><a id="__codelineno-32-15" name="__codelineno-32-15" href="#__codelineno-32-15"></a>
+</span><span id="__span-32-16"><a id="__codelineno-32-16" name="__codelineno-32-16" href="#__codelineno-32-16"></a><span class="c1"># Reboot system</span>
+</span><span id="__span-32-17"><a id="__codelineno-32-17" name="__codelineno-32-17" href="#__codelineno-32-17"></a>redis-cli<span class="w"> </span>-h<span class="w"> </span><span class="m">192</span>.168.7.1<span class="w"> </span>LPUSH<span class="w"> </span>scooter:power<span class="w"> </span>reboot
+</span></code></pre></div>
+<p><strong>Available commands</strong>: <code>run</code>, <code>suspend</code>, <code>hibernate</code>, <code>hibernate-manual</code>, <code>hibernate-timer</code>, <code>reboot</code></p>
+<h3 id="modem-control-scootermodem-librescoot-only">Modem Control (<code>scooter:modem</code>) - LibreScoot Only<a class="headerlink" href="#modem-control-scootermodem-librescoot-only" title="Permanent link">&para;</a></h3>
+<p>Controls modem power state and GPS.</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-33-1"><a id="__codelineno-33-1" name="__codelineno-33-1" href="#__codelineno-33-1"></a><span class="c1"># Enable modem</span>
+</span><span id="__span-33-2"><a id="__codelineno-33-2" name="__codelineno-33-2" href="#__codelineno-33-2"></a>redis-cli<span class="w"> </span>-h<span class="w"> </span><span class="m">192</span>.168.7.1<span class="w"> </span>LPUSH<span class="w"> </span>scooter:modem<span class="w"> </span><span class="nb">enable</span>
+</span><span id="__span-33-3"><a id="__codelineno-33-3" name="__codelineno-33-3" href="#__codelineno-33-3"></a>
+</span><span id="__span-33-4"><a id="__codelineno-33-4" name="__codelineno-33-4" href="#__codelineno-33-4"></a><span class="c1"># Disable modem</span>
+</span><span id="__span-33-5"><a id="__codelineno-33-5" name="__codelineno-33-5" href="#__codelineno-33-5"></a>redis-cli<span class="w"> </span>-h<span class="w"> </span><span class="m">192</span>.168.7.1<span class="w"> </span>LPUSH<span class="w"> </span>scooter:modem<span class="w"> </span>disable
+</span><span id="__span-33-6"><a id="__codelineno-33-6" name="__codelineno-33-6" href="#__codelineno-33-6"></a>
+</span><span id="__span-33-7"><a id="__codelineno-33-7" name="__codelineno-33-7" href="#__codelineno-33-7"></a><span class="c1"># Enable GPS</span>
+</span><span id="__span-33-8"><a id="__codelineno-33-8" name="__codelineno-33-8" href="#__codelineno-33-8"></a>redis-cli<span class="w"> </span>-h<span class="w"> </span><span class="m">192</span>.168.7.1<span class="w"> </span>LPUSH<span class="w"> </span>scooter:modem<span class="w"> </span>gps:enable
+</span><span id="__span-33-9"><a id="__codelineno-33-9" name="__codelineno-33-9" href="#__codelineno-33-9"></a>
+</span><span id="__span-33-10"><a id="__codelineno-33-10" name="__codelineno-33-10" href="#__codelineno-33-10"></a><span class="c1"># Disable GPS</span>
+</span><span id="__span-33-11"><a id="__codelineno-33-11" name="__codelineno-33-11" href="#__codelineno-33-11"></a>redis-cli<span class="w"> </span>-h<span class="w"> </span><span class="m">192</span>.168.7.1<span class="w"> </span>LPUSH<span class="w"> </span>scooter:modem<span class="w"> </span>gps:disable
+</span></code></pre></div>
+<p><strong>Available commands</strong>: <code>enable</code>, <code>disable</code>, <code>gps:enable</code>, <code>gps:disable</code></p>
+<h3 id="update-control-scooterupdate-librescoot-only">Update Control (<code>scooter:update</code>) - LibreScoot Only<a class="headerlink" href="#update-control-scooterupdate-librescoot-only" title="Permanent link">&para;</a></h3>
+<p>Controls OTA update system.</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-34-1"><a id="__codelineno-34-1" name="__codelineno-34-1" href="#__codelineno-34-1"></a><span class="c1"># Force immediate update check (both MDB and DBC)</span>
+</span><span id="__span-34-2"><a id="__codelineno-34-2" name="__codelineno-34-2" href="#__codelineno-34-2"></a>redis-cli<span class="w"> </span>-h<span class="w"> </span><span class="m">192</span>.168.7.1<span class="w"> </span>LPUSH<span class="w"> </span>scooter:update<span class="w"> </span>check-now
+</span></code></pre></div>
+<p><strong>Available commands</strong>: <code>check-now</code></p>
+<h3 id="command-channel-notes">Command Channel Notes<a class="headerlink" href="#command-channel-notes" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Commands use the <code>LPUSH</code> operation to queue requests</li>
+<li>Services subscribe to these channels using <code>BRPOP</code> and process commands sequentially</li>
+<li>State changes resulting from commands are published to the corresponding hash fields and pub/sub channels</li>
+<li>Command results can be monitored by subscribing to the relevant state hashes (e.g., <code>vehicle</code> hash for lock/unlock state)</li>
+<li>LibreScoot adds several new command channels for alarm, BMX, modem, and update control</li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-circle-arrow-up" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="m16 12-4-4-4 4M12 16V8"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+    
+      
+      <nav class="md-footer__inner md-grid" aria-label="Footer" >
+        
+          
+          <a href="../bluetooth/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Bluetooth">
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-arrow-left" viewBox="0 0 24 24"><path d="m12 19-7-7 7-7M19 12H5"/></svg>
+            </div>
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Previous
+              </span>
+              <div class="md-ellipsis">
+                Bluetooth
+              </div>
+            </div>
+          </a>
+        
+        
+          
+          <a href="../nrf/" class="md-footer__link md-footer__link--next" aria-label="Next: nRF52840">
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Next
+              </span>
+              <div class="md-ellipsis">
+                nRF52840
+              </div>
+            </div>
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-arrow-right" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+            </div>
+          </a>
+        
+      </nav>
+    
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+    <div class="md-copyright__highlight">
+      Copyright &copy; 2025-2026 LibreScoot contributors
+    </div>
+  
+  
+    Made with
+    <a href="https://zensical.org/" target="_blank" rel="noopener">
+      Zensical
+    </a>
+  
+</div>
+      
+        
+<div class="md-social">
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://github.com/librescoot" target="_blank" rel="noopener" title="github.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2026 Fonticons, Inc.--><path fill="currentColor" d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+    </a>
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://discord.gg/VrumFruSzJ" target="_blank" rel="noopener" title="discord.gg" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512"><!--! Font Awesome Free 7.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2026 Fonticons, Inc.--><path fill="currentColor" d="M492.5 69.8c-.2-.3-.4-.6-.8-.7-38.1-17.5-78.4-30-119.7-37.1-.4-.1-.8 0-1.1.1s-.6.4-.8.8c-5.5 9.9-10.5 20.2-14.9 30.6-44.6-6.8-89.9-6.8-134.4 0-4.5-10.5-9.5-20.7-15.1-30.6-.2-.3-.5-.6-.8-.8s-.7-.2-1.1-.2C162.5 39 122.2 51.5 84.1 69c-.3.1-.6.4-.8.7C7.1 183.5-13.8 294.6-3.6 404.2c0 .3.1.5.2.8s.3.4.5.6c44.4 32.9 94 58 146.8 74.2.4.1.8.1 1.1 0s.7-.4.9-.7c11.3-15.4 21.4-31.8 30-48.8.1-.2.2-.5.2-.8s0-.5-.1-.8-.2-.5-.4-.6-.4-.3-.7-.4c-15.8-6.1-31.2-13.4-45.9-21.9-.3-.2-.5-.4-.7-.6s-.3-.6-.3-.9 0-.6.2-.9.3-.5.6-.7c3.1-2.3 6.2-4.7 9.1-7.1.3-.2.6-.4.9-.4s.7 0 1 .1c96.2 43.9 200.4 43.9 295.5 0 .3-.1.7-.2 1-.2s.7.2.9.4c2.9 2.4 6 4.9 9.1 7.2.2.2.4.4.6.7s.2.6.2.9-.1.6-.3.9-.4.5-.6.6c-14.7 8.6-30 15.9-45.9 21.8-.2.1-.5.2-.7.4s-.3.4-.4.7-.1.5-.1.8.1.5.2.8c8.8 17 18.8 33.3 30 48.8.2.3.6.6.9.7s.8.1 1.1 0c52.9-16.2 102.6-41.3 147.1-74.2.2-.2.4-.4.5-.6s.2-.5.2-.8c12.3-126.8-20.5-236.9-86.9-334.5zm-302 267.7c-29 0-52.8-26.6-52.8-59.2s23.4-59.2 52.8-59.2c29.7 0 53.3 26.8 52.8 59.2 0 32.7-23.4 59.2-52.8 59.2m195.4 0c-29 0-52.8-26.6-52.8-59.2s23.4-59.2 52.8-59.2c29.7 0 53.3 26.8 52.8 59.2 0 32.7-23.2 59.2-52.8 59.2"/></svg>
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate":null,"base":"..","features":["content.action.edit","content.code.copy","content.code.select","content.tooltips","navigation.footer","navigation.indexes","navigation.instant","navigation.instant.prefetch","navigation.path","navigation.sections","navigation.top","navigation.tracking","search.highlight","toc.follow"],"search":"../assets/javascripts/workers/search.e2d2d235.min.js","tags":null,"translations":{"clipboard.copied":"Copied to clipboard","clipboard.copy":"Copy to clipboard","search.result.more.one":"1 more on this page","search.result.more.other":"# more on this page","search.result.none":"No matching documents","search.result.one":"1 matching document","search.result.other":"# matching documents","search.result.placeholder":"Type to start searching","search.result.term.missing":"Missing","select.version":"Select version"},"version":{"provider":"mike"}}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.6e5f0216.min.js"></script>
+      
+    
+  </body>
+</html>
