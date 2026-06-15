@@ -60,6 +60,13 @@ Settings are organized by section. Examples:
 
 **Power management settings:**
 - `hibernation-timer` - Hibernation timeout in seconds (0=disabled)
+- `pm.scheduled-hibernate-enabled` - Enable cron-driven scheduled hibernation ("true"/"false", default false)
+- `pm.scheduled-hibernate-cron` - 5-field cron expression (minute hour day-of-month month day-of-week); empty disables
+- `pm.scheduled-hibernate-duration` - How long the scheduled hibernation lasts; the system wakes at fire-time plus this duration (Go duration, e.g. "8h")
+- `pm.wake-timer-max-seconds` - Safety cap on the wake-timer duration sent to the nRF52; larger requests are clamped (default 604800)
+- `pm.wake-timer-ack-timeout` - How long pm-service waits for the nRF52 wake-timer ACK before aborting hibernation (Go duration, default "10s")
+
+These keys are present in the v1.0.5 settings schema, but pm-service in this release does not yet act on them (scheduled hibernation and the wake-timer handshake land in a later release).
 
 **Scooter settings:**
 - `scooter.auto-standby-seconds` - Auto-lock timeout when parked in seconds (default: 0 = disabled; max 3600). The last 60 s are shown as a cancellable countdown on the dashboard; any user input (brake, kickstand, seatbox button) resets the timer.

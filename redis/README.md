@@ -338,6 +338,11 @@ LibreScoot adds persistent settings managed by the settings-service:
 | cellular.apn | string | Cellular APN | "internet.provider.com" |
 | cellular.sim-pin | string | PIN for SIM unlock and lock-enable (4-8 digits, empty = leave SIM as-is) | "1234" |
 | hibernation-timer | integer (sec) | Hibernation timeout (0=disabled) | "432000" |
+| pm.scheduled-hibernate-enabled | "true"/"false" | Enable cron-driven scheduled hibernation (schema-defined; pm-service does not act on it in v1.0.5) | "false" |
+| pm.scheduled-hibernate-cron | string | 5-field cron expression for scheduled hibernation (empty disables) | "0 22 * * *" |
+| pm.scheduled-hibernate-duration | duration | Wake-by duration applied at each cron fire | "8h" |
+| pm.wake-timer-max-seconds | integer (sec) | Safety cap on the wake-timer duration sent to the nRF52 | "604800" |
+| pm.wake-timer-ack-timeout | duration | How long pm-service waits for the nRF52 wake-timer ACK | "10s" |
 | scooter.auto-standby-seconds | integer (sec) | Auto-lock timeout when parked (0=disabled) | "0" |
 | scooter.brake-hibernation | "enabled"/"disabled" | Enable brake lever hibernation | "enabled" |
 | updates.mdb.channel | string | MDB update channel | "nightly" |
