@@ -10,8 +10,6 @@ The battery service monitors the two main battery slots (battery:0 and battery:1
 Usage of battery-service:
   -battery1-active
         Enable battery 1 as active in addition to battery 0 (default: inactive)
-  -dangerously-ignore-seatbox
-        Keep active batteries active when seatbox opens, suppress all seatbox events (DANGEROUS, legacy)
   -keep-active-on-seatbox-open
         Keep a running battery active across seatbox open, but let seatbox events flow normally so asleep batteries go through the wake-up cycle and newly inserted batteries are detected without delay
   -debug
@@ -208,7 +206,7 @@ Battery behavior is controlled by:
 2. **Enabled State (for active batteries):**
    - Automatically controlled based on seatbox lock state
    - When seatbox closed: battery enabled
-   - When seatbox open: battery disabled (unless `--dangerously-ignore-seatbox` is set)
+   - When seatbox open: battery disabled (unless `-keep-active-on-seatbox-open` is set, or it auto-engages when the aux battery is low)
 
 3. **Battery State Machine:**
    - Service sends appropriate commands (on/off) based on enabled state

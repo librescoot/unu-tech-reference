@@ -38,9 +38,9 @@ Usage of ecu-service:
 - `temperature` - ECU temperature in °C
 - `odometer` - Total distance traveled in meters
 - `kers` - KERS (regenerative braking) state ("on", "off")
-- `power:instant-mw` - Instantaneous power in mW
-- `power:consumed-mwh` - Cumulative energy consumed in mWh
-- `power:recovered-mwh` - Cumulative energy recovered via regenerative braking in mWh
+- `power` - Instantaneous power in mW
+- `energy:consumed` - Cumulative energy consumed in mWh
+- `energy:recovered` - Cumulative energy recovered via regenerative braking in mWh
 - `kers-reason-off` - Reason KERS is disabled ("none", "cold", "hot")
 
 **Published channels:**

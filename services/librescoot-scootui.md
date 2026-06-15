@@ -97,7 +97,7 @@ make clean    # Remove build directory
 | `vehicle` | VehicleStore, AutoStandbyStore | 500–1000 ms |
 | `buttons` | VehicleStore, ShortcutMenuStore | event-driven |
 | `battery:0`, `battery:1` | BatteryStore | 30 s |
-| `gps` | GpsStore | 1 s |
+| `gps:tpv` (pub/sub) + `gps` hash | GpsStore | push + 5 s safety poll |
 | `ble` | BluetoothStore | 5 s |
 | `internet` | InternetStore | 5 s |
 | `navigation` | NavigationStore | 5 s |
