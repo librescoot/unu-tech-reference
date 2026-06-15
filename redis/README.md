@@ -35,7 +35,7 @@ hgetall vehicle
 | brake:right | "on"/"off" | Right brake state | "off" |
 | blinker:switch | "left"/"right"/"both"/"off" | Blinker switch position | "off" |
 | blinker:state | "on"/"off" | Blinker active state | "off" |
-| state | "stand-by"/"ready-to-drive"/"off"/"parked"/"booting"/"shutting-down"/"hibernating"/"hibernating-imminent"/"suspending"/"suspending-imminent"/"updating" | Vehicle operating state | "stand-by" |
+| state | "init"/"stand-by"/"parked"/"hop-on"/"hop-on-learning"/"ready-to-drive"/"waiting-seatbox"/"shutting-down"/"updating"/"waiting-hibernation"/"waiting-hibernation-advanced"/"waiting-hibernation-seatbox"/"waiting-hibernation-confirm" | Vehicle operating state | "stand-by" |
 | auto-standby-deadline | integer (Unix timestamp) | When auto-standby will trigger (only present when timer active) | "1734567890" |
 
 ### Engine ECU (`engine-ecu`)
@@ -45,7 +45,6 @@ hgetall engine-ecu
 
 | Field | Type | Description | Example |
 |-------|------|-------------|----------|
-| state | "on"/"off" | ECU power state | "off" |
 | kers-reason-off | string | Reason KERS is disabled | "none" |
 | kers | "on"/"off" | KERS active state | "on" |
 | motor:voltage | integer (mV) | Motor voltage | "52140" |
@@ -260,7 +259,7 @@ hgetall keycard
 | type | string | Card type | "scooter"/"factory"/"activation" |
 | uid | string | Card UID (hex) | "04a1b2c3" |
 
-**Note**: This hash expires after 10 seconds. Authentication events are also published to the `keycard:authentication` channel.
+**Note**: This hash expires after 10 seconds. Authentication is published on the `keycard` channel (the field name `authentication` is sent as the message payload), not on a separate `keycard:authentication` channel.
 
 ### Navigation System
 The navigation system uses two related hashes:
@@ -439,7 +438,7 @@ hgetall modem
 | Field | Type | Description | Example |
 |-------|------|-------------|----------|
 | power-state | string | Modem power state | "on" |
-| sim-state | string | SIM card state | "active" |
+| sim-state | string | SIM card state ("present"/"missing"/"locked"/"inactive") | "present" |
 | sim-lock | string | SIM lock status | "disabled" |
 | operator-name | string | Network operator name | "T-Mobile" |
 | operator-code | string | Network operator code | "26201" |

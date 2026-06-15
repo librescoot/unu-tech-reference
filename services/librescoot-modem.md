@@ -57,7 +57,6 @@ Usage of modem-service:
 - `is-roaming` - Roaming status ("true", "false")
 - `registration-fail` - Registration failure reason (if any)
 - `error-state` - Consolidated error state ("ok", "powered-off", "sim-missing", "sim-inactive", "sim-locked", "registration-denied", "registration-failed", "disconnected", "no-modem", "status-error")
-- `gps:filter` - GPS filter setting read by service ("on" or "off") - determines if main gps hash contains raw or filtered data
 
 **Published channel:** `modem` (publishes field name on change)
 
@@ -83,15 +82,9 @@ Usage of modem-service:
 
 **Published channel:** `gps` (publishes "timestamp" only on GPS recovery events)
 
-**Note:** Main `gps` hash contains either raw or filtered GPS data based on `modem:gps:filter` setting.
+### Pub/sub channel: `gps:tpv`
 
-### Hash: `gps:raw`
-
-Contains unfiltered GPS data from gpsd with same fields as main `gps` hash.
-
-### Hash: `gps:filtered`
-
-Contains Kalman-filtered GPS data with same fields as main `gps` hash.
+Full TPV snapshot (same fields as the `gps` hash, JSON object) published for every fix. Subscribe here for a continuous position stream instead of polling the hash.
 
 ### Lists consumed (BRPOP)
 
@@ -255,10 +248,7 @@ When GPS is enabled, the service performs multi-step configuration:
 
 **GPS Data Processing:**
 
-- Raw location from gpsd is stored in `LastRawReportedLocation`
-- Kalman filter is applied to produce filtered location in `CurrentLoc`
-- Both raw and filtered data published to separate Redis hashes
-- Main `gps` hash contains either raw or filtered based on `modem:gps:filter` setting
+- Location from gpsd is written to the `gps` hash and pushed on the `gps:tpv` channel
 - GPS recovery notification published only when:
   - GPS regains fix after >5 minute outage AND has internet connection
   - OR first fix after service initialization
