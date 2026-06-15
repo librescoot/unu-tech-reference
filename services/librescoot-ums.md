@@ -23,7 +23,8 @@ UMS_MENDER_TIMEOUT=15m       Per-file timeout for Mender update transfers (envir
 - `mode` - Current USB mode (`normal`, `ums`, `ums-by-dbc`)
 
 **Fields written:**
-- `status` - Service status (`idle`, `preparing`, `active`, `processing`)
+- `status` - Service status (`idle`, `preparing`, `active`, `processing`, `awaiting-reboot`)
+  - `awaiting-reboot` is set while a UMS-initiated update install runs and the service waits for the post-install reboot (see UMS exit flow). It transitions back to `idle` once the reboot is triggered, the wait fails/times out, or a new UMS session cancels the pending reboot.
 - `step` - Current processing step (`settings`, `wireguard`, `updates`, `maps`, or empty)
 - `progress` - Upload progress percentage (0–100) during file transfers
 - `detail` - Human-readable transfer sub-step (e.g. `map.mbtiles (120/380 MB)`)
@@ -112,6 +113,8 @@ Holding the left brake while in UMS mode also triggers an immediate return to no
 5. **RPMs** — installs `rpms/mdb/*.rpm` locally via `rpm -Uvh --force`; transfers and installs `rpms/dbc/*.rpm` on DBC
 6. **Scripts** — runs `scripts/mdb.sh` locally; transfers `scripts/dbc.sh` to DBC and runs it remotely
 7. Writes `ums_log.txt` to drive root, then cleans the drive (preserving `ums_log.txt`)
+
+**Post-update reboot:** if the exit processing queued an MDB or DBC update install, the service sets `status` to `awaiting-reboot` and a background watcher performs the install pushes, waits for completion (10 min timeout), then triggers a reboot. The reboot is gated on the vehicle state being in an allowed set (`stand-by`, `parked`, `shutting-down`); if the state is anything else, the reboot is skipped. MDB updates reboot the MDB via `scooter:power`; DBC-only updates power-cycle the dashboard via `scooter:hardware`. The watcher is cancellable: re-entering UMS cancels a pending reboot. When no update is queued, `status` goes straight back to `idle` with no reboot.
 
 ## Hardware
 

@@ -46,6 +46,7 @@ Usage of pm-service:
 
 **Fields read:**
 - `wake-timer-armed` - Set to `"true"` by bluetooth-service when the nRF52 acknowledges the wake-timer arm, `"false"` on disarm. pm-service blocks (up to `pm.wake-timer-ack-timeout`) on this field flipping to `true` in `EnterIssuingLowPower`; on timeout it aborts the hibernation rather than power off without a confirmed wake source.
+- `power-state-sent` - The nRF suspend-ACK, written by bluetooth-service when it confirms it forwarded a power state to the nRF52. Only the value `"suspending"` is acted on. Before suspending, pm-service publishes the `suspending` state and then blocks (up to `suspendQuiesceTimeout`, 3 s) in `EnterIssuingLowPower` for `power-state-sent=suspending`. The nRF must stop its USOCK TX before the iMX6 sleeps; otherwise routine traffic on the armed ttymxc1 wakeup pulls the iMX6 straight back out of suspend-to-RAM. On ACK it settles a 200 ms margin (so the nRF's reply to the suspending frame can drain) and then suspends; on timeout it aborts back to `running` rather than suspend into the wake loop. This gate applies only to the `suspend` target, not to hibernate/poweroff/reboot.
 
 **Published channel:** `power-manager`
 - `state` - Published when power state changes
@@ -80,6 +81,7 @@ pm-service subscribes to the `power:inhibits` channel and syncs entries into its
 **Fields read:**
 - `pm.hibernation-timer` - Inactivity-based hibernation timer duration in seconds (0 = disabled)
 - `pm.default-state` - Default target power state when idle (`run` / `suspend`)
+- `pm.suspend-when-online` - Bool, default `false`. Gates whether a locked scooter that is online and still has a main battery present is allowed to suspend. When `false` (the default), such a scooter stays awake so cloud commands can still reach it; the suspend is blocked with a `Suspend blocked: online with a main battery present and pm.suspend-when-online disabled` log line. When `true`, an online locked scooter may suspend normally. The guard only applies to the `suspend` target (not hibernate/reboot) and is checked before the battery-active guard.
 - `pm.scheduled-hibernate-enabled` - Bool: enable cron-driven scheduled hibernation
 - `pm.scheduled-hibernate-cron` - 5-field cron expression (e.g. `0 22 * * *`)
 - `pm.scheduled-hibernate-duration` - Wake-by duration (Go duration syntax: `8h`, `30m`, ...)
@@ -126,10 +128,14 @@ pm-service subscribes to the `power:inhibits` channel and syncs entries into its
 
 ### Hash subscriptions (field updates)
 
-- `vehicle` → `state` - Vehicle state monitoring (stand-by, parked, etc.); also drives scheduled-hibernation deferral
-- `battery:0` → `state` - Battery slot 0 state monitoring (idle, active, charging)
-- `battery:1` → `state` - Battery slot 1 state monitoring (idle, active, charging)
-- `power-manager` → `wake-timer-armed` - Wake-timer ACK from the nRF52 (via bluetooth-service)
+- `vehicle` -> `state` - Vehicle state monitoring (stand-by, parked, etc.); also drives scheduled-hibernation deferral and the last-ditch standby pre-filter
+- `battery:0` -> `state`, `present`, `charge` - Battery slot 0 state monitoring (idle, active, charging) plus `present`/`charge` for the last-ditch hibernate inputs
+- `battery:1` -> `state`, `present`, `charge` - Battery slot 1 state monitoring plus `present`/`charge` for the last-ditch hibernate inputs
+- `cb-battery` -> `charge` - CBB charge, last-ditch hibernate input
+- `aux-battery` -> `voltage` - Aux 12V rail voltage (millivolts), last-ditch hibernate input
+- `internet` -> `status` - Tracks connectivity (`connected` => online) for the `pm.suspend-when-online` guard
+- `power-manager` -> `wake-timer-armed`, `power-state-sent` - Wake-timer ACK and the nRF suspend-ACK from the nRF52 (both written by bluetooth-service)
+- `settings` -> `pm.suspend-when-online` (among the other `pm.*` fields above) - re-read on change
 
 ## Power Manager States
 
@@ -375,6 +381,25 @@ A separate 30 s monitor loop in the scheduler compares monotonic elapsed vs wall
 
 1. The cron entry is re-installed so the next-fire is recomputed against the new wall clock.
 2. Any pending deferred wake target is re-evaluated; if it's now in the past, the pending fire is dropped.
+
+### Last-ditch hibernate
+
+A safety feature that force-hibernates the scooter when it has lost enough reserve to risk a brown-out and no main battery is available to recover. pm-service watches the following hashes as inputs:
+
+- `cb-battery` -> `charge` - CBB charge percent
+- `aux-battery` -> `voltage` - aux 12V rail in millivolts
+- `battery:0` / `battery:1` -> `present` and `charge` - per-slot main battery presence and charge
+
+The trigger condition is level-triggered and evaluated inside the FSM guard (`IsLastDitchTriggered`) at transition time:
+
+- Both main slots unusable: a slot counts as missing when `present=false` OR `charge==0`. Both slots must be missing.
+- AND a depleted reserve: CBB charge below `lastDitchHibernateCBBThreshold` (50%) OR the aux rail latched low.
+
+Aux uses a Schmitt trigger to avoid thrash near the threshold: it latches low when voltage drops below `lastDitchHibernateAuxEnterMv` (11500 mV) and releases only once it rises back above `lastDitchHibernateAuxExitMv` (11700 mV). A reading of `-1` (unparseable / no reading yet) means "unknown" and suppresses its sub-condition; CBB and aux both default to unknown until first synced, and the two slot-present flags default to `true` so a missing first sync cannot fire the trigger.
+
+When the condition holds and the vehicle is in `stand-by`, a watcher enqueues `EvLastDitchCheck` carrying a plain `hibernate` target, so the regular priority guard and power-command path apply. The FSM can also route a wake-from-suspend straight into hibernate when the condition holds (for example the CBB drained during suspend-to-RAM). When the trigger fires, pm-service logs which reserve ran low with a `Last-ditch hibernate: no main battery, <reserve>` line, where `<reserve>` is `CBB=NN%`, `aux=NNNN mV`, or both.
+
+**Post-boot grace window:** the trigger is suppressed for the first `lastDitchHibernateBootGrace` (5 minutes) after pm-service starts. After waking from a last-ditch hibernation, Redis still holds the pre-hibernate battery state (slots absent, CBB low) until battery-service re-detects the pack, so firing on the seeded values would power the scooter straight back off before a freshly inserted battery is recognized. During the grace, a met condition is logged once with `Last-ditch hibernate condition met within boot grace; deferring up to <remaining>`. A timer re-evaluates the condition once the grace expires (so a genuinely battery-less scooter still hibernates, just not within the first 5 minutes), even if no further battery/CBB/aux update arrives in the meantime.
 
 ### Wakeup from Suspend
 

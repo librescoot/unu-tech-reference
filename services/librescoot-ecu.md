@@ -35,9 +35,14 @@ Usage of ecu-service:
 - `speed` - Vehicle speed in km/h (calibrated)
 - `raw-speed` - Raw speed before calibration
 - `throttle` - Throttle state ("on", "off")
+- `brake` - Brake state ("on", "off")
 - `temperature` - ECU temperature in °C
+- `fault:code` - Current fault code (32-bit, 0 when no fault)
+- `fault:description` - Active fault description (empty string when no fault)
 - `odometer` - Total distance traveled in meters
 - `kers` - KERS (regenerative braking) state ("on", "off")
+- `boost` - Boost mode state ("on", "off")
+- `gear` - Current gear (Bosch: 1-3, 0 if unknown; Votol reports 0)
 - `power` - Instantaneous power in mW
 - `energy:consumed` - Cumulative energy consumed in mWh
 - `energy:recovered` - Cumulative energy recovered via regenerative braking in mWh
@@ -55,6 +60,8 @@ Usage of ecu-service:
 - `engine-ecu.kers` - KERS enable/disable ("enabled"/"disabled"; default: enabled)
 - `engine-ecu.kers-power` - KERS regenerative braking current in mA for single-battery operation (default: 10000)
 - `engine-ecu.kers-power-dual` - KERS regenerative braking current in mA when both batteries are active (optional; when unset, `kers-power` is used for both cases)
+- `engine-ecu.kers-voltage` - KERS target voltage in mV (Bosch only; default: 56000, valid range 42000-58000)
+- `engine-ecu.boost` - Boost mode enable/disable ("true" enables, any other value disables)
 
 Loaded on startup; updated live via `settings` pub/sub.
 

@@ -70,6 +70,8 @@ Usage of battery-service:
 ### Hash: `settings`
 
 **Fields read:**
+- `scooter.battery-keep-active-on-seatbox-open` - Bool (`true`/`false`); runtime equivalent of the `-keep-active-on-seatbox-open` CLI flag. Keeps a running battery active across a seatbox open while still letting seatbox events flow. Hot-reloaded via `settings` pub/sub; a change restarts any mid-cycle active reader so the new value takes effect at once.
+- `scooter.dual-battery` - Bool (`true`/`false`); controls whether battery slot 1 is treated as active/present. `true` sets reader 1 to the active role (subject to the `scooter.max-voltage-delta` check); `false` sets it inactive (disabled). Read on startup and hot-reloaded via `settings` pub/sub; only takes effect when a slot 1 reader exists.
 - `scooter.max-voltage-delta` - Max voltage difference between batteries in mV before battery 1 activation is refused (default: 1000; 0 to disable). Updated live via `settings` pub/sub.
 - `scooter.battery-aux-low-keep-active-enter-mv` - Aux battery voltage in mV below which the keep-active-on-seatbox-open override engages automatically (default: 11500). Hot-reloaded via `settings` pub/sub.
 - `scooter.battery-aux-low-keep-active-exit-mv` - Aux battery voltage in mV at or above which the aux-low keep-active override disengages (default: 12000). Must be greater than the enter threshold. Hot-reloaded via `settings` pub/sub.

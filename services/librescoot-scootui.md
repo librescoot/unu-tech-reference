@@ -98,6 +98,7 @@ make clean    # Remove build directory
 | `buttons` | VehicleStore, ShortcutMenuStore | event-driven |
 | `battery:0`, `battery:1` | BatteryStore | 30 s |
 | `gps:tpv` (pub/sub) + `gps` hash | GpsStore | push + 5 s safety poll |
+| `motion:heading` (5 Hz) + `motion:sensors` (10 Hz) pub/sub + `motion` hash | MotionStore | push + 5 s safety poll |
 | `ble` | BluetoothStore | 5 s |
 | `internet` | InternetStore | 5 s |
 | `navigation` | NavigationStore | 5 s |
@@ -118,9 +119,11 @@ Additionally polled (no subscription): `system`, `version:mdb`, `version:dbc` (3
 | `dashboard` | `ready` | `true` | Startup and every Redis reconnect |
 | `dashboard` | `serial-number` | Hardware serial | Startup (if readable) |
 | `dashboard` | `backlight-enabled` | `true`/`false` | On backlight control |
-| `navigation` | `destination` | `lat,lon` | When destination is set |
+| `navigation` | `latitude`, `longitude`, `address`, `timestamp`, `destination` | lat/lon (6 dp), address string, ISO-8601 UTC, `lat,lon` | When the rider picks a destination in the UI (then publishes `navigation` = `updated`) |
 | `settings` | `dashboard.*` | user values | On settings changes via menu |
 | `usb` | `mode` | `normal`/`ums-by-dbc` | On USB mode change |
+
+Note: scootui is not consume-only on the `navigation` hash. When the rider sets a destination in the UI, NavigationService writes the destination fields above and publishes `navigation` = `updated`; clearing the destination blanks the same fields and publishes `navigation` = `cleared`.
 
 ### LPUSH Commands
 
@@ -162,6 +165,8 @@ Settings are stored in the `settings` Redis hash. Managed by settings-service.
 | `dashboard.maps.check-for-updates` | `true`/`false` | `true` | Auto-check for map updates |
 | `dashboard.maps.auto-download` | `true`/`false` | `false` | Auto-download map updates |
 | `dashboard.hop-on-combo` | pipe-delimited tokens | _(empty)_ | Custom hop-on unlock combo |
+
+When `dashboard.theme` is `auto`, AutoThemeService drives light/dark switching from the `dashboard` hash field `brightness` (lux). It listens on the `dashboard` pub/sub channel and also polls every 1 s, smooths the value, and switches with hysteresis (dark below 15 lux, light above 25 lux).
 
 ## Hardware Interfaces
 

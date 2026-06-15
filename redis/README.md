@@ -140,6 +140,7 @@ hgetall power-manager
 | hibernate-level | string | Hibernation level | "L1"/"L2" |
 | wake-timer-seconds | integer | Requested nRF52 wake-timer duration in seconds (`0` = disarm). Written by pm-service before hibernate-for poweroff. | "300" |
 | wake-timer-armed | "true"/"false" | nRF52 ACK echo published by bluetooth-service after the wake-timer arm request | "true" |
+| power-state-sent | string | nRF52 suspend-ACK published by bluetooth-service. pm-service gates entering suspend on this reaching "suspending". | "suspending" |
 
 ### Power Manager Busy Services (`power-manager:busy-services`)
 ```
@@ -216,7 +217,14 @@ Available commands:
 - `advertising-start-with-whitelisting` - Start BLE advertising with whitelist filtering (only paired devices can connect)
 - `advertising-restart-no-whitelisting` - Restart advertising without whitelist restrictions (any device can connect)
 - `advertising-stop` - Stop BLE advertising completely
+- `delete-bond` - Remove a single paired/bonded device
 - `delete-all-bonds` - Remove all paired/bonded devices from the system
+- `remove` - Remove the currently connected device
+- `ltc-enable` / `ltc-disable` - Enable/disable the LTC4020 aux charger
+- `ltc-force-enable` / `ltc-force-disable` - Force the LTC4020 aux charger on/off (bypass safety gating)
+- `ltc-status` - Query the LTC4020 aux charger state
+- `data-stream-sync` - Re-push the current data-stream state to the nRF52
+- `firmware-update` - Trigger an nRF52 firmware update from `/usr/share/nrf-fw/`
 
 #### Bluetooth Event Subscriptions
 
@@ -261,7 +269,7 @@ hgetall keycard
 | type | string | Card type | "scooter"/"factory"/"activation" |
 | uid | string | Card UID (hex) | "04a1b2c3" |
 
-**Note**: This hash expires after 10 seconds. Authentication events are also published to the `keycard:authentication` channel.
+**Note**: This hash expires after 10 seconds. Authentication is published on the `keycard` channel (the field name `authentication` is sent as the message payload), not on a separate `keycard:authentication` channel.
 
 Keycard management commands go through the `scooter:keycard` list:
 
@@ -364,6 +372,7 @@ Librescoot adds persistent settings managed by the settings-service:
 | hibernation-timer | integer (sec) | Hibernation timeout (0=disabled) | "432000" |
 | pm.hibernation-timer | integer (sec) | New name for hibernation-timer (idle-driven auto-hibernate; 0=disabled) | "259200" |
 | pm.default-state | string | Default target power state when idle (run / suspend) | "suspend" |
+| pm.suspend-when-online | "true"/"false" | Allow suspend while the scooter is locked, online, and still has a main battery present (default false blocks it) | "false" |
 | pm.scheduled-hibernate-enabled | "true"/"false" | Enable cron-driven scheduled hibernation | "true" |
 | pm.scheduled-hibernate-cron | string | 5-field cron expression for scheduled hibernation | "0 22 * * *" |
 | pm.scheduled-hibernate-duration | duration | Wake-by duration applied at each cron fire | "8h" |
@@ -484,6 +493,9 @@ hgetall modem
 | operator-code | string | Network operator code | "26201" |
 | is-roaming | "true"/"false" | Roaming status | "false" |
 | registration-fail | string | Registration failure reason | "" |
+| error-state | string | Consolidated error state ("ok"/"powered-off"/"sim-missing"/"sim-inactive"/"sim-locked"/"registration-denied"/"registration-failed"/"disconnected"/"no-modem"/"status-error") | "ok" |
+| pin-action | string | Outcome of the last SIM PIN reconcile ("unconfigured"/"ok"/"unlocked"/"lock-enabled"/"wrong-pin"/"low-retries-bail"/"puk-required"/"error") | "ok" |
+| apn-action | string | Outcome of the last APN reconcile ("no-sim"/"unconfigured"/"ok"/"applied"/"iccid-changed-cleared"/"error") | "ok" |
 
 ### Internet Connectivity (`internet`) - Librescoot Enhancement
 
@@ -579,7 +591,7 @@ redis-cli -h 192.168.7.1 LPUSH scooter:state unlock
 redis-cli -h 192.168.7.1 LPUSH scooter:state lock-hibernate
 ```
 
-**Available commands**: `lock`, `unlock`, `lock-hibernate`
+**Available commands**: `lock`, `unlock`, `lock-hibernate`, `force-lock`
 
 ### Seatbox Control (`scooter:seatbox`)
 

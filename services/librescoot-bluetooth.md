@@ -64,6 +64,8 @@ The Bluetooth service provides the BLE (Bluetooth Low Energy) interface for the 
 **Fields written:**
 - `nrf-reset-count` - Reset count from nRF52
 - `nrf-reset-reason` - Nordic RESETREAS register value (integer)
+- `wake-timer-armed` - "true"/"false". Echo of the nRF wake-timer ACK: non-zero seconds echoed back means the timer is armed ("true"), zero means disarmed ("false").
+- `power-state-sent` - "suspending". Written when the nRF ACKs the suspending power-management state (state ACK value 0). pm-service gates the actual suspend-to-RAM on this confirmation, because the ACK reply has to fully drain off the UART before the iMX6 suspends.
 
 **Published channel:** `power-manager` (when nrf-reset-reason changes)
 
@@ -163,7 +165,7 @@ The service consumes commands from:
 
 The service writes requests to:
 - `scooter:state` - State change requests ("lock", "unlock", "lock-hibernate")
-- `scooter:power` - Power requests ("hibernate", "hibernate-manual", "reboot")
+- `scooter:power` - Power requests ("hibernate", "hibernate-manual", "reboot", "hibernate-for:<seconds>", "hibernate-cancel")
 - `scooter:seatbox` - Seatbox commands ("open")
 - `scooter:blinker` - Blinker commands ("left", "right", "both", "off")
 - `scooter:keycard` - Keycard management commands ("list", "count", "add:<uid>", "remove:<uid>")
@@ -393,6 +395,17 @@ Extended commands arrive as string payloads via the EXTENDED_COMMAND BLE charact
 - `alarm:stop` → `LPUSH scooter:alarm stop`
 
 The alarm-service processes the command and the response (`alarm:ok`) is returned via EXTENDED_RESPONSE (0x0402).
+
+**Power management:**
+- `pm:hibernate-for <duration>` -> arms a one-shot hibernation that wakes after the given duration. Duration uses Go `time.ParseDuration` syntax (e.g. "8h", "30m", "120s"); it is converted to whole seconds and forwarded as `LPUSH scooter:power hibernate-for:<seconds>`.
+- `pm:hibernate-cancel` -> cancels a pending wake timer and returns the system to run, forwarded as `LPUSH scooter:power hibernate-cancel`.
+
+Responses via EXTENDED_RESPONSE (0x0402):
+- `pm:ok` on success
+- `pm:error:invalid duration` if the duration cannot be parsed
+- `pm:error:duration must be positive` if the parsed duration is <= 0 seconds
+- `pm:error:redis` if forwarding to `scooter:power` fails
+- `pm:error:unknown command` for any other `pm:` payload
 
 **LTC4020 aux charger control:**
 - `ltc:enable` — safe-enable LTC4020 charger (rejected if unsafe)
