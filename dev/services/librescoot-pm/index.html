@@ -1490,6 +1490,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#last-ditch-hibernate" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Last-ditch hibernate
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#wakeup-from-suspend" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
@@ -2382,6 +2393,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#last-ditch-hibernate" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Last-ditch hibernate
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#wakeup-from-suspend" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
@@ -2664,7 +2686,8 @@
 - <code>wakeup-source</code> - IRQ number of wakeup source (e.g., "45" for RTC)
 - <code>wake-timer-seconds</code> - Requested wake-timer duration for the next nRF52 wake (decimal seconds; <code>0</code> disarms). Written when a <code>hibernate-for</code> flow enters <code>low-power-imminent</code>, before <code>EnterIssuingLowPower</code> blocks for the ACK.</p>
 <p><strong>Fields read:</strong>
-- <code>wake-timer-armed</code> - Set to <code>"true"</code> by bluetooth-service when the nRF52 acknowledges the wake-timer arm, <code>"false"</code> on disarm. pm-service blocks (up to <code>pm.wake-timer-ack-timeout</code>) on this field flipping to <code>true</code> in <code>EnterIssuingLowPower</code>; on timeout it aborts the hibernation rather than power off without a confirmed wake source.</p>
+- <code>wake-timer-armed</code> - Set to <code>"true"</code> by bluetooth-service when the nRF52 acknowledges the wake-timer arm, <code>"false"</code> on disarm. pm-service blocks (up to <code>pm.wake-timer-ack-timeout</code>) on this field flipping to <code>true</code> in <code>EnterIssuingLowPower</code>; on timeout it aborts the hibernation rather than power off without a confirmed wake source.
+- <code>power-state-sent</code> - The nRF suspend-ACK, written by bluetooth-service when it confirms it forwarded a power state to the nRF52. Only the value <code>"suspending"</code> is acted on. Before suspending, pm-service publishes the <code>suspending</code> state and then blocks (up to <code>suspendQuiesceTimeout</code>, 3 s) in <code>EnterIssuingLowPower</code> for <code>power-state-sent=suspending</code>. The nRF must stop its USOCK TX before the iMX6 sleeps; otherwise routine traffic on the armed ttymxc1 wakeup pulls the iMX6 straight back out of suspend-to-RAM. On ACK it settles a 200 ms margin (so the nRF's reply to the suspending frame can drain) and then suspends; on timeout it aborts back to <code>running</code> rather than suspend into the wake loop. This gate applies only to the <code>suspend</code> target, not to hibernate/poweroff/reboot.</p>
 <p><strong>Published channel:</strong> <code>power-manager</code>
 - <code>state</code> - Published when power state changes
 - <code>wakeup-source</code> - Published when system wakes from suspend
@@ -2688,6 +2711,7 @@
 <p><strong>Fields read:</strong>
 - <code>pm.hibernation-timer</code> - Inactivity-based hibernation timer duration in seconds (0 = disabled)
 - <code>pm.default-state</code> - Default target power state when idle (<code>run</code> / <code>suspend</code>)
+- <code>pm.suspend-when-online</code> - Bool, default <code>false</code>. Gates whether a locked scooter that is online and still has a main battery present is allowed to suspend. When <code>false</code> (the default), such a scooter stays awake so cloud commands can still reach it; the suspend is blocked with a <code>Suspend blocked: online with a main battery present and pm.suspend-when-online disabled</code> log line. When <code>true</code>, an online locked scooter may suspend normally. The guard only applies to the <code>suspend</code> target (not hibernate/reboot) and is checked before the battery-active guard.
 - <code>pm.scheduled-hibernate-enabled</code> - Bool: enable cron-driven scheduled hibernation
 - <code>pm.scheduled-hibernate-cron</code> - 5-field cron expression (e.g. <code>0 22 * * *</code>)
 - <code>pm.scheduled-hibernate-duration</code> - Wake-by duration (Go duration syntax: <code>8h</code>, <code>30m</code>, ...)
@@ -2730,10 +2754,14 @@
 </ul>
 <h3 id="hash-subscriptions-field-updates">Hash subscriptions (field updates)<a class="headerlink" href="#hash-subscriptions-field-updates" title="Permanent link">&para;</a></h3>
 <ul>
-<li><code>vehicle</code> → <code>state</code> - Vehicle state monitoring (stand-by, parked, etc.); also drives scheduled-hibernation deferral</li>
-<li><code>battery:0</code> → <code>state</code> - Battery slot 0 state monitoring (idle, active, charging)</li>
-<li><code>battery:1</code> → <code>state</code> - Battery slot 1 state monitoring (idle, active, charging)</li>
-<li><code>power-manager</code> → <code>wake-timer-armed</code> - Wake-timer ACK from the nRF52 (via bluetooth-service)</li>
+<li><code>vehicle</code> -&gt; <code>state</code> - Vehicle state monitoring (stand-by, parked, etc.); also drives scheduled-hibernation deferral and the last-ditch standby pre-filter</li>
+<li><code>battery:0</code> -&gt; <code>state</code>, <code>present</code>, <code>charge</code> - Battery slot 0 state monitoring (idle, active, charging) plus <code>present</code>/<code>charge</code> for the last-ditch hibernate inputs</li>
+<li><code>battery:1</code> -&gt; <code>state</code>, <code>present</code>, <code>charge</code> - Battery slot 1 state monitoring plus <code>present</code>/<code>charge</code> for the last-ditch hibernate inputs</li>
+<li><code>cb-battery</code> -&gt; <code>charge</code> - CBB charge, last-ditch hibernate input</li>
+<li><code>aux-battery</code> -&gt; <code>voltage</code> - Aux 12V rail voltage (millivolts), last-ditch hibernate input</li>
+<li><code>internet</code> -&gt; <code>status</code> - Tracks connectivity (<code>connected</code> =&gt; online) for the <code>pm.suspend-when-online</code> guard</li>
+<li><code>power-manager</code> -&gt; <code>wake-timer-armed</code>, <code>power-state-sent</code> - Wake-timer ACK and the nRF suspend-ACK from the nRF52 (both written by bluetooth-service)</li>
+<li><code>settings</code> -&gt; <code>pm.suspend-when-online</code> (among the other <code>pm.*</code> fields above) - re-read on change</li>
 </ul>
 <h2 id="power-manager-states">Power Manager States<a class="headerlink" href="#power-manager-states" title="Permanent link">&para;</a></h2>
 <p>The FSM has these internal states:</p>
@@ -2975,6 +3003,21 @@
 <li>The cron entry is re-installed so the next-fire is recomputed against the new wall clock.</li>
 <li>Any pending deferred wake target is re-evaluated; if it's now in the past, the pending fire is dropped.</li>
 </ol>
+<h3 id="last-ditch-hibernate">Last-ditch hibernate<a class="headerlink" href="#last-ditch-hibernate" title="Permanent link">&para;</a></h3>
+<p>A safety feature that force-hibernates the scooter when it has lost enough reserve to risk a brown-out and no main battery is available to recover. pm-service watches the following hashes as inputs:</p>
+<ul>
+<li><code>cb-battery</code> -&gt; <code>charge</code> - CBB charge percent</li>
+<li><code>aux-battery</code> -&gt; <code>voltage</code> - aux 12V rail in millivolts</li>
+<li><code>battery:0</code> / <code>battery:1</code> -&gt; <code>present</code> and <code>charge</code> - per-slot main battery presence and charge</li>
+</ul>
+<p>The trigger condition is level-triggered and evaluated inside the FSM guard (<code>IsLastDitchTriggered</code>) at transition time:</p>
+<ul>
+<li>Both main slots unusable: a slot counts as missing when <code>present=false</code> OR <code>charge==0</code>. Both slots must be missing.</li>
+<li>AND a depleted reserve: CBB charge below <code>lastDitchHibernateCBBThreshold</code> (50%) OR the aux rail latched low.</li>
+</ul>
+<p>Aux uses a Schmitt trigger to avoid thrash near the threshold: it latches low when voltage drops below <code>lastDitchHibernateAuxEnterMv</code> (11500 mV) and releases only once it rises back above <code>lastDitchHibernateAuxExitMv</code> (11700 mV). A reading of <code>-1</code> (unparseable / no reading yet) means "unknown" and suppresses its sub-condition; CBB and aux both default to unknown until first synced, and the two slot-present flags default to <code>true</code> so a missing first sync cannot fire the trigger.</p>
+<p>When the condition holds and the vehicle is in <code>stand-by</code>, a watcher enqueues <code>EvLastDitchCheck</code> carrying a plain <code>hibernate</code> target, so the regular priority guard and power-command path apply. The FSM can also route a wake-from-suspend straight into hibernate when the condition holds (for example the CBB drained during suspend-to-RAM). When the trigger fires, pm-service logs which reserve ran low with a <code>Last-ditch hibernate: no main battery, &lt;reserve&gt;</code> line, where <code>&lt;reserve&gt;</code> is <code>CBB=NN%</code>, <code>aux=NNNN mV</code>, or both.</p>
+<p><strong>Post-boot grace window:</strong> the trigger is suppressed for the first <code>lastDitchHibernateBootGrace</code> (5 minutes) after pm-service starts. After waking from a last-ditch hibernation, Redis still holds the pre-hibernate battery state (slots absent, CBB low) until battery-service re-detects the pack, so firing on the seeded values would power the scooter straight back off before a freshly inserted battery is recognized. During the grace, a met condition is logged once with <code>Last-ditch hibernate condition met within boot grace; deferring up to &lt;remaining&gt;</code>. A timer re-evaluates the condition once the grace expires (so a genuinely battery-less scooter still hibernates, just not within the first 5 minutes), even if no further battery/CBB/aux update arrives in the meantime.</p>
 <h3 id="wakeup-from-suspend">Wakeup from Suspend<a class="headerlink" href="#wakeup-from-suspend" title="Permanent link">&para;</a></h3>
 <ol>
 <li>Wakeup source triggers (serial port, RTC, etc.)</li>

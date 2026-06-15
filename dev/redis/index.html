@@ -2661,7 +2661,7 @@
 </tr>
 <tr>
 <td>state</td>
-<td>"stand-by"/"ready-to-drive"/"off"/"parked"/"booting"/"shutting-down"/"hibernating"/"hibernating-imminent"/"suspending"/"suspending-imminent"/"updating"</td>
+<td>"stand-by"/"parked"/"hop-on"/"hop-on-learning"/"ready-to-drive"/"waiting-seatbox"/"shutting-down"/"updating"/"waiting-hibernation"/"waiting-hibernation-advanced"/"waiting-hibernation-seatbox"/"waiting-hibernation-confirm"</td>
 <td>Vehicle operating state</td>
 <td>"stand-by"</td>
 </tr>
@@ -2686,12 +2686,6 @@
 </tr>
 </thead>
 <tbody>
-<tr>
-<td>state</td>
-<td>"on"/"off"</td>
-<td>ECU power state</td>
-<td>"off"</td>
-</tr>
 <tr>
 <td>kers-reason-off</td>
 <td>string</td>
@@ -3081,6 +3075,12 @@
 <td>nRF52 ACK echo published by bluetooth-service after the wake-timer arm request</td>
 <td>"true"</td>
 </tr>
+<tr>
+<td>power-state-sent</td>
+<td>string</td>
+<td>nRF52 suspend-ACK published by bluetooth-service. pm-service gates entering suspend on this reaching "suspending".</td>
+<td>"suspending"</td>
+</tr>
 </tbody>
 </table>
 <h3 id="power-manager-busy-services-power-managerbusy-services">Power Manager Busy Services (<code>power-manager:busy-services</code>)<a class="headerlink" href="#power-manager-busy-services-power-managerbusy-services" title="Permanent link">&para;</a></h3>
@@ -3266,7 +3266,14 @@
 - <code>advertising-start-with-whitelisting</code> - Start BLE advertising with whitelist filtering (only paired devices can connect)
 - <code>advertising-restart-no-whitelisting</code> - Restart advertising without whitelist restrictions (any device can connect)
 - <code>advertising-stop</code> - Stop BLE advertising completely
-- <code>delete-all-bonds</code> - Remove all paired/bonded devices from the system</p>
+- <code>delete-bond</code> - Remove a single paired/bonded device
+- <code>delete-all-bonds</code> - Remove all paired/bonded devices from the system
+- <code>remove</code> - Remove the currently connected device
+- <code>ltc-enable</code> / <code>ltc-disable</code> - Enable/disable the LTC4020 aux charger
+- <code>ltc-force-enable</code> / <code>ltc-force-disable</code> - Force the LTC4020 aux charger on/off (bypass safety gating)
+- <code>ltc-status</code> - Query the LTC4020 aux charger state
+- <code>data-stream-sync</code> - Re-push the current data-stream state to the nRF52
+- <code>firmware-update</code> - Trigger an nRF52 firmware update from <code>/usr/share/nrf-fw/</code></p>
 <h4 id="bluetooth-event-subscriptions">Bluetooth Event Subscriptions<a class="headerlink" href="#bluetooth-event-subscriptions" title="Permanent link">&para;</a></h4>
 <p>The Bluetooth service subscribes to several Redis channels and automatically updates the nRF52 module when values change:</p>
 <p><strong>Vehicle State Updates:</strong>
@@ -3323,7 +3330,7 @@
 </tr>
 </tbody>
 </table>
-<p><strong>Note</strong>: This hash expires after 10 seconds. Authentication events are also published to the <code>keycard:authentication</code> channel.</p>
+<p><strong>Note</strong>: This hash expires after 10 seconds. Authentication is published on the <code>keycard</code> channel (the field name <code>authentication</code> is sent as the message payload), not on a separate <code>keycard:authentication</code> channel.</p>
 <p>Keycard management commands go through the <code>scooter:keycard</code> list:</p>
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-15-1"><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a>redis-cli<span class="w"> </span>-h<span class="w"> </span><span class="m">192</span>.168.7.1<span class="w"> </span>LPUSH<span class="w"> </span>scooter:keycard<span class="w"> </span>learn:start
 </span></code></pre></div>
@@ -3662,7 +3669,13 @@
 <td>pm.default-state</td>
 <td>string</td>
 <td>Default target power state when idle (run / suspend)</td>
-<td>"run"</td>
+<td>"suspend"</td>
+</tr>
+<tr>
+<td>pm.suspend-when-online</td>
+<td>"true"/"false"</td>
+<td>Allow suspend while the scooter is locked, online, and still has a main battery present (default false blocks it)</td>
+<td>"false"</td>
 </tr>
 <tr>
 <td>pm.scheduled-hibernate-enabled</td>
@@ -4024,8 +4037,8 @@ The <code>dbc-backlight-service</code> reads <code>illumination</code> and adjus
 <tr>
 <td>sim-state</td>
 <td>string</td>
-<td>SIM card state</td>
-<td>"active"</td>
+<td>SIM card state ("present"/"missing"/"locked"/"inactive")</td>
+<td>"present"</td>
 </tr>
 <tr>
 <td>sim-lock</td>
@@ -4056,6 +4069,24 @@ The <code>dbc-backlight-service</code> reads <code>illumination</code> and adjus
 <td>string</td>
 <td>Registration failure reason</td>
 <td>""</td>
+</tr>
+<tr>
+<td>error-state</td>
+<td>string</td>
+<td>Consolidated error state ("ok"/"powered-off"/"sim-missing"/"sim-inactive"/"sim-locked"/"registration-denied"/"registration-failed"/"disconnected"/"no-modem"/"status-error")</td>
+<td>"ok"</td>
+</tr>
+<tr>
+<td>pin-action</td>
+<td>string</td>
+<td>Outcome of the last SIM PIN reconcile ("unconfigured"/"ok"/"unlocked"/"lock-enabled"/"wrong-pin"/"low-retries-bail"/"puk-required"/"error")</td>
+<td>"ok"</td>
+</tr>
+<tr>
+<td>apn-action</td>
+<td>string</td>
+<td>Outcome of the last APN reconcile ("no-sim"/"unconfigured"/"ok"/"applied"/"iccid-changed-cleared"/"error")</td>
+<td>"ok"</td>
 </tr>
 </tbody>
 </table>
@@ -4222,7 +4253,7 @@ The <code>dbc-backlight-service</code> reads <code>illumination</code> and adjus
 </span><span id="__span-27-7"><a id="__codelineno-27-7" name="__codelineno-27-7" href="#__codelineno-27-7"></a><span class="c1"># Lock and request hibernation</span>
 </span><span id="__span-27-8"><a id="__codelineno-27-8" name="__codelineno-27-8" href="#__codelineno-27-8"></a>redis-cli<span class="w"> </span>-h<span class="w"> </span><span class="m">192</span>.168.7.1<span class="w"> </span>LPUSH<span class="w"> </span>scooter:state<span class="w"> </span>lock-hibernate
 </span></code></pre></div>
-<p><strong>Available commands</strong>: <code>lock</code>, <code>unlock</code>, <code>lock-hibernate</code></p>
+<p><strong>Available commands</strong>: <code>lock</code>, <code>unlock</code>, <code>lock-hibernate</code>, <code>force-lock</code></p>
 <h3 id="seatbox-control-scooterseatbox">Seatbox Control (<code>scooter:seatbox</code>)<a class="headerlink" href="#seatbox-control-scooterseatbox" title="Permanent link">&para;</a></h3>
 <p>Controls the seatbox lock mechanism.</p>
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-28-1"><a id="__codelineno-28-1" name="__codelineno-28-1" href="#__codelineno-28-1"></a><span class="c1"># Open the seatbox</span>

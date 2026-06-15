@@ -1879,7 +1879,8 @@
 <p><strong>Fields read/written:</strong>
 - <code>mode</code> - Current USB mode (<code>normal</code>, <code>ums</code>, <code>ums-by-dbc</code>)</p>
 <p><strong>Fields written:</strong>
-- <code>status</code> - Service status (<code>idle</code>, <code>preparing</code>, <code>active</code>, <code>processing</code>)
+- <code>status</code> - Service status (<code>idle</code>, <code>preparing</code>, <code>active</code>, <code>processing</code>, <code>awaiting-reboot</code>)
+  - <code>awaiting-reboot</code> is set while a UMS-initiated update install runs and the service waits for the post-install reboot (see UMS exit flow). It transitions back to <code>idle</code> once the reboot is triggered, the wait fails/times out, or a new UMS session cancels the pending reboot.
 - <code>step</code> - Current processing step (<code>settings</code>, <code>wireguard</code>, <code>updates</code>, <code>maps</code>, or empty)
 - <code>progress</code> - Upload progress percentage (0–100) during file transfers
 - <code>detail</code> - Human-readable transfer sub-step (e.g. <code>map.mbtiles (120/380 MB)</code>)</p>
@@ -1969,6 +1970,7 @@
 <li><strong>Scripts</strong> — runs <code>scripts/mdb.sh</code> locally; transfers <code>scripts/dbc.sh</code> to DBC and runs it remotely</li>
 <li>Writes <code>ums_log.txt</code> to drive root, then cleans the drive (preserving <code>ums_log.txt</code>)</li>
 </ol>
+<p><strong>Post-update reboot:</strong> if the exit processing queued an MDB or DBC update install, the service sets <code>status</code> to <code>awaiting-reboot</code> and a background watcher performs the install pushes, waits for completion (10 min timeout), then triggers a reboot. The reboot is gated on the vehicle state being in an allowed set (<code>stand-by</code>, <code>parked</code>, <code>shutting-down</code>); if the state is anything else, the reboot is skipped. MDB updates reboot the MDB via <code>scooter:power</code>; DBC-only updates power-cycle the dashboard via <code>scooter:hardware</code>. The watcher is cancellable: re-entering UMS cancels a pending reboot. When no update is queued, <code>status</code> goes straight back to <code>idle</code> with no reboot.</p>
 <h2 id="hardware">Hardware<a class="headerlink" href="#hardware" title="Permanent link">&para;</a></h2>
 <ul>
 <li><strong>Network mode:</strong> <code>g_ether</code> kernel module</li>

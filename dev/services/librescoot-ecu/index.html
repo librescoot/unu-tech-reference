@@ -2282,12 +2282,17 @@
 - <code>speed</code> - Vehicle speed in km/h (calibrated)
 - <code>raw-speed</code> - Raw speed before calibration
 - <code>throttle</code> - Throttle state ("on", "off")
+- <code>brake</code> - Brake state ("on", "off")
 - <code>temperature</code> - ECU temperature in °C
+- <code>fault:code</code> - Current fault code (32-bit, 0 when no fault)
+- <code>fault:description</code> - Active fault description (empty string when no fault)
 - <code>odometer</code> - Total distance traveled in meters
 - <code>kers</code> - KERS (regenerative braking) state ("on", "off")
-- <code>power:instant-mw</code> - Instantaneous power in mW
-- <code>power:consumed-mwh</code> - Cumulative energy consumed in mWh
-- <code>power:recovered-mwh</code> - Cumulative energy recovered via regenerative braking in mWh
+- <code>boost</code> - Boost mode state ("on", "off")
+- <code>gear</code> - Current gear (Bosch: 1-3, 0 if unknown; Votol reports 0)
+- <code>power</code> - Instantaneous power in mW
+- <code>energy:consumed</code> - Cumulative energy consumed in mWh
+- <code>energy:recovered</code> - Cumulative energy recovered via regenerative braking in mWh
 - <code>kers-reason-off</code> - Reason KERS is disabled ("none", "cold", "hot")</p>
 <p><strong>Published channels:</strong>
 - <code>engine-ecu throttle</code> - Published when throttle state changes
@@ -2298,7 +2303,9 @@
 <p><strong>Fields read:</strong>
 - <code>engine-ecu.kers</code> - KERS enable/disable ("enabled"/"disabled"; default: enabled)
 - <code>engine-ecu.kers-power</code> - KERS regenerative braking current in mA for single-battery operation (default: 10000)
-- <code>engine-ecu.kers-power-dual</code> - KERS regenerative braking current in mA when both batteries are active (optional; when unset, <code>kers-power</code> is used for both cases)</p>
+- <code>engine-ecu.kers-power-dual</code> - KERS regenerative braking current in mA when both batteries are active (optional; when unset, <code>kers-power</code> is used for both cases)
+- <code>engine-ecu.kers-voltage</code> - KERS target voltage in mV (Bosch only; default: 56000, valid range 42000-58000)
+- <code>engine-ecu.boost</code> - Boost mode enable/disable ("true" enables, any other value disables)</p>
 <p>Loaded on startup; updated live via <code>settings</code> pub/sub.</p>
 <h3 id="pubsub-subscriptions">Pub/Sub Subscriptions<a class="headerlink" href="#pubsub-subscriptions" title="Permanent link">&para;</a></h3>
 <p>The service subscribes to the following channels to monitor system state:</p>

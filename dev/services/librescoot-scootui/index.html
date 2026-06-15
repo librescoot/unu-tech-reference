@@ -2254,9 +2254,14 @@
 <td>30 s</td>
 </tr>
 <tr>
-<td><code>gps</code></td>
+<td><code>gps:tpv</code> (pub/sub) + <code>gps</code> hash</td>
 <td>GpsStore</td>
-<td>1 s</td>
+<td>push + 5 s safety poll</td>
+</tr>
+<tr>
+<td><code>motion:heading</code> (5 Hz) + <code>motion:sensors</code> (10 Hz) pub/sub + <code>motion</code> hash</td>
+<td>MotionStore</td>
+<td>push + 5 s safety poll</td>
 </tr>
 <tr>
 <td><code>ble</code></td>
@@ -2342,9 +2347,9 @@
 </tr>
 <tr>
 <td><code>navigation</code></td>
-<td><code>destination</code></td>
-<td><code>lat,lon</code></td>
-<td>When destination is set</td>
+<td><code>latitude</code>, <code>longitude</code>, <code>address</code>, <code>timestamp</code>, <code>destination</code></td>
+<td>lat/lon (6 dp), address string, ISO-8601 UTC, <code>lat,lon</code></td>
+<td>When the rider picks a destination in the UI (then publishes <code>navigation</code> = <code>updated</code>)</td>
 </tr>
 <tr>
 <td><code>settings</code></td>
@@ -2360,6 +2365,7 @@
 </tr>
 </tbody>
 </table>
+<p>Note: scootui is not consume-only on the <code>navigation</code> hash. When the rider sets a destination in the UI, NavigationService writes the destination fields above and publishes <code>navigation</code> = <code>updated</code>; clearing the destination blanks the same fields and publishes <code>navigation</code> = <code>cleared</code>.</p>
 <h3 id="lpush-commands">LPUSH Commands<a class="headerlink" href="#lpush-commands" title="Permanent link">&para;</a></h3>
 <table>
 <thead>
@@ -2518,6 +2524,7 @@
 </tr>
 </tbody>
 </table>
+<p>When <code>dashboard.theme</code> is <code>auto</code>, AutoThemeService drives light/dark switching from the <code>dashboard</code> hash field <code>brightness</code> (lux). It listens on the <code>dashboard</code> pub/sub channel and also polls every 1 s, smooths the value, and switches with hysteresis (dark below 15 lux, light above 25 lux).</p>
 <h2 id="hardware-interfaces">Hardware Interfaces<a class="headerlink" href="#hardware-interfaces" title="Permanent link">&para;</a></h2>
 <h3 id="serial-number">Serial Number<a class="headerlink" href="#serial-number" title="Permanent link">&para;</a></h3>
 <p>Primary: <code>/sys/devices/soc0/serial_number</code></p>

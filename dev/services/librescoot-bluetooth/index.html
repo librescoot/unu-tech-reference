@@ -2531,7 +2531,9 @@
 <h3 id="hash-power-manager">Hash: <code>power-manager</code><a class="headerlink" href="#hash-power-manager" title="Permanent link">&para;</a></h3>
 <p><strong>Fields written:</strong>
 - <code>nrf-reset-count</code> - Reset count from nRF52
-- <code>nrf-reset-reason</code> - Nordic RESETREAS register value (integer)</p>
+- <code>nrf-reset-reason</code> - Nordic RESETREAS register value (integer)
+- <code>wake-timer-armed</code> - "true"/"false". Echo of the nRF wake-timer ACK: non-zero seconds echoed back means the timer is armed ("true"), zero means disarmed ("false").
+- <code>power-state-sent</code> - "suspending". Written when the nRF ACKs the suspending power-management state (state ACK value 0). pm-service gates the actual suspend-to-RAM on this confirmation, because the ACK reply has to fully drain off the UART before the iMX6 suspends.</p>
 <p><strong>Published channel:</strong> <code>power-manager</code> (when nrf-reset-reason changes)</p>
 <h3 id="hash-power-mux">Hash: <code>power-mux</code><a class="headerlink" href="#hash-power-mux" title="Permanent link">&para;</a></h3>
 <p><strong>Fields written:</strong>
@@ -2600,7 +2602,7 @@
 <h3 id="lists-produced-lpush">Lists produced (LPUSH)<a class="headerlink" href="#lists-produced-lpush" title="Permanent link">&para;</a></h3>
 <p>The service writes requests to:
 - <code>scooter:state</code> - State change requests ("lock", "unlock", "lock-hibernate")
-- <code>scooter:power</code> - Power requests ("hibernate", "hibernate-manual", "reboot")
+- <code>scooter:power</code> - Power requests ("hibernate", "hibernate-manual", "reboot", "hibernate-for:<seconds>", "hibernate-cancel")
 - <code>scooter:seatbox</code> - Seatbox commands ("open")
 - <code>scooter:blinker</code> - Blinker commands ("left", "right", "both", "off")
 - <code>scooter:keycard</code> - Keycard management commands ("list", "count", "add:<uid>", "remove:<uid>")
@@ -2789,6 +2791,15 @@ Messages are CBOR-encoded maps with structure:
 - <code>alarm:start:&lt;N&gt;</code> → <code>LPUSH scooter:alarm start:&lt;N&gt;</code>
 - <code>alarm:stop</code> → <code>LPUSH scooter:alarm stop</code></p>
 <p>The alarm-service processes the command and the response (<code>alarm:ok</code>) is returned via EXTENDED_RESPONSE (0x0402).</p>
+<p><strong>Power management:</strong>
+- <code>pm:hibernate-for &lt;duration&gt;</code> -&gt; arms a one-shot hibernation that wakes after the given duration. Duration uses Go <code>time.ParseDuration</code> syntax (e.g. "8h", "30m", "120s"); it is converted to whole seconds and forwarded as <code>LPUSH scooter:power hibernate-for:&lt;seconds&gt;</code>.
+- <code>pm:hibernate-cancel</code> -&gt; cancels a pending wake timer and returns the system to run, forwarded as <code>LPUSH scooter:power hibernate-cancel</code>.</p>
+<p>Responses via EXTENDED_RESPONSE (0x0402):
+- <code>pm:ok</code> on success
+- <code>pm:error:invalid duration</code> if the duration cannot be parsed
+- <code>pm:error:duration must be positive</code> if the parsed duration is &lt;= 0 seconds
+- <code>pm:error:redis</code> if forwarding to <code>scooter:power</code> fails
+- <code>pm:error:unknown command</code> for any other <code>pm:</code> payload</p>
 <p><strong>LTC4020 aux charger control:</strong>
 - <code>ltc:enable</code> — safe-enable LTC4020 charger (rejected if unsafe)
 - <code>ltc:disable</code> — disable LTC4020 charger
