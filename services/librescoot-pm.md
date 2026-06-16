@@ -18,7 +18,7 @@ Usage of pm-service:
   -dry-run
         Dry run state (don't actually issue power state changes)
   -hibernation-timer duration
-        Duration of the hibernation timer (default 120h0m0s) [5 days]
+        Duration of the hibernation timer (default 72h0m0s) [3 days]
   -inhibitor-duration duration
         Duration the system is held active after suspend is issued (default 500ms)
   -pre-suspend-delay duration
@@ -33,7 +33,7 @@ Usage of pm-service:
         Duration for which low-power-state-imminent state is held (default 5s)
 ```
 
-**Note:** The hibernation timer default is 120 hours (5 days). The systemd unit file typically overrides the default state to `run` to prevent automatic suspends during development.
+**Note:** The hibernation timer default is 72 hours (3 days). The systemd unit file typically overrides the default state to `run` to prevent automatic suspends during development.
 
 ## Redis Operations
 
@@ -268,7 +268,7 @@ Explicit `suspend` commands (LPUSH scooter:power suspend) skip the pre-suspend d
 - Skips pre-suspend delay; FSM goes directly to `hibernate-imminent`
 
 **Hibernation timer:**
-- After timer expires (default 5 days outside `ready-to-drive`)
+- After timer expires (default 3 days outside `ready-to-drive`)
 - FSM goes to `hibernate-imminent` with timer target
 
 #### Inhibitor System

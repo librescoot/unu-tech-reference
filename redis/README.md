@@ -369,7 +369,7 @@ Librescoot adds persistent settings managed by the settings-service:
 | alarm.l1-cooldown | integer (sec) | Level 1 cooldown duration in seconds | "15" |
 | battery.ignore-seatbox | "true"/"false" | Ignore seatbox state for battery management | "false" |
 | cellular.apn | string | Cellular APN | "internet.provider.com" |
-| hibernation-timer | integer (sec) | Hibernation timeout (0=disabled) | "432000" |
+| hibernation-timer | integer (sec) | Hibernation timeout (0=disabled) | "259200" |
 | pm.hibernation-timer | integer (sec) | New name for hibernation-timer (idle-driven auto-hibernate; 0=disabled) | "259200" |
 | pm.default-state | string | Default target power state when idle (run / suspend) | "suspend" |
 | pm.suspend-when-online | "true"/"false" | Allow suspend while the scooter is locked, online, and still has a main battery present (default false blocks it) | "false" |
