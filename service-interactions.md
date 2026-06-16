@@ -524,7 +524,7 @@ Note: version-service does NOT publish to the `os-release` channel. It runs once
 | `scooter:modem` | modem-service | pm-service |
 | `scooter:bluetooth` | bluetooth-service | external/lsc |
 | `scooter:alarm` | alarm-service | lsc |
-| `power:inhibits` | pm-service inhibitor manager | services holding pm inhibitors |
+| `power:inhibits` | pm-service inhibitor manager | update-service, vehicle-service, modem-service (hold pm inhibitors) |
 
 ---
 

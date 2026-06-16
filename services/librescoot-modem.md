@@ -99,6 +99,15 @@ Full TPV snapshot (same fields as the `gps` hash, JSON object) published for eve
 
 GPS has no commands: the GNSS positioning mode is derived automatically from connectivity state, gated by the `modem.gps` setting. The legacy `gps:enable` / `gps:disable` commands are gone.
 
+### Hash written: `power:inhibits`
+
+While the modem is powered, modem-service registers a `block` inhibitor in
+`power:inhibits` with `who=librescoot-modem`, so pm-service does not suspend the
+MDB while the modem is up. It is acquired at startup and on each re-enable, and
+removed once the modem has been powered off (and on clean shutdown). When this is
+the only blocker, pm-service pushes `disable` to `scooter:modem`; modem-service
+drops the inhibitor after `PowerOffModem`, and the suspend proceeds.
+
 ### Settings consumed (Hash: `settings`)
 
 Watched via the settings hash and applied on change:
