@@ -2664,7 +2664,7 @@
 </span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>  -dry-run
 </span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>        Dry run state (don&#39;t actually issue power state changes)
 </span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>  -hibernation-timer duration
-</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>        Duration of the hibernation timer (default 120h0m0s) [5 days]
+</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>        Duration of the hibernation timer (default 72h0m0s) [3 days]
 </span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>  -inhibitor-duration duration
 </span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>        Duration the system is held active after suspend is issued (default 500ms)
 </span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>  -pre-suspend-delay duration
@@ -2678,7 +2678,7 @@
 </span><span id="__span-0-18"><a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a>  -suspend-imminent-delay duration
 </span><span id="__span-0-19"><a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a>        Duration for which low-power-state-imminent state is held (default 5s)
 </span></code></pre></div>
-<p><strong>Note:</strong> The hibernation timer default is 120 hours (5 days). The systemd unit file typically overrides the default state to <code>run</code> to prevent automatic suspends during development.</p>
+<p><strong>Note:</strong> The hibernation timer default is 72 hours (3 days). The systemd unit file typically overrides the default state to <code>run</code> to prevent automatic suspends during development.</p>
 <h2 id="redis-operations">Redis Operations<a class="headerlink" href="#redis-operations" title="Permanent link">&para;</a></h2>
 <h3 id="hash-power-manager">Hash: <code>power-manager</code><a class="headerlink" href="#hash-power-manager" title="Permanent link">&para;</a></h3>
 <p><strong>Fields written:</strong>
@@ -2919,7 +2919,7 @@
 - <code>LPUSH scooter:power hibernate</code> (or <code>hibernate-manual</code>, <code>hibernate-timer</code>)
 - Skips pre-suspend delay; FSM goes directly to <code>hibernate-imminent</code></p>
 <p><strong>Hibernation timer:</strong>
-- After timer expires (default 5 days outside <code>ready-to-drive</code>)
+- After timer expires (default 3 days outside <code>ready-to-drive</code>)
 - FSM goes to <code>hibernate-imminent</code> with timer target</p>
 <h4 id="inhibitor-system">Inhibitor System<a class="headerlink" href="#inhibitor-system" title="Permanent link">&para;</a></h4>
 <p>The pm-service implements two inhibitor mechanisms:</p>

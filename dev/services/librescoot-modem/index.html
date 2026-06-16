@@ -1098,6 +1098,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#hash-written-powerinhibits" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Hash written: <code>power:inhibits</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#settings-consumed-hash-settings" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
@@ -1857,6 +1868,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#hash-written-powerinhibits" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Hash written: <code>power:inhibits</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#settings-consumed-hash-settings" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
@@ -2334,6 +2356,13 @@
 <li><code>scooter:modem</code> - <code>enable</code>, <code>disable</code></li>
 </ul>
 <p>GPS has no commands: the GNSS positioning mode is derived automatically from connectivity state, gated by the <code>modem.gps</code> setting. The legacy <code>gps:enable</code> / <code>gps:disable</code> commands are gone.</p>
+<h3 id="hash-written-powerinhibits">Hash written: <code>power:inhibits</code><a class="headerlink" href="#hash-written-powerinhibits" title="Permanent link">&para;</a></h3>
+<p>While the modem is powered, modem-service registers a <code>block</code> inhibitor in
+<code>power:inhibits</code> with <code>who=librescoot-modem</code>, so pm-service does not suspend the
+MDB while the modem is up. It is acquired at startup and on each re-enable, and
+removed once the modem has been powered off (and on clean shutdown). When this is
+the only blocker, pm-service pushes <code>disable</code> to <code>scooter:modem</code>; modem-service
+drops the inhibitor after <code>PowerOffModem</code>, and the suspend proceeds.</p>
 <h3 id="settings-consumed-hash-settings">Settings consumed (Hash: <code>settings</code>)<a class="headerlink" href="#settings-consumed-hash-settings" title="Permanent link">&para;</a></h3>
 <p>Watched via the settings hash and applied on change:</p>
 <ul>
