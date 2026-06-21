@@ -58,6 +58,7 @@ Usage of vehicle-service:
 
 - `dashboard` - Reads `ready` field to check if dashboard initialized
 - `settings` - Reads behavior settings (e.g., `scooter.brake-hibernation`)
+- `ble` - Reads `status` field (Bluetooth link "connected"/"disconnected") to drive lock-on-disconnect
 - `ota` - Reads OTA status for DBC updates (`status:dbc`)
 
 ### Channels subscribed (PUBSUB)
@@ -68,6 +69,7 @@ Usage of vehicle-service:
 - `power-manager` - Power manager events
 - `vehicle` - Vehicle state change notifications
 - `settings` - Settings update notifications (payload: setting key that changed)
+- `ble` - Bluetooth link status change notifications (payload: "status")
 
 ### Channels published
 

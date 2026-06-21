@@ -64,6 +64,7 @@ Settings are organized by section. Examples:
 
 **Scooter settings:**
 - `scooter.auto-standby-seconds` - Auto-lock timeout when parked in seconds (default: 0 = disabled; max 3600). The last 60 s are shown as a cancellable countdown on the dashboard; any user input (brake, kickstand, seatbox button) resets the timer.
+- `scooter.lock-on-bluetooth-disconnect-seconds` - Grace period in seconds before the scooter locks (enters stand-by) after the connected phone's Bluetooth link drops while parked (default: 0 = disabled; floored at 5 s when set). Reuses the auto-standby countdown: the deadline is published to `vehicle` `auto-standby-deadline` and shown on the dashboard. Any user input (brake, kickstand, seatbox button) or a Bluetooth reconnect cancels it.
 - `scooter.brake-hibernation` - Enable brake lever hibernation ("enabled"/"disabled")
 
 **Update settings:**

@@ -380,6 +380,7 @@ Librescoot adds persistent settings managed by the settings-service:
 | pm.wake-timer-max-seconds | integer (sec) | Safety cap on a single hibernate-for / scheduled wake-timer arm | "604800" |
 | pm.wake-timer-ack-timeout | duration | How long pm-service waits for the nRF52 wake-timer ACK before aborting hibernation | "10s" |
 | scooter.auto-standby-seconds | integer (sec) | Auto-lock timeout when parked (0=disabled) | "0" |
+| scooter.lock-on-bluetooth-disconnect-seconds | integer (sec) | Lock (enter stand-by) this many seconds after the connected phone's Bluetooth disconnects while parked (0=disabled; floored at 5 when set) | "0" |
 | scooter.brake-hibernation | "enabled"/"disabled" | Enable brake lever hibernation | "enabled" |
 | updates.mdb.channel | string | MDB update channel | "nightly" |
 | updates.mdb.check-interval | duration | MDB update check interval ("never" to disable) | "6h" |
