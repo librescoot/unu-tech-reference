@@ -2303,6 +2303,7 @@
 <p><strong>Fields written:</strong>
 - <code>modem-health</code> - Modem health state ("normal", "recovering", "recovery-failed-waiting-reboot", "permanent-failure-needs-replacement")
 - <code>modem-state</code> - Raw modem status ("off", "connected", "disconnected", "no-modem", "UNKNOWN")
+- <code>connectivity</code> - Debounced connectivity classification folding modem-state, SIM, registration, the enable flag and health into one verdict: <code>connected</code> / <code>disconnected</code> (provisioned-but-down) / <code>disabled</code> (off by command) / <code>no-sim</code> / <code>denied</code> (registration denied/failed, e.g. deactivated SIM) / <code>failed</code> (modem broken). Consumed by the dashboard to gate the internet icon. Hysteresis: connected-&gt;disconnected 3 min, denied 60 s; disabled/no-sim/failed immediate.
 - <code>status</code> - Derived internet connectivity status ("connected", "disconnected") - determined by actual ping test to 8.8.8.8
 - <code>ip-address</code> - Interface IP address from wwan0/ppp0
 - <code>access-tech</code> - Access technology from modem ("2G", "GSM", "3G", "UMTS", "4G", "LTE", "5G", "UNKNOWN")

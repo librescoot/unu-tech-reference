@@ -3147,6 +3147,12 @@
 <td>"off"</td>
 </tr>
 <tr>
+<td>connectivity</td>
+<td>string</td>
+<td>Debounced connectivity classification (see below)</td>
+<td>"connected"</td>
+</tr>
+<tr>
 <td>status</td>
 <td>string</td>
 <td>Connection status</td>
@@ -3824,8 +3830,8 @@
 <tr>
 <td>dashboard.show-internet</td>
 <td>string</td>
-<td>Internet indicator visibility</td>
-<td>"always"</td>
+<td>Internet indicator visibility (gated on <code>internet[connectivity]</code>)</td>
+<td>"active-or-error"</td>
 </tr>
 <tr>
 <td>dashboard.battery-display-mode</td>
@@ -4121,6 +4127,20 @@ The <code>dbc-backlight-service</code> reads <code>illumination</code> and adjus
 - <code>recovering</code> - Attempting recovery
 - <code>recovery-failed-waiting-reboot</code> - Recovery failed, waiting for reboot
 - <code>permanent-failure-needs-replacement</code> - Hardware failure</p>
+<p><strong>Connectivity classification (<code>connectivity</code>):</strong></p>
+<p>modem-service folds modem state, SIM state, registration, the enable flag and
+health into a single debounced verdict. Consumers (e.g. the dashboard internet
+icon) use it to decide whether being offline is worth surfacing:</p>
+<ul>
+<li><code>connected</code> - modem connected, data path up</li>
+<li><code>disconnected</code> - enabled with a SIM present, but searching/registering/no signal (provisioned, currently down)</li>
+<li><code>disabled</code> - modem intentionally powered off by command</li>
+<li><code>no-sim</code> - SIM missing or inactive</li>
+<li><code>denied</code> - registration denied/failed, e.g. a carrier-deactivated SIM (debounced ~60s)</li>
+<li><code>failed</code> - modem broken/absent (health terminal)</li>
+</ul>
+<p>Hysteresis: <code>connected</code>-&gt;<code>disconnected</code> waits 3 min (ride out tunnels), <code>denied</code>
+waits 60 s before committing; <code>disabled</code>/<code>no-sim</code>/<code>failed</code> commit immediately.</p>
 <h3 id="ota-updates-ota-librescoot-enhancement">OTA Updates (<code>ota</code>) - Librescoot Enhancement<a class="headerlink" href="#ota-updates-ota-librescoot-enhancement" title="Permanent link">&para;</a></h3>
 <p>Librescoot adds per-component update tracking:</p>
 <table>
