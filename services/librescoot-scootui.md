@@ -149,8 +149,8 @@ Settings are stored in the `settings` Redis hash. Managed by settings-service.
 | `dashboard.show-raw-speed` | `true`/`false` | `false` | Raw ECU speed vs wheel-corrected |
 | `dashboard.show-gps` | `always`/`active-or-error`/`error`/`never` | `error` | GPS icon visibility |
 | `dashboard.show-bluetooth` | `always`/`active-or-error`/`error`/`never` | `active-or-error` | Bluetooth icon |
-| `dashboard.show-cloud` | `always`/`active-or-error`/`error`/`never` | `error` | Cloud connection icon |
-| `dashboard.show-internet` | `always`/`active-or-error`/`error`/`never` | `always` | Cellular icon |
+| `dashboard.show-cloud` | `always`/`active-or-error`/`error`/`never` | `never` | Cloud connection icon |
+| `dashboard.show-internet` | `always`/`active-or-error`/`error`/`never` | `active-or-error` | Cellular icon. `active-or-error` shows when `internet[connectivity]` is `connected`/`disconnected`/`failed`, hides on `disabled`/`no-sim`/`denied` |
 | `dashboard.show-clock` | `true`/`false` | `true` | Clock visibility |
 | `dashboard.theme` | `light`/`dark`/`auto` | `auto` | UI theme |
 | `dashboard.blinker-style` | `icon`/`overlay` | `icon` | Blinker indicator style |

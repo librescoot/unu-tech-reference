@@ -172,6 +172,7 @@ hgetall internet
 | Field | Type | Description | Example |
 |-------|------|-------------|----------|
 | modem-state | string | Modem power state | "off" |
+| connectivity | string | Debounced connectivity classification (see below) | "connected" |
 | status | string | Connection status | "disconnected" |
 | unu-cloud | string | Cloud connection status | "disconnected" |
 | ip-address | string | IP address | "1.2.3.4" |
@@ -397,7 +398,7 @@ Librescoot adds persistent settings managed by the settings-service:
 | dashboard.show-gps | string | GPS indicator visibility (always/active-or-error/error/never) | "error" |
 | dashboard.show-bluetooth | string | Bluetooth indicator visibility | "active-or-error" |
 | dashboard.show-cloud | string | Cloud indicator visibility | "error" |
-| dashboard.show-internet | string | Internet indicator visibility | "always" |
+| dashboard.show-internet | string | Internet indicator visibility (gated on `internet[connectivity]`) | "active-or-error" |
 | dashboard.battery-display-mode | string | Battery display mode (percentage/range) | "percentage" |
 | dashboard.map.type | string | Map tile source (online/offline) | "offline" |
 | dashboard.map.render-mode | string | Map rendering mode (vector/raster) | "raster" |
@@ -511,6 +512,22 @@ Librescoot adds modem health tracking:
 - `recovering` - Attempting recovery
 - `recovery-failed-waiting-reboot` - Recovery failed, waiting for reboot
 - `permanent-failure-needs-replacement` - Hardware failure
+
+**Connectivity classification (`connectivity`):**
+
+modem-service folds modem state, SIM state, registration, the enable flag and
+health into a single debounced verdict. Consumers (e.g. the dashboard internet
+icon) use it to decide whether being offline is worth surfacing:
+
+- `connected` - modem connected, data path up
+- `disconnected` - enabled with a SIM present, but searching/registering/no signal (provisioned, currently down)
+- `disabled` - modem intentionally powered off by command
+- `no-sim` - SIM missing or inactive
+- `denied` - registration denied/failed, e.g. a carrier-deactivated SIM (debounced ~60s)
+- `failed` - modem broken/absent (health terminal)
+
+Hysteresis: `connected`->`disconnected` waits 3 min (ride out tunnels), `denied`
+waits 60 s before committing; `disabled`/`no-sim`/`failed` commit immediately.
 
 ### OTA Updates (`ota`) - Librescoot Enhancement
 

@@ -35,6 +35,7 @@ Usage of modem-service:
 **Fields written:**
 - `modem-health` - Modem health state ("normal", "recovering", "recovery-failed-waiting-reboot", "permanent-failure-needs-replacement")
 - `modem-state` - Raw modem status ("off", "connected", "disconnected", "no-modem", "UNKNOWN")
+- `connectivity` - Debounced connectivity classification folding modem-state, SIM, registration, the enable flag and health into one verdict: `connected` / `disconnected` (provisioned-but-down) / `disabled` (off by command) / `no-sim` / `denied` (registration denied/failed, e.g. deactivated SIM) / `failed` (modem broken). Consumed by the dashboard to gate the internet icon. Hysteresis: connected->disconnected 3 min, denied 60 s; disabled/no-sim/failed immediate.
 - `status` - Derived internet connectivity status ("connected", "disconnected") - determined by actual ping test to 8.8.8.8
 - `ip-address` - Interface IP address from wwan0/ppp0
 - `access-tech` - Access technology from modem ("2G", "GSM", "3G", "UMTS", "4G", "LTE", "5G", "UNKNOWN")
