@@ -174,7 +174,7 @@ hgetall internet
 | modem-state | string | Modem power state | "off" |
 | connectivity | string | Debounced connectivity classification (see below) | "connected" |
 | status | string | Connection status | "disconnected" |
-| unu-cloud | string | Cloud connection status | "disconnected" |
+| unu-cloud | string | Cloud connection status; written by whichever cloud client runs (`radio-gaga` or `uplink-service`). Field absent = no cloud client configured (de-clouded); the dashboard hides the cloud icon in that case | "disconnected" |
 | ip-address | string | IP address | "1.2.3.4" |
 | access-tech | string | Access technology | "LTE" |
 | signal-quality | integer | Signal strength (0-100) | "0" |
@@ -397,7 +397,7 @@ Librescoot adds persistent settings managed by the settings-service:
 | dashboard.show-clock | string | Clock visibility (always/never) | "always" |
 | dashboard.show-gps | string | GPS indicator visibility (always/active-or-error/error/never) | "error" |
 | dashboard.show-bluetooth | string | Bluetooth indicator visibility | "active-or-error" |
-| dashboard.show-cloud | string | Cloud indicator visibility | "error" |
+| dashboard.show-cloud | string | Cloud indicator visibility (hidden unless `internet[unu-cloud]` is present) | "active-or-error" |
 | dashboard.show-internet | string | Internet indicator visibility (gated on `internet[connectivity]`) | "active-or-error" |
 | dashboard.battery-display-mode | string | Battery display mode (percentage/range) | "percentage" |
 | dashboard.map.type | string | Map tile source (online/offline) | "offline" |
