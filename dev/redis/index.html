@@ -3161,7 +3161,7 @@
 <tr>
 <td>unu-cloud</td>
 <td>string</td>
-<td>Cloud connection status</td>
+<td>Cloud connection status; written by whichever cloud client runs (<code>radio-gaga</code> or <code>uplink-service</code>). Field absent = no cloud client configured (de-clouded); the dashboard hides the cloud icon in that case</td>
 <td>"disconnected"</td>
 </tr>
 <tr>
@@ -3824,8 +3824,8 @@
 <tr>
 <td>dashboard.show-cloud</td>
 <td>string</td>
-<td>Cloud indicator visibility</td>
-<td>"error"</td>
+<td>Cloud indicator visibility (hidden unless <code>internet[unu-cloud]</code> is present)</td>
+<td>"active-or-error"</td>
 </tr>
 <tr>
 <td>dashboard.show-internet</td>
