@@ -55,6 +55,7 @@ Settings are organized by section. Examples:
 - `scooter.dual-battery` - Enable dual battery mode (default: false)
 - `scooter.dbc-blinker-led` - Blink DBC boot LED with blinkers ("enabled"/"disabled"; default: "disabled")
 - `scooter.enable-horn` - Horn enable mode ("true"/"false"/"in-drive"; default: "true")
+- `scooter.horn-when-seatbox-open` - Allow the manual horn button while the seatbox is open and the scooter is unlocked (default: false). When false, the manual horn is muted in any non-standby state while the seatbox sensor reads open, so the open seat lid resting on the button does not honk. Does not affect the alarm or remote/CLI horn.
 
 **Cellular settings:**
 - `cellular.apn` - Cellular APN for data connection
