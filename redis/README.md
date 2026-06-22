@@ -415,6 +415,40 @@ redis-cli -h 192.168.7.1 GET settings:schema
 
 See [settings-service documentation](../services/librescoot-settings.md) for details on persistent settings.
 
+#### Settings Overlay Commands (`settings:overlay`) - Librescoot Only
+
+Apply or clear a named settings overlay. Overlays override live `settings` values in memory without ever writing them to `/data/settings.toml`; clearing restores the user's base values.
+
+```bash
+# Enable Service mode
+redis-cli -h 192.168.7.1 LPUSH settings:overlay apply:service
+
+# Disable Service mode
+redis-cli -h 192.168.7.1 LPUSH settings:overlay clear:service
+```
+
+**Available commands**: `apply:service`, `clear:service`
+
+**Service mode overrides** (applied in memory only, not persisted):
+
+| Setting | Overlay value |
+|---------|---------------|
+| `scooter.auto-standby-seconds` | `0` |
+| `pm.hibernation-timer` | `0` |
+| `pm.default-state` | `run` |
+| `alarm.enabled` | `false` |
+| `scooter.usb0-policy` | `always-on` |
+| `dashboard.mode` | `debug` |
+| `scooter.handlebar-unlocked` | `true` |
+
+Service mode persists across reboots until cleared. The base values in `/data/settings.toml` are never modified.
+
+**Status field:** `settings` hash field `dashboard.service-mode-active` = `"true"`/`"false"` (read-only; written by settings-service).
+
+**New setting `scooter.handlebar-unlocked`** (bool, transient - only set via overlay): vehicle-service releases the handlebar latch and suppresses auto re-lock while `"true"`.
+
+**CLI:** `lsc service-mode on|off|status` (alias: `lsc servicemode`)
+
 ### Alarm System (`alarm`) - Librescoot Only
 
 ```
@@ -764,6 +798,20 @@ redis-cli -h 192.168.7.1 LPUSH scooter:update:mdb "update-from-url:https://examp
 The shared `scooter:update` list is consumed by **vehicle-service**, not the updaters: update-service pushes lifecycle commands (`start`, `complete`, `start-dbc`, `complete-dbc`) there to drive the vehicle's `updating` state.
 
 See [update-service documentation](../services/librescoot-update.md).
+
+### Settings Overlay Control (`settings:overlay`) - Librescoot Only
+
+Apply or clear a named settings overlay. See [Settings Overlay Commands](#settings-overlay-commands-settingsoverlay---librescoot-only) above for full details.
+
+```bash
+# Enable Service mode
+redis-cli -h 192.168.7.1 LPUSH settings:overlay apply:service
+
+# Disable Service mode
+redis-cli -h 192.168.7.1 LPUSH settings:overlay clear:service
+```
+
+**Available commands**: `apply:service`, `clear:service`
 
 ### CPU Governor Control (`scooter:governor`) - Librescoot Only
 

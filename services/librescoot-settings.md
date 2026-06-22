@@ -34,6 +34,21 @@ When a field is published to the `settings` channel, the service:
 2. Updates the TOML file
 3. Performs special handling for certain fields (e.g., APN updates)
 
+### List: `settings:overlay` (command queue)
+
+Consumed by settings-service via BRPOP. Applies or clears a named settings overlay without touching `/data/settings.toml`.
+
+**Commands:**
+- `apply:<name>` - apply the named overlay (currently only `service` is defined)
+- `clear:<name>` - clear the named overlay and restore base values
+
+```bash
+redis-cli LPUSH settings:overlay apply:service
+redis-cli LPUSH settings:overlay clear:service
+```
+
+See [Overlays](#settings-overlays) below for the overlay mechanics and the full service-mode override set.
+
 ### Settings Structure
 
 Settings are organized by section. Examples:
@@ -111,6 +126,44 @@ Settings are organized by section. Examples:
 - `engine-ecu.kers-power` - KERS regenerative braking current in mA
 - `engine-ecu.boost` - Enable motor boost mode (default: false)
 - `engine-ecu.kers-power-dual` - KERS current in mA when both batteries active
+
+## Settings Overlays
+
+An overlay is a named set of key-value pairs that settings-service applies to the live `settings` hash in memory. Overlays are strictly non-persistent:
+
+- Overlay values are **never written to `/data/settings.toml`**. The user's base configuration is unchanged.
+- When an overlay is cleared, every key it touched is restored to its base value from the TOML file.
+- Overlay values are re-applied automatically after reboot (settings-service re-applies active overlays on startup after loading the TOML).
+- An overlay stays active until explicitly cleared with `clear:<name>`.
+
+### Service Mode Overlay (`service`)
+
+Enables a hardware-service mode intended for bench work and diagnostics. It overrides the following settings in memory:
+
+| Setting | Overlay value | Effect |
+|---------|---------------|--------|
+| `scooter.auto-standby-seconds` | `0` | Disables auto-lock timer |
+| `pm.hibernation-timer` | `0` | Disables idle hibernation |
+| `pm.default-state` | `run` | Blocks automatic suspend/hibernate |
+| `alarm.enabled` | `false` | Disables the motion alarm |
+| `scooter.usb0-policy` | `always-on` | Keeps USB port powered |
+| `dashboard.mode` | `debug` | Shows the debug screen on the DBC |
+| `scooter.handlebar-unlocked` | `true` | Releases handlebar latch, suppresses auto re-lock |
+
+**Status:** `settings` hash field `dashboard.service-mode-active` is set to `"true"` while the overlay is active and `"false"` when cleared (read-only; written by settings-service).
+
+**Fan-out:** Because the overlay values are written to the `settings` hash and published on the `settings` channel, all downstream services (pm-service, vehicle-service, alarm-service, scootui) react to the change via their normal settings-channel subscriptions - no special handling is needed in those services.
+
+**CLI:**
+```bash
+lsc service-mode on      # apply:service
+lsc service-mode off     # clear:service
+lsc service-mode status  # check dashboard.service-mode-active
+```
+
+`lsc servicemode` is accepted as an alias.
+
+**No-clobber invariant:** `/data/settings.toml` always reflects the user's chosen values. Run `cat /data/settings.toml` while service mode is active to confirm the TOML is unchanged.
 
 ## File Operations
 

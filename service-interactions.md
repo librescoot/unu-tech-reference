@@ -41,6 +41,7 @@ Generated from source analysis of all service repositories.
  scooter:modem   ── modem-service reads   ── pm-service writes ("disable")
  scooter:bluetooth─ bluetooth-service reads─ (firmware-update and BLE commands)
  scooter:alarm   ── alarm-service reads   ── lsc writes
+ settings:overlay── settings-service reads ── lsc writes (apply:service, clear:service)
  scooter:update:<component> ── update-service reads ── update-service writes (check-now)
  power:inhibits  ── pm-service inhibitor redis listener reads ── (external inhibitors write)
 
@@ -321,7 +322,7 @@ Note: version-service does NOT publish to the `os-release` channel. It runs once
 **Writes:**
 | Hash | Fields | Channel |
 |------|--------|---------|
-| `settings` | All TOML fields: `scooter.*`, `cellular.*`, `updates.*`, `dashboard.*`, `alarm.*` | NONE (critical gap — see gaps section) |
+| `settings` | All TOML fields: `scooter.*`, `cellular.*`, `updates.*`, `dashboard.*`, `alarm.*`; overlay-injected values (in-memory only, not persisted); `dashboard.service-mode-active` status field | NONE (critical gap — see gaps section) |
 
 **Reads:**
 - `settings/*` (all fields, to save back to TOML)
@@ -329,6 +330,9 @@ Note: version-service does NOT publish to the `os-release` channel. It runs once
 **Subscribes to:**
 - `settings` channel (to detect changes and flush to TOML)
 - `internet` channel (for WireGuard manager)
+
+**Consumes queues (BRPOP):**
+- `settings:overlay` → `apply:service`, `clear:service` — owns the overlay command list; the `service` overlay fans out to pm-service, vehicle-service, alarm-service, and scootui purely via existing `settings`-channel reactions
 
 **Hardware access:** `/data/settings.toml`, NetworkManager D-Bus
 
@@ -460,7 +464,7 @@ Note: version-service does NOT publish to the `os-release` channel. It runs once
 **Reads (HGETALL / HGET):** All state hashes for display
 
 **Produces queues (LPUSH):**
-- `scooter:state`, `scooter:seatbox`, `scooter:horn`, `scooter:blinker`, `scooter:hardware`, `scooter:power`, `scooter:alarm`, `scooter:led:cue`, `scooter:led:fade`
+- `scooter:state`, `scooter:seatbox`, `scooter:horn`, `scooter:blinker`, `scooter:hardware`, `scooter:power`, `scooter:alarm`, `scooter:led:cue`, `scooter:led:fade`, `settings:overlay` (`apply:service`, `clear:service` via `lsc service-mode on|off`)
 
 ---
 
@@ -524,6 +528,7 @@ Note: version-service does NOT publish to the `os-release` channel. It runs once
 | `scooter:modem` | modem-service | pm-service |
 | `scooter:bluetooth` | bluetooth-service | external/lsc |
 | `scooter:alarm` | alarm-service | lsc |
+| `settings:overlay` | settings-service | lsc |
 | `power:inhibits` | pm-service inhibitor manager | update-service, vehicle-service, modem-service (hold pm inhibitors) |
 
 ---
