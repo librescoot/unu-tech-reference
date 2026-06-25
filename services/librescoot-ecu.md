@@ -47,12 +47,15 @@ Usage of ecu-service:
 - `energy:consumed` - Cumulative energy consumed in mWh
 - `energy:recovered` - Cumulative energy recovered via regenerative braking in mWh
 - `kers-reason-off` - Reason KERS is disabled ("none", "cold", "hot")
+- `kers-applied-voltage` - EBS regen voltage the ECU reports actually applying, in mV (Bosch only; 0 otherwise). Distinct from the commanded `engine-ecu.kers-voltage` setpoint.
+- `kers-applied-current` - EBS regen current the ECU reports actually applying, in mA (Bosch only; 0 otherwise). Tapers toward 0 as the controller limits regen (e.g. a full pack). Distinct from the commanded `engine-ecu.kers-power` setpoint.
 
 **Published channels:**
 - `engine-ecu throttle` - Published when throttle state changes
 - `engine-ecu kers` - Published when KERS state changes
 - `engine-ecu odometer` - Published when odometer updates
 - `engine-ecu kers-reason-off` - Published when KERS disable reason changes
+- `engine-ecu kers-applied-current` - Published when the ECU's applied regen voltage/current changes
 
 ### Hash: `settings`
 

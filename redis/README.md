@@ -47,6 +47,8 @@ hgetall engine-ecu
 |-------|------|-------------|----------|
 | kers-reason-off | string | Reason KERS is disabled | "none" |
 | kers | "on"/"off" | KERS active state | "on" |
+| kers-applied-voltage | integer (mV) | EBS regen voltage the ECU reports applying (Bosch) | "0" |
+| kers-applied-current | integer (mA) | EBS regen current the ECU reports applying (Bosch); tapers to 0 when regen is limited | "0" |
 | motor:voltage | integer (mV) | Motor voltage | "52140" |
 | motor:current | integer (mA) | Motor current | "0" |
 | rpm | integer | Motor RPM | "0" |

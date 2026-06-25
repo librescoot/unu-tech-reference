@@ -79,6 +79,8 @@ The dashboard subscribes to these channels to receive real-time updates:
 - `throttle` - Throttle state (on/off)
 - `kers` - KERS state (on/off)
 - `kers-reason-off` - Reason KERS is disabled
+- `kers-applied-voltage` - EBS regen voltage the ECU reports applying (mV)
+- `kers-applied-current` - EBS regen current the ECU reports applying (mA)
 - `odometer` - Total distance (m)
 - `fault` - Fault codes (RedisSet)
 
