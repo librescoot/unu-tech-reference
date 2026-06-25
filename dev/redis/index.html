@@ -2743,6 +2743,36 @@
 <td>"on"</td>
 </tr>
 <tr>
+<td>kers-accepted-voltage</td>
+<td>integer (mV)</td>
+<td>EBS regen voltage cap the ECU accepted, echoed after clamping (Bosch)</td>
+<td>"0"</td>
+</tr>
+<tr>
+<td>kers-accepted-current</td>
+<td>integer (mA)</td>
+<td>EBS regen current limit the ECU accepted (Bosch)</td>
+<td>"0"</td>
+</tr>
+<tr>
+<td>regen-available</td>
+<td>"on"/"off"</td>
+<td>Derived: can regen happen right now</td>
+<td>"on"</td>
+</tr>
+<tr>
+<td>regen-reason</td>
+<td>string</td>
+<td>Derived: none/cold/hot/off/full</td>
+<td>"none"</td>
+</tr>
+<tr>
+<td>regen-expected</td>
+<td>integer (mA)</td>
+<td>Derived: expected regen current envelope (0 on non-Bosch)</td>
+<td>"0"</td>
+</tr>
+<tr>
 <td>motor:voltage</td>
 <td>integer (mV)</td>
 <td>Motor voltage</td>

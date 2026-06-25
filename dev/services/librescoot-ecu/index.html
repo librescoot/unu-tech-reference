@@ -2293,12 +2293,18 @@
 - <code>power</code> - Instantaneous power in mW
 - <code>energy:consumed</code> - Cumulative energy consumed in mWh
 - <code>energy:recovered</code> - Cumulative energy recovered via regenerative braking in mWh
-- <code>kers-reason-off</code> - Reason KERS is disabled ("none", "cold", "hot")</p>
+- <code>kers-reason-off</code> - Reason KERS is disabled ("none", "cold", "hot")
+- <code>kers-accepted-voltage</code> - EBS regen voltage cap the ECU accepted, in mV (Bosch only; 0 otherwise). The ECU echoes this after clamping the EBS Set command; it is the stored config, not a live measurement. Distinct from the commanded <code>engine-ecu.kers-voltage</code> setpoint.
+- <code>kers-accepted-current</code> - EBS regen current limit the ECU accepted, in mA (Bosch only; 0 otherwise). Distinct from the commanded <code>engine-ecu.kers-power</code> setpoint.
+- <code>regen-available</code> - Derived ("on"/"off"): whether regen can happen right now.
+- <code>regen-reason</code> - Derived: why regen is unavailable ("none"/"cold"/"hot"/"off"/"full"). "full" means the pack is at its voltage cap. Empirically derived envelope; non-Bosch controllers report gating only.
+- <code>regen-expected</code> - Derived: expected regen current envelope in mA (0 on non-Bosch controllers). <code>motor:current</code> remains the real-measurement source for actual regen.</p>
 <p><strong>Published channels:</strong>
 - <code>engine-ecu throttle</code> - Published when throttle state changes
 - <code>engine-ecu kers</code> - Published when KERS state changes
 - <code>engine-ecu odometer</code> - Published when odometer updates
-- <code>engine-ecu kers-reason-off</code> - Published when KERS disable reason changes</p>
+- <code>engine-ecu kers-reason-off</code> - Published when KERS disable reason changes
+- <code>engine-ecu regen-available</code> - Published when derived regen availability or reason changes</p>
 <h3 id="hash-settings">Hash: <code>settings</code><a class="headerlink" href="#hash-settings" title="Permanent link">&para;</a></h3>
 <p><strong>Fields read:</strong>
 - <code>engine-ecu.kers</code> - KERS enable/disable ("enabled"/"disabled"; default: enabled)
