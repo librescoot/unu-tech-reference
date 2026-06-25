@@ -47,15 +47,18 @@ Usage of ecu-service:
 - `energy:consumed` - Cumulative energy consumed in mWh
 - `energy:recovered` - Cumulative energy recovered via regenerative braking in mWh
 - `kers-reason-off` - Reason KERS is disabled ("none", "cold", "hot")
-- `kers-applied-voltage` - EBS regen voltage the ECU reports actually applying, in mV (Bosch only; 0 otherwise). Distinct from the commanded `engine-ecu.kers-voltage` setpoint.
-- `kers-applied-current` - EBS regen current the ECU reports actually applying, in mA (Bosch only; 0 otherwise). Tapers toward 0 as the controller limits regen (e.g. a full pack). Distinct from the commanded `engine-ecu.kers-power` setpoint.
+- `kers-accepted-voltage` - EBS regen voltage cap the ECU accepted, in mV (Bosch only; 0 otherwise). The ECU echoes this after clamping the EBS Set command; it is the stored config, not a live measurement. Distinct from the commanded `engine-ecu.kers-voltage` setpoint.
+- `kers-accepted-current` - EBS regen current limit the ECU accepted, in mA (Bosch only; 0 otherwise). Distinct from the commanded `engine-ecu.kers-power` setpoint.
+- `regen-available` - Derived ("on"/"off"): whether regen can happen right now.
+- `regen-reason` - Derived: why regen is unavailable ("none"/"cold"/"hot"/"off"/"full"). "full" means the pack is at its voltage cap. Empirically derived envelope; non-Bosch controllers report gating only.
+- `regen-expected` - Derived: expected regen current envelope in mA (0 on non-Bosch controllers). `motor:current` remains the real-measurement source for actual regen.
 
 **Published channels:**
 - `engine-ecu throttle` - Published when throttle state changes
 - `engine-ecu kers` - Published when KERS state changes
 - `engine-ecu odometer` - Published when odometer updates
 - `engine-ecu kers-reason-off` - Published when KERS disable reason changes
-- `engine-ecu kers-applied-current` - Published when the ECU's applied regen voltage/current changes
+- `engine-ecu regen-available` - Published when derived regen availability or reason changes
 
 ### Hash: `settings`
 

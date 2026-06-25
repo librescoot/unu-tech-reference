@@ -79,8 +79,11 @@ The dashboard subscribes to these channels to receive real-time updates:
 - `throttle` - Throttle state (on/off)
 - `kers` - KERS state (on/off)
 - `kers-reason-off` - Reason KERS is disabled
-- `kers-applied-voltage` - EBS regen voltage the ECU reports applying (mV)
-- `kers-applied-current` - EBS regen current the ECU reports applying (mA)
+- `kers-accepted-voltage` - EBS regen voltage cap the ECU accepted (mV)
+- `kers-accepted-current` - EBS regen current limit the ECU accepted (mA)
+- `regen-available` - Derived: can regen happen right now (on/off)
+- `regen-reason` - Derived: none/cold/hot/off/full
+- `regen-expected` - Derived: expected regen current envelope (mA)
 - `odometer` - Total distance (m)
 - `fault` - Fault codes (RedisSet)
 
