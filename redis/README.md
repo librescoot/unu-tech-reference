@@ -378,7 +378,7 @@ Librescoot adds persistent settings managed by the settings-service:
 | hibernation-timer | integer (sec) | Hibernation timeout (0=disabled) | "259200" |
 | pm.hibernation-timer | integer (sec) | New name for hibernation-timer (idle-driven auto-hibernate; 0=disabled) | "259200" |
 | pm.default-state | string | Default target power state when idle (run / suspend) | "suspend" |
-| pm.suspend-when-online | "true"/"false" | Allow suspend while the scooter is locked, online, and still has a main battery present (default false blocks it) | "false" |
+| pm.suspend-when-online | "true"/"false" | With no main battery present, allow suspend even while online (default false keeps an online scooter awake). A present/active main battery always blocks suspend regardless | "false" |
 | pm.scheduled-hibernate-enabled | "true"/"false" | Enable cron-driven scheduled hibernation | "true" |
 | pm.scheduled-hibernate-cron | string | 5-field cron expression for scheduled hibernation | "0 22 * * *" |
 | pm.scheduled-hibernate-duration | duration | Wake-by duration applied at each cron fire | "8h" |
