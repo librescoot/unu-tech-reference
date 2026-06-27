@@ -2611,7 +2611,7 @@
 <li><strong>PN7150 NFC readers</strong> - Must be accessible via I2C at <code>/dev/pn5xx_i2c0</code> and <code>/dev/pn5xx_i2c1</code></li>
 <li><strong>Redis server</strong> - Must be running at specified host:port (default: 127.0.0.1:6379)</li>
 <li><strong>Battery NFC tags</strong> - Batteries must have functional NFC Type 4 tags</li>
-<li><strong>systemd</strong> - For suspend inhibitor functionality during NFC transactions</li>
+<li><strong>pm-service</strong> - Holds a block inhibitor via pm-service's <code>/tmp/suspend_inhibitor</code> socket during NFC transactions, so the MDB does not suspend/hibernate mid-write.</li>
 <li><strong>Linux kernel</strong> - I2C support and device nodes</li>
 </ul>
 <p><strong>Go Dependencies:</strong>

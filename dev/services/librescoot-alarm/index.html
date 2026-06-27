@@ -2316,7 +2316,7 @@
 <li><code>ipc.CallMethod(rpcClient, "motion:rpc", "prepare-hibernation", ...)</code> — synchronous, 1.5 s timeout.</li>
 <li>motion-service applies armed-hibernation profile to the chip; replies.</li>
 <li>On success: alarm-service logs "motion-service confirmed armed-hibernation profile". pm-service can now suspend; the chip is guaranteed to be in the right profile.</li>
-<li>On failure: alarm-service acquires its D-Bus suspend inhibitor and <strong>holds it</strong> — pm-service stays blocked rather than hibernating with an unverified chip profile.</li>
+<li>On failure: alarm-service acquires its <code>power:inhibits</code> block inhibitor and <strong>holds it</strong> — pm-service stays blocked rather than hibernating with an unverified chip profile.</li>
 </ol>
 <p>This is the only synchronous call alarm-service makes. All other chip-config flows reactively through the <code>alarm</code> hash that motion-service watches.</p>
 <h2 id="wake-from-hibernation-detection">Wake-from-Hibernation Detection<a class="headerlink" href="#wake-from-hibernation-detection" title="Permanent link">&para;</a></h2>
@@ -2326,7 +2326,8 @@
 2. If true: sends <code>BMXInterruptEvent{Data:"wake-hibernation"}</code> to the FSM at <code>StateInit</code>. Sets <code>wakeFromHibernation=true</code>.
 3. FSM init checks the flag at <code>InitCompleteEvent</code>: if alarm-enabled + standby + wakeFromHibernation, transitions directly to <code>StateTriggerLevel1Wait</code> (treats the wake-edge as the L1 trigger). Hair trigger is skipped on this entry — the wake-edge isn't a tampering event by itself.</p>
 <h2 id="suspend-inhibitor-management">Suspend Inhibitor Management<a class="headerlink" href="#suspend-inhibitor-management" title="Permanent link">&para;</a></h2>
-<p>D-Bus inhibitor (via systemd-logind) used to gate pm-service:</p>
+<p>A <code>block</code> inhibitor in pm-service's <code>power:inhibits</code> hash (id <code>alarm-active</code>, who <code>librescoot-alarm</code>, what <code>power-state-change</code>) keeps pm-service from suspending or hibernating the MDB while the alarm is delaying or triggered. pm-service's suspend gate reads its own registry (<code>power:inhibits</code> + the <code>/tmp/suspend_inhibitor</code> socket). The <code>who</code> is deliberately not <code>librescoot-modem</code>, so pm-service's <code>hasOnlyModemBlockingInhibitors</code> does not let it suspend through. alarm-service clears any stale <code>alarm-active</code> entry on startup so a crash mid-alarm can't wedge power management.</p>
+<p>Held in:</p>
 <ul>
 <li><strong>delay_armed</strong>: held during 5-s arming delay</li>
 <li><strong>trigger_level_1_wait / trigger_level_1</strong>: held during cooldown + verification</li>
