@@ -46,7 +46,7 @@ Usage of vehicle-service:
 - `scooter:horn` - Horn commands ("on", "off")
 - `scooter:blinker` - Blinker commands ("left", "right", "both", "off")
 - `scooter:hop-on` - Hop-on mode commands:
-  - `engage` - Enter the locked hop-on state (lock screen, LED cue, opportunistic steering lock; publishes `state=hop-on`)
+  - `engage` - Enter the locked hop-on state (lock screen, LED cue, steering lock with the same positioning grace window as parked->stand-by: locks at once if the handlebar is already in position, otherwise the rider has the lock window to move it fully left; publishes `state=hop-on`)
   - `engage-learning` - Enter combo-learning state quietly (no LED cue, no steering lock, no lock screen; publishes `state=hop-on-learning`)
   - `release` - Exit either hop-on sub-state back to `parked`
 - `scooter:led:cue` - LED cue playback commands (integer cue index)
