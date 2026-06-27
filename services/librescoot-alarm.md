@@ -150,7 +150,7 @@ When pm-service publishes `power-manager.state = hibernating-imminent` AND alarm
 3. `ipc.CallMethod(rpcClient, "motion:rpc", "prepare-hibernation", ...)` — synchronous, 1.5 s timeout.
 4. motion-service applies armed-hibernation profile to the chip; replies.
 5. On success: alarm-service logs "motion-service confirmed armed-hibernation profile". pm-service can now suspend; the chip is guaranteed to be in the right profile.
-6. On failure: alarm-service acquires its D-Bus suspend inhibitor and **holds it** — pm-service stays blocked rather than hibernating with an unverified chip profile.
+6. On failure: alarm-service acquires its `power:inhibits` block inhibitor and **holds it** — pm-service stays blocked rather than hibernating with an unverified chip profile.
 
 This is the only synchronous call alarm-service makes. All other chip-config flows reactively through the `alarm` hash that motion-service watches.
 
@@ -165,7 +165,9 @@ alarm-service on startup:
 
 ## Suspend Inhibitor Management
 
-D-Bus inhibitor (via systemd-logind) used to gate pm-service:
+A `block` inhibitor in pm-service's `power:inhibits` hash (id `alarm-active`, who `librescoot-alarm`, what `power-state-change`) keeps pm-service from suspending or hibernating the MDB while the alarm is delaying or triggered. pm-service's suspend gate reads its own registry (`power:inhibits` + the `/tmp/suspend_inhibitor` socket). The `who` is deliberately not `librescoot-modem`, so pm-service's `hasOnlyModemBlockingInhibitors` does not let it suspend through. alarm-service clears any stale `alarm-active` entry on startup so a crash mid-alarm can't wedge power management.
+
+Held in:
 
 - **delay_armed**: held during 5-s arming delay
 - **trigger_level_1_wait / trigger_level_1**: held during cooldown + verification

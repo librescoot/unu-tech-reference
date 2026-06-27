@@ -360,7 +360,7 @@ journalctl -u battery-service --since today # Today's logs
 - **PN7150 NFC readers** - Must be accessible via I2C at `/dev/pn5xx_i2c0` and `/dev/pn5xx_i2c1`
 - **Redis server** - Must be running at specified host:port (default: 127.0.0.1:6379)
 - **Battery NFC tags** - Batteries must have functional NFC Type 4 tags
-- **systemd** - For suspend inhibitor functionality during NFC transactions
+- **pm-service** - Holds a block inhibitor via pm-service's `/tmp/suspend_inhibitor` socket during NFC transactions, so the MDB does not suspend/hibernate mid-write.
 - **Linux kernel** - I2C support and device nodes
 
 **Go Dependencies:**
