@@ -2532,7 +2532,7 @@
 <li><code>scooter:horn</code> - Horn commands ("on", "off")</li>
 <li><code>scooter:blinker</code> - Blinker commands ("left", "right", "both", "off")</li>
 <li><code>scooter:hop-on</code> - Hop-on mode commands:</li>
-<li><code>engage</code> - Enter the locked hop-on state (lock screen, LED cue, opportunistic steering lock; publishes <code>state=hop-on</code>)</li>
+<li><code>engage</code> - Enter the locked hop-on state (lock screen, LED cue, steering lock with the same positioning grace window as parked-&gt;stand-by: locks at once if the handlebar is already in position, otherwise the rider has the lock window to move it fully left; publishes <code>state=hop-on</code>)</li>
 <li><code>engage-learning</code> - Enter combo-learning state quietly (no LED cue, no steering lock, no lock screen; publishes <code>state=hop-on-learning</code>)</li>
 <li><code>release</code> - Exit either hop-on sub-state back to <code>parked</code></li>
 <li><code>scooter:led:cue</code> - LED cue playback commands (integer cue index)</li>
