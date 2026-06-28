@@ -2298,7 +2298,8 @@
 - <code>kers-accepted-current</code> - EBS regen current limit the ECU accepted, in mA (Bosch only; 0 otherwise). Distinct from the commanded <code>engine-ecu.kers-power</code> setpoint.
 - <code>regen-available</code> - Derived ("on"/"off"): whether regen can happen right now.
 - <code>regen-reason</code> - Derived: why regen is unavailable ("none"/"cold"/"hot"/"off"/"full"). "full" means the pack is at its voltage cap. Empirically derived envelope; non-Bosch controllers report gating only.
-- <code>regen-expected</code> - Derived: expected regen current envelope in mA (0 on non-Bosch controllers). <code>motor:current</code> remains the real-measurement source for actual regen.</p>
+- <code>regen-expected</code> - Derived: expected regen current envelope in mA (0 on non-Bosch controllers). <code>motor:current</code> remains the real-measurement source for actual regen.
+- <code>heartbeat</code> - Monotonic liveness counter, written while ECU status frames flow (per frame in v1, throttled to ~4 Hz in v2). It freezes when frames stop, so a consumer can distinguish a stale/frozen speed from a genuinely constant one even when no fault is raised. Resets on service restart and detects staleness by value change, not strict increase, so wrap or restart never reads as stale.</p>
 <p><strong>Published channels:</strong>
 - <code>engine-ecu throttle</code> - Published when throttle state changes
 - <code>engine-ecu kers</code> - Published when KERS state changes

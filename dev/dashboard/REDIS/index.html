@@ -2658,6 +2658,7 @@
 <li><code>regen-reason</code> - Derived: none/cold/hot/off/full</li>
 <li><code>regen-expected</code> - Derived: expected regen current envelope (mA)</li>
 <li><code>odometer</code> - Total distance (m)</li>
+<li><code>heartbeat</code> - Monotonic liveness counter; freezes when ECU frames stop, used to flag a stale/frozen speed (dashes) with no fault raised</li>
 <li><code>fault</code> - Fault codes (RedisSet)</li>
 </ul>
 <h3 id="gps-gps">GPS (<code>gps</code>)<a class="headerlink" href="#gps-gps" title="Permanent link">&para;</a></h3>
