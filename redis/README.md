@@ -47,19 +47,28 @@ hgetall engine-ecu
 |-------|------|-------------|----------|
 | kers-reason-off | string | Reason KERS is disabled | "none" |
 | kers | "on"/"off" | KERS active state | "on" |
+| boost | "on"/"off" | Boost mode state | "off" |
 | kers-accepted-voltage | integer (mV) | EBS regen voltage cap the ECU accepted, echoed after clamping (Bosch) | "0" |
 | kers-accepted-current | integer (mA) | EBS regen current limit the ECU accepted (Bosch) | "0" |
 | regen-available | "on"/"off" | Derived: can regen happen right now | "on" |
 | regen-reason | string | Derived: none/cold/hot/off/full | "none" |
 | regen-expected | integer (mA) | Derived: expected regen current envelope (0 on non-Bosch) | "0" |
 | motor:voltage | integer (mV) | Motor voltage | "52140" |
-| motor:current | integer (mA) | Motor current | "0" |
+| motor:current | integer (mA) | Motor current (signed; negative during regen) | "0" |
+| power | integer (mW) | Instantaneous power | "0" |
+| energy:consumed | integer (mWh) | Cumulative energy consumed | "0" |
+| energy:recovered | integer (mWh) | Cumulative energy recovered via regen | "0" |
 | rpm | integer | Motor RPM | "0" |
-| speed | integer (km/h) | Vehicle speed | "0" |
+| speed | integer (km/h) | Vehicle speed (calibrated) | "0" |
+| raw-speed | integer (km/h) | Raw speed before calibration | "0" |
 | throttle | "on"/"off" | Throttle state | "off" |
+| brake | "on"/"off" | Brake state | "off" |
+| gear | integer | Current gear (Bosch 1-3, 0 if unknown; Votol reports 0) | "1" |
 | fw-version | hex string | ECU firmware version | "0445400C" |
 | odometer | integer (m) | Total distance | "632900" |
 | temperature | integer (°C) | ECU temperature | "16" |
+| fault:code | integer (32-bit) | Current fault code (0 when no fault) | "0" |
+| fault:description | string | Active fault description (empty when no fault) | "" |
 | heartbeat | integer | Monotonic liveness counter, advances while ECU status frames flow (frame rate on v1, ~4 Hz on v2). Freezes if frames stop, letting consumers tell a stale/frozen speed from a genuinely constant one. Absent on ecu-service builds that predate the field. | "48213" |
 
 ### Battery Management (`battery:0` and `battery:1`)

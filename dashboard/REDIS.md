@@ -74,9 +74,13 @@ The dashboard subscribes to these channels to receive real-time updates:
 - `debug` - Debug keys (RedisSortedSet via ZRANGE)
 
 ### Engine ECU (`engine-ecu`)
-- `state` - ECU power state
-- `speed` - Vehicle speed (km/h)
+- `speed` - Vehicle speed, calibrated (km/h)
+- `raw-speed` - Raw speed before calibration (km/h)
+- `rpm` - Motor RPM
 - `throttle` - Throttle state (on/off)
+- `motor:voltage` - Motor voltage (mV)
+- `motor:current` - Motor current, signed; negative during regen (mA)
+- `temperature` - ECU temperature (°C)
 - `kers` - KERS state (on/off)
 - `kers-reason-off` - Reason KERS is disabled
 - `kers-accepted-voltage` - EBS regen voltage cap the ECU accepted (mV)
@@ -85,6 +89,9 @@ The dashboard subscribes to these channels to receive real-time updates:
 - `regen-reason` - Derived: none/cold/hot/off/full
 - `regen-expected` - Derived: expected regen current envelope (mA)
 - `odometer` - Total distance (m)
+- `fw-version` - ECU firmware version (hex)
+- `fault:code` - Current fault code (0 when no fault)
+- `fault:description` - Active fault description
 - `heartbeat` - Monotonic liveness counter; freezes when ECU frames stop, used to flag a stale/frozen speed (dashes) with no fault raised
 - `fault` - Fault codes (RedisSet)
 
