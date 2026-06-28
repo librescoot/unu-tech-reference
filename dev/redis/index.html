@@ -2743,6 +2743,12 @@
 <td>"on"</td>
 </tr>
 <tr>
+<td>boost</td>
+<td>"on"/"off"</td>
+<td>Boost mode state</td>
+<td>"off"</td>
+</tr>
+<tr>
 <td>kers-accepted-voltage</td>
 <td>integer (mV)</td>
 <td>EBS regen voltage cap the ECU accepted, echoed after clamping (Bosch)</td>
@@ -2781,7 +2787,25 @@
 <tr>
 <td>motor:current</td>
 <td>integer (mA)</td>
-<td>Motor current</td>
+<td>Motor current (signed; negative during regen)</td>
+<td>"0"</td>
+</tr>
+<tr>
+<td>power</td>
+<td>integer (mW)</td>
+<td>Instantaneous power</td>
+<td>"0"</td>
+</tr>
+<tr>
+<td>energy:consumed</td>
+<td>integer (mWh)</td>
+<td>Cumulative energy consumed</td>
+<td>"0"</td>
+</tr>
+<tr>
+<td>energy:recovered</td>
+<td>integer (mWh)</td>
+<td>Cumulative energy recovered via regen</td>
 <td>"0"</td>
 </tr>
 <tr>
@@ -2793,7 +2817,13 @@
 <tr>
 <td>speed</td>
 <td>integer (km/h)</td>
-<td>Vehicle speed</td>
+<td>Vehicle speed (calibrated)</td>
+<td>"0"</td>
+</tr>
+<tr>
+<td>raw-speed</td>
+<td>integer (km/h)</td>
+<td>Raw speed before calibration</td>
 <td>"0"</td>
 </tr>
 <tr>
@@ -2801,6 +2831,18 @@
 <td>"on"/"off"</td>
 <td>Throttle state</td>
 <td>"off"</td>
+</tr>
+<tr>
+<td>brake</td>
+<td>"on"/"off"</td>
+<td>Brake state</td>
+<td>"off"</td>
+</tr>
+<tr>
+<td>gear</td>
+<td>integer</td>
+<td>Current gear (Bosch 1-3, 0 if unknown; Votol reports 0)</td>
+<td>"1"</td>
 </tr>
 <tr>
 <td>fw-version</td>
@@ -2819,6 +2861,18 @@
 <td>integer (°C)</td>
 <td>ECU temperature</td>
 <td>"16"</td>
+</tr>
+<tr>
+<td>fault:code</td>
+<td>integer (32-bit)</td>
+<td>Current fault code (0 when no fault)</td>
+<td>"0"</td>
+</tr>
+<tr>
+<td>fault:description</td>
+<td>string</td>
+<td>Active fault description (empty when no fault)</td>
+<td>""</td>
 </tr>
 <tr>
 <td>heartbeat</td>

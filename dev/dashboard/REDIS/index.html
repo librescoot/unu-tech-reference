@@ -2647,9 +2647,13 @@
 </ul>
 <h3 id="engine-ecu-engine-ecu">Engine ECU (<code>engine-ecu</code>)<a class="headerlink" href="#engine-ecu-engine-ecu" title="Permanent link">&para;</a></h3>
 <ul>
-<li><code>state</code> - ECU power state</li>
-<li><code>speed</code> - Vehicle speed (km/h)</li>
+<li><code>speed</code> - Vehicle speed, calibrated (km/h)</li>
+<li><code>raw-speed</code> - Raw speed before calibration (km/h)</li>
+<li><code>rpm</code> - Motor RPM</li>
 <li><code>throttle</code> - Throttle state (on/off)</li>
+<li><code>motor:voltage</code> - Motor voltage (mV)</li>
+<li><code>motor:current</code> - Motor current, signed; negative during regen (mA)</li>
+<li><code>temperature</code> - ECU temperature (°C)</li>
 <li><code>kers</code> - KERS state (on/off)</li>
 <li><code>kers-reason-off</code> - Reason KERS is disabled</li>
 <li><code>kers-accepted-voltage</code> - EBS regen voltage cap the ECU accepted (mV)</li>
@@ -2658,6 +2662,9 @@
 <li><code>regen-reason</code> - Derived: none/cold/hot/off/full</li>
 <li><code>regen-expected</code> - Derived: expected regen current envelope (mA)</li>
 <li><code>odometer</code> - Total distance (m)</li>
+<li><code>fw-version</code> - ECU firmware version (hex)</li>
+<li><code>fault:code</code> - Current fault code (0 when no fault)</li>
+<li><code>fault:description</code> - Active fault description</li>
 <li><code>heartbeat</code> - Monotonic liveness counter; freezes when ECU frames stop, used to flag a stale/frozen speed (dashes) with no fault raised</li>
 <li><code>fault</code> - Fault codes (RedisSet)</li>
 </ul>
