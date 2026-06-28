@@ -60,6 +60,7 @@ hgetall engine-ecu
 | fw-version | hex string | ECU firmware version | "0445400C" |
 | odometer | integer (m) | Total distance | "632900" |
 | temperature | integer (°C) | ECU temperature | "16" |
+| heartbeat | integer | Monotonic liveness counter, advances while ECU status frames flow (frame rate on v1, ~4 Hz on v2). Freezes if frames stop, letting consumers tell a stale/frozen speed from a genuinely constant one. Absent on ecu-service builds that predate the field. | "48213" |
 
 ### Battery Management (`battery:0` and `battery:1`)
 ```

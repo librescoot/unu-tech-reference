@@ -52,6 +52,7 @@ Usage of ecu-service:
 - `regen-available` - Derived ("on"/"off"): whether regen can happen right now.
 - `regen-reason` - Derived: why regen is unavailable ("none"/"cold"/"hot"/"off"/"full"). "full" means the pack is at its voltage cap. Empirically derived envelope; non-Bosch controllers report gating only.
 - `regen-expected` - Derived: expected regen current envelope in mA (0 on non-Bosch controllers). `motor:current` remains the real-measurement source for actual regen.
+- `heartbeat` - Monotonic liveness counter, written while ECU status frames flow (per frame in v1, throttled to ~4 Hz in v2). It freezes when frames stop, so a consumer can distinguish a stale/frozen speed from a genuinely constant one even when no fault is raised. Resets on service restart and detects staleness by value change, not strict increase, so wrap or restart never reads as stale.
 
 **Published channels:**
 - `engine-ecu throttle` - Published when throttle state changes

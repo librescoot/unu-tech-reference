@@ -85,6 +85,7 @@ The dashboard subscribes to these channels to receive real-time updates:
 - `regen-reason` - Derived: none/cold/hot/off/full
 - `regen-expected` - Derived: expected regen current envelope (mA)
 - `odometer` - Total distance (m)
+- `heartbeat` - Monotonic liveness counter; freezes when ECU frames stop, used to flag a stale/frozen speed (dashes) with no fault raised
 - `fault` - Fault codes (RedisSet)
 
 ### GPS (`gps`)
