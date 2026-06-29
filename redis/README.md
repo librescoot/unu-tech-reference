@@ -69,7 +69,6 @@ hgetall engine-ecu
 | temperature | integer (°C) | ECU temperature | "16" |
 | fault:code | integer (32-bit) | Current fault code (0 when no fault) | "0" |
 | fault:description | string | Active fault description (empty when no fault) | "" |
-| heartbeat | integer | Monotonic liveness counter, advances while ECU status frames flow (frame rate on v1, ~4 Hz on v2). Freezes if frames stop, letting consumers tell a stale/frozen speed from a genuinely constant one. Absent on ecu-service builds that predate the field. | "48213" |
 
 ### Battery Management (`battery:0` and `battery:1`)
 ```

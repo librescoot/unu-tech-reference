@@ -92,7 +92,6 @@ The dashboard subscribes to these channels to receive real-time updates:
 - `fw-version` - ECU firmware version (hex)
 - `fault:code` - Current fault code (0 when no fault)
 - `fault:description` - Active fault description
-- `heartbeat` - Monotonic liveness counter; freezes when ECU frames stop, used to flag a stale/frozen speed (dashes) with no fault raised
 - `fault` - Fault codes (RedisSet)
 
 ### GPS (`gps`)
