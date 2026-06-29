@@ -2874,12 +2874,6 @@
 <td>Active fault description (empty when no fault)</td>
 <td>""</td>
 </tr>
-<tr>
-<td>heartbeat</td>
-<td>integer</td>
-<td>Monotonic liveness counter, advances while ECU status frames flow (frame rate on v1, ~4 Hz on v2). Freezes if frames stop, letting consumers tell a stale/frozen speed from a genuinely constant one. Absent on ecu-service builds that predate the field.</td>
-<td>"48213"</td>
-</tr>
 </tbody>
 </table>
 <h3 id="battery-management-battery0-and-battery1">Battery Management (<code>battery:0</code> and <code>battery:1</code>)<a class="headerlink" href="#battery-management-battery0-and-battery1" title="Permanent link">&para;</a></h3>
