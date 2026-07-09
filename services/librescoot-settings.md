@@ -118,6 +118,7 @@ Settings are organized by section. Examples:
 - `dashboard.hop-on-combo` - Custom hop-on unlock combo, pipe-delimited tokens (empty = no combo)
 - `dashboard.maps.check-for-updates` - Auto-check for map updates weekly when online (default: true)
 - `dashboard.maps.auto-download` - Auto-download map updates (default: false)
+- `dashboard.milestone-celebrations` - Celebrate odometer milestones and easter-egg numbers with confetti + banner when parking (default: false; off suppresses all milestone output)
 - `dashboard.maps-available` - Offline map tiles available (system-managed; default: false)
 - `dashboard.navigation-available` - Full navigation available (system-managed; default: false)
 

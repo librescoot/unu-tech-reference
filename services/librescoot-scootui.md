@@ -164,6 +164,7 @@ Settings are stored in the `settings` Redis hash. Managed by settings-service.
 | `dashboard.valhalla-url` | URL | `http://127.0.0.1:8002/` | Valhalla routing endpoint |
 | `dashboard.maps.check-for-updates` | `true`/`false` | `true` | Auto-check for map updates |
 | `dashboard.maps.auto-download` | `true`/`false` | `false` | Auto-download map updates |
+| `dashboard.milestone-celebrations` | `true`/`false` | `false` | Confetti + banner when passing a 500 km odometer milestone or an easter-egg number. Off suppresses all milestone output (including easter eggs) |
 | `dashboard.hop-on-combo` | pipe-delimited tokens | _(empty)_ | Custom hop-on unlock combo |
 
 When `dashboard.theme` is `auto`, AutoThemeService drives light/dark switching from the `dashboard` hash field `brightness` (lux). It listens on the `dashboard` pub/sub channel and also polls every 1 s, smooths the value, and switches with hysteresis (dark below 15 lux, light above 25 lux).
