@@ -23,7 +23,7 @@
       
       
       <link rel="icon" href="../assets/images/favicon.png">
-      <meta name="generator" content="zensical-0.0.46">
+      <meta name="generator" content="zensical-0.0.50">
     
     
       
@@ -34,7 +34,7 @@
       
         
       
-      <link rel="stylesheet" href="../assets/stylesheets/modern/main.19d3147f.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/modern/main.62c9b9cc.min.css">
       
         
           
@@ -1354,10 +1354,10 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#status-icons" class="md-nav__link">
+  <a href="#left-zone-battery-display" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
-        Status Icons
+        Left Zone: Battery Display
       </span>
     </span>
   </a>
@@ -1365,10 +1365,32 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#connection-strength-indicator" class="md-nav__link">
+  <a href="#right-zone-status-indicators" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
-        Connection Strength Indicator
+        Right Zone: Status Indicators
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#overflow-chip" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Overflow Chip
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#reduced-power-turtle-indicator" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Reduced-Power (Turtle) Indicator
       </span>
     </span>
   </a>
@@ -1891,10 +1913,10 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#status-icons" class="md-nav__link">
+  <a href="#left-zone-battery-display" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
-        Status Icons
+        Left Zone: Battery Display
       </span>
     </span>
   </a>
@@ -1902,10 +1924,32 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#connection-strength-indicator" class="md-nav__link">
+  <a href="#right-zone-status-indicators" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
-        Connection Strength Indicator
+        Right Zone: Status Indicators
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#overflow-chip" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Overflow Chip
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#reduced-power-turtle-indicator" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Reduced-Power (Turtle) Indicator
       </span>
     </span>
   </a>
@@ -2355,83 +2399,109 @@ The scores indicate the priority. As many values as possible are fit on the scre
 - Driving: Tracking mode with upcoming instructions
 - Rerouting: Rerouting status display</p>
 <h3 id="status-bar">Status Bar<a class="headerlink" href="#status-bar" title="Permanent link">&para;</a></h3>
-<p>The dashboard features a status bar at the top of the screen displaying:</p>
-<ul>
-<li>Current time (left side)</li>
-<li>Status icons (left-center)</li>
-<li>Total distance/odometer (right side)</li>
-</ul>
-<h4 id="status-icons">Status Icons<a class="headerlink" href="#status-icons" title="Permanent link">&para;</a></h4>
-<p>The status bar displays several icons that indicate system status:</p>
+<p>The top status bar has three zones in a single row: a battery display on the left, a clock centered, and status indicators on the right. Total distance/odometer is not part of the top bar; it lives in the bottom bar alongside the speedometer.</p>
+<p>Both side widgets measure their own width at every "degrade level" (see below) and a coordinator in the top bar hands each side the most detailed level that still fits next to the clock. When the clock is hidden (<code>showClock</code> setting is <code>never</code>), the two sides share the whole row width instead of a fixed half each.</p>
+<h4 id="left-zone-battery-display">Left Zone: Battery Display<a class="headerlink" href="#left-zone-battery-display" title="Permanent link">&para;</a></h4>
 <table>
 <thead>
 <tr>
-<th>Icon</th>
-<th>Description</th>
-<th>States</th>
+<th>Element</th>
+<th>Shown when</th>
+<th>Notes</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td>Connection Strength</td>
-<td>Internet/cloud connectivity</td>
-<td>• 0-3 bars based on signal strength and network type<br>• Diagonal line when cloud disconnected but internet connected<br>• No bars when internet disconnected</td>
+<td>Battery 0 icon + value</td>
+<td>Always</td>
+<td>Value is charge (%) or estimated range (km), depending on the <code>batteryDisplayMode</code> setting (<code>percentage</code> / <code>range</code>); the <code>icon</code> mode hides the value text entirely and leaves just the icon</td>
 </tr>
 <tr>
-<td>CB Battery</td>
-<td>Connectivity Box battery status</td>
-<td>• Battery outline with fill level proportional to charge<br>• Red fill when charge ≤ 25%<br>• Lightning bolt overlay when charging</td>
+<td>Battery 1 icon + value</td>
+<td>A second pack is present (dual-battery scooters)</td>
+<td>Same value formatting as battery 0</td>
 </tr>
 <tr>
-<td>Bluetooth</td>
-<td>Bluetooth connection status</td>
-<td>• Visible when connected<br>• Hidden when disconnected</td>
+<td>CBB (Connectivity Battery Box) level glyph</td>
+<td><code>showCbBattery</code> setting is <code>always</code>, or <code>warning</code> (default) and the CBB charge is below 50%</td>
+<td>Icon-only glyph, bucketed to 0/25/50/75/100%; suppressed while a CB warning/stranded icon is showing in its place</td>
 </tr>
 <tr>
-<td>Seat</td>
-<td>Seat lock status</td>
-<td>• Visible when seat is open<br>• Hidden when seat is closed</td>
+<td>AUX (12V) level glyph</td>
+<td><code>showAuxBattery</code> setting is <code>always</code>, or <code>warning</code> (default) and AUX voltage is below 11700 mV</td>
+<td>Icon-only glyph, bucketed to 0/25/50/75/100% (from the AUX SoC quantization); suppressed while an AUX warning/stranded icon is showing in its place</td>
+</tr>
+<tr>
+<td>Seatbox-open icon</td>
+<td>Seatbox lock is open</td>
+<td></td>
+</tr>
+<tr>
+<td>CB-not-present icon</td>
+<td>No CBB detected</td>
+<td>Blank battery glyph with a slashed overlay</td>
+</tr>
+<tr>
+<td>CB warning icon</td>
+<td>CBB charge &lt; 50%, not charging, main pack present/active, seatbox closed (3s debounce); or CBB reports low charge while no main pack is inserted ("stranded")</td>
+<td>Blank battery glyph with an error overlay</td>
+</tr>
+<tr>
+<td>AUX warning icon</td>
+<td>AUX voltage &lt; 11495 mV (or &lt; 11000 mV critical), main pack present, seatbox closed (3s debounce); or AUX voltage &lt; 11700 mV while no main pack is inserted ("stranded")</td>
+<td>Blank battery glyph with an error overlay</td>
 </tr>
 </tbody>
 </table>
-<h4 id="connection-strength-indicator">Connection Strength Indicator<a class="headerlink" href="#connection-strength-indicator" title="Permanent link">&para;</a></h4>
-<p>The connection strength icon adapts based on multiple factors:</p>
+<p>Detail sheds in this order as space runs out: drop range decimals, drop battery 1's value text, collapse the AUX level glyph into the overflow chip, collapse the CBB level glyph into the overflow chip, drop battery 0's value text. Warning/error icons (seatbox, CB-not-present, CB/AUX warning, stranded) never degrade.</p>
+<h4 id="right-zone-status-indicators">Right Zone: Status Indicators<a class="headerlink" href="#right-zone-status-indicators" title="Permanent link">&para;</a></h4>
+<p>The row lays out right-to-left, so the internet/modem icon sits at the outer right edge of the bar, with cloud, bluetooth, GPS, OTA status, and temperature progressing leftward toward the clock.</p>
 <table>
 <thead>
 <tr>
-<th>Network Type</th>
-<th>Signal Bars</th>
-<th>Conditions</th>
+<th>Element</th>
+<th>Shown when</th>
+<th>Notes</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td>2G (GSM/GPRS/EDGE)</td>
-<td>1 bar</td>
-<td>Always shows 1 bar when connected</td>
+<td>Internet/modem icon</td>
+<td><code>showInternet</code> setting is <code>always</code>, or <code>active-or-error</code> (default) with the modem connected or in an error state, or <code>error</code> with an error state only</td>
+<td>Off/disconnected glyphs, or 0-4 signal bars when connected (<code>signalQuality / 20</code>, capped at 4); small access-tech label (2G/3G/H/H+/4G/5G/1x/G) overlaid when connected</td>
 </tr>
 <tr>
-<td>3G (UMTS/HSPA)</td>
-<td>1-2 bars</td>
-<td>• 1 bar when signal &lt; 50%<br>• 2 bars when signal ≥ 50%</td>
+<td>Cloud icon</td>
+<td>A cloud client (radio-gaga / uplink-service) has published <code>unu-cloud</code>, and <code>showCloud</code> setting allows it (<code>active-or-error</code> by default)</td>
+<td>Connected/disconnected glyph; independent of the internet/modem icon, not a diagonal-line overlay on it</td>
 </tr>
 <tr>
-<td>4G (LTE)</td>
-<td>1-3 bars</td>
-<td>• 1 bar when signal &lt; 25%<br>• 2 bars when signal 25-49%<br>• 3 bars when signal ≥ 50%</td>
+<td>Bluetooth icon</td>
+<td><code>showBluetooth</code> setting allows it (<code>active-or-error</code> by default)</td>
+<td>Connected/disconnected glyph</td>
 </tr>
 <tr>
-<td>Any type</td>
-<td>0 bars + diagonal line</td>
-<td>When internet connected but cloud disconnected</td>
+<td>GPS icon</td>
+<td><code>showGps</code> setting allows it (<code>error</code> only by default)</td>
+<td>Off / searching (pulsing center dot) / fix-established / error glyphs</td>
 </tr>
 <tr>
-<td>Any type</td>
-<td>0 bars</td>
-<td>When internet disconnected</td>
+<td>OTA status</td>
+<td>An OTA update is active and the vehicle is Ready-to-Drive or Parked</td>
+<td>Icon reflects downloading/preparing/installing/waiting-for-reboot/error; percentage digits shown next to it while downloading, preparing, or installing</td>
+</tr>
+<tr>
+<td>Temperature</td>
+<td><code>showTemperature</code> setting is <code>always</code>, or <code>warning</code> (default) while ambient temperature is in the frost band (&lt; 5 degC)</td>
+<td>Rounded ambient temperature with a degree sign; a snowflake+"!" glyph is prepended while in the frost band</td>
 </tr>
 </tbody>
 </table>
+<p>Detail sheds in this order as space runs out: drop OTA progress digits, collapse bluetooth into the overflow chip, collapse cloud into the overflow chip, collapse GPS into the overflow chip, collapse temperature into the overflow chip. Any icon shown specifically because of an error state (or, for temperature, the frost warning) never degrades.</p>
+<h4 id="overflow-chip">Overflow Chip<a class="headerlink" href="#overflow-chip" title="Permanent link">&para;</a></h4>
+<p>Icons collapsed by degradation are replaced by a single "..."+N chip (N = number of hidden icons) at the point in the row where they used to sit. It is display-only; full status detail is available elsewhere (e.g. the parked detail view).</p>
+<h4 id="reduced-power-turtle-indicator">Reduced-Power (Turtle) Indicator<a class="headerlink" href="#reduced-power-turtle-indicator" title="Permanent link">&para;</a></h4>
+<p>The turtle / reduced-power icon is not part of the top status bar. It is one of the telltales in the floating bottom-left telltale panel, alongside engine-warning, hazard-lights, and parking-brake telltales, shown when a present and active battery pack is at or below 20% charge.</p>
 <h4 id="internet-status-redis-keys">Internet Status Redis Keys<a class="headerlink" href="#internet-status-redis-keys" title="Permanent link">&para;</a></h4>
 <p>The connection status is determined by these Redis keys:</p>
 <div class="language-text highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>HGET internet status       # &quot;connected&quot; or &quot;disconnected&quot;
@@ -2822,7 +2892,7 @@ The scores indicate the priority. As many values as possible are fit on the scre
       <script id="__config" type="application/json">{"annotate":null,"base":"..","features":["content.action.edit","content.code.copy","content.code.select","content.tooltips","navigation.footer","navigation.indexes","navigation.instant","navigation.instant.prefetch","navigation.path","navigation.sections","navigation.top","navigation.tracking","search.highlight","toc.follow"],"search":"../assets/javascripts/workers/search.b6b7e04f.min.js","tags":null,"translations":{"clipboard.copied":"Copied to clipboard","clipboard.copy":"Copy to clipboard","search.result.more.one":"1 more on this page","search.result.more.other":"# more on this page","search.result.none":"No matching documents","search.result.one":"1 matching document","search.result.other":"# matching documents","search.result.placeholder":"Type to start searching","search.result.term.missing":"Missing","select.version":"Select version"},"version":{"provider":"mike"}}</script>
     
     
-      <script src="../assets/javascripts/bundle.ee611ef6.min.js"></script>
+      <script src="../assets/javascripts/bundle.d7f30b55.min.js"></script>
       
     
   </body>
