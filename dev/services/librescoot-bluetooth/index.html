@@ -515,6 +515,8 @@
       
         
       
+        
+      
     
     
     
@@ -565,6 +567,33 @@
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../bluetooth/ota-transfer/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  BLE OTA Transfer
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
               
             
               
@@ -1094,6 +1123,28 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#hash-otable" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Hash: <code>ota:ble</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hash-powerinhibits" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Hash: <code>power:inhibits</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#hashes-read-not-written" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
@@ -1298,6 +1349,17 @@
     <span class="md-ellipsis">
       <span class="md-typeset">
         Extended Commands (message type 0x0400)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ble-ota-firmware-transfer" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        BLE OTA Firmware Transfer
       </span>
     </span>
   </a>
@@ -2049,6 +2111,28 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#hash-otable" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Hash: <code>ota:ble</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hash-powerinhibits" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Hash: <code>power:inhibits</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#hashes-read-not-written" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
@@ -2253,6 +2337,17 @@
     <span class="md-ellipsis">
       <span class="md-typeset">
         Extended Commands (message type 0x0400)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ble-ota-firmware-transfer" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        BLE OTA Firmware Transfer
       </span>
     </span>
   </a>
@@ -2577,12 +2672,22 @@
 <p><strong>Fields read (not written):</strong>
 - <code>maps-available</code> - Offline display maps installed (set by scootui-qt, queried via <code>status:maps-available</code>)
 - <code>navigation-available</code> - Routing engine available (set by scootui-qt, queried via <code>status:navigation-available</code>)</p>
+<h3 id="hash-otable">Hash: <code>ota:ble</code><a class="headerlink" href="#hash-otable" title="Permanent link">&para;</a></h3>
+<p>Transfer status of the BLE OTA receiver (see <a href="../../bluetooth/ota-transfer/">BLE OTA Firmware Transfer</a> and the <a href="../../redis/#ble-ota-transfer-status-otable---librescoot-only">field reference</a>):</p>
+<p><strong>Fields written:</strong>
+- <code>state</code> - <code>idle</code>, <code>receiving</code>, or <code>installing</code>
+- <code>bundle-id</code>, <code>component</code>, <code>received-bytes</code>, <code>total-bytes</code>, <code>rate-bps</code> - Active session details
+- <code>updated-at</code> - Unix timestamp of the last update</p>
+<h3 id="hash-powerinhibits">Hash: <code>power:inhibits</code><a class="headerlink" href="#hash-powerinhibits" title="Permanent link">&para;</a></h3>
+<p><strong>Fields written:</strong>
+- <code>ble-ota</code> - Block-type power inhibitor held during BLE OTA transfers and installs, so pm-service does not suspend mid-transfer. Removed when the OTA session ends (or after safety timeouts: 10 min transfer idle, 30 min without install feedback).</p>
 <h3 id="hashes-read-not-written">Hashes read (not written)<a class="headerlink" href="#hashes-read-not-written" title="Permanent link">&para;</a></h3>
 <p>The service reads but does not write to these hashes:
 - <code>battery:0</code> - Reads battery state and charge
 - <code>battery:1</code> - Reads battery state and charge
 - <code>vehicle</code> - Reads vehicle state for nRF synchronization
-- <code>power-manager</code> - Reads power state</p>
+- <code>power-manager</code> - Reads power state
+- <code>ota</code> - Watched during a BLE-initiated install; <code>status:&lt;component&gt;</code>, <code>install-progress:&lt;component&gt;</code>, and <code>error-message:&lt;component&gt;</code> (written by update-service) are relayed to the phone as INSTALL_PROGRESS notifications</p>
 <h3 id="lists-consumed-brpop">Lists consumed (BRPOP)<a class="headerlink" href="#lists-consumed-brpop" title="Permanent link">&para;</a></h3>
 <p>The service consumes commands from:
 - <code>scooter:bluetooth</code> - BLE management commands with indefinite blocking</p>
@@ -2606,7 +2711,10 @@
 - <code>scooter:seatbox</code> - Seatbox commands ("open")
 - <code>scooter:blinker</code> - Blinker commands ("left", "right", "both", "off")
 - <code>scooter:keycard</code> - Keycard management commands ("list", "count", "add:<uid>", "remove:<uid>")
-- <code>scooter:alarm</code> - Alarm commands ("enable", "disable", "arm", "disarm", "start:<seconds>", "stop")</p>
+- <code>scooter:alarm</code> - Alarm commands ("enable", "disable", "arm", "disarm", "start:<seconds>", "stop")
+- <code>scooter:update:mdb</code> - <code>update-from-file:&lt;path&gt;</code> after a verified BLE OTA transfer of an MDB bundle
+- <code>scooter:update</code> - <code>start-dbc</code> (lock claim + heartbeats) / <code>complete-dbc</code> during the BLE OTA DBC handoff
+- <code>scooter:update:dbc</code> - <code>update-from-file:&lt;path&gt;</code> after delivering a DBC bundle to the dashboard</p>
 <p>These are triggered by BLE characteristic writes received from the nRF52 (BLE events or extended commands).</p>
 <h3 id="pubsub-published">Pub/Sub published<a class="headerlink" href="#pubsub-published" title="Permanent link">&para;</a></h3>
 <ul>
@@ -2811,6 +2919,14 @@ Messages are CBOR-encoded maps with structure:
 - <code>status:maps-available</code> → reads <code>dashboard:maps-available</code> (set by scootui-qt)
 - <code>status:navigation-available</code> → reads <code>dashboard:navigation-available</code> (set by scootui-qt)</p>
 <p>Responses are sent back via EXTENDED_RESPONSE (0x0402) as string notifications to the phone app.</p>
+<h3 id="ble-ota-firmware-transfer">BLE OTA Firmware Transfer<a class="headerlink" href="#ble-ota-firmware-transfer" title="Permanent link">&para;</a></h3>
+<p>The service hosts the scooter side of the BLE OTA transfer (<code>pkg/ota</code>): a windowed, resumable receiver for firmware bundles pushed by the phone app through the nRF's transparent OTA tunnel (raw USOCK frames <code>0xB0</code> data / <code>0xB1</code> control in, <code>0xB2</code> status out — no CBOR).</p>
+<ul>
+<li>Bundles are staged under <code>/data/ota/&lt;mdb|dbc&gt;/</code> with JSON sidecars so interrupted transfers resume across disconnects and reboots.</li>
+<li>After SHA-256 verification, MDB bundles are queued with the local update-service (<code>scooter:update:mdb</code>); DBC bundles are delivered to the dashboard (HTTP PUT to librescoot-data-server, scp fallback) and queued on <code>scooter:update:dbc</code> under the vehicle-service DBC update lock.</li>
+<li>Install progress from the <code>ota</code> hash is relayed to the phone as notifications; a <code>ble-ota</code> power inhibitor blocks suspend during transfer and install.</li>
+</ul>
+<p>See <a href="../../bluetooth/ota-transfer/">BLE OTA Firmware Transfer</a> for the protocol and lifecycle.</p>
 <h3 id="accelerometer-wake-up-events">Accelerometer Wake-up Events<a class="headerlink" href="#accelerometer-wake-up-events" title="Permanent link">&para;</a></h3>
 <p>The service handles accelerometer wake-up messages from the nRF (message type 0x0200):</p>
 <ul>
@@ -2896,6 +3012,7 @@ Messages are CBOR-encoded maps with structure:
 <h2 id="related-documentation">Related Documentation<a class="headerlink" href="#related-documentation" title="Permanent link">&para;</a></h2>
 <ul>
 <li><a href="../../bluetooth/">Bluetooth Protocol</a></li>
+<li><a href="../../bluetooth/ota-transfer/">BLE OTA Firmware Transfer</a></li>
 <li><a href="../../nrf/UART/">nRF UART Protocol</a></li>
 <li><a href="../../nrf/power-management/">nRF Power Management</a></li>
 <li><a href="../../redis/">Redis Operations</a></li>

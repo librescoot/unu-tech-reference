@@ -517,6 +517,8 @@
       
         
       
+        
+      
     
     
     
@@ -567,6 +569,33 @@
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../bluetooth/ota-transfer/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  BLE OTA Transfer
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
               
             
               
@@ -788,6 +817,17 @@
     <span class="md-ellipsis">
       <span class="md-typeset">
         Commands (iMX6 → nRF)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#raw-frames-ble-ota-tunnel" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Raw Frames (BLE OTA Tunnel)
       </span>
     </span>
   </a>
@@ -1657,6 +1697,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#raw-frames-ble-ota-tunnel" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Raw Frames (BLE OTA Tunnel)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#sub-types-examples" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
@@ -1751,6 +1802,8 @@
       
         
           
+        
+      
         
       
         
@@ -1874,6 +1927,14 @@ Data that is passed through this usock includes:</p>
 <li><strong>0xA040</strong> - Scooter Info (mileage, software version, navigation active, UMS status)</li>
 <li><strong>0xAA00</strong> - BLE Commands (advertising, bonding)</li>
 </ul>
+<h3 id="raw-frames-ble-ota-tunnel">Raw Frames (BLE OTA Tunnel)<a class="headerlink" href="#raw-frames-ble-ota-tunnel" title="Permanent link">&para;</a></h3>
+<p>Three frame IDs carry <strong>raw, non-CBOR payloads</strong> for the BLE OTA firmware transfer — the nRF forwards OTA characteristic writes verbatim and relays status back without touching the content:</p>
+<ul>
+<li><strong>0xB0</strong> (nRF → iMX6) - OTA data chunk (verbatim OTA_DATA characteristic write)</li>
+<li><strong>0xB1</strong> (nRF → iMX6) - OTA control message (verbatim OTA_CONTROL characteristic write)</li>
+<li><strong>0xB2</strong> (iMX6 → nRF) - OTA status message, notified verbatim on OTA_STATUS</li>
+</ul>
+<p>See <a href="../../bluetooth/ota-transfer/">BLE OTA Firmware Transfer</a>.</p>
 <h3 id="sub-types-examples">Sub-Types Examples<a class="headerlink" href="#sub-types-examples" title="Permanent link">&para;</a></h3>
 <p>Each message type contains sub-types as CBOR map keys:</p>
 <p><strong>CB Battery (0x0060):</strong>

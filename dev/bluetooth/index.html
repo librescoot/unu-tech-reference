@@ -16,7 +16,7 @@
         <link rel="prev" href="../battery-charger/">
       
       
-        <link rel="next" href="../redis/">
+        <link rel="next" href="./ota-transfer/">
       
       
         
@@ -517,6 +517,8 @@
       
         
       
+        
+      
     
     
     
@@ -567,6 +569,33 @@
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="./ota-transfer/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  BLE OTA Transfer
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
               
             
               
@@ -1482,6 +1511,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#ota-transfer-service-9a590500" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        OTA Transfer Service (9a590500)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#scooter-info-service-9a59a040" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
@@ -1571,6 +1611,8 @@
       
         
           
+        
+      
         
       
         
@@ -2057,6 +2099,34 @@
 </tbody>
 </table>
 <p>Error responses follow the pattern <code>&lt;prefix&gt;:error:&lt;details&gt;</code>.</p>
+<h3 id="ota-transfer-service-9a590500">OTA Transfer Service (9a590500)<a class="headerlink" href="#ota-transfer-service-9a590500" title="Permanent link">&para;</a></h3>
+<p>Firmware bundle transfer from the phone to the scooter (MDB and DBC updates over BLE). Windowed, resumable, integrity-checked; the nRF forwards these characteristics verbatim to bluetooth-service. See <a href="ota-transfer/">BLE OTA Firmware Transfer</a> for the full protocol.</p>
+<table>
+<thead>
+<tr>
+<th>Characteristic</th>
+<th>Description</th>
+<th>Values</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>9a590501</td>
+<td>OTA Data (write w/o response, max 244 B)</td>
+<td><code>[offset:u32 LE][chunk ≤ 240 B]</code></td>
+</tr>
+<tr>
+<td>9a590502</td>
+<td>OTA Control (write, max 128 B)</td>
+<td>START / COMPLETE / ABORT / STATUS_REQ messages</td>
+</tr>
+<tr>
+<td>9a590503</td>
+<td>OTA Status (read+notify, max 64 B)</td>
+<td>START_ACK / ACK / COMPLETE_ACK / INSTALL_PROGRESS / ABORT_ACK / ERROR messages</td>
+</tr>
+</tbody>
+</table>
 <h3 id="scooter-info-service-9a59a040">Scooter Info Service (9a59a040)<a class="headerlink" href="#scooter-info-service-9a59a040" title="Permanent link">&para;</a></h3>
 <p>System-level telemetry and configuration</p>
 <table>
@@ -2267,13 +2337,13 @@
         
         
           
-          <a href="../redis/" class="md-footer__link md-footer__link--next" aria-label="Next: Redis">
+          <a href="./ota-transfer/" class="md-footer__link md-footer__link--next" aria-label="Next: BLE OTA Transfer">
             <div class="md-footer__title">
               <span class="md-footer__direction">
                 Next
               </span>
               <div class="md-ellipsis">
-                Redis
+                BLE OTA Transfer
               </div>
             </div>
             <div class="md-footer__button md-icon">

@@ -10,13 +10,13 @@
       
       
       
-        <link rel="canonical" href="https://reference.librescoot.org/dev/services/librescoot-keycard/">
+        <link rel="canonical" href="https://reference.librescoot.org/dev/bluetooth/ota-transfer/">
       
       
-        <link rel="prev" href="../librescoot-ecu/">
+        <link rel="prev" href="../">
       
       
-        <link rel="next" href="../librescoot-modem/">
+        <link rel="next" href="../../redis/">
       
       
         
@@ -27,7 +27,7 @@
     
     
       
-        <title>librescoot-keycard (keycard-service) - Librescoot Tech Reference</title>
+        <title>BLE OTA Firmware Transfer - Librescoot Tech Reference</title>
       
     
     
@@ -85,7 +85,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#librescoot-keycard-keycard-service" class="md-skip">
+        <a href="#ble-ota-firmware-transfer" class="md-skip">
           Skip to content
         </a>
       
@@ -125,7 +125,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              librescoot-keycard (keycard-service)
+              BLE OTA Firmware Transfer
             
           </span>
         </div>
@@ -498,6 +498,8 @@
       
   
   
+    
+  
   
   
     
@@ -526,15 +528,15 @@
       
     
     
-    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" checked>
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../bluetooth/" class="md-nav__link ">
+            <a href="../" class="md-nav__link ">
               
   
   
@@ -557,7 +559,7 @@
             
           </div>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_4">
             <span class="md-nav__icon md-icon"></span>
             
@@ -573,10 +575,36 @@
                 
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="../../bluetooth/ota-transfer/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  BLE OTA Transfer
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="././" class="md-nav__link md-nav__link--active">
         
   
   
@@ -591,6 +619,282 @@
   
 
       </a>
+      
+        
+
+
+<nav class="md-nav md-nav--secondary" aria-label="On this page">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      On this page
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#architecture" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Architecture
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#gatt-service-9a590500" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        GATT Service (9a590500)
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#nrf-tunnel" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        nRF Tunnel
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#wire-format" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Wire Format
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Wire Format">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#phone-scooter-ota_control-plus-data-on-ota_data" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Phone → scooter (OTA_CONTROL, plus DATA on OTA_DATA)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#scooter-phone-ota_status-notifications" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Scooter → phone (OTA_STATUS notifications)
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Scooter → phone (OTA_STATUS notifications)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#start_ack-status-codes" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        START_ACK status codes
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ack" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        ACK
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#complete_ack-status-codes" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        COMPLETE_ACK status codes
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#install_progress-phases" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        INSTALL_PROGRESS phases
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#error-codes" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        ERROR codes
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#transfer-lifecycle" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Transfer Lifecycle
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Transfer Lifecycle">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#resume" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Resume
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#bundle-ids" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Bundle IDs
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#staging" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Staging
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#install" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Install
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Install">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#mdb" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        MDB
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dbc-handoff" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        DBC handoff
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#power-inhibitor" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Power Inhibitor
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#redis-status-otable" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Redis Status (<code>ota:ble</code>)
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#related-documentation" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Related Documentation
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -715,8 +1019,6 @@
       
   
   
-    
-  
   
   
     
@@ -767,11 +1069,11 @@
       
     
     
-    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" checked>
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
         
           
           <div class="md-nav__link md-nav__container">
@@ -798,7 +1100,7 @@
             
           </div>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="true">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_5">
             <span class="md-nav__icon md-icon"></span>
             
@@ -817,7 +1119,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../" class="md-nav__link">
+      <a href="../../services/" class="md-nav__link">
         
   
   
@@ -844,7 +1146,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../librescoot-alarm/" class="md-nav__link">
+      <a href="../../services/librescoot-alarm/" class="md-nav__link">
         
   
   
@@ -871,7 +1173,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../librescoot-battery/" class="md-nav__link">
+      <a href="../../services/librescoot-battery/" class="md-nav__link">
         
   
   
@@ -898,7 +1200,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../librescoot-bluetooth/" class="md-nav__link">
+      <a href="../../services/librescoot-bluetooth/" class="md-nav__link">
         
   
   
@@ -925,7 +1227,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../librescoot-ecu/" class="md-nav__link">
+      <a href="../../services/librescoot-ecu/" class="md-nav__link">
         
   
   
@@ -949,36 +1251,10 @@
                 
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  
-  <span class="md-ellipsis">
-    
-  
-  keycard-service
-
-    
-  </span>
-  
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="././" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../../services/librescoot-keycard/" class="md-nav__link">
         
   
   
@@ -993,232 +1269,6 @@
   
 
       </a>
-      
-        
-
-
-<nav class="md-nav md-nav--secondary" aria-label="On this page">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      On this page
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#description" class="md-nav__link">
-    <span class="md-ellipsis">
-      <span class="md-typeset">
-        Description
-      </span>
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#command-line-options" class="md-nav__link">
-    <span class="md-ellipsis">
-      <span class="md-typeset">
-        Command-Line Options
-      </span>
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#redis-operations" class="md-nav__link">
-    <span class="md-ellipsis">
-      <span class="md-typeset">
-        Redis Operations
-      </span>
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Redis Operations">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#hash-keycard-written" class="md-nav__link">
-    <span class="md-ellipsis">
-      <span class="md-typeset">
-        Hash: <code>keycard</code> (written)
-      </span>
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#list-scooterkeycard-consumed" class="md-nav__link">
-    <span class="md-ellipsis">
-      <span class="md-typeset">
-        List: <code>scooter:keycard</code> (consumed)
-      </span>
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#channel-keycardevents-published" class="md-nav__link">
-    <span class="md-ellipsis">
-      <span class="md-typeset">
-        Channel: <code>keycard:events</code> (published)
-      </span>
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#hardware" class="md-nav__link">
-    <span class="md-ellipsis">
-      <span class="md-typeset">
-        Hardware
-      </span>
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Hardware">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#nfc-reader" class="md-nav__link">
-    <span class="md-ellipsis">
-      <span class="md-typeset">
-        NFC Reader
-      </span>
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#led-controllers" class="md-nav__link">
-    <span class="md-ellipsis">
-      <span class="md-typeset">
-        LED Controllers
-      </span>
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#operational-modes" class="md-nav__link">
-    <span class="md-ellipsis">
-      <span class="md-typeset">
-        Operational Modes
-      </span>
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Operational Modes">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#master-learning-mode-first-boot" class="md-nav__link">
-    <span class="md-ellipsis">
-      <span class="md-typeset">
-        Master Learning Mode (first boot)
-      </span>
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#normal-operation" class="md-nav__link">
-    <span class="md-ellipsis">
-      <span class="md-typeset">
-        Normal Operation
-      </span>
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#learn-mode" class="md-nav__link">
-    <span class="md-ellipsis">
-      <span class="md-typeset">
-        Learn Mode
-      </span>
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#file-locations" class="md-nav__link">
-    <span class="md-ellipsis">
-      <span class="md-typeset">
-        File Locations
-      </span>
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#systemd-unit" class="md-nav__link">
-    <span class="md-ellipsis">
-      <span class="md-typeset">
-        Systemd Unit
-      </span>
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#building" class="md-nav__link">
-    <span class="md-ellipsis">
-      <span class="md-typeset">
-        Building
-      </span>
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#related-documentation" class="md-nav__link">
-    <span class="md-ellipsis">
-      <span class="md-typeset">
-        Related Documentation
-      </span>
-    </span>
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -1231,7 +1281,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../librescoot-modem/" class="md-nav__link">
+      <a href="../../services/librescoot-modem/" class="md-nav__link">
         
   
   
@@ -1258,7 +1308,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../librescoot-motion/" class="md-nav__link">
+      <a href="../../services/librescoot-motion/" class="md-nav__link">
         
   
   
@@ -1285,7 +1335,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../librescoot-pm/" class="md-nav__link">
+      <a href="../../services/librescoot-pm/" class="md-nav__link">
         
   
   
@@ -1312,7 +1362,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../librescoot-scootui/" class="md-nav__link">
+      <a href="../../services/librescoot-scootui/" class="md-nav__link">
         
   
   
@@ -1339,7 +1389,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../librescoot-settings/" class="md-nav__link">
+      <a href="../../services/librescoot-settings/" class="md-nav__link">
         
   
   
@@ -1366,7 +1416,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../librescoot-ums/" class="md-nav__link">
+      <a href="../../services/librescoot-ums/" class="md-nav__link">
         
   
   
@@ -1393,7 +1443,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../librescoot-update/" class="md-nav__link">
+      <a href="../../services/librescoot-update/" class="md-nav__link">
         
   
   
@@ -1420,7 +1470,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../librescoot-vehicle/" class="md-nav__link">
+      <a href="../../services/librescoot-vehicle/" class="md-nav__link">
         
   
   
@@ -1630,10 +1680,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#description" class="md-nav__link">
+  <a href="#architecture" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
-        Description
+        Architecture
       </span>
     </span>
   </a>
@@ -1641,10 +1691,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#command-line-options" class="md-nav__link">
+  <a href="#gatt-service-9a590500" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
-        Command-Line Options
+        GATT Service (9a590500)
       </span>
     </span>
   </a>
@@ -1652,22 +1702,33 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#redis-operations" class="md-nav__link">
+  <a href="#nrf-tunnel" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
-        Redis Operations
+        nRF Tunnel
       </span>
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Redis Operations">
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#wire-format" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Wire Format
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Wire Format">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#hash-keycard-written" class="md-nav__link">
+  <a href="#phone-scooter-ota_control-plus-data-on-ota_data" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
-        Hash: <code>keycard</code> (written)
+        Phone → scooter (OTA_CONTROL, plus DATA on OTA_DATA)
       </span>
     </span>
   </a>
@@ -1675,10 +1736,22 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#list-scooterkeycard-consumed" class="md-nav__link">
+  <a href="#scooter-phone-ota_status-notifications" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
-        List: <code>scooter:keycard</code> (consumed)
+        Scooter → phone (OTA_STATUS notifications)
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Scooter → phone (OTA_STATUS notifications)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#start_ack-status-codes" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        START_ACK status codes
       </span>
     </span>
   </a>
@@ -1686,10 +1759,76 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#channel-keycardevents-published" class="md-nav__link">
+  <a href="#ack" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
-        Channel: <code>keycard:events</code> (published)
+        ACK
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#complete_ack-status-codes" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        COMPLETE_ACK status codes
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#install_progress-phases" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        INSTALL_PROGRESS phases
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#error-codes" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        ERROR codes
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#transfer-lifecycle" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Transfer Lifecycle
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Transfer Lifecycle">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#resume" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Resume
       </span>
     </span>
   </a>
@@ -1702,22 +1841,44 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#hardware" class="md-nav__link">
+  <a href="#bundle-ids" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
-        Hardware
+        Bundle IDs
       </span>
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Hardware">
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#staging" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Staging
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#install" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Install
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Install">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#nfc-reader" class="md-nav__link">
+  <a href="#mdb" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
-        NFC Reader
+        MDB
       </span>
     </span>
   </a>
@@ -1725,10 +1886,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#led-controllers" class="md-nav__link">
+  <a href="#dbc-handoff" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
-        LED Controllers
+        DBC handoff
       </span>
     </span>
   </a>
@@ -1741,60 +1902,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#operational-modes" class="md-nav__link">
+  <a href="#power-inhibitor" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
-        Operational Modes
-      </span>
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Operational Modes">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#master-learning-mode-first-boot" class="md-nav__link">
-    <span class="md-ellipsis">
-      <span class="md-typeset">
-        Master Learning Mode (first boot)
-      </span>
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#normal-operation" class="md-nav__link">
-    <span class="md-ellipsis">
-      <span class="md-typeset">
-        Normal Operation
-      </span>
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#learn-mode" class="md-nav__link">
-    <span class="md-ellipsis">
-      <span class="md-typeset">
-        Learn Mode
-      </span>
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#file-locations" class="md-nav__link">
-    <span class="md-ellipsis">
-      <span class="md-typeset">
-        File Locations
+        Power Inhibitor
       </span>
     </span>
   </a>
@@ -1802,21 +1913,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#systemd-unit" class="md-nav__link">
+  <a href="#redis-status-otable" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
-        Systemd Unit
-      </span>
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#building" class="md-nav__link">
-    <span class="md-ellipsis">
-      <span class="md-typeset">
-        Building
+        Redis Status (<code>ota:ble</code>)
       </span>
     </span>
   </a>
@@ -1892,38 +1992,16 @@
       
         
       
-        
-      
-        
-      
-        
-      
-        
-      
-        
-      
-        
-      
-        
-      
-        
-      
-        
-      
-        
-      
-        
-      
     
     
     
     
       <li class="md-path__item">
-        <a href="../../states/" class="md-path__link">
+        <a href="../" class="md-path__link">
           
   
   <span class="md-ellipsis">
-    Software
+    Communication
   </span>
 
         </a>
@@ -1940,7 +2018,7 @@
                 
                   
   
-    <a href="https://github.com/librescoot/unu-tech-reference/edit/master/docs/services/librescoot-keycard.md" title="Edit this page" class="md-content__button md-icon" rel="edit">
+    <a href="https://github.com/librescoot/unu-tech-reference/edit/master/docs/bluetooth/ota-transfer.md" title="Edit this page" class="md-content__button md-icon" rel="edit">
       
       <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-file-pen" viewBox="0 0 24 24"><path d="M12.659 22H18a2 2 0 0 0 2-2V8a2.4 2.4 0 0 0-.706-1.706l-3.588-3.588A2.4 2.4 0 0 0 14 2H6a2 2 0 0 0-2 2v9.34"/><path d="M14 2v5a1 1 0 0 0 1 1h5M10.378 12.622a1 1 0 0 1 3 3.003L8.36 20.637a2 2 0 0 1-.854.506l-2.867.837a.5.5 0 0 1-.62-.62l.836-2.869a2 2 0 0 1 .506-.853z"/></svg>
     </a>
@@ -1948,183 +2026,453 @@
   
 
 
-<h1 id="librescoot-keycard-keycard-service">librescoot-keycard (keycard-service)<a class="headerlink" href="#librescoot-keycard-keycard-service" title="Permanent link">&para;</a></h1>
-<h2 id="description">Description<a class="headerlink" href="#description" title="Permanent link">&para;</a></h2>
-<p>Handles NFC-based authentication for the scooter. Detects keycards via the PN7150 controller, checks UIDs against authorized and master lists, controls LED feedback, and publishes authentication events to Redis. Supports master learning mode on first boot, learn mode for replacing the authorized card set, and a Redis command interface for UID management.</p>
-<h2 id="command-line-options">Command-Line Options<a class="headerlink" href="#command-line-options" title="Permanent link">&para;</a></h2>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>  --device string       NFC device path (default: /dev/pn5xx_i2c2)
-</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>  --data-dir string     Directory for UID storage (default: /data/keycard)
-</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>  --redis string        Redis server address (default: localhost:6379)
-</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>  --log int             Log level 0-3 (0=error, 3=debug) (default: 2)
-</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>  --led-device string   I2C device for LP5562 LED (empty = script-based control)
-</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>  --led-address string  I2C address for LP5562 LED (default: 0x30)
-</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>  --debug               Enable debug logging
+<h1 id="ble-ota-firmware-transfer">BLE OTA Firmware Transfer<a class="headerlink" href="#ble-ota-firmware-transfer" title="Permanent link">&para;</a></h1>
+<p>The BLE OTA transfer lets a phone app push firmware update bundles to the scooter over Bluetooth LE — no cellular connectivity required. It is a windowed, resumable, integrity-checked transfer protocol between the phone app and bluetooth-service, tunneled transparently through the nRF52840.</p>
+<p>Updates target one of two components per transfer:</p>
+<table>
+<thead>
+<tr>
+<th>Component ID</th>
+<th>Board</th>
+<th>Install path</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>0x00</code></td>
+<td>MDB (main board / middle driver board)</td>
+<td>Local update-service via <code>scooter:update:mdb</code></td>
+</tr>
+<tr>
+<td><code>0x01</code></td>
+<td>DBC (dashboard computer)</td>
+<td>Handed off to the DBC over the internal Ethernet link</td>
+</tr>
+</tbody>
+</table>
+<h2 id="architecture">Architecture<a class="headerlink" href="#architecture" title="Permanent link">&para;</a></h2>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>Phone app ──BLE GATT──&gt; nRF52840 ──UART/USOCK──&gt; bluetooth-service ──&gt; /data/ota staging
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a> (unustasis)             (tunnel)                  (pkg/ota receiver)         │
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>                                                                              ├─ MDB: LPUSH scooter:update:mdb  → update-service (mender-update install)
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>                                                                              └─ DBC: HTTP PUT/scp to 192.168.7.2 → LPUSH scooter:update:dbc
 </span></code></pre></div>
-<h2 id="redis-operations">Redis Operations<a class="headerlink" href="#redis-operations" title="Permanent link">&para;</a></h2>
-<h3 id="hash-keycard-written">Hash: <code>keycard</code> (written)<a class="headerlink" href="#hash-keycard-written" title="Permanent link">&para;</a></h3>
-<p><strong>Fields written on authentication:</strong>
-- <code>authentication</code> - <code>passed</code> when authorized UID detected
-- <code>type</code> - <code>scooter</code>
-- <code>uid</code> - UID of the card that authenticated (expires after 10 seconds)</p>
-<p><strong>Fields written on command response:</strong>
-- <code>command-result</code> - Result of last management command (e.g. <code>ok</code>, <code>count:3</code>, <code>card:&lt;uid&gt;</code>, <code>error:&lt;reason&gt;</code>)</p>
-<p><strong>Published channel:</strong> <code>keycard</code>
-- <code>authentication</code> - Published when authorized keycard detected</p>
-<h3 id="list-scooterkeycard-consumed">List: <code>scooter:keycard</code> (consumed)<a class="headerlink" href="#list-scooterkeycard-consumed" title="Permanent link">&para;</a></h3>
-<p>Management commands via LPUSH:</p>
+<p>The nRF52 holds <strong>no OTA session state</strong>: it forwards characteristic writes verbatim to the iMX6 as raw USOCK frames and relays status frames back as notifications (see <a href="#nrf-tunnel">nRF tunnel</a>). Windowing, ACKs, resume, and verification are end-to-end between the phone and bluetooth-service.</p>
+<p>Reference implementations (kept in sync, with shared golden test vectors):</p>
+<ul>
+<li>Scooter side: bluetooth-service <code>pkg/ota/</code> (<code>protocol.go</code>, <code>receiver.go</code>, <code>staging.go</code>, <code>dbc_handoff.go</code>)</li>
+<li>Phone side: unustasis <code>lib/domain/ota_protocol.dart</code>, <code>lib/service/ota_transfer_service.dart</code></li>
+<li>nRF tunnel: mdb-nrf52 <code>src/ota_tunnel.c</code></li>
+</ul>
+<h2 id="gatt-service-9a590500">GATT Service (9a590500)<a class="headerlink" href="#gatt-service-9a590500" title="Permanent link">&para;</a></h2>
+<p>Base UUID <code>xxxx-6e67-5d0d-aab9-ad9126b66f91</code>, like all scooter services. All three characteristics require an encrypted, MITM-protected connection (bonded with 6-digit PIN pairing).</p>
 <table>
 <thead>
 <tr>
-<th>Command</th>
-<th>Response</th>
+<th>Characteristic</th>
+<th>Name</th>
+<th>Properties</th>
+<th>Max size</th>
+<th>Content</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td><code>list</code></td>
-<td><code>count:&lt;n&gt;</code> then one <code>card:&lt;uid&gt;</code> per authorized card</td>
+<td>9a590501</td>
+<td>OTA_DATA</td>
+<td>write without response</td>
+<td>244 B</td>
+<td><code>[offset:u32][chunk ≤ 240 B]</code></td>
 </tr>
 <tr>
-<td><code>count</code></td>
-<td><code>count:&lt;n&gt;</code></td>
+<td>9a590502</td>
+<td>OTA_CONTROL</td>
+<td>write (with response)</td>
+<td>128 B</td>
+<td>Control messages (START, COMPLETE, ABORT, STATUS_REQ)</td>
 </tr>
 <tr>
-<td><code>add:&lt;uid&gt;</code></td>
-<td><code>ok</code> or <code>error:&lt;reason&gt;</code></td>
-</tr>
-<tr>
-<td><code>remove:&lt;uid&gt;</code></td>
-<td><code>ok</code> or <code>error:&lt;reason&gt;</code> (cannot remove last card)</td>
-</tr>
-<tr>
-<td><code>set-master:&lt;uid&gt;</code></td>
-<td>Sets master UID; use <code>NONE</code> to disable; clears authorized list</td>
-</tr>
-<tr>
-<td><code>learn:start</code></td>
-<td>Enter learn mode programmatically</td>
-</tr>
-<tr>
-<td><code>learn:stop</code></td>
-<td>Exit learn mode, saving learned cards (additive)</td>
-</tr>
-<tr>
-<td><code>learn:master:start</code></td>
-<td>Enter master teach-in mode; next non-registered tap becomes master</td>
-</tr>
-<tr>
-<td><code>learn:master:stop</code></td>
-<td>Exit master teach-in mode without committing</td>
-</tr>
-<tr>
-<td><code>reset</code></td>
-<td>Reset all auth state (master + authorized cards)</td>
+<td>9a590503</td>
+<td>OTA_STATUS</td>
+<td>read + notify</td>
+<td>64 B</td>
+<td>Status messages (ACKs, install progress, errors)</td>
 </tr>
 </tbody>
 </table>
-<p>Responses are written to <code>keycard command-result</code>.</p>
-<h3 id="channel-keycardevents-published">Channel: <code>keycard:events</code> (published)<a class="headerlink" href="#channel-keycardevents-published" title="Permanent link">&para;</a></h3>
-<p>Transient per-tap progress events during teach-in flows, for real-time subscribers (installer, BLE bridge). Format <code>&lt;event&gt;</code> or <code>&lt;event&gt;:&lt;uid&gt;</code>:</p>
-<ul>
-<li>Master teach-in: <code>mode-entered:master</code>, <code>mode-exited:master</code>, <code>master-learned:&lt;uid&gt;</code>, <code>rejected:already-authorized:&lt;uid&gt;</code>, <code>error:save-failed:&lt;uid&gt;</code></li>
-<li>Learn mode: <code>card-learned:&lt;uid&gt;</code> (queued for commit on <code>learn:stop</code>), <code>card-duplicate:&lt;uid&gt;</code></li>
-<li>Reset: <code>reset</code></li>
-</ul>
-<h2 id="hardware">Hardware<a class="headerlink" href="#hardware" title="Permanent link">&para;</a></h2>
-<h3 id="nfc-reader">NFC Reader<a class="headerlink" href="#nfc-reader" title="Permanent link">&para;</a></h3>
-<ul>
-<li><strong>Chip:</strong> PN7150, I2C interface at <code>/dev/pn5xx_i2c2</code></li>
-<li><strong>Library:</strong> <a href="https://github.com/librescoot/pn7150">github.com/librescoot/pn7150</a></li>
-<li><strong>UID format:</strong> uppercase hex string (e.g. <code>04A1B2C3D4E5F6</code>)</li>
-</ul>
-<h3 id="led-controllers">LED Controllers<a class="headerlink" href="#led-controllers" title="Permanent link">&para;</a></h3>
-<p><strong>I2C LED (LP5562 tri-color):</strong>
-- I2C bus 2, address <code>0x30</code>
-- Enabled with <code>--led-device /dev/i2c-2</code>
-- Green: authorized card; Red: unauthorized; Amber: lookup in progress; Blinking: master learning mode</p>
-<p><strong>PWM LEDs (learn mode):</strong>
-- <code>/dev/pwm_led3</code>, <code>/dev/pwm_led7</code> — on during learn mode
-- Controlled via <code>/usr/bin/ledcontrol.sh</code></p>
-<p><strong>Script-based fallback</strong> (when <code>--led-device</code> not set):
-- <code>/usr/bin/greenled.sh</code> — color/on/off
-- <code>/usr/bin/ledcontrol.sh</code> — PWM pattern control</p>
-<h2 id="operational-modes">Operational Modes<a class="headerlink" href="#operational-modes" title="Permanent link">&para;</a></h2>
-<h3 id="master-learning-mode-first-boot">Master Learning Mode (first boot)<a class="headerlink" href="#master-learning-mode-first-boot" title="Permanent link">&para;</a></h3>
-<p>Activated when <code>master_uids.txt</code> does not exist:
-1. RGB LED blinks (500ms) — waiting for master card
-2. First card presented becomes master UID, saved to <code>master_uids.txt</code>
-3. Authorized list cleared; RGB LED flashes once to confirm
-4. Switches to normal operation</p>
-<h3 id="normal-operation">Normal Operation<a class="headerlink" href="#normal-operation" title="Permanent link">&para;</a></h3>
+<p>Firmware without this service does not support BLE OTA; clients should treat its absence as "feature unavailable".</p>
+<h2 id="nrf-tunnel">nRF Tunnel<a class="headerlink" href="#nrf-tunnel" title="Permanent link">&para;</a></h2>
+<p>The tunnel bypasses the CBOR-based USOCK message convention (see <a href="../../nrf/UART/">UART Protocol</a>) and uses raw frame IDs to avoid the 128-byte CBOR parameter limit and per-chunk encode/decode cost:</p>
 <table>
 <thead>
 <tr>
-<th>Card type</th>
-<th>LED</th>
-<th>Redis</th>
+<th>Frame ID</th>
+<th>Direction</th>
+<th>Content</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td>Authorized</td>
-<td>Amber → Green flash</td>
-<td>Publish auth, write UID</td>
+<td><code>0xB0</code></td>
+<td>nRF → iMX</td>
+<td>Verbatim OTA_DATA write value</td>
 </tr>
 <tr>
-<td>Master</td>
-<td>Amber → enter learn mode</td>
+<td><code>0xB1</code></td>
+<td>nRF → iMX</td>
+<td>Verbatim OTA_CONTROL write value</td>
+</tr>
+<tr>
+<td><code>0xB2</code></td>
+<td>iMX → nRF</td>
+<td>Verbatim payload, notified on OTA_STATUS</td>
+</tr>
+</tbody>
+</table>
+<p>Tunnel behavior:</p>
+<ul>
+<li><strong>Link boost:</strong> OTA traffic requests tighter BLE connection parameters; the boost is dropped after ~30 s without OTA writes.</li>
+<li><strong>Suspend guard:</strong> if the iMX6 is suspended, writes are dropped and an <code>ERROR</code> with code <code>0x01</code> (suspended) is notified.</li>
+<li><strong>Overflow guard:</strong> if the USOCK TX ring cannot hold the frame, the write is dropped and <code>ERROR 0x02</code> (overflow) is notified. This cannot happen while the phone respects the transfer window; the phone recovers via the receiver's offset-gap REWIND either way.</li>
+<li>Error notifications are rate-limited to one per second; messages from the nRF are at most 16 bytes.</li>
+</ul>
+<h2 id="wire-format">Wire Format<a class="headerlink" href="#wire-format" title="Permanent link">&para;</a></h2>
+<p>All multi-byte fields are <strong>little-endian</strong>.</p>
+<h3 id="phone-scooter-ota_control-plus-data-on-ota_data">Phone → scooter (OTA_CONTROL, plus DATA on OTA_DATA)<a class="headerlink" href="#phone-scooter-ota_control-plus-data-on-ota_data" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Opcode</th>
+<th>Message</th>
+<th>Layout</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>0x01</code></td>
+<td>START</td>
+<td><code>[0x01][version][component][chunk_size:u16][total_size:u32][sha256:32][id_len:u8][bundle_id]</code></td>
+</tr>
+<tr>
 <td>—</td>
+<td>DATA (on OTA_DATA)</td>
+<td><code>[offset:u32][chunk]</code></td>
 </tr>
 <tr>
-<td>Unauthorized</td>
-<td>Amber → Red flash</td>
-<td>—</td>
+<td><code>0x03</code></td>
+<td>COMPLETE</td>
+<td><code>[0x03]</code></td>
+</tr>
+<tr>
+<td><code>0x04</code></td>
+<td>ABORT</td>
+<td><code>[0x04][reason]</code> — <code>0x00</code> user cancel, <code>0x01</code> app error</td>
+</tr>
+<tr>
+<td><code>0x05</code></td>
+<td>STATUS_REQ</td>
+<td><code>[0x05]</code> — answered with an INSTALL_PROGRESS reflecting the current phase</td>
 </tr>
 </tbody>
 </table>
-<h3 id="learn-mode">Learn Mode<a class="headerlink" href="#learn-mode" title="Permanent link">&para;</a></h3>
-<p>Activated by presenting master UID or via <code>learn:start</code>:
-1. PWM LEDs 3 + 7 turn on
-2. Each new card presented: added to session queue, Green LED flash
-3. Present master UID again or <code>learn:stop</code> to exit
-4. Learned cards are <strong>appended</strong> to the authorized list in <code>authorized_uids.txt</code> (additive)
-5. If no cards learned: existing list unchanged
-6. PWM LEDs 3 + 7 turn off</p>
-<h2 id="file-locations">File Locations<a class="headerlink" href="#file-locations" title="Permanent link">&para;</a></h2>
+<p>START fields:</p>
+<ul>
+<li><code>version</code> — protocol version, must be <code>1</code>.</li>
+<li><code>component</code> — <code>0x00</code> MDB, <code>0x01</code> DBC.</li>
+<li><code>chunk_size</code> — bytes per DATA chunk, <code>1..240</code>. Every chunk except the last must be exactly this size (resume offsets are computed in chunk units).</li>
+<li><code>total_size</code> — bundle size in bytes.</li>
+<li><code>sha256</code> — SHA-256 of the complete bundle, raw 32 bytes.</li>
+<li><code>bundle_id</code> — 1–64 chars, first alphanumeric, rest <code>[A-Za-z0-9._-]</code> (filename-safe; the ID is used in staging paths). See <a href="#bundle-ids">Bundle IDs</a>.</li>
+</ul>
+<h3 id="scooter-phone-ota_status-notifications">Scooter → phone (OTA_STATUS notifications)<a class="headerlink" href="#scooter-phone-ota_status-notifications" title="Permanent link">&para;</a></h3>
 <table>
 <thead>
 <tr>
-<th>Path</th>
-<th>Purpose</th>
+<th>Opcode</th>
+<th>Message</th>
+<th>Layout</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td><code>/data/keycard/authorized_uids.txt</code></td>
-<td>Authorized keycard UIDs (one per line)</td>
+<td><code>0x81</code></td>
+<td>START_ACK</td>
+<td><code>[0x81][status][resume_offset:u32][window_chunks:u16][ack_every:u8][max_chunk:u16]</code></td>
 </tr>
 <tr>
-<td><code>/data/keycard/master_uids.txt</code></td>
-<td>Master UID</td>
+<td><code>0x82</code></td>
+<td>ACK</td>
+<td><code>[0x82][flags][acked_offset:u32]</code></td>
+</tr>
+<tr>
+<td><code>0x83</code></td>
+<td>COMPLETE_ACK</td>
+<td><code>[0x83][status]</code></td>
+</tr>
+<tr>
+<td><code>0x84</code></td>
+<td>INSTALL_PROGRESS</td>
+<td><code>[0x84][phase][percent][msg_len:u8][msg]</code></td>
+</tr>
+<tr>
+<td><code>0x85</code></td>
+<td>ABORT_ACK</td>
+<td><code>[0x85]</code></td>
+</tr>
+<tr>
+<td><code>0x86</code></td>
+<td>ERROR</td>
+<td><code>[0x86][code][msg_len:u8][msg]</code></td>
 </tr>
 </tbody>
 </table>
-<p>Files are written atomically (write to <code>.tmp</code>, sync, rename).</p>
-<h2 id="systemd-unit">Systemd Unit<a class="headerlink" href="#systemd-unit" title="Permanent link">&para;</a></h2>
+<p>Clients should ignore unknown opcodes for forward compatibility. Messages are at most 60 bytes of text (fits the 64-byte characteristic).</p>
+<h4 id="start_ack-status-codes">START_ACK status codes<a class="headerlink" href="#start_ack-status-codes" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th>Code</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>0x00</code></td>
+<td>Resuming an interrupted transfer at <code>resume_offset</code></td>
+</tr>
+<tr>
+<td><code>0x01</code></td>
+<td>Fresh transfer from offset 0</td>
+</tr>
+<tr>
+<td><code>0x10</code></td>
+<td>Not enough free staging space</td>
+</tr>
+<tr>
+<td><code>0x11</code></td>
+<td>Busy (reserved — currently a new START replaces an active receive session)</td>
+</tr>
+<tr>
+<td><code>0x12</code></td>
+<td>Bad parameters (malformed START, unsupported version/component/chunk size)</td>
+</tr>
+<tr>
+<td><code>0x13</code></td>
+<td>An install is in progress; poll with STATUS_REQ until it reaches a terminal phase</td>
+</tr>
+</tbody>
+</table>
+<p><code>window_chunks</code>, <code>ack_every</code>, and <code>max_chunk</code> announce the receiver's tuning so the constants live in one place (currently 64, 16, 240). The phone must keep at most <code>window_chunks</code> unacknowledged chunks in flight and must not exceed <code>max_chunk</code> as chunk size.</p>
+<h4 id="ack">ACK<a class="headerlink" href="#ack" title="Permanent link">&para;</a></h4>
+<p>Cumulative: <code>acked_offset</code> is the number of bytes received in order so far. Flag <code>0x01</code> (REWIND) signals an offset gap — the phone must rewind its send position to <code>acked_offset</code> (go-back-N). REWINDs are rate-limited to one per 100 ms.</p>
+<h4 id="complete_ack-status-codes">COMPLETE_ACK status codes<a class="headerlink" href="#complete_ack-status-codes" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th>Code</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>0x00</code></td>
+<td>Hash verified, install queued</td>
+</tr>
+<tr>
+<td><code>0x01</code></td>
+<td>SHA-256 mismatch (staging discarded — retransfer needed)</td>
+</tr>
+<tr>
+<td><code>0x02</code></td>
+<td>Size mismatch (COMPLETE before all bytes arrived)</td>
+</tr>
+<tr>
+<td><code>0x03</code></td>
+<td>Queueing the install failed</td>
+</tr>
+</tbody>
+</table>
+<h4 id="install_progress-phases">INSTALL_PROGRESS phases<a class="headerlink" href="#install_progress-phases" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th>Phase</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>0x00</code></td>
+<td>Verifying (SHA-256 of the staged bundle, or update-service "preparing")</td>
+</tr>
+<tr>
+<td><code>0x01</code></td>
+<td>Installing (<code>percent</code> is install progress 0–100)</td>
+</tr>
+<tr>
+<td><code>0x02</code></td>
+<td>Pending reboot — install done; the scooter reboots itself after 3 minutes of sustained stand-by</td>
+</tr>
+<tr>
+<td><code>0x03</code></td>
+<td>Rebooting</td>
+</tr>
+<tr>
+<td><code>0x04</code></td>
+<td>Success</td>
+</tr>
+<tr>
+<td><code>0x05</code></td>
+<td>Failure (<code>msg</code> carries the error message)</td>
+</tr>
+<tr>
+<td><code>0x06</code></td>
+<td>Idle (no transfer or install active)</td>
+</tr>
+</tbody>
+</table>
+<p>Phases <code>0x02</code>, <code>0x04</code>, <code>0x05</code> are terminal. The last phase is retained after the install finishes, so a phone that reconnects later can still fetch the outcome via STATUS_REQ.</p>
+<h4 id="error-codes">ERROR codes<a class="headerlink" href="#error-codes" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th>Code</th>
+<th>Origin</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>0x01</code></td>
+<td>nRF</td>
+<td>iMX6 suspended, data dropped</td>
+</tr>
+<tr>
+<td><code>0x02</code></td>
+<td>nRF</td>
+<td>USOCK TX ring overflow, data dropped</td>
+</tr>
+<tr>
+<td><code>0x03</code></td>
+<td>bluetooth-service</td>
+<td>Internal error (e.g. chunk overruns declared total)</td>
+</tr>
+<tr>
+<td><code>0x04</code></td>
+<td>bluetooth-service</td>
+<td>Staging write failed (session aborted, staging discarded)</td>
+</tr>
+<tr>
+<td><code>0x05</code></td>
+<td>bluetooth-service</td>
+<td>No staging space</td>
+</tr>
+<tr>
+<td><code>0x06</code></td>
+<td>bluetooth-service</td>
+<td>No active session (e.g. COMPLETE without START)</td>
+</tr>
+</tbody>
+</table>
+<h2 id="transfer-lifecycle">Transfer Lifecycle<a class="headerlink" href="#transfer-lifecycle" title="Permanent link">&para;</a></h2>
+<ol>
+<li><strong>START</strong> — the phone sends bundle identity (component, size, SHA-256, bundle ID, chunk size).</li>
+<li><strong>START_ACK</strong> — the scooter answers with <code>resume_offset</code> (0 for a fresh transfer) and its window tuning. A START while another receive session is active replaces that session.</li>
+<li><strong>DATA stream</strong> — the phone writes <code>[offset][chunk]</code> frames (write without response), keeping at most <code>window_chunks</code> chunks unacknowledged. The scooter appends in-order chunks to the staging file and sends a cumulative ACK every <code>ack_every</code> chunks or every 250 ms, whichever comes first. Out-of-order offsets trigger a REWIND ACK.</li>
+<li><strong>COMPLETE</strong> — once all bytes are ACKed, the phone sends COMPLETE. The scooter fsyncs, hashes the staged file (an INSTALL_PROGRESS <code>verifying</code> is emitted first — hashing a large bundle takes time), renames <code>.part</code> to its final name, and queues the install.</li>
+<li><strong>COMPLETE_ACK</strong> <code>0x00</code> — the install is queued; INSTALL_PROGRESS notifications follow until a terminal phase.</li>
+</ol>
+<p>Reference client timeouts (unustasis): 5 s for START_ACK and ACK movement, 30 s for COMPLETE_ACK; an ACK timeout rewinds to the last acked offset; the attempt fails after 30 rewinds. The client picks <code>chunk_size = min(max_chunk, ATT_MTU − 3 − 4, 240)</code> and requests a high connection priority for the duration of the transfer.</p>
+<h3 id="resume">Resume<a class="headerlink" href="#resume" title="Permanent link">&para;</a></h3>
+<p>Transfer state survives disconnects, app restarts, and scooter reboots:</p>
 <ul>
-<li><strong>Unit:</strong> <code>librescoot-keycard.service</code></li>
-<li><strong>Binary:</strong> <code>/usr/bin/keycard-service</code></li>
-<li><strong>Requires:</strong> <code>redis.service</code>, <code>librescoot-vehicle.service</code></li>
+<li>Each transfer stages to <code>&lt;bundle&gt;.part</code> plus a JSON <strong>sidecar</strong> recording bundle ID, component, total size, SHA-256, and chunk size.</li>
+<li>A START whose identity matches the sidecar resumes: <code>resume_offset</code> is the <code>.part</code> size rounded <strong>down to a chunk boundary</strong> (an unsynced tail may be torn after a hard reboot). The staging file is truncated to that offset.</li>
+<li>A START whose identity does not match discards the old partial and starts from zero.</li>
+<li>ABORT (user cancel) keeps the partial file and sidecar for a later resume; only identity mismatch, write failures, and hash mismatch discard staging.</li>
+<li>After 10 minutes without traffic, the receiver releases the session and its power inhibitor but keeps the staging for resume.</li>
+<li>Stale partials untouched for 7 days are cleaned up when space is needed.</li>
 </ul>
-<h2 id="building">Building<a class="headerlink" href="#building" title="Permanent link">&para;</a></h2>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>make<span class="w"> </span>build<span class="w">        </span><span class="c1"># ARM</span>
-</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>make<span class="w"> </span>build-local<span class="w">  </span><span class="c1"># Host</span>
+<h2 id="bundle-ids">Bundle IDs<a class="headerlink" href="#bundle-ids" title="Permanent link">&para;</a></h2>
+<p>The bundle ID both identifies the transfer (resume matching) and names the staged file, so it must be the real asset basename:</p>
+<ul>
+<li><strong>Full images:</strong> send the filename <strong>stem</strong> (no extension); the scooter appends <code>.mender</code> when staging. IDs already ending in <code>.mender</code> are used verbatim.</li>
+<li><strong>Delta bundles:</strong> send the full filename <strong>with</strong> the <code>.delta</code> extension; update-service dispatches on the extension to apply the file as a delta.</li>
+</ul>
+<p>update-service derives the installed version from the filename, so the name matters beyond identity. Allowed charset: first character alphanumeric, rest <code>[A-Za-z0-9._-]</code>, at most 64 bytes; anything else is rejected with START_ACK <code>0x12</code> (the ID is joined into filesystem paths, so separators and leading dots must never get through).</p>
+<h2 id="staging">Staging<a class="headerlink" href="#staging" title="Permanent link">&para;</a></h2>
+<p>Bundles stage under <code>/data/ota/&lt;mdb|dbc&gt;/</code> — update-service's own download directories — on the persistent data partition:</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>/data/ota/mdb/&lt;bundle&gt;.mender.part   in-flight transfer
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>/data/ota/mdb/&lt;bundle&gt;.json          sidecar (transfer identity)
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>/data/ota/mdb/&lt;bundle&gt;.mender        completed, queued for install
 </span></code></pre></div>
+<ul>
+<li>The staging file is fdatasync'ed every 256 KiB so resume offsets are honest after a crash.</li>
+<li>A START for a fresh transfer requires the bundle size plus a 32 MiB margin free on <code>/data</code>; otherwise START_ACK <code>0x10</code> (after a stale-partial cleanup attempt).</li>
+<li>After a <strong>successful MDB full-image install</strong> the <code>.mender</code> stays in place: it becomes the base for future delta updates (update-service's retention owns it from there). Deltas, DBC bundles, and failed installs are removed from staging.</li>
+</ul>
+<h2 id="install">Install<a class="headerlink" href="#install" title="Permanent link">&para;</a></h2>
+<h3 id="mdb">MDB<a class="headerlink" href="#mdb" title="Permanent link">&para;</a></h3>
+<p>The receiver queues <code>update-from-file:&lt;path&gt;</code> on the <code>scooter:update:mdb</code> Redis list. update-service runs <code>mender-update install</code> and reports into the shared <code>ota</code> hash (<code>status:mdb</code>, <code>install-progress:mdb</code>, <code>error-message:mdb</code>), which the receiver relays to the phone as INSTALL_PROGRESS notifications (paced to one per 100 ms — the SoftDevice notification queue is shallow). See <a href="../../services/librescoot-update/">update-service</a>.</p>
+<p>On <code>pending-reboot</code> the transfer is finished from the receiver's perspective: update-service reboots the MDB after 3 minutes of sustained stand-by; no user action is needed beyond leaving the scooter in stand-by.</p>
+<h3 id="dbc-handoff">DBC handoff<a class="headerlink" href="#dbc-handoff" title="Permanent link">&para;</a></h3>
+<p>DBC bundles are received on the MDB first, then delivered to the dashboard (same pattern as ums-service's loader):</p>
+<ol>
+<li><code>LPUSH scooter:update start-dbc</code> — vehicle-service claims the DBC update lock: forces dashboard power on, installs a suspend-only inhibitor, arms a watchdog fed by periodic <code>start-dbc</code> heartbeats (every 5 min).</li>
+<li>Wait for the DBC to become reachable at <code>192.168.7.2</code> (it may need to boot; up to 3 min).</li>
+<li>Transfer the bundle: HTTP PUT to librescoot-data-server on port 8080 (request paths map under the DBC's <code>/data</code>), falling back to <code>scp</code>.</li>
+<li><code>LPUSH scooter:update:dbc update-from-file:/data/ota/dbc/&lt;bundle&gt;</code> — the DBC's update-service instance (connected to the MDB's Redis) installs and reports into the shared <code>ota</code> hash under <code>:dbc</code> fields; progress reaches the phone through the same relay.</li>
+<li>The update lock is left held: update-service runs its own <code>start-dbc</code>/<code>complete-dbc</code> cycle around the install; releasing early would let the vehicle state machine cut DBC power mid-install.</li>
+</ol>
+<p>On handoff failure the lock is released (<code>complete-dbc</code>) and the error is written to the <code>ota</code> hash so the phone receives a normal failure notification.</p>
+<h2 id="power-inhibitor">Power Inhibitor<a class="headerlink" href="#power-inhibitor" title="Permanent link">&para;</a></h2>
+<p>While receiving and installing, the receiver holds a <code>block</code>-type inhibitor (<code>id: ble-ota</code>) in the <code>power:inhibits</code> hash so pm-service does not suspend or hibernate mid-transfer. It is released when the session goes idle (completion, abort, 10 min transfer idle timeout) and, as a safety net, 30 minutes after an install was queued with no terminal feedback from update-service.</p>
+<h2 id="redis-status-otable">Redis Status (<code>ota:ble</code>)<a class="headerlink" href="#redis-status-otable" title="Permanent link">&para;</a></h2>
+<p>The receiver mirrors transfer state into the <code>ota:ble</code> hash for on-scooter observability:</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>state</td>
+<td><code>idle</code>, <code>receiving</code>, <code>installing</code></td>
+</tr>
+<tr>
+<td>bundle-id</td>
+<td>Bundle ID of the active session</td>
+</tr>
+<tr>
+<td>component</td>
+<td><code>mdb</code> or <code>dbc</code></td>
+</tr>
+<tr>
+<td>received-bytes</td>
+<td>In-order bytes received so far</td>
+</tr>
+<tr>
+<td>total-bytes</td>
+<td>Declared bundle size</td>
+</tr>
+<tr>
+<td>rate-bps</td>
+<td>Rolling transfer rate (recomputed ~1/s)</td>
+</tr>
+<tr>
+<td>updated-at</td>
+<td>Unix timestamp of the last update</td>
+</tr>
+</tbody>
+</table>
+<p>Session fields are only present while a session is active.</p>
 <h2 id="related-documentation">Related Documentation<a class="headerlink" href="#related-documentation" title="Permanent link">&para;</a></h2>
 <ul>
-<li><a href="../../electronic/">Electronic Components</a> — PN7150 and LP5562 hardware</li>
-<li><a href="../../redis/">Redis Operations</a> — Keycard hash details</li>
-<li><a href="../">Librescoot Services</a></li>
+<li><a href="../">Bluetooth Interface</a> — all GATT services</li>
+<li><a href="../../services/librescoot-update/">update-service</a> — download, delta handling, install, reboot coordination</li>
+<li><a href="../../services/librescoot-bluetooth/">bluetooth-service</a> — the service hosting the receiver</li>
+<li><a href="../../nrf/UART/">nRF UART Protocol</a> — USOCK framing</li>
 </ul>
 
 
@@ -2163,7 +2511,7 @@
       <nav class="md-footer__inner md-grid" aria-label="Footer" >
         
           
-          <a href="../librescoot-ecu/" class="md-footer__link md-footer__link--prev" aria-label="Previous: ecu-service">
+          <a href="../" class="md-footer__link md-footer__link--prev" aria-label="Previous: Bluetooth">
             <div class="md-footer__button md-icon">
               
               <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-arrow-left" viewBox="0 0 24 24"><path d="m12 19-7-7 7-7M19 12H5"/></svg>
@@ -2173,20 +2521,20 @@
                 Previous
               </span>
               <div class="md-ellipsis">
-                ecu-service
+                Bluetooth
               </div>
             </div>
           </a>
         
         
           
-          <a href="../librescoot-modem/" class="md-footer__link md-footer__link--next" aria-label="Next: modem-service">
+          <a href="../../redis/" class="md-footer__link md-footer__link--next" aria-label="Next: Redis">
             <div class="md-footer__title">
               <span class="md-footer__direction">
                 Next
               </span>
               <div class="md-ellipsis">
-                modem-service
+                Redis
               </div>
             </div>
             <div class="md-footer__button md-icon">

@@ -22,6 +22,9 @@
         <loc>https://reference.librescoot.org/dev/bluetooth/</loc>
       </url>
       <url>
+        <loc>https://reference.librescoot.org/dev/bluetooth/ota-transfer/</loc>
+      </url>
+      <url>
         <loc>https://reference.librescoot.org/dev/redis/</loc>
       </url>
       <url>
