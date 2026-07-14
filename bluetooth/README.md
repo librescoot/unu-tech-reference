@@ -150,6 +150,16 @@ Unified extensible command/response channel for phone app interaction
 
 Error responses follow the pattern `<prefix>:error:<details>`.
 
+### OTA Transfer Service (9a590500)
+
+Firmware bundle transfer from the phone to the scooter (MDB and DBC updates over BLE). Windowed, resumable, integrity-checked; the nRF forwards these characteristics verbatim to bluetooth-service. See [BLE OTA Firmware Transfer](ota-transfer.md) for the full protocol.
+
+| Characteristic | Description | Values |
+|---------------|-------------|---------|
+| 9a590501 | OTA Data (write w/o response, max 244 B) | `[offset:u32 LE][chunk ≤ 240 B]` |
+| 9a590502 | OTA Control (write, max 128 B) | START / COMPLETE / ABORT / STATUS_REQ messages |
+| 9a590503 | OTA Status (read+notify, max 64 B) | START_ACK / ACK / COMPLETE_ACK / INSTALL_PROGRESS / ABORT_ACK / ERROR messages |
+
 ### Scooter Info Service (9a59a040)
 
 System-level telemetry and configuration

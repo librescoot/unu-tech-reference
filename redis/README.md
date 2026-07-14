@@ -603,6 +603,22 @@ Librescoot adds per-component update tracking:
 
 See [update-service documentation](../services/librescoot-update.md) for details.
 
+### BLE OTA Transfer Status (`ota:ble`) - Librescoot Only
+
+Written by bluetooth-service's OTA receiver while a phone pushes a firmware bundle over BLE (see [BLE OTA Firmware Transfer](../bluetooth/ota-transfer.md)):
+
+| Field | Type | Description | Example |
+|-------|------|-------------|----------|
+| state | string | Receiver state: `idle`, `receiving`, `installing` | "receiving" |
+| bundle-id | string | Bundle ID of the active session | "librescoot-nightly-20260701" |
+| component | string | Target board: `mdb`, `dbc` | "mdb" |
+| received-bytes | integer | In-order bytes received so far | "3145728" |
+| total-bytes | integer | Declared bundle size | "104857600" |
+| rate-bps | integer | Rolling transfer rate in bytes/second | "9200" |
+| updated-at | integer | Unix timestamp of last update | "1780000000" |
+
+Session fields (all but `state`/`updated-at`) are only present while a session is active.
+
 ### Version Information - Librescoot Only
 
 #### MDB Version (`version:mdb`)

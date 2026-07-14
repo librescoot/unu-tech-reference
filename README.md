@@ -44,6 +44,7 @@ The unu Scooter Pro uses a distributed architecture with several key systems:
 - **Bluetooth LE** - Local device connectivity
   - Service UUIDs documented in [Bluetooth Docs](bluetooth/README.md)
   - Device control and status monitoring
+  - Firmware updates over BLE ([OTA transfer protocol](bluetooth/ota-transfer.md))
 
 - **Cellular** - Remote connectivity
   - SIM7100E module on MDB

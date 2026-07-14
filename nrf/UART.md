@@ -93,6 +93,16 @@ Messages use 16-bit type identifiers organized hierarchically:
 - **0xA040** - Scooter Info (mileage, software version, navigation active, UMS status)
 - **0xAA00** - BLE Commands (advertising, bonding)
 
+### Raw Frames (BLE OTA Tunnel)
+
+Three frame IDs carry **raw, non-CBOR payloads** for the BLE OTA firmware transfer — the nRF forwards OTA characteristic writes verbatim and relays status back without touching the content:
+
+- **0xB0** (nRF → iMX6) - OTA data chunk (verbatim OTA_DATA characteristic write)
+- **0xB1** (nRF → iMX6) - OTA control message (verbatim OTA_CONTROL characteristic write)
+- **0xB2** (iMX6 → nRF) - OTA status message, notified verbatim on OTA_STATUS
+
+See [BLE OTA Firmware Transfer](../bluetooth/ota-transfer.md).
+
 ### Sub-Types Examples
 
 Each message type contains sub-types as CBOR map keys:

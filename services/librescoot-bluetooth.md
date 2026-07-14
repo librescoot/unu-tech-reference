@@ -134,6 +134,20 @@ The Bluetooth service provides the BLE (Bluetooth Low Energy) interface for the 
 - `maps-available` - Offline display maps installed (set by scootui-qt, queried via `status:maps-available`)
 - `navigation-available` - Routing engine available (set by scootui-qt, queried via `status:navigation-available`)
 
+### Hash: `ota:ble`
+
+Transfer status of the BLE OTA receiver (see [BLE OTA Firmware Transfer](../bluetooth/ota-transfer.md) and the [field reference](../redis/README.md#ble-ota-transfer-status-otable---librescoot-only)):
+
+**Fields written:**
+- `state` - `idle`, `receiving`, or `installing`
+- `bundle-id`, `component`, `received-bytes`, `total-bytes`, `rate-bps` - Active session details
+- `updated-at` - Unix timestamp of the last update
+
+### Hash: `power:inhibits`
+
+**Fields written:**
+- `ble-ota` - Block-type power inhibitor held during BLE OTA transfers and installs, so pm-service does not suspend mid-transfer. Removed when the OTA session ends (or after safety timeouts: 10 min transfer idle, 30 min without install feedback).
+
 ### Hashes read (not written)
 
 The service reads but does not write to these hashes:
@@ -141,6 +155,7 @@ The service reads but does not write to these hashes:
 - `battery:1` - Reads battery state and charge
 - `vehicle` - Reads vehicle state for nRF synchronization
 - `power-manager` - Reads power state
+- `ota` - Watched during a BLE-initiated install; `status:<component>`, `install-progress:<component>`, and `error-message:<component>` (written by update-service) are relayed to the phone as INSTALL_PROGRESS notifications
 
 ### Lists consumed (BRPOP)
 
@@ -170,6 +185,9 @@ The service writes requests to:
 - `scooter:blinker` - Blinker commands ("left", "right", "both", "off")
 - `scooter:keycard` - Keycard management commands ("list", "count", "add:<uid>", "remove:<uid>")
 - `scooter:alarm` - Alarm commands ("enable", "disable", "arm", "disarm", "start:<seconds>", "stop")
+- `scooter:update:mdb` - `update-from-file:<path>` after a verified BLE OTA transfer of an MDB bundle
+- `scooter:update` - `start-dbc` (lock claim + heartbeats) / `complete-dbc` during the BLE OTA DBC handoff
+- `scooter:update:dbc` - `update-from-file:<path>` after delivering a DBC bundle to the dashboard
 
 These are triggered by BLE characteristic writes received from the nRF52 (BLE events or extended commands).
 
@@ -422,6 +440,16 @@ Response codes: `ltc:ok` (success), `ltc:error:unsafe` (rejected as unsafe), `lt
 
 Responses are sent back via EXTENDED_RESPONSE (0x0402) as string notifications to the phone app.
 
+### BLE OTA Firmware Transfer
+
+The service hosts the scooter side of the BLE OTA transfer (`pkg/ota`): a windowed, resumable receiver for firmware bundles pushed by the phone app through the nRF's transparent OTA tunnel (raw USOCK frames `0xB0` data / `0xB1` control in, `0xB2` status out — no CBOR).
+
+- Bundles are staged under `/data/ota/<mdb|dbc>/` with JSON sidecars so interrupted transfers resume across disconnects and reboots.
+- After SHA-256 verification, MDB bundles are queued with the local update-service (`scooter:update:mdb`); DBC bundles are delivered to the dashboard (HTTP PUT to librescoot-data-server, scp fallback) and queued on `scooter:update:dbc` under the vehicle-service DBC update lock.
+- Install progress from the `ota` hash is relayed to the phone as notifications; a `ble-ota` power inhibitor blocks suspend during transfer and install.
+
+See [BLE OTA Firmware Transfer](../bluetooth/ota-transfer.md) for the protocol and lifecycle.
+
 ### Accelerometer Wake-up Events
 
 The service handles accelerometer wake-up messages from the nRF (message type 0x0200):
@@ -530,6 +558,7 @@ When a subscribed field changes, the service:
 ## Related Documentation
 
 - [Bluetooth Protocol](../bluetooth/README.md)
+- [BLE OTA Firmware Transfer](../bluetooth/ota-transfer.md)
 - [nRF UART Protocol](../nrf/UART.md)
 - [nRF Power Management](../nrf/power-management.md)
 - [Redis Operations](../redis/README.md)

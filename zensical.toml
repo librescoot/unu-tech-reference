@@ -21,6 +21,7 @@ nav = [
     ]},
     { "Communication" = [
         { "Bluetooth" = "bluetooth/README.md" },
+        { "BLE OTA Transfer" = "bluetooth/ota-transfer.md" },
         { "Redis" = "redis/README.md" },
         { "nRF52840" = "nrf/README.md" },
         { "UART Protocol" = "nrf/UART.md" },
