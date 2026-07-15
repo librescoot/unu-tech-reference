@@ -63,7 +63,6 @@ Settings are organized by section. Examples:
 - `alarm.l1-cooldown` - Level 1 cooldown duration in seconds
 
 - `scooter.max-voltage-delta` - Maximum voltage difference between batteries in mV before dual battery activation is refused (default: 1000; 0 to disable)
-- `scooter.battery-ignores-seatbox` - Runtime override of `--dangerously-ignore-seatbox` (default: false)
 - `scooter.battery-keep-active-on-seatbox-open` - Keep active battery on across seatbox opens (default: false)
 - `scooter.battery-aux-low-keep-active-enter-mv` - Aux battery voltage in mV below which the keep-active-on-seatbox-open override engages automatically (default: 11500). Hysteresis pairs with the exit threshold.
 - `scooter.battery-aux-low-keep-active-exit-mv` - Aux battery voltage in mV at or above which the aux-low keep-active override disengages (default: 12000). Must be greater than the enter threshold.
@@ -188,7 +187,7 @@ apn = "internet.provider.com"
 [scooter]
 auto-standby-seconds = "0"
 brake-hibernation = "enabled"
-battery-ignores-seatbox = "false"
+battery-keep-active-on-seatbox-open = "false"
 
 [dashboard]
 theme = "dark"

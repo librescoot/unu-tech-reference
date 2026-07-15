@@ -136,12 +136,12 @@ Generated from source analysis of all service repositories.
 **Reads:**
 - `vehicle/state` (vehicle state for active/standby mode)
 - `vehicle/seatbox:lock` (seatbox state for enabling battery readers)
-- `settings/scooter.battery-ignores-seatbox`
+- `settings/scooter.battery-keep-active-on-seatbox-open`
 - `settings/scooter.dual-battery`
 
 **Subscribes to:**
 - `vehicle` channel (payload: "state", "seatbox:lock")
-- `settings` channel (payload: "scooter.battery-ignores-seatbox", "scooter.dual-battery")
+- `settings` channel (payload: "scooter.battery-keep-active-on-seatbox-open", "scooter.dual-battery")
 
 **Hardware access:** NFC via `/dev/i2c-*`, PN7150 controller
 
