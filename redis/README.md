@@ -547,6 +547,56 @@ hgetall modem
 | pin-action | string | Outcome of the last SIM PIN reconcile ("unconfigured"/"ok"/"unlocked"/"lock-enabled"/"wrong-pin"/"low-retries-bail"/"puk-required"/"error") | "ok" |
 | apn-action | string | Outcome of the last APN reconcile ("no-sim"/"unconfigured"/"ok"/"applied"/"iccid-changed-cleared"/"error") | "ok" |
 
+### SMS (`sms` hash, `sms:received` / `sms:sent` streams) - Librescoot Only
+
+Per-message SMS data lives on two Redis streams, each with a dedicated pub/sub
+channel of the same name; the `sms` hash only carries latest-value convenience
+state. Redis is not persistent on librescoot, so the streams are a live window
+(capped at 100 entries), not an archive.
+
+#### `sms` hash
+
+```
+hgetall sms
+```
+
+| Field | Type | Description | Example |
+|-------|------|-------------|----------|
+| state | string | Send state of the last outbound message ("idle"/"sending"/"error"), published as a `state` notification on the `sms` channel | "idle" |
+| last-sent-to | string | Recipient number of the last successfully sent SMS | "+4915112345678" |
+| last-sent-at | string | RFC 3339 timestamp the last send completed | "2026-07-15T09:30:00+02:00" |
+| last-received-from | string | Sender number of the last inbound SMS | "+4915112345678" |
+| last-received-text | string | Body of the last inbound SMS | "Hello" |
+| last-received-at | string | RFC 3339 timestamp the last inbound SMS arrived | "2026-07-15T09:30:00+02:00" |
+| unread-count | string | Inbound messages received since service start | "3" |
+
+The `last-received-*` fields are refreshed silently; the per-message
+notification is the dedicated `sms:received` channel below.
+
+#### `sms:received` stream + channel
+
+One stream entry per inbound message, fields `from`, `text`, `timestamp`
+(RFC 3339). Each entry is also PUBLISHed on the `sms:received` channel as
+JSON including its stream `id`:
+
+```
+SUBSCRIBE sms:received        # {"id":"1752...-0","from":"+4930...","text":"Hello","timestamp":"..."}
+XREAD STREAMS sms:received 0  # catch-up from the beginning of the window
+```
+
+A message is only deleted from modem storage after its XADD succeeds, so a
+Redis outage doesn't lose mail (the modem store buffers it and modem-service
+retries). Messages that arrived while the service was offline are drained on
+startup.
+
+#### `sms:sent` stream + channel
+
+One stream entry per terminal send outcome, fields `request-id` (the caller's
+`id` token from the `scooter:sms` payload, empty if none), `to`, `text`,
+`outcome` (`sent`/`error`), `error` (empty on success), `timestamp`. Each
+entry is also PUBLISHed on the `sms:sent` channel as JSON including its
+stream `id`.
+
 ### Internet Connectivity (`internet`) - Librescoot Enhancement
 
 Librescoot adds modem health tracking:
@@ -807,6 +857,22 @@ redis-cli -h 192.168.7.1 LPUSH scooter:modem disable
 **Available commands**: `enable`, `disable`
 
 There are no GPS commands; modem-service manages GPS automatically based on connectivity state. The `modem.gps` setting toggles GPS overall.
+
+### SMS Send (`scooter:sms`) - Librescoot Only
+
+Sends an SMS through the modem. Unlike the other command queues (plain-string
+commands), the payload is JSON, because a send needs both a recipient and a
+body. The optional `id` token is echoed back as `request-id` on the `sms:sent`
+stream so concurrent senders can correlate outcomes:
+
+```bash
+redis-cli -h 192.168.7.1 LPUSH scooter:sms '{"to":"+4915112345678","text":"Hello from the scooter"}'
+redis-cli -h 192.168.7.1 LPUSH scooter:sms '{"id":"trip-42","to":"+4915112345678","text":"Hello"}'
+```
+
+The terminal outcome lands on the `sms:sent` stream/channel; send progress is
+also reflected in the `sms` hash (`state` goes `sending`, then `idle` or
+`error`).
 
 ### Update Control (`scooter:update`, `scooter:update:mdb`, `scooter:update:dbc`) - Librescoot Only
 

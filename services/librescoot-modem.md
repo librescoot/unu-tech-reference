@@ -2,7 +2,7 @@
 
 ## Description
 
-The modem service manages the cellular modem (SimCom SIM7100E) for internet connectivity and GPS functionality using ModemManager (mmcli). It monitors network registration, signal quality, access technology (2G/3G/4G), handles modem power management and recovery, manages network connectivity, and provides GPS coordinates via gpsd. The service implements intelligent health monitoring with multi-strategy recovery procedures and GPS-specific recovery mechanisms.
+The modem service manages the cellular modem (SimCom SIM7100E) for internet connectivity and GPS functionality using ModemManager (mmcli). It monitors network registration, signal quality, access technology (2G/3G/4G), handles modem power management and recovery, manages network connectivity, and provides GPS coordinates via gpsd. The service implements intelligent health monitoring with multi-strategy recovery procedures and GPS-specific recovery mechanisms. It also sends and receives SMS: outbound messages via the `scooter:sms` queue, inbound messages published to the `sms` hash.
 
 ## Command-Line Options
 
@@ -18,8 +18,10 @@ Usage of modem-service:
         Internet check interval (default 30s)
   -redis-url string
         Redis URL (default "redis://127.0.0.1:6379")
+  -sms-keepalive
+        Keep the CS (SGs) registration alive for SMS delivery via periodic self-calls
   -supl-server string
-        SUPL server for A-GPS (default "supl.google.com:7275")
+        SUPL server for A-GPS (default "supl.google.com:7276")
   -version
         Print version and exit
 ```
@@ -63,6 +65,42 @@ Usage of modem-service:
 
 **Published channel:** `modem` (publishes field name on change)
 
+### SMS: hash `sms`, streams `sms:received` / `sms:sent`
+
+**`sms` hash (latest-value convenience state):**
+- `state` - Send state of the last outbound message ("idle", "sending", "error"); published as a `state` notification on the `sms` channel
+- `last-sent-to` - Recipient number of the last successfully sent SMS
+- `last-sent-at` - RFC 3339 timestamp the last send completed
+- `last-received-from` - Sender number of the last inbound SMS
+- `last-received-text` - Body of the last inbound SMS
+- `last-received-at` - RFC 3339 timestamp the last inbound SMS arrived
+- `unread-count` - Inbound messages received since service start
+
+The `last-received-*` fields refresh silently; per-message notifications go to
+the dedicated channels below.
+
+**Streams (capped at 100 entries, one dedicated pub/sub channel each):**
+- `sms:received` - one entry per inbound message: `from`, `text`, `timestamp`.
+  The `sms:received` channel carries each entry as JSON including its stream
+  `id`.
+- `sms:sent` - one entry per terminal send outcome: `request-id` (caller's
+  `id` token from `scooter:sms`, empty if none), `to`, `text`, `outcome`
+  (`sent`/`error`), `error`, `timestamp`. The `sms:sent` channel carries each
+  entry as JSON including its stream `id`.
+
+An inbound message is deleted from modem storage only after its XADD
+succeeded, so modem storage buffers messages across Redis outages and the
+periodic drain retries delivery. Messages that arrived while the service was
+offline are drained on startup. Redis is not persistent on librescoot: the
+streams are a live window, empty after reboot.
+
+With `-sms-keepalive` enabled, the service keeps the CS (SGs) registration
+alive by briefly calling its own number after ~13 minutes without CS activity,
+working around operators that implicitly detach idle CS registrations (which
+silently stops inbound SMS). Off by default: the self-call is only free as
+long as the SIM's mailbox does not pick up busy calls, and it needs a SIM with
+a stored MSISDN.
+
 ### Hash: `gps`
 
 **Fields written:**
@@ -97,6 +135,7 @@ Full TPV snapshot (same fields as the `gps` hash, JSON object) published for eve
 ### Lists consumed (BRPOP)
 
 - `scooter:modem` - `enable`, `disable`
+- `scooter:sms` - outbound SMS requests as JSON: `{"id":"optional-token","to":"+49...","text":"..."}` (the only queue with a JSON payload)
 
 GPS has no commands: the GNSS positioning mode is derived automatically from connectivity state, gated by the `modem.gps` setting. The legacy `gps:enable` / `gps:disable` commands are gone.
 
