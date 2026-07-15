@@ -1094,6 +1094,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#sms-hash-sms-streams-smsreceived-smssent" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        SMS: hash <code>sms</code>, streams <code>sms:received</code> / <code>sms:sent</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#hash-gps" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
@@ -1864,6 +1875,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#sms-hash-sms-streams-smsreceived-smssent" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        SMS: hash <code>sms</code>, streams <code>sms:received</code> / <code>sms:sent</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#hash-gps" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
@@ -2306,7 +2328,7 @@
 
 <h1 id="librescoot-modem-modem-service">librescoot-modem (modem-service)<a class="headerlink" href="#librescoot-modem-modem-service" title="Permanent link">&para;</a></h1>
 <h2 id="description">Description<a class="headerlink" href="#description" title="Permanent link">&para;</a></h2>
-<p>The modem service manages the cellular modem (SimCom SIM7100E) for internet connectivity and GPS functionality using ModemManager (mmcli). It monitors network registration, signal quality, access technology (2G/3G/4G), handles modem power management and recovery, manages network connectivity, and provides GPS coordinates via gpsd. The service implements intelligent health monitoring with multi-strategy recovery procedures and GPS-specific recovery mechanisms.</p>
+<p>The modem service manages the cellular modem (SimCom SIM7100E) for internet connectivity and GPS functionality using ModemManager (mmcli). It monitors network registration, signal quality, access technology (2G/3G/4G), handles modem power management and recovery, manages network connectivity, and provides GPS coordinates via gpsd. The service implements intelligent health monitoring with multi-strategy recovery procedures and GPS-specific recovery mechanisms. It also sends and receives SMS: outbound messages via the <code>scooter:sms</code> queue, inbound messages published to the <code>sms</code> hash.</p>
 <h2 id="command-line-options">Command-Line Options<a class="headerlink" href="#command-line-options" title="Permanent link">&para;</a></h2>
 <div class="language-text highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>Usage of modem-service:
 </span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>  -debug
@@ -2319,10 +2341,12 @@
 </span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>        Internet check interval (default 30s)
 </span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>  -redis-url string
 </span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>        Redis URL (default &quot;redis://127.0.0.1:6379&quot;)
-</span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>  -supl-server string
-</span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>        SUPL server for A-GPS (default &quot;supl.google.com:7275&quot;)
-</span><span id="__span-0-14"><a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>  -version
-</span><span id="__span-0-15"><a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a>        Print version and exit
+</span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>  -sms-keepalive
+</span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>        Keep the CS (SGs) registration alive for SMS delivery via periodic self-calls
+</span><span id="__span-0-14"><a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>  -supl-server string
+</span><span id="__span-0-15"><a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a>        SUPL server for A-GPS (default &quot;supl.google.com:7276&quot;)
+</span><span id="__span-0-16"><a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a>  -version
+</span><span id="__span-0-17"><a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a>        Print version and exit
 </span></code></pre></div>
 <p><strong>Active polling intervals:</strong>
 - Modem health checks: Controlled by <code>-internet-check-time</code> (default: 30s)
@@ -2355,6 +2379,36 @@
 - <code>pin-action</code> - Outcome of last SIM PIN reconcile ("unconfigured", "ok", "unlocked", "lock-enabled", "wrong-pin", "low-retries-bail", "puk-required", "error")
 - <code>apn-action</code> - Outcome of last APN reconcile ("no-sim", "unconfigured", "ok", "applied", "iccid-changed-cleared", "error")</p>
 <p><strong>Published channel:</strong> <code>modem</code> (publishes field name on change)</p>
+<h3 id="sms-hash-sms-streams-smsreceived-smssent">SMS: hash <code>sms</code>, streams <code>sms:received</code> / <code>sms:sent</code><a class="headerlink" href="#sms-hash-sms-streams-smsreceived-smssent" title="Permanent link">&para;</a></h3>
+<p><strong><code>sms</code> hash (latest-value convenience state):</strong>
+- <code>state</code> - Send state of the last outbound message ("idle", "sending", "error"); published as a <code>state</code> notification on the <code>sms</code> channel
+- <code>last-sent-to</code> - Recipient number of the last successfully sent SMS
+- <code>last-sent-at</code> - RFC 3339 timestamp the last send completed
+- <code>last-received-from</code> - Sender number of the last inbound SMS
+- <code>last-received-text</code> - Body of the last inbound SMS
+- <code>last-received-at</code> - RFC 3339 timestamp the last inbound SMS arrived
+- <code>unread-count</code> - Inbound messages received since service start</p>
+<p>The <code>last-received-*</code> fields refresh silently; per-message notifications go to
+the dedicated channels below.</p>
+<p><strong>Streams (capped at 100 entries, one dedicated pub/sub channel each):</strong>
+- <code>sms:received</code> - one entry per inbound message: <code>from</code>, <code>text</code>, <code>timestamp</code>.
+  The <code>sms:received</code> channel carries each entry as JSON including its stream
+  <code>id</code>.
+- <code>sms:sent</code> - one entry per terminal send outcome: <code>request-id</code> (caller's
+  <code>id</code> token from <code>scooter:sms</code>, empty if none), <code>to</code>, <code>text</code>, <code>outcome</code>
+  (<code>sent</code>/<code>error</code>), <code>error</code>, <code>timestamp</code>. The <code>sms:sent</code> channel carries each
+  entry as JSON including its stream <code>id</code>.</p>
+<p>An inbound message is deleted from modem storage only after its XADD
+succeeded, so modem storage buffers messages across Redis outages and the
+periodic drain retries delivery. Messages that arrived while the service was
+offline are drained on startup. Redis is not persistent on librescoot: the
+streams are a live window, empty after reboot.</p>
+<p>With <code>-sms-keepalive</code> enabled, the service keeps the CS (SGs) registration
+alive by briefly calling its own number after ~13 minutes without CS activity,
+working around operators that implicitly detach idle CS registrations (which
+silently stops inbound SMS). Off by default: the self-call is only free as
+long as the SIM's mailbox does not pick up busy calls, and it needs a SIM with
+a stored MSISDN.</p>
 <h3 id="hash-gps">Hash: <code>gps</code><a class="headerlink" href="#hash-gps" title="Permanent link">&para;</a></h3>
 <p><strong>Fields written:</strong>
 - <code>latitude</code> - GPS latitude (decimal degrees, 6 decimal places)
@@ -2384,6 +2438,7 @@
 <h3 id="lists-consumed-brpop">Lists consumed (BRPOP)<a class="headerlink" href="#lists-consumed-brpop" title="Permanent link">&para;</a></h3>
 <ul>
 <li><code>scooter:modem</code> - <code>enable</code>, <code>disable</code></li>
+<li><code>scooter:sms</code> - outbound SMS requests as JSON: <code>{"id":"optional-token","to":"+49...","text":"..."}</code> (the only queue with a JSON payload)</li>
 </ul>
 <p>GPS has no commands: the GNSS positioning mode is derived automatically from connectivity state, gated by the <code>modem.gps</code> setting. The legacy <code>gps:enable</code> / <code>gps:disable</code> commands are gone.</p>
 <h3 id="hash-written-powerinhibits">Hash written: <code>power:inhibits</code><a class="headerlink" href="#hash-written-powerinhibits" title="Permanent link">&para;</a></h3>
