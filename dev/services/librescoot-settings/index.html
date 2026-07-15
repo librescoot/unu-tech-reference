@@ -2435,7 +2435,6 @@
 - <code>alarm.l1-cooldown</code> - Level 1 cooldown duration in seconds</p>
 <ul>
 <li><code>scooter.max-voltage-delta</code> - Maximum voltage difference between batteries in mV before dual battery activation is refused (default: 1000; 0 to disable)</li>
-<li><code>scooter.battery-ignores-seatbox</code> - Runtime override of <code>--dangerously-ignore-seatbox</code> (default: false)</li>
 <li><code>scooter.battery-keep-active-on-seatbox-open</code> - Keep active battery on across seatbox opens (default: false)</li>
 <li><code>scooter.battery-aux-low-keep-active-enter-mv</code> - Aux battery voltage in mV below which the keep-active-on-seatbox-open override engages automatically (default: 11500). Hysteresis pairs with the exit threshold.</li>
 <li><code>scooter.battery-aux-low-keep-active-exit-mv</code> - Aux battery voltage in mV at or above which the aux-low keep-active override disengages (default: 12000). Must be greater than the enter threshold.</li>
@@ -2577,7 +2576,7 @@
 </span><span id="__span-3-13"><a id="__codelineno-3-13" name="__codelineno-3-13" href="#__codelineno-3-13"></a><span class="k">[scooter]</span>
 </span><span id="__span-3-14"><a id="__codelineno-3-14" name="__codelineno-3-14" href="#__codelineno-3-14"></a><span class="n">auto-standby-seconds</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;0&quot;</span>
 </span><span id="__span-3-15"><a id="__codelineno-3-15" name="__codelineno-3-15" href="#__codelineno-3-15"></a><span class="n">brake-hibernation</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;enabled&quot;</span>
-</span><span id="__span-3-16"><a id="__codelineno-3-16" name="__codelineno-3-16" href="#__codelineno-3-16"></a><span class="n">battery-ignores-seatbox</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;false&quot;</span>
+</span><span id="__span-3-16"><a id="__codelineno-3-16" name="__codelineno-3-16" href="#__codelineno-3-16"></a><span class="n">battery-keep-active-on-seatbox-open</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;false&quot;</span>
 </span><span id="__span-3-17"><a id="__codelineno-3-17" name="__codelineno-3-17" href="#__codelineno-3-17"></a>
 </span><span id="__span-3-18"><a id="__codelineno-3-18" name="__codelineno-3-18" href="#__codelineno-3-18"></a><span class="k">[dashboard]</span>
 </span><span id="__span-3-19"><a id="__codelineno-3-19" name="__codelineno-3-19" href="#__codelineno-3-19"></a><span class="n">theme</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;dark&quot;</span>
