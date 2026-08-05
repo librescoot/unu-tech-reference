@@ -251,8 +251,8 @@ BLE services and characteristics are defined in the nRF52 firmware.
 
 - **Unit file:** `/etc/systemd/system/bluetooth-service.service` (or `/usr/lib/systemd/system/bluetooth-service.service`)
 - **Type:** idle (delayed until other services have started)
-- **Requires:** redis.service
-- **After:** redis.service, librescoot-vehicle.service, librescoot-alarm.service
+- **Requires:** `valkey.service` (`redis.service` before Librescoot 1.2)
+- **After:** `valkey.service`
 - **Started by:** systemd at boot
 - **Restart policy:** Always
 

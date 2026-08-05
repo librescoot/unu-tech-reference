@@ -171,7 +171,7 @@ The service controls 8 PWM LED channels via the `imx_pwm_led` kernel module:
 
 - **Unit file:** `/usr/lib/systemd/system/librescoot-vehicle.service`
 - **Binary:** `/usr/bin/vehicle-service`
-- **Started by:** systemd at boot (after redis.service)
+- **Started by:** systemd at boot (after `valkey.service`; `redis.service` before Librescoot 1.2)
 - **Restart policy:** Always
 - **Priority:** Nice value -10
 - **User:** root
@@ -290,6 +290,30 @@ The service implements automatic blinker logic:
   - Cue 12: LED_BLINK_BOTH (hazard lights)
 - Publishes blinker switch and state changes to Redis
 - Publishes immediate button events to `buttons` channel for UI response
+
+##### Hazard switch detection - Librescoot 1.2+
+
+The stock handlebar switch offers left and right only, on separate GPIO inputs
+(`blinker_left`, `blinker_right`). Aftermarket switch assemblies with a physical
+hazard button close both inputs at once, which the earlier code could not
+represent: the press registered as left or right, never both.
+
+`handleBlinkerChange` now reads the peer switch out of the `activeKeys` cache
+when a blinker event fires. `io.go` updates `activeKeys` before invoking each
+callback, so the second event's handler always sees the first switch as already
+active. Both active means a combined `blinker:switch` of `both` and LED cue 12,
+which drives the hazard lights. If the peer read fails the handler falls back to
+the last known state rather than assuming off, since assuming off would collapse
+a real hazard state into left/right/off and publish a misleading edge.
+
+The `buttons` PUBSUB event always reflects the triggering channel's own edge,
+independently of the combined switch state. Releasing one side of a hazard pair
+therefore emits `blinker:right:off` even though the combined state moves to
+`left` rather than `off`. Consumers that track edges stay correct; consumers
+that want the combined position read `blinker:switch`.
+
+Stock switches are unaffected: the peer input is never active, so every
+transition behaves exactly as before.
 
 #### Seatbox Control
 

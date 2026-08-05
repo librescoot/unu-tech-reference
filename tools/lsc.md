@@ -142,7 +142,7 @@ lsc svc logs redis --lines 100       # Show 100 lines (-n 100)
 - `pm` → `librescoot-pm.service`
 - `keycard` → `librescoot-keycard.service`
 - `update` → `update-service.service`
-- `redis` → `redis.service`
+- `redis` → `redis.service` (not remapped to `valkey.service`, so this alias finds nothing on Librescoot 1.2 and later)
 
 **System integration:**
 - Uses `systemctl` commands via D-Bus

@@ -174,8 +174,8 @@ BMM150 in `forced` mode at 5 Hz with `high-accuracy` REPXY/REPZ presets (47/83 r
 ```
 [Unit]
 Description=Librescoot Motion Service (BMX055 IMU)
-After=network.target redis.service
-Wants=redis.service
+After=valkey.service
+Wants=valkey.service
 
 [Service]
 ExecStart=/usr/bin/motion-service \

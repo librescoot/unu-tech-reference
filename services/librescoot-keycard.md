@@ -121,7 +121,8 @@ Files are written atomically (write to `.tmp`, sync, rename).
 
 - **Unit:** `librescoot-keycard.service`
 - **Binary:** `/usr/bin/keycard-service`
-- **Requires:** `redis.service`, `librescoot-vehicle.service`
+- **Requires:** `valkey.service` (`redis.service` before Librescoot 1.2)
+- **After:** `valkey.service`, `librescoot-vehicle.service`
 
 ## Building
 

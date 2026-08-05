@@ -192,7 +192,7 @@ See [nRF Power Management](../nrf/power-management.md) for details.
 
 - **Unit file:** `librescoot-pm.service` (installed to systemd system directory)
 - **Binary location:** `/usr/bin/pm-service`
-- **Started by:** systemd at boot (requires redis.service)
+- **Started by:** systemd at boot (requires `valkey.service`; `redis.service` before Librescoot 1.2)
 - **Restart policy:** on-failure with 5 second delay
 - **User/Group:** root (required for systemd power operations)
 

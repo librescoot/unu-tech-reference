@@ -2,7 +2,7 @@
 
 ## Connection Details
 
-The scooter runs a Redis instance on the MDB accessible at:
+The scooter runs the datastore on the MDB accessible at:
 - Host: 192.168.7.1  
 - Port: 6379
 
@@ -10,6 +10,19 @@ Local connection command:
 ```bash
 redis-cli -h 192.168.7.1 -p 6379
 ```
+
+### Redis or Valkey - Librescoot Only
+
+Librescoot 1.2 replaced Redis with Valkey 9 (wrynose's meta-oe ships it; the
+tuned config was ported over directly). It speaks the same protocol on the same
+port and `redis-cli` remains as a compat symlink, so everything documented here
+applies unchanged, as do the `--redis-*` flags across the services.
+
+What did change is the systemd unit name: service units now order against
+`valkey.service`, not `redis.service`. Anything that hardcodes the old unit name
+will not find it on 1.2 or later.
+
+Stock ScooterOS and Librescoot 1.1 and earlier still run Redis.
 
 ## Key Structure
 

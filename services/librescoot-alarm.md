@@ -238,8 +238,8 @@ redis-cli LPUSH scooter:alarm stop      # cancel
 `librescoot-alarm.service`:
 ```
 [Unit]
-After=redis.service librescoot-vehicle.service librescoot-settings.service librescoot-motion.service
-Wants=redis.service librescoot-motion.service
+After=valkey.service librescoot-vehicle.service librescoot-settings.service librescoot-motion.service
+Wants=valkey.service librescoot-motion.service
 
 [Service]
 ExecStart=/usr/bin/alarm-service \

@@ -415,11 +415,18 @@ The service is typically installed via systemd:
 ```ini
 [Unit]
 Description=Librescoot Settings Service
-After=redis.service
-Requires=redis.service
+Requires=valkey.service
+After=valkey.service
+# Persisted settings live in /data/settings.toml
+RequiresMountsFor=/data
+Wants=NetworkManager.service
+Before=librescoot-vehicle.service
 
 [Service]
-Type=simple
+# Type=notify: READY=1 is sent only once the settings hash has been seeded,
+# so Before=librescoot-vehicle.service guarantees consumers see it. The
+# datastore is not persisted; it starts empty every boot.
+Type=notify
 ExecStart=/usr/bin/settings-service
 Restart=always
 Environment="REDIS_ADDR=localhost:6379"
