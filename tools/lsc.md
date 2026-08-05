@@ -131,18 +131,37 @@ lsc svc logs battery --follow        # Follow in real-time (-f)
 lsc svc logs redis --lines 100       # Show 100 lines (-n 100)
 ```
 
-**Service name shortcuts:**
+**Service name shortcuts** (from `serviceNameMap` in `cmd/lsc/service/service.go`;
+a name with no entry is passed through with `.service` appended):
+
 - `vehicle` → `librescoot-vehicle.service`
-- `battery` → `battery-service.service`
-- `ecu` → `ecu-service.service`
-- `alarm` → `alarm-service.service`
-- `modem` → `modem-service.service`
-- `settings` → `settings-service.service`
-- `bluetooth` → `bluetooth-service.service`
-- `pm` → `librescoot-pm.service`
+- `battery` → `librescoot-battery.service`
+- `ecu` → `librescoot-ecu.service`
+- `modem` → `librescoot-modem.service`
+- `alarm` → `librescoot-alarm.service`
+- `settings` → `librescoot-settings.service`
 - `keycard` → `librescoot-keycard.service`
-- `update` → `update-service.service`
-- `redis` → `redis.service` (not remapped to `valkey.service`, so this alias finds nothing on Librescoot 1.2 and later)
+- `boot-led` → `librescoot-boot-led.service`
+- `bluetooth` → `librescoot-bluetooth.service`
+- `ums` → `librescoot-ums.service`
+- `brightness` → `librescoot-brightness.service`
+- `onboot` → `librescoot-onboot.service`
+- `backlight` → `dbc-backlight.service`
+- `pm` → `librescoot-pm.service`
+- `update` → `librescoot-update.service`
+- `version` → `librescoot-version.service`
+- `netconfig` → `librescoot-netconfig.service`
+- `redis`, `valkey` → resolved at runtime, see below
+
+The datastore alias is special-cased: lsc asks systemd whether
+`valkey.service` is loaded and uses it if so, falling back to `redis.service`.
+Both shorthands hit whichever unit the image actually ships, so a script
+written against either name works on both sides of the Librescoot 1.2 switch.
+`lsc service list` shows the resolved name in its first row.
+
+Older lsc builds (up to and including v0.6.6) had no such resolution: `redis`
+resolved literally, so the datastore row read `inactive` / `not-found` on 1.2
+images and `status`, `restart` and `logs` failed for it.
 
 **System integration:**
 - Uses `systemctl` commands via D-Bus
