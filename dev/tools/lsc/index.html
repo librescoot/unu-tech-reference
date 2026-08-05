@@ -2415,18 +2415,36 @@
 </span><span id="__span-4-19"><a id="__codelineno-4-19" name="__codelineno-4-19" href="#__codelineno-4-19"></a>lsc<span class="w"> </span>svc<span class="w"> </span>logs<span class="w"> </span>battery<span class="w"> </span>--follow<span class="w">        </span><span class="c1"># Follow in real-time (-f)</span>
 </span><span id="__span-4-20"><a id="__codelineno-4-20" name="__codelineno-4-20" href="#__codelineno-4-20"></a>lsc<span class="w"> </span>svc<span class="w"> </span>logs<span class="w"> </span>redis<span class="w"> </span>--lines<span class="w"> </span><span class="m">100</span><span class="w">       </span><span class="c1"># Show 100 lines (-n 100)</span>
 </span></code></pre></div>
-<p><strong>Service name shortcuts:</strong>
-- <code>vehicle</code> → <code>librescoot-vehicle.service</code>
-- <code>battery</code> → <code>battery-service.service</code>
-- <code>ecu</code> → <code>ecu-service.service</code>
-- <code>alarm</code> → <code>alarm-service.service</code>
-- <code>modem</code> → <code>modem-service.service</code>
-- <code>settings</code> → <code>settings-service.service</code>
-- <code>bluetooth</code> → <code>bluetooth-service.service</code>
-- <code>pm</code> → <code>librescoot-pm.service</code>
-- <code>keycard</code> → <code>librescoot-keycard.service</code>
-- <code>update</code> → <code>update-service.service</code>
-- <code>redis</code> → <code>redis.service</code> (not remapped to <code>valkey.service</code>, so this alias finds nothing on Librescoot 1.2 and later)</p>
+<p><strong>Service name shortcuts</strong> (from <code>serviceNameMap</code> in <code>cmd/lsc/service/service.go</code>;
+a name with no entry is passed through with <code>.service</code> appended):</p>
+<ul>
+<li><code>vehicle</code> → <code>librescoot-vehicle.service</code></li>
+<li><code>battery</code> → <code>librescoot-battery.service</code></li>
+<li><code>ecu</code> → <code>librescoot-ecu.service</code></li>
+<li><code>modem</code> → <code>librescoot-modem.service</code></li>
+<li><code>alarm</code> → <code>librescoot-alarm.service</code></li>
+<li><code>settings</code> → <code>librescoot-settings.service</code></li>
+<li><code>keycard</code> → <code>librescoot-keycard.service</code></li>
+<li><code>boot-led</code> → <code>librescoot-boot-led.service</code></li>
+<li><code>bluetooth</code> → <code>librescoot-bluetooth.service</code></li>
+<li><code>ums</code> → <code>librescoot-ums.service</code></li>
+<li><code>brightness</code> → <code>librescoot-brightness.service</code></li>
+<li><code>onboot</code> → <code>librescoot-onboot.service</code></li>
+<li><code>backlight</code> → <code>dbc-backlight.service</code></li>
+<li><code>pm</code> → <code>librescoot-pm.service</code></li>
+<li><code>update</code> → <code>librescoot-update.service</code></li>
+<li><code>version</code> → <code>librescoot-version.service</code></li>
+<li><code>netconfig</code> → <code>librescoot-netconfig.service</code></li>
+<li><code>redis</code>, <code>valkey</code> → resolved at runtime, see below</li>
+</ul>
+<p>The datastore alias is special-cased: lsc asks systemd whether
+<code>valkey.service</code> is loaded and uses it if so, falling back to <code>redis.service</code>.
+Both shorthands hit whichever unit the image actually ships, so a script
+written against either name works on both sides of the Librescoot 1.2 switch.
+<code>lsc service list</code> shows the resolved name in its first row.</p>
+<p>Older lsc builds (up to and including v0.6.6) had no such resolution: <code>redis</code>
+resolved literally, so the datastore row read <code>inactive</code> / <code>not-found</code> on 1.2
+images and <code>status</code>, <code>restart</code> and <code>logs</code> failed for it.</p>
 <p><strong>System integration:</strong>
 - Uses <code>systemctl</code> commands via D-Bus
 - Uses <code>journalctl</code> for log retrieval</p>
