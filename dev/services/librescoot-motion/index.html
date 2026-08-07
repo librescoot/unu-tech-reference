@@ -2110,7 +2110,7 @@
 - <code>streaming</code> — <code>enabled</code>/<code>disabled</code>
 - <code>polling-rate-hz</code> — current sensor poll rate
 - <code>current-profile</code> — profile name applied to chip (<code>idle</code>, <code>armed-awake</code>, <code>armed-hibernation</code>, <code>level1</code>, <code>waiting</code>)
-- <code>interrupt</code>, <code>pin</code>, <code>sensitivity</code>, <code>threshold</code>, <code>duration</code> — current motion-engine config
+- <code>interrupt</code>, <code>pin</code>, <code>mode</code>, <code>bandwidth</code>, <code>threshold</code>, <code>duration</code> — motion-engine config as programmed. Written by the profile controller on every apply, so they describe the chip rather than the last manual command. The old <code>sensitivity</code> field is gone (it is a property of the profile); motion-service deletes it at startup on upgraded units.
 - <code>last-interrupt-timestamp</code> — unix-ms of last interrupt
 - <code>error-count</code>, <code>last-error</code> — diagnostic counters
 - <code>wake-cause</code> — unix-ms timestamp written <strong>once on startup</strong> if INT_STATUS_0 had a latched bit at boot. Durable backstop for the wake-from-hibernation indicator. alarm-service reads + deletes this on its own startup.
@@ -2185,7 +2185,19 @@
 <td><code>soft-reset</code></td>
 <td><code>{}</code></td>
 <td><code>{ok: bool}</code></td>
-<td>Soft-resets accel + gyro. Caller is responsible for triggering profile re-apply.</td>
+<td>Soft-resets accel + gyro, then reprograms the current profile. It deliberately does not leave the chip at register defaults: a reset wipes the motion engine, and on an armed scooter that means no motion detection.</td>
+</tr>
+<tr>
+<td><code>set-polling</code></td>
+<td><code>{rate_hz: 1..100}</code></td>
+<td><code>{ok: bool}</code></td>
+<td>Overrides the telemetry poll rate on both pollers. An override, not a setting — the vehicle-state watcher re-derives the rate on the next <code>vehicle.state</code> change. Replaces <code>LPUSH scooter:motion polling:N</code>.</td>
+</tr>
+<tr>
+<td><code>set-streaming</code></td>
+<td><code>{enabled: bool}</code></td>
+<td><code>{ok: bool}</code></td>
+<td>Gates the <code>motion:sensors</code> stream. Replaces <code>LPUSH scooter:motion streaming:enable\|disable</code>.</td>
 </tr>
 </tbody>
 </table>
@@ -2281,15 +2293,15 @@
 <h2 id="startup-invariants">Startup Invariants<a class="headerlink" href="#startup-invariants" title="Permanent link">&para;</a></h2>
 <ol>
 <li>Unbind kernel BMX055 driver.</li>
+<li>Connect the redis-ipc client. One client serves the publisher, the hash watchers and the RPC server, so it comes up before anything that needs to write Redis.</li>
 <li>Initialize accel, gyro, mag (with retries on I²C transient errors).</li>
 <li>Start sensor + magnetometer pollers (telemetry).</li>
 <li>Start interrupt poller + watcher (initially disabled).</li>
 <li><strong>Read <code>INT_STATUS_0</code> BEFORE the first <code>controller.Apply</code>.</strong> If a slope or slow-no-motion bit is latched, this is a wake-from-hibernation; record it.</li>
 <li>Apply <code>Idle</code> profile (always — defends against any half-state from a previous owner).</li>
 <li>If wake-from-hibernation was detected: <code>PUBLISH motion:interrupt {type:"wake-hibernation",...}</code> AND <code>HSET motion wake-cause &lt;unix-ms&gt;</code>. The hash field is the durable backstop for consumers that started after motion-service published.</li>
-<li>Connect redis-ipc client (JSON codec, pool size 8).</li>
 <li>Start <code>Subscriber</code> (HashWatchers on alarm + power-manager, <code>StartWithSync</code> so the chip syncs to current vehicle state on first dispatch).</li>
-<li>Start <code>CallServer</code> with <code>prepare-hibernation</code>, <code>get-calibration</code>, <code>clear-latch</code>, <code>soft-reset</code>.</li>
+<li>Start <code>CallServer</code> with <code>prepare-hibernation</code>, <code>get-calibration</code>, <code>clear-latch</code>, <code>soft-reset</code>, <code>set-polling</code>, <code>set-streaming</code>.</li>
 <li><code>PUBLISH motion:ready</code>.</li>
 </ol>
 <h2 id="magnetometer-calibration">Magnetometer Calibration<a class="headerlink" href="#magnetometer-calibration" title="Permanent link">&para;</a></h2>
