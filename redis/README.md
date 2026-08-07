@@ -154,8 +154,6 @@ hgetall system
 | dbc-version | string | Dashboard computer version | "v1.15.0+430553" |
 | mdb-flavor | string | MDB image flavor | "librescoot" |
 | dbc-flavor | string | DBC image flavor | "librescoot" |
-| mdb-sn / dbc-sn | string | Board serial, legacy narrow encoding of the i.MX6 OCOTP UID | "4235182719" |
-| mdb-sn-real / dbc-sn-real | string | Board serial, full OCOTP UID. Preferred over the plain field where both exist | "0e0421d4ee6ba0ab" |
 | keycard-master-count | integer | Master keycards enrolled, written by keycard-service | "1" |
 | keycard-authorized-count | integer | Authorized keycards enrolled, written by keycard-service | "3" |
 
@@ -703,7 +701,12 @@ Session fields (all but `state`/`updated-at`) are only present while a session i
 hgetall version:mdb
 ```
 
-Contains all fields from `/etc/os-release` with lowercase keys (e.g., `version_id`, `build_id`).
+Contains all fields from `/etc/os-release` with lowercase keys (e.g., `version_id`, `build_id`), plus the board serial:
+
+| Field | Type | Description | Example |
+|-------|------|-------------|----------|
+| serial_number_real | string | Full i.MX6 OCOTP UID, `CFG1` concatenated with `CFG0`, lowercase hex | "3a1d59d4d1e145d2" |
+| serial_number | string | Decimal sum of `CFG0` and `CFG1`. A narrower legacy encoding of the same fuses; prefer `serial_number_real` | "4496203686" |
 
 #### DBC Version (`version:dbc`)
 
@@ -711,9 +714,18 @@ Contains all fields from `/etc/os-release` with lowercase keys (e.g., `version_i
 hgetall version:dbc
 ```
 
-Contains all fields from `/etc/os-release` with lowercase keys.
+Contains all fields from `/etc/os-release` with lowercase keys, plus `serial_number_real` and `serial_number` as above.
 
-The version-service populates these hashes on startup from the OS release information.
+version-service populates these hashes on startup, one oneshot unit per board
+(`version-service-mdb.service` and `version-service-dbc.service`, differing only
+in `-hash`). It reads the serial from `/sys/bus/nvmem/devices/imx-ocotp0/nvmem`
+(offsets 4 and 8 for CFG0 and CFG1), falling back to `/sys/fsl_otp/HW_OCOTP_CFG*`
+where that exists. A missing serial source is logged and skipped; the OS release
+fields are still published.
+
+These are the only authoritative board serials. Some vehicles also carry
+`dbc-sn` / `dbc-sn-real` on the `system` hash, but nothing in the tree writes
+them: they are leftovers from an earlier image. Do not read them.
 
 ### Physical Inputs (`buttons`, `input-events`)
 
