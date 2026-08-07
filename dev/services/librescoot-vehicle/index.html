@@ -1555,6 +1555,17 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#gesture-detection-input-events-librescoot-only" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Gesture Detection (<code>input-events</code>) - Librescoot Only
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -2263,6 +2274,17 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#gesture-detection-input-events-librescoot-only" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Gesture Detection (<code>input-events</code>) - Librescoot Only
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -2623,7 +2645,8 @@
 <h3 id="channels-published">Channels published<a class="headerlink" href="#channels-published" title="Permanent link">&para;</a></h3>
 <ul>
 <li><code>vehicle</code> - All vehicle state changes and sensor updates</li>
-<li><code>buttons</code> - Button press events for immediate UI response (horn, seatbox, brakes, blinkers)</li>
+<li><code>buttons</code> - Raw input edges for immediate UI response (horn, seatbox, brakes, blinkers)</li>
+<li><code>input-events</code> - Synthesized gestures (tap, long-tap, hold, double-tap) over the same inputs</li>
 </ul>
 <h3 id="commands-sent-to-other-services">Commands sent to other services<a class="headerlink" href="#commands-sent-to-other-services" title="Permanent link">&para;</a></h3>
 <ul>
@@ -2853,6 +2876,61 @@ transition behaves exactly as before.</p>
 <p><strong>Park debounce:</strong>
 - After entering <code>ready-to-drive</code>, kickstand down events are ignored for 1 second
 - Prevents accidental transition to parked during kickstand retraction</p>
+<h4 id="gesture-detection-input-events-librescoot-only">Gesture Detection (<code>input-events</code>) - Librescoot Only<a class="headerlink" href="#gesture-detection-input-events-librescoot-only" title="Permanent link">&para;</a></h4>
+<p>Alongside the raw edges on <code>buttons</code>, vehicle-service runs a gesture detector
+(<code>internal/core/input_gestures.go</code>) over the horn button, seatbox button and
+both brake levers, publishing <code>&lt;source&gt;:&lt;gesture&gt;</code> on the <code>input-events</code>
+channel.</p>
+<p>Sources: <code>horn</code>, <code>seatbox</code>, <code>brake:left</code>, <code>brake:right</code>.</p>
+<table>
+<thead>
+<tr>
+<th>Gesture</th>
+<th>Fires when</th>
+<th>Threshold</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>press</code></td>
+<td>Input goes active</td>
+<td>-</td>
+</tr>
+<tr>
+<td><code>release</code></td>
+<td>Input goes inactive</td>
+<td>-</td>
+</tr>
+<tr>
+<td><code>long-tap</code></td>
+<td>Still held after the long-tap delay</td>
+<td>800 ms</td>
+</tr>
+<tr>
+<td><code>hold</code></td>
+<td>Still held after the hold delay</td>
+<td>3 s</td>
+</tr>
+<tr>
+<td><code>tap</code></td>
+<td>Released before the long-tap threshold</td>
+<td>-</td>
+</tr>
+<tr>
+<td><code>double-tap</code></td>
+<td>Second <code>tap</code> within the double-tap window</td>
+<td>800 ms</td>
+</tr>
+</tbody>
+</table>
+<p><code>long-tap</code> and <code>hold</code> fire while the input is still down, so a 4-second press
+emits <code>press</code>, <code>long-tap</code>, <code>hold</code>, <code>release</code> and no <code>tap</code>. Emitting a <code>long-tap</code>
+or <code>hold</code> clears the pending tap, so a long press between two taps does not
+glue them into a <code>double-tap</code>.</p>
+<p>Each gesture is emitted exactly once, which makes <code>input-events</code> the channel to
+use for anything counting or reacting to discrete user actions. <code>buttons</code>
+carries the raw edges; the <code>vehicle</code> hash carries the current level. See the
+<a href="../../redis/#physical-inputs-buttons-input-events">Redis reference</a>.</p>
 <h3 id="command-processing">Command Processing<a class="headerlink" href="#command-processing" title="Permanent link">&para;</a></h3>
 <p>Commands are consumed via BRPOP with 5-second timeout:
 - <code>scooter:state</code> - State change commands
