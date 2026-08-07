@@ -41,7 +41,7 @@ motion-service unbinds the kernel driver at startup and drives all three over `/
 - `streaming` — `enabled`/`disabled`
 - `polling-rate-hz` — current sensor poll rate
 - `current-profile` — profile name applied to chip (`idle`, `armed-awake`, `armed-hibernation`, `level1`, `waiting`)
-- `interrupt`, `pin`, `sensitivity`, `threshold`, `duration` — current motion-engine config
+- `interrupt`, `pin`, `mode`, `bandwidth`, `threshold`, `duration` — motion-engine config as programmed. Written by the profile controller on every apply, so they describe the chip rather than the last manual command. The old `sensitivity` field is gone (it is a property of the profile); motion-service deletes it at startup on upgraded units.
 - `last-interrupt-timestamp` — unix-ms of last interrupt
 - `error-count`, `last-error` — diagnostic counters
 - `wake-cause` — unix-ms timestamp written **once on startup** if INT_STATUS_0 had a latched bit at boot. Durable backstop for the wake-from-hibernation indicator. alarm-service reads + deletes this on its own startup.
@@ -95,7 +95,9 @@ motion-service hosts a single redis-ipc `CallServer` on this channel, dispatchin
 | `prepare-hibernation` | `{profile: "armed-hibernation"}` | `{programmed: bool, profile: string}` | Synchronous chip-config confirmation. alarm-service Calls this before releasing pm-service's suspend inhibitor. ~180 ms round-trip on the bench. |
 | `get-calibration` | `{}` | `{hard_iron_offset, axis_order, axis_sign, yaw_offset_deg}` | Diagnostic — returns the magnetometer calibration applied to the heading pipeline. |
 | `clear-latch` | `{}` | `{ok: bool}` | Clears the BMX055 latched INT bits. Useful for support if the chip is stuck asserted. |
-| `soft-reset` | `{}` | `{ok: bool}` | Soft-resets accel + gyro. Caller is responsible for triggering profile re-apply. |
+| `soft-reset` | `{}` | `{ok: bool}` | Soft-resets accel + gyro, then reprograms the current profile. It deliberately does not leave the chip at register defaults: a reset wipes the motion engine, and on an armed scooter that means no motion detection. |
+| `set-polling` | `{rate_hz: 1..100}` | `{ok: bool}` | Overrides the telemetry poll rate on both pollers. An override, not a setting — the vehicle-state watcher re-derives the rate on the next `vehicle.state` change. Replaces `LPUSH scooter:motion polling:N`. |
+| `set-streaming` | `{enabled: bool}` | `{ok: bool}` | Gates the `motion:sensors` stream. Replaces `LPUSH scooter:motion streaming:enable\|disable`. |
 
 ## Chip Profile Derivation
 
@@ -138,15 +140,15 @@ Both publish identical `MotionEvent` JSON envelopes on `motion:interrupt` and cl
 ## Startup Invariants
 
 1. Unbind kernel BMX055 driver.
-2. Initialize accel, gyro, mag (with retries on I²C transient errors).
-3. Start sensor + magnetometer pollers (telemetry).
-4. Start interrupt poller + watcher (initially disabled).
-5. **Read `INT_STATUS_0` BEFORE the first `controller.Apply`.** If a slope or slow-no-motion bit is latched, this is a wake-from-hibernation; record it.
-6. Apply `Idle` profile (always — defends against any half-state from a previous owner).
-7. If wake-from-hibernation was detected: `PUBLISH motion:interrupt {type:"wake-hibernation",...}` AND `HSET motion wake-cause <unix-ms>`. The hash field is the durable backstop for consumers that started after motion-service published.
-8. Connect redis-ipc client (JSON codec, pool size 8).
+2. Connect the redis-ipc client. One client serves the publisher, the hash watchers and the RPC server, so it comes up before anything that needs to write Redis.
+3. Initialize accel, gyro, mag (with retries on I²C transient errors).
+4. Start sensor + magnetometer pollers (telemetry).
+5. Start interrupt poller + watcher (initially disabled).
+6. **Read `INT_STATUS_0` BEFORE the first `controller.Apply`.** If a slope or slow-no-motion bit is latched, this is a wake-from-hibernation; record it.
+7. Apply `Idle` profile (always — defends against any half-state from a previous owner).
+8. If wake-from-hibernation was detected: `PUBLISH motion:interrupt {type:"wake-hibernation",...}` AND `HSET motion wake-cause <unix-ms>`. The hash field is the durable backstop for consumers that started after motion-service published.
 9. Start `Subscriber` (HashWatchers on alarm + power-manager, `StartWithSync` so the chip syncs to current vehicle state on first dispatch).
-10. Start `CallServer` with `prepare-hibernation`, `get-calibration`, `clear-latch`, `soft-reset`.
+10. Start `CallServer` with `prepare-hibernation`, `get-calibration`, `clear-latch`, `soft-reset`, `set-polling`, `set-streaming`.
 11. `PUBLISH motion:ready`.
 
 ## Magnetometer Calibration

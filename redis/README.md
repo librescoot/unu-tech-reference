@@ -509,7 +509,7 @@ motion-service owns the BMX055 9-axis IMU and publishes its state here. The lega
 | streaming | "enabled"/"disabled" | Telemetry streaming state | "enabled" |
 | polling-rate-hz | integer | Sensor poll rate | "10" |
 | current-profile | string | Chip profile (idle/armed-awake/armed-hibernation/level1/waiting) | "idle" |
-| interrupt / pin / sensitivity / threshold / duration | string | Current motion-engine config | "disabled" |
+| interrupt / pin / mode / bandwidth / threshold / duration | string | Motion-engine config as programmed, written by the profile controller on every apply | "enabled" / "both" / "any-motion" / "0x0A" / "0x06" / "0x03" |
 | last-interrupt-timestamp | integer (unix-ms) | Last motion interrupt | "1777996408778" |
 | error-count / last-error | string | Diagnostic counters | "0" |
 | wake-cause | integer (unix-ms) | Written once at startup if the chip woke the system from hibernation; alarm-service reads + deletes it | "1777996408778" |
@@ -522,7 +522,11 @@ motion-service owns the BMX055 9-axis IMU and publishes its state here. The lega
 - `motion:interrupt` - JSON motion event: `{"type": "edge"|"wake-hibernation", "timestamp": ..., "engine": "any-motion"|"slow-motion"}`
 - `motion:ready` - fired once at startup after the first profile-apply; payload is a unix-ms timestamp
 
-**RPC channel `motion:rpc`** (redis-ipc CallServer): methods `prepare-hibernation`, `get-calibration`, `clear-latch`, `soft-reset`.
+**RPC channel `motion:rpc`** (redis-ipc CallServer): methods `prepare-hibernation`, `get-calibration`, `clear-latch`, `soft-reset`, `set-polling`, `set-streaming`.
+
+`soft-reset` resets accel + gyro and then reprograms the current profile. It does not leave the chip at register defaults, since that would mean no motion detection on an armed scooter.
+
+The `sensitivity` field is gone. Sensitivity is a property of the applied profile, so `current-profile` plus `threshold` describe it. motion-service deletes the stale field at startup on units upgrading from an older build.
 
 Chip configuration is reactive: motion-service derives the profile from the `alarm` and `power-manager` hashes, consumers never write registers. The `bmx:interrupt` channel survives only as a relay: bluetooth-service publishes `wake-suspend` / `wake-hibernation` there when the nRF52 reports an accelerometer wake event.
 
@@ -807,21 +811,13 @@ redis-cli -h 192.168.7.1 LPUSH scooter:alarm stop
 
 **Available commands**: `enable`, `disable`, `arm`, `disarm`, `start:<seconds>`, `stop`
 
-### Motion Sensor Control (`scooter:motion`) - Librescoot Only
+### Motion Sensor Control - Librescoot Only
 
-Legacy/dev command queue for motion-service. Production chip configuration is reactive (derived from the `alarm` and `power-manager` hashes), so these are only for manual testing.
+The `scooter:motion` command queue has been removed, as was `scooter:bmx` before it. Chip configuration is reactive: motion-service derives the profile from the `alarm` and `power-manager` hashes, so there is nothing to configure by hand.
 
-```bash
-# Override slow/no-motion sensitivity
-redis-cli -h 192.168.7.1 LPUSH scooter:motion sensitivity:MEDIUM
+The manual `sensitivity`, `pin` and `interrupt` commands wrote registers that the profile controller overwrote on the next alarm or power-manager transition, which made them look like they worked and then silently revert. `reset` duplicated the `soft-reset` RPC.
 
-# Change sensor polling rate
-redis-cli -h 192.168.7.1 LPUSH scooter:motion polling:20
-```
-
-**Available commands**: `sensitivity:<LOW|MEDIUM|HIGH>`, `pin:<NONE|INT1|INT2>`, `interrupt:<enable|disable>`, `reset`, `polling:<1-100>`, `streaming:<enable|disable>`
-
-The old `scooter:bmx` list is gone.
+The remaining manual controls are RPC methods on `motion:rpc`. See [Motion / IMU (`motion`)](#motion--imu-motion---librescoot-only).
 
 ### Power Control (`scooter:power`) - Librescoot Enhanced
 
