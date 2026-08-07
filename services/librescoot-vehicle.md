@@ -485,7 +485,7 @@ Librescoot vehicle-service controls 8 PWM LED channels:
 
 **Kernel module:** The PWM LED system is implemented via the `imx_pwm_led` kernel module, which provides `/dev/pwm_led*` character devices for each channel. The service reloads this module on startup to ensure clean state.
 
-See [i.MX PWM LED kernel module documentation](https://github.com/unumotors/kernel-module-imx-pwm-led/blob/master/README.md) for detailed mode specifications and ioctl interface.
+See [i.MX PWM LED kernel module documentation](https://github.com/librescoot/kernel-module-imx-pwm-led/blob/master/README.md) for detailed mode specifications and ioctl interface.
 
 ### Special Features
 
@@ -570,5 +570,5 @@ Librescoot vehicle-service integrates with:
 - [Vehicle States](../states/README.md) - Complete state machine documentation
 - [Redis Operations](../redis/README.md) - Redis protocol and data structures
 - [Librescoot Services Overview](README.md) - All Librescoot services
-- [i.MX PWM LED kernel module](https://github.com/unumotors/kernel-module-imx-pwm-led) - LED hardware interface
+- [i.MX PWM LED kernel module](https://github.com/librescoot/kernel-module-imx-pwm-led) - LED hardware interface
 

@@ -128,7 +128,9 @@ Each message type contains sub-types as CBOR map keys:
 - 0x00E9/0x00F5: Battery 0/1 remaining charge (%)
 
 **Power Management (0x0800):**
-- 0x0801: PM State (1=running, 2=suspending, 3=hibernating, etc.)
+- 0x0801: PM State. Observed values: `0` suspending, `1` running,
+  `2` hibernating, `3` suspending-imminent, `4` hibernating-imminent,
+  `5` reboot.
 - 0x0802: Power Request (hibernation level: 0=L1, 1=L2)
 - 0x0803: Hibernation Request (0=automatic, 1=manual)
 - 0x0804: Reboot Request (nRF → iMX6)
