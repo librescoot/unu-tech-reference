@@ -1955,7 +1955,9 @@ Data that is passed through this usock includes:</p>
 - 0x00E6/0x00F2: Battery 0/1 cycle count
 - 0x00E9/0x00F5: Battery 0/1 remaining charge (%)</p>
 <p><strong>Power Management (0x0800):</strong>
-- 0x0801: PM State (1=running, 2=suspending, 3=hibernating, etc.)
+- 0x0801: PM State. Observed values: <code>0</code> suspending, <code>1</code> running,
+  <code>2</code> hibernating, <code>3</code> suspending-imminent, <code>4</code> hibernating-imminent,
+  <code>5</code> reboot.
 - 0x0802: Power Request (hibernation level: 0=L1, 1=L2)
 - 0x0803: Hibernation Request (0=automatic, 1=manual)
 - 0x0804: Reboot Request (nRF → iMX6)

@@ -3455,18 +3455,6 @@ will not find it on 1.2 or later.</p>
 <td>"librescoot"</td>
 </tr>
 <tr>
-<td>mdb-sn / dbc-sn</td>
-<td>string</td>
-<td>Board serial, legacy narrow encoding of the i.MX6 OCOTP UID</td>
-<td>"4235182719"</td>
-</tr>
-<tr>
-<td>mdb-sn-real / dbc-sn-real</td>
-<td>string</td>
-<td>Board serial, full OCOTP UID. Preferred over the plain field where both exist</td>
-<td>"0e0421d4ee6ba0ab"</td>
-</tr>
-<tr>
 <td>keycard-master-count</td>
 <td>integer</td>
 <td>Master keycards enrolled, written by keycard-service</td>
@@ -4921,12 +4909,44 @@ waits 60 s before committing; <code>disabled</code>/<code>no-sim</code>/<code>fa
 <h4 id="mdb-version-versionmdb">MDB Version (<code>version:mdb</code>)<a class="headerlink" href="#mdb-version-versionmdb" title="Permanent link">&para;</a></h4>
 <div class="language-text highlight"><pre><span></span><code><span id="__span-27-1"><a id="__codelineno-27-1" name="__codelineno-27-1" href="#__codelineno-27-1"></a>hgetall version:mdb
 </span></code></pre></div>
-<p>Contains all fields from <code>/etc/os-release</code> with lowercase keys (e.g., <code>version_id</code>, <code>build_id</code>).</p>
+<p>Contains all fields from <code>/etc/os-release</code> with lowercase keys (e.g., <code>version_id</code>, <code>build_id</code>), plus the board serial:</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Description</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>serial_number_real</td>
+<td>string</td>
+<td>Full i.MX6 OCOTP UID, <code>CFG1</code> concatenated with <code>CFG0</code>, lowercase hex</td>
+<td>"3a1d59d4d1e145d2"</td>
+</tr>
+<tr>
+<td>serial_number</td>
+<td>string</td>
+<td>Decimal sum of <code>CFG0</code> and <code>CFG1</code>. A narrower legacy encoding of the same fuses; prefer <code>serial_number_real</code></td>
+<td>"4496203686"</td>
+</tr>
+</tbody>
+</table>
 <h4 id="dbc-version-versiondbc">DBC Version (<code>version:dbc</code>)<a class="headerlink" href="#dbc-version-versiondbc" title="Permanent link">&para;</a></h4>
 <div class="language-text highlight"><pre><span></span><code><span id="__span-28-1"><a id="__codelineno-28-1" name="__codelineno-28-1" href="#__codelineno-28-1"></a>hgetall version:dbc
 </span></code></pre></div>
-<p>Contains all fields from <code>/etc/os-release</code> with lowercase keys.</p>
-<p>The version-service populates these hashes on startup from the OS release information.</p>
+<p>Contains all fields from <code>/etc/os-release</code> with lowercase keys, plus <code>serial_number_real</code> and <code>serial_number</code> as above.</p>
+<p>version-service populates these hashes on startup, one oneshot unit per board
+(<code>version-service-mdb.service</code> and <code>version-service-dbc.service</code>, differing only
+in <code>-hash</code>). It reads the serial from <code>/sys/bus/nvmem/devices/imx-ocotp0/nvmem</code>
+(offsets 4 and 8 for CFG0 and CFG1), falling back to <code>/sys/fsl_otp/HW_OCOTP_CFG*</code>
+where that exists. A missing serial source is logged and skipped; the OS release
+fields are still published.</p>
+<p>These are the only authoritative board serials. Some vehicles also carry
+<code>dbc-sn</code> / <code>dbc-sn-real</code> on the <code>system</code> hash, but nothing in the tree writes
+them: they are leftovers from an earlier image. Do not read them.</p>
 <h3 id="physical-inputs-buttons-input-events">Physical Inputs (<code>buttons</code>, <code>input-events</code>)<a class="headerlink" href="#physical-inputs-buttons-input-events" title="Permanent link">&para;</a></h3>
 <p>vehicle-service exposes the handlebar controls on two pub/sub channels. Neither
 is a state store: read <code>vehicle</code> for the current level of <code>brake:left</code>,
