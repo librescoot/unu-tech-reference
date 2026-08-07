@@ -2364,13 +2364,16 @@
 - <code>unu-cloud</code> - Cloud (uplink) connection status — written by <code>uplink-service</code>, not modem-service ("connected"/"disconnected")
 - <code>sim-imei</code> - Modem IMEI identifier (identifies modem hardware, not SIM - name kept for backward compatibility)
 - <code>sim-imsi</code> - SIM IMSI identifier (unique subscriber identity)
-- <code>sim-iccid</code> - SIM ICCID identifier (unique SIM card identifier)</p>
+- <code>sim-iccid</code> - SIM ICCID identifier (unique SIM card identifier)
+- <code>reachability</code> - Probe verdict: <code>ok</code> / <code>unreachable</code> (nothing answered but the local stack is healthy, which is the correct steady state on a restricted APN) / <code>no-path</code> (local stack broken)
+- <code>link-layer</code> - Local stack assessment: <code>ok</code>, or the failed layer plus an optional reason</p>
 <p><strong>Published channel:</strong> <code>internet</code> (publishes field name on change)</p>
 <h3 id="hash-modem">Hash: <code>modem</code><a class="headerlink" href="#hash-modem" title="Permanent link">&para;</a></h3>
 <p><strong>Fields written:</strong>
 - <code>power-state</code> - Modem power state ("on", "off")
 - <code>sim-state</code> - SIM card state ("present", "missing", "locked", "inactive")
 - <code>sim-lock</code> - SIM lock status (unlock required type or empty)
+- <code>registration</code> - Network registration state ("home", "roaming", "searching", "denied", "idle", "unknown")
 - <code>operator-name</code> - Current network operator name
 - <code>operator-code</code> - Current network operator code
 - <code>is-roaming</code> - Roaming status ("true", "false")

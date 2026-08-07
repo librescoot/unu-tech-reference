@@ -3442,6 +3442,42 @@ will not find it on 1.2 or later.</p>
 <td>Dashboard computer version</td>
 <td>"v1.15.0+430553"</td>
 </tr>
+<tr>
+<td>mdb-flavor</td>
+<td>string</td>
+<td>MDB image flavor</td>
+<td>"librescoot"</td>
+</tr>
+<tr>
+<td>dbc-flavor</td>
+<td>string</td>
+<td>DBC image flavor</td>
+<td>"librescoot"</td>
+</tr>
+<tr>
+<td>mdb-sn / dbc-sn</td>
+<td>string</td>
+<td>Board serial, legacy narrow encoding of the i.MX6 OCOTP UID</td>
+<td>"4235182719"</td>
+</tr>
+<tr>
+<td>mdb-sn-real / dbc-sn-real</td>
+<td>string</td>
+<td>Board serial, full OCOTP UID. Preferred over the plain field where both exist</td>
+<td>"0e0421d4ee6ba0ab"</td>
+</tr>
+<tr>
+<td>keycard-master-count</td>
+<td>integer</td>
+<td>Master keycards enrolled, written by keycard-service</td>
+<td>"1"</td>
+</tr>
+<tr>
+<td>keycard-authorized-count</td>
+<td>integer</td>
+<td>Authorized keycards enrolled, written by keycard-service</td>
+<td>"3"</td>
+</tr>
 </tbody>
 </table>
 <h3 id="power-management-power-manager">Power Management (<code>power-manager</code>)<a class="headerlink" href="#power-management-power-manager" title="Permanent link">&para;</a></h3>
@@ -4537,6 +4573,12 @@ The <code>dbc-backlight-service</code> reads <code>illumination</code> and adjus
 <td>"disabled"</td>
 </tr>
 <tr>
+<td>registration</td>
+<td>string</td>
+<td>Network registration state ("home"/"roaming"/"searching"/"denied"/"idle"/"unknown")</td>
+<td>"home"</td>
+</tr>
+<tr>
 <td>operator-name</td>
 <td>string</td>
 <td>Network operator name</td>
@@ -4684,6 +4726,18 @@ stream <code>id</code>.</p>
 <td>string</td>
 <td>SIM IMSI</td>
 <td>"262010123456789"</td>
+</tr>
+<tr>
+<td>reachability</td>
+<td>string</td>
+<td>Probe verdict: <code>ok</code>, <code>unreachable</code> (nothing answered but the local stack is healthy, the normal steady state on a restricted APN), <code>no-path</code> (local stack broken)</td>
+<td>"ok"</td>
+</tr>
+<tr>
+<td>link-layer</td>
+<td>string</td>
+<td>Local stack assessment: <code>ok</code>, or <code>&lt;failed-layer&gt;</code> / <code>&lt;failed-layer&gt;: &lt;reason&gt;</code></td>
+<td>"ok"</td>
 </tr>
 </tbody>
 </table>

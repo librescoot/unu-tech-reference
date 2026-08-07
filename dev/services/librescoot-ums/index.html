@@ -2051,7 +2051,7 @@ first lets the in-flight entry observe it and abandon itself.</p>
 <li>Copies the on-boot script to <code>onboot.sh</code></li>
 <li>Creates <code>system-update/</code>, <code>maps/</code>, <code>rpms/mdb/</code>, <code>rpms/dbc/</code>, <code>scripts/</code> and <code>log-bundles/</code> directories</li>
 <li>Copies existing log bundles from <code>/data/log-bundles</code> to <code>log-bundles/</code></li>
-<li>Collects diagnostics to <code>diagnostics/mdb/</code> (journal, dmesg, system info) and <code>diagnostics/dbc/</code> if DBC is reachable</li>
+<li>Collects diagnostics to <code>diagnostics/mdb/</code> (journal, dmesg, system info) and <code>diagnostics/dbc/</code> if DBC is reachable. The MDB <code>system-info.txt</code> ends with a <code>=== modem ===</code> section read from the <code>internet</code> and <code>modem</code> hashes (IMEI, ICCID, IMSI, operator, access tech, signal, registration, connectivity, IP, health, SIM/PIN/APN state); fields Redis has no value for print as <code>-</code></li>
 </ol>
 <p>The config files above are round-trips: whatever comes back on exit is read
 into place, and an untouched file is a no-op.</p>
