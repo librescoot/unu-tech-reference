@@ -46,6 +46,8 @@ Usage of modem-service:
 - `sim-imei` - Modem IMEI identifier (identifies modem hardware, not SIM - name kept for backward compatibility)
 - `sim-imsi` - SIM IMSI identifier (unique subscriber identity)
 - `sim-iccid` - SIM ICCID identifier (unique SIM card identifier)
+- `reachability` - Probe verdict: `ok` / `unreachable` (nothing answered but the local stack is healthy, which is the correct steady state on a restricted APN) / `no-path` (local stack broken)
+- `link-layer` - Local stack assessment: `ok`, or the failed layer plus an optional reason
 
 **Published channel:** `internet` (publishes field name on change)
 
@@ -55,6 +57,7 @@ Usage of modem-service:
 - `power-state` - Modem power state ("on", "off")
 - `sim-state` - SIM card state ("present", "missing", "locked", "inactive")
 - `sim-lock` - SIM lock status (unlock required type or empty)
+- `registration` - Network registration state ("home", "roaming", "searching", "denied", "idle", "unknown")
 - `operator-name` - Current network operator name
 - `operator-code` - Current network operator code
 - `is-roaming` - Roaming status ("true", "false")

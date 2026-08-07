@@ -135,7 +135,7 @@ first lets the in-flight entry observe it and abandon itself.
 4. Copies the on-boot script to `onboot.sh`
 5. Creates `system-update/`, `maps/`, `rpms/mdb/`, `rpms/dbc/`, `scripts/` and `log-bundles/` directories
 6. Copies existing log bundles from `/data/log-bundles` to `log-bundles/`
-7. Collects diagnostics to `diagnostics/mdb/` (journal, dmesg, system info) and `diagnostics/dbc/` if DBC is reachable
+7. Collects diagnostics to `diagnostics/mdb/` (journal, dmesg, system info) and `diagnostics/dbc/` if DBC is reachable. The MDB `system-info.txt` ends with a `=== modem ===` section read from the `internet` and `modem` hashes (IMEI, ICCID, IMSI, operator, access tech, signal, registration, connectivity, IP, health, SIM/PIN/APN state); fields Redis has no value for print as `-`
 
 The config files above are round-trips: whatever comes back on exit is read
 into place, and an untouched file is a no-op.

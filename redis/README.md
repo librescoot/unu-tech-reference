@@ -152,6 +152,12 @@ hgetall system
 | environment | string | System environment | "production" |
 | nrf-fw-version | string | NRF firmware version | "v1.12.0" |
 | dbc-version | string | Dashboard computer version | "v1.15.0+430553" |
+| mdb-flavor | string | MDB image flavor | "librescoot" |
+| dbc-flavor | string | DBC image flavor | "librescoot" |
+| mdb-sn / dbc-sn | string | Board serial, legacy narrow encoding of the i.MX6 OCOTP UID | "4235182719" |
+| mdb-sn-real / dbc-sn-real | string | Board serial, full OCOTP UID. Preferred over the plain field where both exist | "0e0421d4ee6ba0ab" |
+| keycard-master-count | integer | Master keycards enrolled, written by keycard-service | "1" |
+| keycard-authorized-count | integer | Authorized keycards enrolled, written by keycard-service | "3" |
 
 ### Power Management (`power-manager`)
 ```
@@ -556,6 +562,7 @@ hgetall modem
 | power-state | string | Modem power state | "on" |
 | sim-state | string | SIM card state ("present"/"missing"/"locked"/"inactive") | "present" |
 | sim-lock | string | SIM lock status | "disabled" |
+| registration | string | Network registration state ("home"/"roaming"/"searching"/"denied"/"idle"/"unknown") | "home" |
 | operator-name | string | Network operator name | "T-Mobile" |
 | operator-code | string | Network operator code | "26201" |
 | is-roaming | "true"/"false" | Roaming status | "false" |
@@ -622,6 +629,8 @@ Librescoot adds modem health tracking:
 |-------|------|-------------|----------|
 | modem-health | string | Modem recovery state | "normal" |
 | sim-imsi | string | SIM IMSI | "262010123456789" |
+| reachability | string | Probe verdict: `ok`, `unreachable` (nothing answered but the local stack is healthy, the normal steady state on a restricted APN), `no-path` (local stack broken) | "ok" |
+| link-layer | string | Local stack assessment: `ok`, or `<failed-layer>` / `<failed-layer>: <reason>` | "ok" |
 
 **Modem health states:**
 - `normal` - Modem operating normally

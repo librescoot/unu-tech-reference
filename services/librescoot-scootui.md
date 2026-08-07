@@ -101,6 +101,7 @@ make clean    # Remove build directory
 | `motion:heading` (5 Hz) + `motion:sensors` (10 Hz) pub/sub + `motion` hash | MotionStore | push + 5 s safety poll |
 | `ble` | BluetoothStore | 5 s |
 | `internet` | InternetStore | 5 s |
+| `modem` | ModemStore | 5 s |
 | `navigation` | NavigationStore | 5 s |
 | `settings` | SettingsStore | 5 s |
 | `ota` | OtaStore | 5 s |
