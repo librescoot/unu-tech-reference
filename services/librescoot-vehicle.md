@@ -74,7 +74,8 @@ Usage of vehicle-service:
 ### Channels published
 
 - `vehicle` - All vehicle state changes and sensor updates
-- `buttons` - Button press events for immediate UI response (horn, seatbox, brakes, blinkers)
+- `buttons` - Raw input edges for immediate UI response (horn, seatbox, brakes, blinkers)
+- `input-events` - Synthesized gestures (tap, long-tap, hold, double-tap) over the same inputs
 
 ### Commands sent to other services
 
@@ -341,6 +342,34 @@ transition behaves exactly as before.
 **Park debounce:**
 - After entering `ready-to-drive`, kickstand down events are ignored for 1 second
 - Prevents accidental transition to parked during kickstand retraction
+
+#### Gesture Detection (`input-events`) - Librescoot Only
+
+Alongside the raw edges on `buttons`, vehicle-service runs a gesture detector
+(`internal/core/input_gestures.go`) over the horn button, seatbox button and
+both brake levers, publishing `<source>:<gesture>` on the `input-events`
+channel.
+
+Sources: `horn`, `seatbox`, `brake:left`, `brake:right`.
+
+| Gesture | Fires when | Threshold |
+|---------|-----------|-----------|
+| `press` | Input goes active | - |
+| `release` | Input goes inactive | - |
+| `long-tap` | Still held after the long-tap delay | 800 ms |
+| `hold` | Still held after the hold delay | 3 s |
+| `tap` | Released before the long-tap threshold | - |
+| `double-tap` | Second `tap` within the double-tap window | 800 ms |
+
+`long-tap` and `hold` fire while the input is still down, so a 4-second press
+emits `press`, `long-tap`, `hold`, `release` and no `tap`. Emitting a `long-tap`
+or `hold` clears the pending tap, so a long press between two taps does not
+glue them into a `double-tap`.
+
+Each gesture is emitted exactly once, which makes `input-events` the channel to
+use for anything counting or reacting to discrete user actions. `buttons`
+carries the raw edges; the `vehicle` hash carries the current level. See the
+[Redis reference](../redis/README.md#physical-inputs-buttons-input-events).
 
 ### Command Processing
 

@@ -706,6 +706,91 @@ Contains all fields from `/etc/os-release` with lowercase keys.
 
 The version-service populates these hashes on startup from the OS release information.
 
+### Physical Inputs (`buttons`, `input-events`)
+
+vehicle-service exposes the handlebar controls on two pub/sub channels. Neither
+is a state store: read `vehicle` for the current level of `brake:left`,
+`brake:right`, `blinker:switch` and friends.
+
+#### `buttons` channel - raw edges
+
+One message per input edge, payload `<source>:<edge>` or
+`<source>:<position>:<edge>`:
+
+```
+SUBSCRIBE buttons
+horn:on
+horn:off
+seatbox:on
+seatbox:off
+brake:left:on
+brake:left:off
+brake:right:on
+brake:right:off
+blinker:left:on
+blinker:left:off
+blinker:right:on
+blinker:right:off
+```
+
+The payload always reflects the triggering input's own edge, independently of
+any combined state. Releasing one side of a hazard pair emits
+`blinker:right:off` even though the combined `blinker:switch` moves to `left`
+rather than `off`. Consumers that want the combined switch position read
+`vehicle[blinker:switch]`.
+
+Nothing on this channel carries a timestamp or duration. For press duration
+semantics use `input-events`; for the current level of an input read the
+`vehicle` hash (`horn:button`, `seatbox:button`, `brake:left`, `brake:right`,
+`blinker:switch`).
+
+There is no `buttons` hash. Between Librescoot 1.x (2025-12) and this release a
+`buttons` hash existed with fields `horn:on` / `horn:off` / `seatbox:on` /
+`seatbox:off` set to the literal `"1"` and never cleared; it had no readers and
+was removed. Over the same period `vehicle[horn:button]` and
+`vehicle[seatbox:button]` were not written and read back empty. Both are fixed:
+the level fields are in the `vehicle` hash again, and each edge is published on
+`buttons` exactly once.
+
+#### `input-events` channel - synthesized gestures
+
+vehicle-service runs a gesture detector over the same inputs and publishes
+higher-level events, payload `<source>:<gesture>`:
+
+```
+SUBSCRIBE input-events
+horn:press
+horn:release
+horn:tap
+brake:left:long-tap
+brake:right:hold
+seatbox:double-tap
+```
+
+| Source | Meaning |
+|--------|---------|
+| `horn` | Horn button |
+| `seatbox` | Seatbox button |
+| `brake:left` | Left brake lever |
+| `brake:right` | Right brake lever |
+
+| Gesture | Fires when |
+|---------|-----------|
+| `press` | Input goes active |
+| `release` | Input goes inactive |
+| `long-tap` | Still held after 800 ms |
+| `hold` | Still held after 3 s |
+| `tap` | Released before the long-tap threshold |
+| `double-tap` | Second `tap` within 800 ms of the previous one |
+
+`press` and `release` fire on every edge. `long-tap` and `hold` fire while the
+input is still down, so a 4-second press emits `press`, `long-tap`, `hold`,
+`release` in that order and no `tap`. A long-tap or hold clears the pending tap,
+so a long press between two taps does not glue them into a `double-tap`.
+
+Unlike `buttons`, each gesture is emitted exactly once, which makes this the
+channel to use for anything that counts or reacts to discrete user actions.
+
 ### Event Streams
 
 #### Fault Events (`events:faults`)
