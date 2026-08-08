@@ -8,6 +8,9 @@ The modem service manages the cellular modem (SimCom SIM7100E) for internet conn
 
 ```
 Usage of modem-service:
+  -data-usage-file string
+        Where to persist cellular byte totals; empty keeps them in memory only
+        (default "/data/modem-service/data-usage.json")
   -debug
         Enable debug logging
   -gpsd-server string
@@ -50,6 +53,40 @@ Usage of modem-service:
 - `link-layer` - Local stack assessment: `ok`, or the failed layer plus an optional reason
 
 **Published channel:** `internet` (publishes field name on change)
+
+### Hash: `internet-usage`
+
+Cellular byte totals, taken from the ModemManager bearer's own counters.
+
+**Fields written:**
+- `rx-bytes` - Bytes received over the cellular bearer since `since`
+- `tx-bytes` - Bytes transmitted over the cellular bearer since `since`
+- `rx-bytes-roaming` - The part of `rx-bytes` that moved while registered as roaming
+- `tx-bytes-roaming` - The part of `tx-bytes` that moved while registered as roaming
+- `since` - RFC 3339 timestamp of when counting started
+- `updated` - RFC 3339 timestamp of the last write
+
+**Published channel:** none. The hash is written silently because the totals move
+on every poll while data is flowing; consumers poll it.
+
+The totals are monotonic. ModemManager's own counters are not: they belong to a
+bearer object, and it hands out a fresh one on every modem reset. modem-service
+reads MM's across-reconnect figures (`total-rx-bytes`/`total-tx-bytes`, MM 1.20+,
+falling back to the per-connection-attempt `rx-bytes`/`tx-bytes`) and folds each
+reading into a running total, treating a new bearer or a counter going backwards
+as a restart. Period boundaries are not modelled on the vehicle: difference the
+totals to get usage over a window.
+
+The roaming fields are a subset, not a separate pot - roaming traffic is counted
+in both, so home traffic is `rx-bytes - rx-bytes-roaming`.
+
+Persisted to `/data/modem-service/data-usage.json` (see `-data-usage-file`) when
+the modem is disabled ahead of a suspend/hibernate/poweroff and on service
+shutdown, with a 6 hour backstop for a unit that stays up without a power
+transition. Writing on every poll would spend eMMC write cycles on a counter that
+is device-reported and not billing-grade, so a hard power cut can lose up to that
+much counted traffic. A `since` that has moved forward means the stored file was
+lost and the baseline restarted.
 
 ### Hash: `modem`
 

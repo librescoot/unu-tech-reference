@@ -650,6 +650,31 @@ icon) use it to decide whether being offline is worth surfacing:
 Hysteresis: `connected`->`disconnected` waits 3 min (ride out tunnels), `denied`
 waits 60 s before committing; `disabled`/`no-sim`/`failed` commit immediately.
 
+### Cellular Data Usage (`internet-usage`) - Librescoot Only
+
+Written by modem-service from the ModemManager bearer's byte counters. There is
+no channel notification: the totals move on every poll while data is flowing, so
+consumers poll the hash.
+
+| Field | Type | Description | Example |
+|-------|------|-------------|----------|
+| rx-bytes | integer | Bytes received over the cellular bearer since `since` | "1843729104" |
+| tx-bytes | integer | Bytes transmitted over the cellular bearer since `since` | "204118392" |
+| rx-bytes-roaming | integer | Part of `rx-bytes` that moved while roaming | "8110422" |
+| tx-bytes-roaming | integer | Part of `tx-bytes` that moved while roaming | "991200" |
+| since | string | RFC 3339 timestamp of when counting started | "2026-08-08T21:00:00Z" |
+| updated | string | RFC 3339 timestamp of the last write | "2026-08-09T07:31:04Z" |
+
+The totals are monotonic and survive both a bearer teardown and a reboot, so
+usage over a window is the difference between two readings; the vehicle does not
+model billing periods. The roaming fields are a subset of the totals rather than
+a separate pot, so home traffic is `rx-bytes - rx-bytes-roaming`.
+
+The counters are device-reported and not billing-grade, and are persisted at
+power transitions rather than on a timer, so a hard power cut can lose several
+hours of counted traffic. A `since` that has moved forward means the vehicle lost
+its stored total and restarted the baseline.
+
 ### OTA Updates (`ota`) - Librescoot Enhancement
 
 Librescoot adds per-component update tracking:
