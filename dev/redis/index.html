@@ -4944,9 +4944,7 @@ in <code>-hash</code>). It reads the serial from <code>/sys/bus/nvmem/devices/im
 (offsets 4 and 8 for CFG0 and CFG1), falling back to <code>/sys/fsl_otp/HW_OCOTP_CFG*</code>
 where that exists. A missing serial source is logged and skipped; the OS release
 fields are still published.</p>
-<p>These are the only authoritative board serials. Some vehicles also carry
-<code>dbc-sn</code> / <code>dbc-sn-real</code> on the <code>system</code> hash, but nothing in the tree writes
-them: they are leftovers from an earlier image. Do not read them.</p>
+<p>These are the authoritative board serials. Read them here.</p>
 <h3 id="physical-inputs-buttons-input-events">Physical Inputs (<code>buttons</code>, <code>input-events</code>)<a class="headerlink" href="#physical-inputs-buttons-input-events" title="Permanent link">&para;</a></h3>
 <p>vehicle-service exposes the handlebar controls on two pub/sub channels. Neither
 is a state store: read <code>vehicle</code> for the current level of <code>brake:left</code>,
