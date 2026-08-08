@@ -723,9 +723,7 @@ in `-hash`). It reads the serial from `/sys/bus/nvmem/devices/imx-ocotp0/nvmem`
 where that exists. A missing serial source is logged and skipped; the OS release
 fields are still published.
 
-These are the only authoritative board serials. Some vehicles also carry
-`dbc-sn` / `dbc-sn-real` on the `system` hash, but nothing in the tree writes
-them: they are leftovers from an earlier image. Do not read them.
+These are the authoritative board serials. Read them here.
 
 ### Physical Inputs (`buttons`, `input-events`)
 
