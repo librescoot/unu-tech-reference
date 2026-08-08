@@ -3443,18 +3443,6 @@ will not find it on 1.2 or later.</p>
 <td>"v1.15.0+430553"</td>
 </tr>
 <tr>
-<td>mdb-flavor</td>
-<td>string</td>
-<td>MDB image flavor</td>
-<td>"librescoot"</td>
-</tr>
-<tr>
-<td>dbc-flavor</td>
-<td>string</td>
-<td>DBC image flavor</td>
-<td>"librescoot"</td>
-</tr>
-<tr>
 <td>keycard-master-count</td>
 <td>integer</td>
 <td>Master keycards enrolled, written by keycard-service</td>
@@ -4929,7 +4917,7 @@ waits 60 s before committing; <code>disabled</code>/<code>no-sim</code>/<code>fa
 <tr>
 <td>serial_number</td>
 <td>string</td>
-<td>Decimal sum of <code>CFG0</code> and <code>CFG1</code>. A narrower legacy encoding of the same fuses; prefer <code>serial_number_real</code></td>
+<td>Decimal sum of <code>CFG0</code> and <code>CFG1</code>. Lossy, since the sum discards which fuse contributed what; prefer <code>serial_number_real</code></td>
 <td>"4496203686"</td>
 </tr>
 </tbody>
@@ -4938,9 +4926,12 @@ waits 60 s before committing; <code>disabled</code>/<code>no-sim</code>/<code>fa
 <div class="language-text highlight"><pre><span></span><code><span id="__span-28-1"><a id="__codelineno-28-1" name="__codelineno-28-1" href="#__codelineno-28-1"></a>hgetall version:dbc
 </span></code></pre></div>
 <p>Contains all fields from <code>/etc/os-release</code> with lowercase keys, plus <code>serial_number_real</code> and <code>serial_number</code> as above.</p>
-<p>version-service populates these hashes on startup, one oneshot unit per board
-(<code>version-service-mdb.service</code> and <code>version-service-dbc.service</code>, differing only
-in <code>-hash</code>). It reads the serial from <code>/sys/bus/nvmem/devices/imx-ocotp0/nvmem</code>
+<p>version-service populates these hashes on startup, as a oneshot unit per board
+(<code>version-service-mdb.service</code> passing <code>-hash version:mdb</code>,
+<code>version-service-dbc.service</code> passing <code>-hash version:dbc</code>; the MDB unit also
+orders itself after <code>valkey.service</code>, the DBC unit restarts on failure). The
+binary itself has no board-specific logic: the hash name is the only difference.
+It reads the serial from <code>/sys/bus/nvmem/devices/imx-ocotp0/nvmem</code>
 (offsets 4 and 8 for CFG0 and CFG1), falling back to <code>/sys/fsl_otp/HW_OCOTP_CFG*</code>
 where that exists. A missing serial source is logged and skipped; the OS release
 fields are still published.</p>
