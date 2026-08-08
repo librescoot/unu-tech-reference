@@ -152,8 +152,6 @@ hgetall system
 | environment | string | System environment | "production" |
 | nrf-fw-version | string | NRF firmware version | "v1.12.0" |
 | dbc-version | string | Dashboard computer version | "v1.15.0+430553" |
-| mdb-flavor | string | MDB image flavor | "librescoot" |
-| dbc-flavor | string | DBC image flavor | "librescoot" |
 | keycard-master-count | integer | Master keycards enrolled, written by keycard-service | "1" |
 | keycard-authorized-count | integer | Authorized keycards enrolled, written by keycard-service | "3" |
 
@@ -706,7 +704,7 @@ Contains all fields from `/etc/os-release` with lowercase keys (e.g., `version_i
 | Field | Type | Description | Example |
 |-------|------|-------------|----------|
 | serial_number_real | string | Full i.MX6 OCOTP UID, `CFG1` concatenated with `CFG0`, lowercase hex | "3a1d59d4d1e145d2" |
-| serial_number | string | Decimal sum of `CFG0` and `CFG1`. A narrower legacy encoding of the same fuses; prefer `serial_number_real` | "4496203686" |
+| serial_number | string | Decimal sum of `CFG0` and `CFG1`. Lossy, since the sum discards which fuse contributed what; prefer `serial_number_real` | "4496203686" |
 
 #### DBC Version (`version:dbc`)
 
@@ -716,9 +714,12 @@ hgetall version:dbc
 
 Contains all fields from `/etc/os-release` with lowercase keys, plus `serial_number_real` and `serial_number` as above.
 
-version-service populates these hashes on startup, one oneshot unit per board
-(`version-service-mdb.service` and `version-service-dbc.service`, differing only
-in `-hash`). It reads the serial from `/sys/bus/nvmem/devices/imx-ocotp0/nvmem`
+version-service populates these hashes on startup, as a oneshot unit per board
+(`version-service-mdb.service` passing `-hash version:mdb`,
+`version-service-dbc.service` passing `-hash version:dbc`; the MDB unit also
+orders itself after `valkey.service`, the DBC unit restarts on failure). The
+binary itself has no board-specific logic: the hash name is the only difference.
+It reads the serial from `/sys/bus/nvmem/devices/imx-ocotp0/nvmem`
 (offsets 4 and 8 for CFG0 and CFG1), falling back to `/sys/fsl_otp/HW_OCOTP_CFG*`
 where that exists. A missing serial source is logged and skipped; the OS release
 fields are still published.
