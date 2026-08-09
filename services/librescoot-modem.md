@@ -10,7 +10,7 @@ The modem service manages the cellular modem (SimCom SIM7100E) for internet conn
 Usage of modem-service:
   -data-usage-file string
         Where to persist cellular byte totals; empty keeps them in memory only
-        (default "/data/modem-service/data-usage.json")
+        (default "/data/internet-usage.json")
   -debug
         Enable debug logging
   -gpsd-server string
@@ -80,7 +80,7 @@ totals to get usage over a window.
 The roaming fields are a subset, not a separate pot - roaming traffic is counted
 in both, so home traffic is `rx-bytes - rx-bytes-roaming`.
 
-Persisted to `/data/modem-service/data-usage.json` (see `-data-usage-file`) when
+Persisted to `/data/internet-usage.json` (see `-data-usage-file`) when
 the modem is disabled ahead of a suspend/hibernate/poweroff and on service
 shutdown, with a 6 hour backstop for a unit that stays up without a power
 transition. Writing on every poll would spend eMMC write cycles on a counter that
