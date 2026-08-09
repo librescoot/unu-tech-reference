@@ -50,7 +50,7 @@ All fields are namespaced by component (`mdb` or `dbc`):
 | `error:{component}` | Error type when status is `error` | `invalid-release-tag`, `download-failed`, `install-failed`, `reboot-failed` |
 | `error-message:{component}` | Human-readable error details | String or empty |
 | `download-abort-reason:{component}` | Why a download was abandoned for being too slow | `stalled`, `budget-exceeded`, or empty |
-| `download-retry-after:{component}` | Unix seconds before which no further download will start | Integer, or empty when no backoff applies |
+| `download-skip-checks:{component}` | Update checks still to be skipped before another download is attempted | Integer, or empty when no backoff applies |
 | `heartbeat:{component}` | Unix seconds, refreshed while an update operation is running | Integer or empty |
 
 **Published channel:** `ota`
@@ -64,7 +64,7 @@ attempt is bounded by a wall-clock cap and a rolling throughput floor (see the
 not `error`: the attempt was abandoned rather than failed, the partial file is kept,
 and the next attempt resumes it.
 
-`download-abort-reason` and `download-retry-after` record what happened.
+`download-abort-reason` and `download-skip-checks` record what happened.
 `download-bytes` and `download-total` are deliberately preserved across an abort so
 the partial's progress stays visible. Both abort fields are cleared when a fresh
 attempt starts, and they survive a service restart, because they mirror on-disk state
@@ -73,6 +73,19 @@ rather than describing the running process.
 Consequently a scooter in a bad coverage area reads as `idle` with a non-empty
 `download-abort-reason`, not as a fault. Consumers that only watch `status` will see
 nothing wrong, which is intended.
+
+The backoff is counted in update checks, not in elapsed time, and
+`download-skip-checks` is the number still to be served. Each check that finds the
+component backed off spends one and decrements the field. Counting checks rather than
+storing a deadline keeps the ladder working on a scooter whose clock is wrong, which
+a battery-less RTC or a boot before the modem attaches can easily produce, and it
+costs nothing in expressiveness: retries only ever happen when a check runs, so a
+deadline shorter than the check interval was never observable anyway.
+
+For the DBC the count is spent by the MDB, not by the DBC itself. The MDB powers the
+dashboard specifically in order to let it check, so a count only the DBC could
+decrement would leave it backed off permanently. The MDB decrements as it declines to
+power the dashboard, which means its own check cadence drives the countdown.
 
 #### Heartbeat
 

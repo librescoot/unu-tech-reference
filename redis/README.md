@@ -696,13 +696,13 @@ Librescoot adds per-component update tracking:
 | error-message:mdb | string | MDB error message | "" |
 | error-message:dbc | string | DBC error message | "" |
 | download-abort-reason:{mdb,dbc} | string | Why a download was abandoned as too slow | "stalled" |
-| download-retry-after:{mdb,dbc} | integer (unix seconds) | No further download before this time | "1786298400" |
+| download-skip-checks:{mdb,dbc} | integer | Update checks still to be skipped before retrying | "4" |
 | heartbeat:{mdb,dbc} | integer (unix seconds) | Refreshed every 30s while an operation runs | "1786298400" |
 
 **Update status values:** `idle`, `downloading`, `preparing`, `installing`, `pending-reboot`, `error`
 
 A download abandoned for being too slow returns the component to `idle`, not `error`,
-and records `download-abort-reason` plus `download-retry-after`. `download-bytes` and
+and records `download-abort-reason` plus `download-skip-checks`. `download-bytes` and
 `download-total` are preserved across such an abort so the partial's progress stays
 visible; the next attempt resumes from it.
 
