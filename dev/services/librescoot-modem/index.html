@@ -1083,6 +1083,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#hash-internet-usage" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Hash: <code>internet-usage</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#hash-modem" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
@@ -1864,6 +1875,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#hash-internet-usage" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Hash: <code>internet-usage</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#hash-modem" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
@@ -2331,22 +2353,25 @@
 <p>The modem service manages the cellular modem (SimCom SIM7100E) for internet connectivity and GPS functionality using ModemManager (mmcli). It monitors network registration, signal quality, access technology (2G/3G/4G), handles modem power management and recovery, manages network connectivity, and provides GPS coordinates via gpsd. The service implements intelligent health monitoring with multi-strategy recovery procedures and GPS-specific recovery mechanisms. It also sends and receives SMS: outbound messages via the <code>scooter:sms</code> queue, inbound messages published to the <code>sms</code> hash.</p>
 <h2 id="command-line-options">Command-Line Options<a class="headerlink" href="#command-line-options" title="Permanent link">&para;</a></h2>
 <div class="language-text highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>Usage of modem-service:
-</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>  -debug
-</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>        Enable debug logging
-</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>  -gpsd-server string
-</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>        GPSD server address (default &quot;localhost:2947&quot;)
-</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>  -interface string
-</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>        Network interface to monitor (default &quot;wwan0&quot;)
-</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>  -internet-check-time duration
-</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>        Internet check interval (default 30s)
-</span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>  -redis-url string
-</span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>        Redis URL (default &quot;redis://127.0.0.1:6379&quot;)
-</span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>  -sms-keepalive
-</span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>        Keep the CS (SGs) registration alive for SMS delivery via periodic self-calls
-</span><span id="__span-0-14"><a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>  -supl-server string
-</span><span id="__span-0-15"><a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a>        SUPL server for A-GPS (default &quot;supl.google.com:7276&quot;)
-</span><span id="__span-0-16"><a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a>  -version
-</span><span id="__span-0-17"><a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a>        Print version and exit
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>  -data-usage-file string
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>        Where to persist cellular byte totals; empty keeps them in memory only
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>        (default &quot;/data/internet-usage.json&quot;)
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>  -debug
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>        Enable debug logging
+</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>  -gpsd-server string
+</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>        GPSD server address (default &quot;localhost:2947&quot;)
+</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>  -interface string
+</span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>        Network interface to monitor (default &quot;wwan0&quot;)
+</span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>  -internet-check-time duration
+</span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>        Internet check interval (default 30s)
+</span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>  -redis-url string
+</span><span id="__span-0-14"><a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>        Redis URL (default &quot;redis://127.0.0.1:6379&quot;)
+</span><span id="__span-0-15"><a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a>  -sms-keepalive
+</span><span id="__span-0-16"><a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a>        Keep the CS (SGs) registration alive for SMS delivery via periodic self-calls
+</span><span id="__span-0-17"><a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a>  -supl-server string
+</span><span id="__span-0-18"><a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a>        SUPL server for A-GPS (default &quot;supl.google.com:7276&quot;)
+</span><span id="__span-0-19"><a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a>  -version
+</span><span id="__span-0-20"><a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a>        Print version and exit
 </span></code></pre></div>
 <p><strong>Active polling intervals:</strong>
 - Modem health checks: Controlled by <code>-internet-check-time</code> (default: 30s)
@@ -2368,6 +2393,33 @@
 - <code>reachability</code> - Probe verdict: <code>ok</code> / <code>unreachable</code> (nothing answered but the local stack is healthy, which is the correct steady state on a restricted APN) / <code>no-path</code> (local stack broken)
 - <code>link-layer</code> - Local stack assessment: <code>ok</code>, or the failed layer plus an optional reason</p>
 <p><strong>Published channel:</strong> <code>internet</code> (publishes field name on change)</p>
+<h3 id="hash-internet-usage">Hash: <code>internet-usage</code><a class="headerlink" href="#hash-internet-usage" title="Permanent link">&para;</a></h3>
+<p>Cellular byte totals, taken from the ModemManager bearer's own counters.</p>
+<p><strong>Fields written:</strong>
+- <code>rx-bytes</code> - Bytes received over the cellular bearer since <code>since</code>
+- <code>tx-bytes</code> - Bytes transmitted over the cellular bearer since <code>since</code>
+- <code>rx-bytes-roaming</code> - The part of <code>rx-bytes</code> that moved while registered as roaming
+- <code>tx-bytes-roaming</code> - The part of <code>tx-bytes</code> that moved while registered as roaming
+- <code>since</code> - RFC 3339 timestamp of when counting started
+- <code>updated</code> - RFC 3339 timestamp of the last write</p>
+<p><strong>Published channel:</strong> none. The hash is written silently because the totals move
+on every poll while data is flowing; consumers poll it.</p>
+<p>The totals are monotonic. ModemManager's own counters are not: they belong to a
+bearer object, and it hands out a fresh one on every modem reset. modem-service
+reads MM's across-reconnect figures (<code>total-rx-bytes</code>/<code>total-tx-bytes</code>, MM 1.20+,
+falling back to the per-connection-attempt <code>rx-bytes</code>/<code>tx-bytes</code>) and folds each
+reading into a running total, treating a new bearer or a counter going backwards
+as a restart. Period boundaries are not modelled on the vehicle: difference the
+totals to get usage over a window.</p>
+<p>The roaming fields are a subset, not a separate pot - roaming traffic is counted
+in both, so home traffic is <code>rx-bytes - rx-bytes-roaming</code>.</p>
+<p>Persisted to <code>/data/internet-usage.json</code> (see <code>-data-usage-file</code>) when
+the modem is disabled ahead of a suspend/hibernate/poweroff and on service
+shutdown, with a 6 hour backstop for a unit that stays up without a power
+transition. Writing on every poll would spend eMMC write cycles on a counter that
+is device-reported and not billing-grade, so a hard power cut can lose up to that
+much counted traffic. A <code>since</code> that has moved forward means the stored file was
+lost and the baseline restarted.</p>
 <h3 id="hash-modem">Hash: <code>modem</code><a class="headerlink" href="#hash-modem" title="Permanent link">&para;</a></h3>
 <p><strong>Fields written:</strong>
 - <code>power-state</code> - Modem power state ("on", "off")
