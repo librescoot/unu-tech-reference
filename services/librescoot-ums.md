@@ -111,7 +111,7 @@ first lets the in-flight entry observe it and abandon itself.
 │   └── librescoot-dbc-*.mender
 ├── maps/                # place map files here
 │   ├── *.mbtiles
-│   └── *tiles.tar or valhalla_tiles_*.tar
+│   └── *tiles.tar or valhalla_tiles_*.tar, plain or .zst
 ├── rpms/
 │   ├── mdb/             # RPMs to install on MDB
 │   └── dbc/             # RPMs to transfer and install on DBC
@@ -148,7 +148,7 @@ into place, and an untouched file is a no-op.
 4. **uplink-service** - copies `uplink-service/config.yaml` back to `/data/uplink-service/`, restarts `librescoot-uplink.service` if changed
 5. **onboot** - copies `onboot.sh` back into place
 6. **Updates** - MDB `.mender`/`.delta` files installed locally via `scooter:update:mdb`; DBC `.mender`/`.delta` files transferred to DBC and queued via `scooter:update:dbc`
-7. **Maps** - transfers `.mbtiles` to `/data/maps/map.mbtiles` on DBC; transfers Valhalla tile archives to `/data/valhalla/tiles.tar` on DBC
+7. **Maps** - transfers `.mbtiles` to `/data/maps/map.mbtiles` on DBC; transfers Valhalla tile archives to `/data/valhalla/tiles.tar` on DBC. A `valhalla_tiles_*.tar.zst` is uploaded compressed and decompressed on the DBC, into a temp file that only replaces `tiles.tar` once the whole stream has decoded; the installed file is always the plain seekable tar, because Valhalla mmaps it as its `tile_extract`
 8. **RPMs** - installs `rpms/mdb/*.rpm` locally via `rpm -Uvh --force`; transfers and installs `rpms/dbc/*.rpm` on DBC
 9. **Scripts** - runs `scripts/mdb.sh` locally; transfers `scripts/dbc.sh` to DBC and runs it remotely
 10. Writes `ums_log.txt` to drive root, then cleans the drive (preserving `ums_log.txt`)
