@@ -49,9 +49,43 @@ All fields are namespaced by component (`mdb` or `dbc`):
 | `install-progress:{component}` | Install/delta application progress (0–100) | Integer or empty |
 | `error:{component}` | Error type when status is `error` | `invalid-release-tag`, `download-failed`, `install-failed`, `reboot-failed` |
 | `error-message:{component}` | Human-readable error details | String or empty |
+| `download-abort-reason:{component}` | Why a download was abandoned for being too slow | `stalled`, `budget-exceeded`, or empty |
+| `download-retry-after:{component}` | Unix seconds before which no further download will start | Integer, or empty when no backoff applies |
+| `heartbeat:{component}` | Unix seconds, refreshed while an update operation is running | Integer or empty |
 
 **Published channel:** `ota`
 - All field updates are published atomically on state transitions
+
+#### Abandoned downloads
+
+A download that is too slow is abandoned rather than left to run indefinitely. Each
+attempt is bounded by a wall-clock cap and a rolling throughput floor (see the
+`settings` fields below). When either bound is hit, the component returns to `idle`,
+not `error`: the attempt was abandoned rather than failed, the partial file is kept,
+and the next attempt resumes it.
+
+`download-abort-reason` and `download-retry-after` record what happened.
+`download-bytes` and `download-total` are deliberately preserved across an abort so
+the partial's progress stays visible. Both abort fields are cleared when a fresh
+attempt starts, and they survive a service restart, because they mirror on-disk state
+rather than describing the running process.
+
+Consequently a scooter in a bad coverage area reads as `idle` with a non-empty
+`download-abort-reason`, not as a fault. Consumers that only watch `status` will see
+nothing wrong, which is intended.
+
+#### Heartbeat
+
+`heartbeat:{component}` is refreshed every 30 seconds for the whole duration of an
+update operation, including the quiet stretches: the delta path waits minutes between
+download attempts with `status` still `downloading` and writes nothing else, and the
+connect-retry loop can go similarly quiet.
+
+The interval is a stable contract, not an implementation detail. A heartbeat older
+than 90 seconds (three intervals) while `status:{component}` is non-terminal means the
+reporter is gone rather than merely quiet, and the state may be treated as abandoned.
+vehicle-service uses exactly this to decide how long a DBC update may hold dashboard
+power.
 
 ### Hash: `settings` (read/written)
 
@@ -60,6 +94,9 @@ All fields are namespaced by component (`mdb` or `dbc`):
 - `updates.{component}.check-interval` — check interval (e.g. `6h`, `30m`)
 - `updates.{component}.releases-url` — release index base URL
 - `updates.{component}.dry-run` — dry-run mode (`true`/`false`)
+- `updates.{component}.download-max-duration` - wall-clock cap on a single download attempt (default `60m`, `0` disables)
+- `updates.{component}.download-stall-window` - rolling window the download throughput floor is measured over (default `2m`, `0` disables)
+- `updates.{component}.download-stall-min-bytes` - bytes that must arrive within each stall window (default `65536`)
 - `updates.{component}.method` — update method (`full` or `delta`)
 - `updates.mdb.orchestrate-dbc` — MDB-only: whether MDB orchestrates DBC updates
 

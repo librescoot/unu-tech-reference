@@ -695,8 +695,21 @@ Librescoot adds per-component update tracking:
 | error:dbc | string | DBC error type | "" |
 | error-message:mdb | string | MDB error message | "" |
 | error-message:dbc | string | DBC error message | "" |
+| download-abort-reason:{mdb,dbc} | string | Why a download was abandoned as too slow | "stalled" |
+| download-retry-after:{mdb,dbc} | integer (unix seconds) | No further download before this time | "1786298400" |
+| heartbeat:{mdb,dbc} | integer (unix seconds) | Refreshed every 30s while an operation runs | "1786298400" |
 
 **Update status values:** `idle`, `downloading`, `preparing`, `installing`, `pending-reboot`, `error`
+
+A download abandoned for being too slow returns the component to `idle`, not `error`,
+and records `download-abort-reason` plus `download-retry-after`. `download-bytes` and
+`download-total` are preserved across such an abort so the partial's progress stays
+visible; the next attempt resumes from it.
+
+`heartbeat:{component}` proves an operation is still alive during stretches that write
+nothing else, such as the delta path's multi-minute waits between download attempts.
+A heartbeat older than 90 seconds while `status` is non-terminal means the reporter is
+gone, not merely quiet. See [services/librescoot-update.md](../services/librescoot-update.md).
 
 See [update-service documentation](../services/librescoot-update.md) for details.
 

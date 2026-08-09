@@ -117,6 +117,26 @@ Generated from source analysis of all service repositories.
 - `scooter:update` → "start", "complete", "start-dbc", "complete-dbc"
 - `scooter:hardware` → "dashboard:on", "dashboard:off", "engine:on", "engine:off", "handlebar:lock", "handlebar:unlock" (and :force variants)
 
+**DBC update power hold.** `start-dbc` makes vehicle-service keep dashboard power up and
+defer the power cut that entering stand-by would normally perform, until `complete-dbc`
+arrives. A watchdog bounds that hold, reset on any `ota` hash field ending in `:dbc`:
+
+| condition | timeout |
+|---|---|
+| a `heartbeat:dbc` has been seen during this update | 3 min |
+| no heartbeat seen | 15 min |
+
+The longer fallback exists for a DBC whose update-service is too old to publish
+`heartbeat:{component}`; cutting its power early could interrupt an install. The short
+timeout applies only once the DBC has proven it publishes heartbeats. The flag is
+seeded on vehicle-service startup from `heartbeat:dbc`, because the `ota` watcher does
+not replay field values after a restart.
+
+Dashboard power has a second holder: scootui-qt holds it for the duration of a map or
+routing tile download, tracked by vehicle-service alongside the update hold. When the
+update watchdog expires it will not cut power while a map download is still holding
+the rail.
+
 **Produces queues (LPUSH):**
 - `scooter:governor` → "ondemand"/"powersave" (send to pm-service via intermediate; actually uses its own queue handler — see note)
 
@@ -530,6 +550,25 @@ Note: version-service does NOT publish to the `os-release` channel. It runs once
 | `scooter:alarm` | alarm-service | lsc |
 | `settings:overlay` | settings-service | lsc |
 | `power:inhibits` | pm-service inhibitor manager | update-service, vehicle-service, modem-service (hold pm inhibitors) |
+
+Inhibitor ids worth knowing, because fleet tooling matches on their prefixes:
+
+| id | type | held by | while |
+|---|---|---|---|
+| `download-transfer:{component}` | suspend-only | update-service | an OTA transfer is in flight, both components |
+| `download:{component}`, `preparing:{component}`, `install:{component}` | delay | update-service | the corresponding update phase (advisory only, see below) |
+| `dbc-update` | suspend-only | vehicle-service | a DBC update holds dashboard power |
+| `map-download` | suspend-only | vehicle-service | the dashboard is mid map or tile download |
+
+`download-transfer` is what keeps the MDB out of suspend during an OTA. Without it
+pm-service suspends roughly a minute into stand-by and takes the modem with it, so a
+download in stand-by would never finish. It is `suspend-only` rather than `block` so a
+hibernate is never obstructed, and it is bounded by the download's own wall-clock cap.
+
+The `delay`-typed inhibits are advisory: pm-service's blocking check honours only
+`block` and `suspend-only`, and the duration carried in the JSON is not read. They
+appear in `power-manager:busy-services` for observability and have no effect on power
+transitions.
 
 ---
 
