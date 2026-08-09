@@ -76,16 +76,18 @@ nothing wrong, which is intended.
 
 The backoff is counted in update checks, not in elapsed time, and
 `download-skip-checks` is the number still to be served. Each check that finds the
-component backed off spends one and decrements the field. Counting checks rather than
+component backed off spends one and updates the field. Counting checks rather than
 storing a deadline keeps the ladder working on a scooter whose clock is wrong, which
-a battery-less RTC or a boot before the modem attaches can easily produce, and it
-costs nothing in expressiveness: retries only ever happen when a check runs, so a
-deadline shorter than the check interval was never observable anyway.
+a battery-less RTC or a boot before the modem attaches can easily produce.
 
-For the DBC the count is spent by the MDB, not by the DBC itself. The MDB powers the
-dashboard specifically in order to let it check, so a count only the DBC could
-decrement would leave it backed off permanently. The MDB decrements as it declines to
-power the dashboard, which means its own check cadence drives the countdown.
+The escalation is stored as a rung, not as a fixed count, and the count is recomputed
+from the current `check-interval` every time a skip is served. Changing the interval
+therefore rescales an outstanding backoff instead of stranding it: 48 skips recorded
+while testing at `30m` do not become twelve days when the interval returns to `6h`.
+
+Each component serves its own ladder on its own checks. Note the DBC only checks when
+it is powered, so its checks are events rather than a cadence, and several short rides
+in a day can spend a backoff that was sized for one.
 
 #### Heartbeat
 
@@ -94,11 +96,28 @@ update operation, including the quiet stretches: the delta path waits minutes be
 download attempts with `status` still `downloading` and writes nothing else, and the
 connect-retry loop can go similarly quiet.
 
-The interval is a stable contract, not an implementation detail. A heartbeat older
-than 90 seconds (three intervals) while `status:{component}` is non-terminal means the
-reporter is gone rather than merely quiet, and the state may be treated as abandoned.
-vehicle-service uses exactly this to decide how long a DBC update may hold dashboard
-power.
+The interval is a stable contract, not an implementation detail, so a consumer may
+treat a heartbeat that has stopped advancing as evidence the reporter is gone rather
+than merely quiet.
+
+Two cautions for anyone building on that.
+
+`pending-reboot` is not a quiet operation, it is a finished one. A DBC install ends
+there and the heartbeat stops, legitimately, until the next power cycle applies the
+update. Only `downloading`, `preparing` and `installing` are states where a stopped
+heartbeat means something is wrong. A staleness test that says "non-terminal" without
+naming those three will flag every successfully updated DBC.
+
+An absent heartbeat is not a stale one. Images before this field existed never write
+it, so a consumer must require that a heartbeat has been observed for the current
+operation before applying any age test, or it will condemn healthy devices running
+older firmware.
+
+vehicle-service does **not** apply an age test. It runs an inactivity timer reset by
+any `ota` field ending in `:dbc`, `download-bytes:dbc` included, and uses the heartbeat
+only as a one-way capability flag: once it has seen one, it shortens that timer from
+15 minutes to 3. The on-vehicle threshold is therefore 3 minutes of total field
+silence, not 90 seconds of heartbeat age.
 
 ### Hash: `settings` (read/written)
 

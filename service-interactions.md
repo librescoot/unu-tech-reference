@@ -564,6 +564,20 @@ Inhibitor ids worth knowing, because fleet tooling matches on their prefixes:
 pm-service suspends roughly a minute into stand-by and takes the modem with it, so a
 download in stand-by would never finish. It is `suspend-only` rather than `block` so a
 hibernate is never obstructed, and it is bounded by the download's own wall-clock cap.
+update-service declines to take it at all when that cap is disabled
+(`download-max-duration` set to `0`), since an unbounded suspend hold is the battery
+drain the cap exists to prevent.
+
+Its release needs three owners, because the holder is not always alive to release it.
+The DBC writes `download-transfer:dbc` into the **MDB's** Redis, and pm-service applies
+no TTL to Redis inhibitors, so a DBC that loses power mid-transfer would otherwise
+orphan a suspend inhibit that nothing ever clears:
+
+| who releases it | when |
+|---|---|
+| update-service | normally, on every exit path of the transfer |
+| update-service | at startup, clearing a stale one left by a crash or power cut |
+| vehicle-service | whenever it cuts dashboard power, since that is what orphans it |
 
 The `delay`-typed inhibits are advisory: pm-service's blocking check honours only
 `block` and `suspend-only`, and the duration carried in the JSON is not read. They

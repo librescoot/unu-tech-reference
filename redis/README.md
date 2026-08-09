@@ -708,8 +708,13 @@ visible; the next attempt resumes from it.
 
 `heartbeat:{component}` proves an operation is still alive during stretches that write
 nothing else, such as the delta path's multi-minute waits between download attempts.
-A heartbeat older than 90 seconds while `status` is non-terminal means the reporter is
-gone, not merely quiet. See [services/librescoot-update.md](../services/librescoot-update.md).
+A heartbeat that has stopped advancing while `status` is `downloading`, `preparing` or
+`installing` means the reporter is gone rather than merely quiet. `pending-reboot` is
+excluded: a DBC install ends there and the heartbeat legitimately stops until the next
+power cycle. An absent heartbeat is not a stale one either, since older images never
+wrote the field. See [services/librescoot-update.md](../services/librescoot-update.md)
+for the full caveats and for what vehicle-service actually does, which is not an age
+test.
 
 See [update-service documentation](../services/librescoot-update.md) for details.
 
