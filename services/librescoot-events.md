@@ -71,9 +71,11 @@ redis-cli psubscribe 'ev:alarm.*'
 ```
 
 event-service itself subscribes only to the `ev:` patterns at least one
-loaded, enabled rule's `on` or `cancel-on` actually names. A rule reload
-recomputes the subscription set. With zero rules loaded there is no
-subscription at all.
+loaded, enabled rule's `on` or `cancel-on` actually names. Rules are read
+once, at startup, and the subscription set is computed from them there and
+then; there is no reload and no signal that rereads them, so a change under
+`--rules-dir` takes effect at the next service restart. With zero rules
+loaded there is no subscription at all.
 
 ### Hash: `extensions`
 
@@ -190,13 +192,22 @@ bus subscription reopens. A rule with `repeat` resumes on the pass it was on.
 A record is dropped instead of replayed, with a log line saying why, if its
 rule is no longer loaded, if that rule no longer has a step at the recorded
 index, if the step at that index was reconfigured while the service was
-down, or if it is more than `--replay-window` (default 5 minutes) past due.
+down, if it is more than `--replay-window` (default 5 minutes) past due, or
+if it is dated further ahead than the step's own `after` could ever put it,
+which is what a clock that ran backwards over the restart leaves behind.
 Editing rule files while the service is down is expected: a record
 identifies its step by what that step was configured to do, not just its
 position, so reordering or rewriting steps drops the stale record instead of
 firing whatever now sits at the same index. A replay window of zero or less
 replays only what is still in the future, so a scooter that was off for a
 week does not come back up acting on what it was doing when it went down.
+
+Records go through the rule's `concurrency` policy the same way a live
+trigger does, so a rule that ends up with two records resumes one run rather
+than two. A step that comes due while the action pool has no room for it
+keeps its record: the step provably did not run, so the next start is what
+runs it, and the same holds for a step still queued in the pool when the
+service is stopped.
 
 Write `durable = false` on a step to opt out. `durable` on a step with no
 `after` is a load error: there is no wait for it to mean anything about.
