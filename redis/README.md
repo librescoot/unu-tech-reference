@@ -698,8 +698,17 @@ Librescoot adds per-component update tracking:
 | download-abort-reason:{mdb,dbc} | string | Why a download was abandoned as too slow | "stalled" |
 | download-skip-checks:{mdb,dbc} | integer | Update checks still to be skipped before retrying | "4" |
 | heartbeat:{mdb,dbc} | integer (unix seconds) | Refreshed every 30s while an operation runs | "1786298400" |
+| status | string | Flat status, not namespaced, stock convention | "downloading-updates" |
+| update-type | string | Whether the flat status blocks use of the vehicle | "blocking" |
 
 **Update status values:** `idle`, `downloading`, `preparing`, `installing`, `pending-reboot`, `error`
+
+`status` and `update-type` are the non-namespaced pair from the stock convention,
+describing the vehicle rather than one board. Both components feed them and the least
+advanced one wins, so the pair only clears once neither board is busy. The MDB's
+update-service is the sole writer. They carry nothing the namespaced fields lack; read
+`status:{component}` instead. See
+[services/librescoot-update.md](../services/librescoot-update.md) for the full mapping.
 
 A download abandoned for being too slow returns the component to `idle`, not `error`,
 and records `download-abort-reason` plus `download-skip-checks`. `download-bytes` and

@@ -53,8 +53,47 @@ All fields are namespaced by component (`mdb` or `dbc`):
 | `download-skip-checks:{component}` | Update checks still to be skipped before another download is attempted | Integer, or empty when no backoff applies |
 | `heartbeat:{component}` | Unix seconds, refreshed while an update operation is running | Integer or empty |
 
+Two fields on the same hash are **not** namespaced, and describe the vehicle rather
+than one board:
+
+| Field | Description | Values |
+|-------|-------------|--------|
+| `status` | Flat update status, stock convention | `downloading-updates`, `installing-updates`, `installation-complete-waiting-reboot`, or empty |
+| `update-type` | Whether the flat status blocks use of the vehicle | `blocking`, or empty |
+
 **Published channel:** `ota`
 - All field updates are published atomically on state transitions
+
+#### Flat status
+
+`status` and `update-type` mirror the per-component state into the non-namespaced
+convention used by stock, for consumers that do not know about `status:mdb` and
+`status:dbc`. They carry no information the namespaced fields lack; anything written
+against Librescoot should read those instead.
+
+The mapping from a component's status:
+
+| Component status | `status` | `update-type` |
+|---|---|---|
+| `downloading` | `downloading-updates` | `blocking` |
+| `preparing`, `installing` | `installing-updates` | `blocking` |
+| `pending-reboot` | `installation-complete-waiting-reboot` | `blocking` |
+| `idle`, `error`, absent, unrecognised | empty | empty |
+
+Both components feed the same pair, and when they disagree **the least advanced one
+wins**. If the MDB is still downloading while the DBC is staged and waiting for its
+power cycle, the pair reads `downloading-updates`. The pair only clears once neither
+board is busy, so a consumer asking "is this scooter mid-update" never sees it clear
+while one board is still pulling bytes.
+
+The MDB's update-service is the sole writer. It watches `status:mdb` and `status:dbc`
+and recomputes on either change, including once at startup, so a service restart in
+the middle of an update cannot leave a stale `blocking` behind. The DBC never writes
+these fields; a second writer would race the first on the same two keys.
+
+An `error` on either component maps to the empty pair, not to a distinct flat value.
+A consumer that needs to distinguish a failed update from no update has to read
+`error:{component}`.
 
 #### Error types
 
