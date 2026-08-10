@@ -1253,6 +1253,45 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Hash: ota (written)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#error-types" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Error types
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#abandoned-downloads" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Abandoned downloads
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#heartbeat" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Heartbeat
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
         
           <li class="md-nav__item">
@@ -1671,6 +1710,45 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Hash: ota (written)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#error-types" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Error types
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#abandoned-downloads" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Abandoned downloads
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#heartbeat" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Heartbeat
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
         
           <li class="md-nav__item">
@@ -2012,23 +2090,146 @@
 <tr>
 <td><code>error:{component}</code></td>
 <td>Error type when status is <code>error</code></td>
-<td><code>invalid-release-tag</code>, <code>download-failed</code>, <code>install-failed</code>, <code>reboot-failed</code></td>
+<td>See <a href="#error-types">Error types</a></td>
 </tr>
 <tr>
 <td><code>error-message:{component}</code></td>
 <td>Human-readable error details</td>
 <td>String or empty</td>
 </tr>
+<tr>
+<td><code>download-abort-reason:{component}</code></td>
+<td>Why a download was abandoned for being too slow</td>
+<td><code>stalled</code>, <code>budget-exceeded</code>, or empty</td>
+</tr>
+<tr>
+<td><code>download-skip-checks:{component}</code></td>
+<td>Update checks still to be skipped before another download is attempted</td>
+<td>Integer, or empty when no backoff applies</td>
+</tr>
+<tr>
+<td><code>heartbeat:{component}</code></td>
+<td>Unix seconds, refreshed while an update operation is running</td>
+<td>Integer or empty</td>
+</tr>
 </tbody>
 </table>
 <p><strong>Published channel:</strong> <code>ota</code>
 - All field updates are published atomically on state transitions</p>
+<h4 id="error-types">Error types<a class="headerlink" href="#error-types" title="Permanent link">&para;</a></h4>
+<p>Values <code>error:{component}</code> takes, with <code>error-message:{component}</code> carrying the detail.</p>
+<table>
+<thead>
+<tr>
+<th>Value</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>download-failed</code></td>
+<td>The artifact could not be fetched</td>
+</tr>
+<tr>
+<td><code>checksum-mismatch</code></td>
+<td>A downloaded or staged file did not match its expected checksum</td>
+</tr>
+<tr>
+<td><code>file-not-found</code></td>
+<td>A path given to <code>update-from-file:</code> does not exist</td>
+</tr>
+<tr>
+<td><code>invalid-file</code></td>
+<td>A path given to <code>update-from-file:</code> is neither a <code>.mender</code> nor a <code>.delta</code></td>
+</tr>
+<tr>
+<td><code>image-too-large</code></td>
+<td>The artifact's rootfs payload is larger than the rootfs slot it would be written to. Checked before installation starts, so nothing is written</td>
+</tr>
+<tr>
+<td><code>install-failed</code></td>
+<td><code>mender-update install</code> failed</td>
+</tr>
+<tr>
+<td><code>no-base-image</code></td>
+<td>A delta arrived with no local <code>.mender</code> for the running version to apply it against</td>
+</tr>
+<tr>
+<td><code>delta-rejected</code></td>
+<td>A delta does not apply to the installed version (wrong channel, or not newer)</td>
+</tr>
+<tr>
+<td><code>delta-apply-failed</code></td>
+<td>Applying a locally delivered delta failed</td>
+</tr>
+<tr>
+<td><code>delta-failed</code></td>
+<td>A delta update failed and a full update is being started instead. Transient: cleared to <code>idle</code> after two seconds, then the full update proceeds</td>
+</tr>
+<tr>
+<td><code>reboot-failed</code></td>
+<td>The update installed but the reboot could not be triggered</td>
+</tr>
+</tbody>
+</table>
+<h4 id="abandoned-downloads">Abandoned downloads<a class="headerlink" href="#abandoned-downloads" title="Permanent link">&para;</a></h4>
+<p>A download that is too slow is abandoned rather than left to run indefinitely. Each
+attempt is bounded by a wall-clock cap and a rolling throughput floor (see the
+<code>settings</code> fields below). When either bound is hit, the component returns to <code>idle</code>,
+not <code>error</code>: the attempt was abandoned rather than failed, the partial file is kept,
+and the next attempt resumes it.</p>
+<p><code>download-abort-reason</code> and <code>download-skip-checks</code> record what happened.
+<code>download-bytes</code> and <code>download-total</code> are deliberately preserved across an abort so
+the partial's progress stays visible. Both abort fields are cleared when a fresh
+attempt starts, and they survive a service restart, because they mirror on-disk state
+rather than describing the running process.</p>
+<p>Consequently a scooter in a bad coverage area reads as <code>idle</code> with a non-empty
+<code>download-abort-reason</code>, not as a fault. Consumers that only watch <code>status</code> will see
+nothing wrong, which is intended.</p>
+<p>The backoff is counted in update checks, not in elapsed time, and
+<code>download-skip-checks</code> is the number still to be served. Each check that finds the
+component backed off spends one and updates the field. Counting checks rather than
+storing a deadline keeps the ladder working on a scooter whose clock is wrong, which
+a battery-less RTC or a boot before the modem attaches can easily produce.</p>
+<p>The escalation is stored as a rung, not as a fixed count, and the count is recomputed
+from the current <code>check-interval</code> every time a skip is served. Changing the interval
+therefore rescales an outstanding backoff instead of stranding it: 48 skips recorded
+while testing at <code>30m</code> do not become twelve days when the interval returns to <code>6h</code>.</p>
+<p>Each component serves its own ladder on its own checks. Note the DBC only checks when
+it is powered, so its checks are events rather than a cadence, and several short rides
+in a day can spend a backoff that was sized for one.</p>
+<h4 id="heartbeat">Heartbeat<a class="headerlink" href="#heartbeat" title="Permanent link">&para;</a></h4>
+<p><code>heartbeat:{component}</code> is refreshed every 30 seconds for the whole duration of an
+update operation, including the quiet stretches: the delta path waits minutes between
+download attempts with <code>status</code> still <code>downloading</code> and writes nothing else, and the
+connect-retry loop can go similarly quiet.</p>
+<p>The interval is a stable contract, not an implementation detail, so a consumer may
+treat a heartbeat that has stopped advancing as evidence the reporter is gone rather
+than merely quiet.</p>
+<p>Two cautions for anyone building on that.</p>
+<p><code>pending-reboot</code> is not a quiet operation, it is a finished one. A DBC install ends
+there and the heartbeat stops, legitimately, until the next power cycle applies the
+update. Only <code>downloading</code>, <code>preparing</code> and <code>installing</code> are states where a stopped
+heartbeat means something is wrong. A staleness test that says "non-terminal" without
+naming those three will flag every successfully updated DBC.</p>
+<p>An absent heartbeat is not a stale one. Images before this field existed never write
+it, so a consumer must require that a heartbeat has been observed for the current
+operation before applying any age test, or it will condemn healthy devices running
+older firmware.</p>
+<p>vehicle-service does <strong>not</strong> apply an age test. It runs an inactivity timer reset by
+any <code>ota</code> field ending in <code>:dbc</code>, <code>download-bytes:dbc</code> included, and uses the heartbeat
+only as a one-way capability flag: once it has seen one, it shortens that timer from
+15 minutes to 3. The on-vehicle threshold is therefore 3 minutes of total field
+silence, not 90 seconds of heartbeat age.</p>
 <h3 id="hash-settings-readwritten">Hash: <code>settings</code> (read/written)<a class="headerlink" href="#hash-settings-readwritten" title="Permanent link">&para;</a></h3>
 <p><strong>Fields read:</strong>
 - <code>updates.{component}.channel</code> — update channel (<code>stable</code>, <code>testing</code>, <code>nightly</code>)
 - <code>updates.{component}.check-interval</code> — check interval (e.g. <code>6h</code>, <code>30m</code>)
 - <code>updates.{component}.releases-url</code> — release index base URL
 - <code>updates.{component}.dry-run</code> — dry-run mode (<code>true</code>/<code>false</code>)
+- <code>updates.{component}.download-max-duration</code> - wall-clock cap on a single download attempt (default <code>60m</code>, <code>0</code> disables)
+- <code>updates.{component}.download-stall-window</code> - rolling window the download throughput floor is measured over (default <code>2m</code>, <code>0</code> disables)
+- <code>updates.{component}.download-stall-min-bytes</code> - bytes that must arrive within each stall window (default <code>65536</code>)
 - <code>updates.{component}.method</code> — update method (<code>full</code> or <code>delta</code>)
 - <code>updates.mdb.orchestrate-dbc</code> — MDB-only: whether MDB orchestrates DBC updates</p>
 <p><strong>Fields written:</strong>

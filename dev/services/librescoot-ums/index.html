@@ -2029,7 +2029,7 @@ first lets the in-flight entry observe it and abandon itself.</p>
 </span><span id="__span-2-12"><a id="__codelineno-2-12" name="__codelineno-2-12" href="#__codelineno-2-12"></a>│   └── librescoot-dbc-*.mender
 </span><span id="__span-2-13"><a id="__codelineno-2-13" name="__codelineno-2-13" href="#__codelineno-2-13"></a>├── maps/                # place map files here
 </span><span id="__span-2-14"><a id="__codelineno-2-14" name="__codelineno-2-14" href="#__codelineno-2-14"></a>│   ├── *.mbtiles
-</span><span id="__span-2-15"><a id="__codelineno-2-15" name="__codelineno-2-15" href="#__codelineno-2-15"></a>│   └── *tiles.tar or valhalla_tiles_*.tar
+</span><span id="__span-2-15"><a id="__codelineno-2-15" name="__codelineno-2-15" href="#__codelineno-2-15"></a>│   └── *tiles.tar or valhalla_tiles_*.tar, plain or .zst
 </span><span id="__span-2-16"><a id="__codelineno-2-16" name="__codelineno-2-16" href="#__codelineno-2-16"></a>├── rpms/
 </span><span id="__span-2-17"><a id="__codelineno-2-17" name="__codelineno-2-17" href="#__codelineno-2-17"></a>│   ├── mdb/             # RPMs to install on MDB
 </span><span id="__span-2-18"><a id="__codelineno-2-18" name="__codelineno-2-18" href="#__codelineno-2-18"></a>│   └── dbc/             # RPMs to transfer and install on DBC
@@ -2063,7 +2063,7 @@ into place, and an untouched file is a no-op.</p>
 <li><strong>uplink-service</strong> - copies <code>uplink-service/config.yaml</code> back to <code>/data/uplink-service/</code>, restarts <code>librescoot-uplink.service</code> if changed</li>
 <li><strong>onboot</strong> - copies <code>onboot.sh</code> back into place</li>
 <li><strong>Updates</strong> - MDB <code>.mender</code>/<code>.delta</code> files installed locally via <code>scooter:update:mdb</code>; DBC <code>.mender</code>/<code>.delta</code> files transferred to DBC and queued via <code>scooter:update:dbc</code></li>
-<li><strong>Maps</strong> - transfers <code>.mbtiles</code> to <code>/data/maps/map.mbtiles</code> on DBC; transfers Valhalla tile archives to <code>/data/valhalla/tiles.tar</code> on DBC</li>
+<li><strong>Maps</strong> - transfers <code>.mbtiles</code> to <code>/data/maps/map.mbtiles</code> on DBC; transfers Valhalla tile archives to <code>/data/valhalla/tiles.tar</code> on DBC. A <code>valhalla_tiles_*.tar.zst</code> is uploaded compressed and decompressed on the DBC, into a temp file that only replaces <code>tiles.tar</code> once the whole stream has decoded; the installed file is always the plain seekable tar, because Valhalla mmaps it as its <code>tile_extract</code></li>
 <li><strong>RPMs</strong> - installs <code>rpms/mdb/*.rpm</code> locally via <code>rpm -Uvh --force</code>; transfers and installs <code>rpms/dbc/*.rpm</code> on DBC</li>
 <li><strong>Scripts</strong> - runs <code>scripts/mdb.sh</code> locally; transfers <code>scripts/dbc.sh</code> to DBC and runs it remotely</li>
 <li>Writes <code>ums_log.txt</code> to drive root, then cleans the drive (preserving <code>ums_log.txt</code>)</li>
