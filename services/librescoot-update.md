@@ -47,7 +47,7 @@ All fields are namespaced by component (`mdb` or `dbc`):
 | `download-bytes:{component}` | Bytes downloaded | Integer or empty |
 | `download-total:{component}` | Total download size in bytes | Integer or empty |
 | `install-progress:{component}` | Install/delta application progress (0–100) | Integer or empty |
-| `error:{component}` | Error type when status is `error` | `invalid-release-tag`, `download-failed`, `install-failed`, `reboot-failed` |
+| `error:{component}` | Error type when status is `error` | See [Error types](#error-types) |
 | `error-message:{component}` | Human-readable error details | String or empty |
 | `download-abort-reason:{component}` | Why a download was abandoned for being too slow | `stalled`, `budget-exceeded`, or empty |
 | `download-skip-checks:{component}` | Update checks still to be skipped before another download is attempted | Integer, or empty when no backoff applies |
@@ -55,6 +55,24 @@ All fields are namespaced by component (`mdb` or `dbc`):
 
 **Published channel:** `ota`
 - All field updates are published atomically on state transitions
+
+#### Error types
+
+Values `error:{component}` takes, with `error-message:{component}` carrying the detail.
+
+| Value | Meaning |
+|-------|---------|
+| `download-failed` | The artifact could not be fetched |
+| `checksum-mismatch` | A downloaded or staged file did not match its expected checksum |
+| `file-not-found` | A path given to `update-from-file:` does not exist |
+| `invalid-file` | A path given to `update-from-file:` is neither a `.mender` nor a `.delta` |
+| `image-too-large` | The artifact's rootfs payload is larger than the rootfs slot it would be written to. Checked before installation starts, so nothing is written |
+| `install-failed` | `mender-update install` failed |
+| `no-base-image` | A delta arrived with no local `.mender` for the running version to apply it against |
+| `delta-rejected` | A delta does not apply to the installed version (wrong channel, or not newer) |
+| `delta-apply-failed` | Applying a locally delivered delta failed |
+| `delta-failed` | A delta update failed and a full update is being started instead. Transient: cleared to `idle` after two seconds, then the full update proceeds |
+| `reboot-failed` | The update installed but the reboot could not be triggered |
 
 #### Abandoned downloads
 
