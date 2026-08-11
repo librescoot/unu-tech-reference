@@ -505,7 +505,7 @@ Note: version-service does NOT publish to the `os-release` channel. It runs once
 | `power-manager:busy-services` | pm-service | monitoring only |
 | `system` | vehicle-service (cpu:governor), bluetooth-service (mdb-version, nrf-fw-version), pm-service (cpu:governor) | bluetooth-service, uplink-service, scootui |
 | `ota` | update-service | vehicle-service (reads status), update-service (self), scootui |
-| `internet` | modem-service | scootui, uplink-service |
+| `internet` | modem-service | scootui, uplink-service, pm-service |
 | `modem` | modem-service | scootui, uplink-service |
 | `gps` | modem-service | scootui, uplink-service |
 | `alarm` | alarm-service | lsc, monitoring |
