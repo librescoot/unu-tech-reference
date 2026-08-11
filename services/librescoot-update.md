@@ -25,10 +25,17 @@ CLI flags override Redis settings. `--component` and `--redis-addr` are CLI-only
 
 ## Systemd Units
 
-| Unit | Component |
-|------|-----------|
-| `librescoot-update-mdb.service` | MDB |
-| `librescoot-update-dbc.service` | DBC |
+Both boards run the same unit name, `librescoot-update.service`. There is no
+`-mdb` or `-dbc` suffix on the installed unit; the component comes from the
+arguments, and each board's image ships its own version of the file:
+
+| Board | ExecStart |
+|-------|-----------|
+| MDB | `/usr/bin/update-service --component=mdb --boot-update` |
+| DBC | `/usr/bin/update-service --component=dbc --redis-addr=192.168.7.1:6379 --boot-update` |
+
+The DBC points at the MDB's datastore, since there is only one and it lives on the
+MDB. `systemctl status librescoot-update` is the same command on either board.
 
 Binary: `/usr/bin/update-service`
 
