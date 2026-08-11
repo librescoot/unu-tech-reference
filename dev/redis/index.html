@@ -4932,9 +4932,27 @@ its stored total and restarted the baseline.</p>
 <td>Refreshed every 30s while an operation runs</td>
 <td>"1786298400"</td>
 </tr>
+<tr>
+<td>status</td>
+<td>string</td>
+<td>Flat status, not namespaced, stock convention</td>
+<td>"downloading-updates"</td>
+</tr>
+<tr>
+<td>update-type</td>
+<td>string</td>
+<td>Whether the flat status blocks use of the vehicle</td>
+<td>"blocking"</td>
+</tr>
 </tbody>
 </table>
 <p><strong>Update status values:</strong> <code>idle</code>, <code>downloading</code>, <code>preparing</code>, <code>installing</code>, <code>pending-reboot</code>, <code>error</code></p>
+<p><code>status</code> and <code>update-type</code> are the non-namespaced pair from the stock convention,
+describing the vehicle rather than one board. Both components feed them and the least
+advanced one wins, so the pair only clears once neither board is busy. The MDB's
+update-service is the sole writer. They carry nothing the namespaced fields lack; read
+<code>status:{component}</code> instead. See
+<a href="../services/librescoot-update/">services/librescoot-update.md</a> for the full mapping.</p>
 <p>A download abandoned for being too slow returns the component to <code>idle</code>, not <code>error</code>,
 and records <code>download-abort-reason</code> plus <code>download-skip-checks</code>. <code>download-bytes</code> and
 <code>download-total</code> are preserved across such an abort so the partial's progress stays

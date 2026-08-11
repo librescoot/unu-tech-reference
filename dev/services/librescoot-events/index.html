@@ -1,0 +1,2083 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Hardware and software reference for the Librescoot electric scooter platform">
+      
+      
+      
+        <link rel="canonical" href="https://reference.librescoot.org/dev/services/librescoot-events/">
+      
+      
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="zensical-0.0.53">
+    
+    
+      
+        <title>librescoot-events (event-service) - Librescoot Tech Reference</title>
+      
+    
+    
+      
+        
+      
+      <link rel="stylesheet" href="../../assets/stylesheets/modern/main.20815dad.min.css">
+      
+        
+          
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/modern/palette.dfe2e883.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter:300,300i,400,400i,500,500i,700,700i%7CJetBrains+Mono:400,400i,700,700i&amp;display=fallback">
+        <style>:root{--md-text-font:"Inter";--md-code-font:"JetBrains Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../stylesheets/extra.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_scope.pathname.endsWith("/")||(__md_scope=new URL(__md_scope.pathname+"/",location)),__md_hash=e=>[...e].reduce(((e,t)=>(e<<5)-e+t.charCodeAt(0)),0),__md_get=(e,t=localStorage,_=__md_scope)=>JSON.parse(t.getItem(_.pathname+"."+e)),__md_set=(e,t,_=localStorage,a=__md_scope)=>{try{_.setItem(a.pathname+"."+e,JSON.stringify(t))}catch(e){}},document.documentElement.setAttribute("data-platform",navigator.platform)</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="slate" data-md-color-primary="custom" data-md-color-accent="cyan">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer" aria-label="Navigation"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#librescoot-events-event-service" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+      <div data-md-color-scheme="default" data-md-component="outdated" hidden>
+        
+      </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="Librescoot Tech Reference" class="md-header__button md-logo" aria-label="Librescoot Tech Reference" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-book-open" viewBox="0 0 24 24"><path d="M12 5v16M20.001 19A2 2 0 0 0 22 17V5a2 2 0 0 0-1.999-2L16 3.002A5 5 0 0 0 12 5a5 5 0 0 0-4-2H4a2 2 0 0 0-2 2v12a2 2 0 0 0 1.999 2H8a5 5 0 0 1 4 2 5 5 0 0 1 4-2z"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer" aria-label="Navigation">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-menu" viewBox="0 0 24 24"><path d="M4 5h16M4 12h16M4 19h16"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Librescoot Tech Reference
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              librescoot-events (event-service)
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="none" data-md-color-scheme="slate" data-md-color-primary="custom" data-md-color-accent="cyan"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="none" data-md-color-scheme="default" data-md-color-primary="custom" data-md-color-accent="cyan"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-moon" viewBox="0 0 24 24"><path d="M20.985 12.486a9 9 0 1 1-9.473-9.472c.405-.022.617.46.402.803a6 6 0 0 0 8.268 8.268c.344-.215.825-.004.803.401"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search" aria-label="Search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-search" viewBox="0 0 24 24"><path d="m21 21-4.34-4.34"/><circle cx="11" cy="11" r="8"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog" aria-label="Search">
+  <button type="button" class="md-search__button">
+    Search
+  </button>
+</div>
+      
+    
+    <div class="md-header__source">
+      
+        <a href="https://github.com/librescoot/unu-tech-reference" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.3.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2026 Fonticons, Inc.--><path fill="currentColor" d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    librescoot/unu-tech-reference
+  </div>
+</a>
+      
+    </div>
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="Librescoot Tech Reference" class="md-nav__button md-logo" aria-label="Librescoot Tech Reference" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-book-open" viewBox="0 0 24 24"><path d="M12 5v16M20.001 19A2 2 0 0 0 22 17V5a2 2 0 0 0-1.999-2L16 3.002A5 5 0 0 0 12 5a5 5 0 0 0-4-2H4a2 2 0 0 0-2 2v12a2 2 0 0 0 1.999 2H8a5 5 0 0 1 4 2 5 5 0 0 1 4-2z"/></svg>
+
+    </a>
+    Librescoot Tech Reference
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/librescoot/unu-tech-reference" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.3.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2026 Fonticons, Inc.--><path fill="currentColor" d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    librescoot/unu-tech-reference
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Home
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../electronic/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Hardware
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_2" id="__nav_2_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+  Hardware
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../mechanical/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Mechanical
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../wiring/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Wiring & Connectors
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../battery/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Power
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_3" id="__nav_3_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+  Power
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../battery-charger/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Battery Charger
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../bluetooth/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Communication
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_4" id="__nav_4_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+  Communication
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../bluetooth/ota-transfer/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  BLE OTA Transfer
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../redis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Redis
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../nrf/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  nRF52840
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../nrf/UART/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  UART Protocol
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../nrf/power-management/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Power Management
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../states/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Software
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_5" id="__nav_5_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+  Software
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Services
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../librescoot-alarm/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  alarm-service
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../librescoot-battery/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  battery-service
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../librescoot-bluetooth/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  bluetooth-service
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../librescoot-ecu/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  ecu-service
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../librescoot-keycard/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  keycard-service
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../librescoot-modem/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  modem-service
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../librescoot-motion/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  motion-service
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../librescoot-pm/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  pm-service
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../librescoot-scootui/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  scootui-qt
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../librescoot-settings/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  settings-service
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../librescoot-ums/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  ums-service
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../librescoot-update/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  update-service
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../librescoot-vehicle/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  vehicle-service
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../dashboard/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Dashboard
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../dashboard/REDIS/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Dashboard Redis
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Tools
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+  Tools
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tools/lsc/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  lsc CLI
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  
+                    
+                    
+                    
+                      
+                    
+                    
+                      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+                      <div class="md-sidebar-button__wrapper">
+                        <label class="md-sidebar-button" for="__toc"></label>
+                      </div>
+                    
+                  
+                  <div class="md-sidebar__inner">
+                    
+
+
+<nav class="md-nav md-nav--secondary" aria-label="On this page">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      On this page
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#description" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Description
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#version" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Version
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#command-line-options" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Command-Line Options
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#redis-operations" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Redis Operations
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Redis Operations">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#stream-events" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Stream: <code>events</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pubsub-evtopic" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Pub/Sub: <code>ev:&lt;topic&gt;</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hash-extensions" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Hash: <code>extensions</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hash-extensionspending" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Hash: <code>extensions:pending</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#event-envelope" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Event Envelope
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#rules" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Rules
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Rules">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#step-sequences" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Step sequences
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#durability" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Durability
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#concurrency-and-cancellation" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Concurrency and cancellation
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#repeat" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Repeat
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cooldown-and-debounce" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Cooldown and debounce
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#naming-and-load-errors" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Naming and load errors
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#actions" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Actions
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#safety" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Safety
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#installation" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Installation
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dependencies" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Dependencies
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#related-documentation" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Related Documentation
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+                
+
+
+
+  
+
+
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+  
+    <a href="https://github.com/librescoot/unu-tech-reference/edit/master/docs/services/librescoot-events.md" title="Edit this page" class="md-content__button md-icon" rel="edit">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-file-pen" viewBox="0 0 24 24"><path d="M12.659 22H18a2 2 0 0 0 2-2V8a2.4 2.4 0 0 0-.706-1.706l-3.588-3.588A2.4 2.4 0 0 0 14 2H6a2 2 0 0 0-2 2v9.34"/><path d="M14 2v5a1 1 0 0 0 1 1h5M10.378 12.622a1 1 0 0 1 3 3.003L8.36 20.637a2 2 0 0 1-.854.506l-2.867.837a.5.5 0 0 1-.62-.62l.836-2.869a2 2 0 0 1 .506-.853z"/></svg>
+    </a>
+  
+  
+
+
+<h1 id="librescoot-events-event-service">librescoot-events (event-service)<a class="headerlink" href="#librescoot-events-event-service" title="Permanent link">&para;</a></h1>
+<h2 id="description">Description<a class="headerlink" href="#description" title="Permanent link">&para;</a></h2>
+<p>event-service turns existing Redis traffic into a normalised event bus and
+runs user-defined rules against it. It has two halves:</p>
+<ul>
+<li>An <strong>adapter</strong> that watches a fixed set of hashes and channels other
+  services already write to, and derives <code>topic</code>/<code>from</code>/<code>to</code> events from the
+  transitions it sees there (vehicle state, seatbox, kickstand, handlebar
+  lock, blinkers, battery presence and charge, alarm status, power state,
+  OTA status, keycard auth, motion detection, incoming SMS, dashboard
+  readiness, and button gestures). It writes nothing to those hashes and
+  derives no state of its own; it only observes and republishes.</li>
+<li>A <strong>rules engine</strong> that lets a user attach one or more actions, run in
+  sequence, to any event topic, entirely from TOML files, with no service of
+  their own to write or deploy.</li>
+</ul>
+<p>With no rule files present, event-service subscribes to nothing beyond what
+the adapter itself needs, so a scooter carrying no extensions pays no cost
+for the rules engine at all.</p>
+<h2 id="version">Version<a class="headerlink" href="#version" title="Permanent link">&para;</a></h2>
+<p>Tracks <code>main</code> on <code>github.com/librescoot/event-service</code>.</p>
+<h2 id="command-line-options">Command-Line Options<a class="headerlink" href="#command-line-options" title="Permanent link">&para;</a></h2>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>--redis &lt;addr&gt;               Datastore address (default: localhost:6379)
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>--log-level &lt;level&gt;          debug, info, warn, error (default: info)
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>--rules-dir &lt;path&gt;           Directory of rule TOML files (default: /data/extensions)
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>--workers &lt;n&gt;                Action worker count (default: 2)
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>--queue &lt;n&gt;                  Action queue depth (default: 256)
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>--replay-window &lt;duration&gt;   How far past due a recorded step may be and still
+</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>                              run at start (default: 5m). Zero or less replays
+</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>                              only steps still in the future.
+</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>--stats-interval &lt;duration&gt;  How often the extensions hash counters are
+</span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>                              refreshed (default: 10s). A non-positive value
+</span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>                              logs a warning and falls back to the default.
+</span></code></pre></div>
+<p><code>--log-level</code> is parsed and printed at startup but does not currently gate
+anything: every log line, including the ones prefixed <code>debug:</code>, is written
+regardless of the flag's value.</p>
+<p>A missing <code>--rules-dir</code> is not an error; it is the normal state of a scooter
+with no extensions installed.</p>
+<h2 id="redis-operations">Redis Operations<a class="headerlink" href="#redis-operations" title="Permanent link">&para;</a></h2>
+<h3 id="stream-events">Stream: <code>events</code><a class="headerlink" href="#stream-events" title="Permanent link">&para;</a></h3>
+<p>Every event the adapter derives is appended here. Rules do not publish new
+events; they only act on the ones already on the bus. Capped stream, newest
+2000 entries kept. Each entry is the JSON form of the event envelope below.</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>redis-cli<span class="w"> </span>xrevrange<span class="w"> </span>events<span class="w"> </span>+<span class="w"> </span>-<span class="w"> </span>COUNT<span class="w"> </span><span class="m">10</span>
+</span></code></pre></div>
+<h3 id="pubsub-evtopic">Pub/Sub: <code>ev:&lt;topic&gt;</code><a class="headerlink" href="#pubsub-evtopic" title="Permanent link">&para;</a></h3>
+<p>Every event on the stream is also published on a channel named <code>ev:</code> plus
+its topic, so a consumer can subscribe to exactly the topics it needs instead
+of tailing the whole stream.</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>redis-cli<span class="w"> </span>psubscribe<span class="w"> </span><span class="s1">&#39;ev:*&#39;</span>
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>redis-cli<span class="w"> </span>psubscribe<span class="w"> </span><span class="s1">&#39;ev:alarm.*&#39;</span>
+</span></code></pre></div>
+<p>event-service itself subscribes only to the <code>ev:</code> patterns at least one
+loaded, enabled rule's <code>on</code> or <code>cancel-on</code> actually names. Rules are read
+once, at startup, and the subscription set is computed from them there and
+then; there is no reload and no signal that rereads them, so a change under
+<code>--rules-dir</code> takes effect at the next service restart. With zero rules
+loaded there is no subscription at all.</p>
+<h3 id="hash-extensions">Hash: <code>extensions</code><a class="headerlink" href="#hash-extensions" title="Permanent link">&para;</a></h3>
+<p>Rule-engine counters, refreshed at <code>--stats-interval</code> and written once in
+full at startup so every field, including <code>version</code>, is present from the
+first read. After that, only fields whose value changed are written.</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>rules</code></td>
+<td>how many rules compiled and are currently live</td>
+</tr>
+<tr>
+<td><code>dispatched</code></td>
+<td>actions handed to a worker since start</td>
+</tr>
+<tr>
+<td><code>dropped</code></td>
+<td>actions the worker pool refused because its queue was full or it was shutting down; the operator's lever is <code>--workers</code> / <code>--queue</code></td>
+</tr>
+<tr>
+<td><code>refused</code></td>
+<td>triggers a <code>queue</code>-concurrency rule turned away because that rule's own backlog (capped at 8) was already full; the lever is that rule's own sequence, not the worker pool</td>
+</tr>
+<tr>
+<td><code>failed</code></td>
+<td>actions that ran and returned an error</td>
+</tr>
+<tr>
+<td><code>pending</code></td>
+<td>timers armed right now: steps waiting out an <code>after</code>, gaps between <code>repeat</code> passes, and <code>debounce</code> quiet windows. Observability only; a fire leaves the count the moment it is claimed, so <code>0</code> does not mean nothing is in flight</td>
+</tr>
+<tr>
+<td><code>runs-active</code></td>
+<td>sequence runs part-way through their steps, including ones parked on a timer. A trigger sitting in a <code>queue</code> backlog has not started and is not counted here</td>
+</tr>
+<tr>
+<td><code>version</code></td>
+<td>build version; constant for the life of the process</td>
+</tr>
+</tbody>
+</table>
+<p><code>dropped</code> and <code>refused</code> are two different failure modes and are kept as
+separate fields on purpose: one is the shared worker pool running out of
+room, the other is one rule's own backlog filling up, and they point at
+different fixes.</p>
+<h3 id="hash-extensionspending">Hash: <code>extensions:pending</code><a class="headerlink" href="#hash-extensionspending" title="Permanent link">&para;</a></h3>
+<p>One field per waiting durable step, keyed by an internal run id, JSON-encoded.
+There is no sweep and no expiry: a record is written when a durable step is
+scheduled and removed the moment it fires or is cancelled, so a scooter with
+nothing running writes nothing here at all. See <a href="#durability">Durability</a>
+below for what ends up in it and when it is dropped instead of replayed.</p>
+<h2 id="event-envelope">Event Envelope<a class="headerlink" href="#event-envelope" title="Permanent link">&para;</a></h2>
+<div class="language-json highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="p">{</span>
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="w">  </span><span class="nt">&quot;id&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;1712345678901-0&quot;</span><span class="p">,</span>
+</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="w">  </span><span class="nt">&quot;ts&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1712345678901</span><span class="p">,</span>
+</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="w">  </span><span class="nt">&quot;topic&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;battery.charge.changed&quot;</span><span class="p">,</span>
+</span><span id="__span-3-5"><a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="w">  </span><span class="nt">&quot;src&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;adapter&quot;</span><span class="p">,</span>
+</span><span id="__span-3-6"><a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="w">  </span><span class="nt">&quot;from&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;52&quot;</span><span class="p">,</span>
+</span><span id="__span-3-7"><a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a><span class="w">  </span><span class="nt">&quot;to&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;51&quot;</span><span class="p">,</span>
+</span><span id="__span-3-8"><a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a><span class="w">  </span><span class="nt">&quot;data&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="nt">&quot;slot&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">}</span>
+</span><span id="__span-3-9"><a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a><span class="p">}</span>
+</span></code></pre></div>
+<p><code>id</code> is assigned by the datastore when the event is appended to the stream
+and is empty on events a rule only sees through the channel. <code>from</code>/<code>to</code> are
+pulled out of <code>data</code> because "changed from X to Y" is the shape most rules
+match on. <code>src</code> is <code>adapter</code> for everything event-service derives itself.</p>
+<h2 id="rules">Rules<a class="headerlink" href="#rules" title="Permanent link">&para;</a></h2>
+<p>TOML files under <code>--rules-dir</code>, one or more <code>[[rule]]</code> blocks per file,
+loaded and compiled at startup. A file that fails to parse, or that contains
+a key nothing recognises, is rejected file by file: the rest still load,
+because losing every rule over one typo in one file is worse than running a
+subset.</p>
+<div class="language-toml highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="k">[[rule]]</span>
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="n">name</span><span class="w">        </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;hazards-on-alarm&quot;</span>
+</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="n">on</span><span class="w">          </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;alarm.triggered&quot;</span><span class="p">]</span>
+</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="n">concurrency</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;restart&quot;</span>
+</span><span id="__span-4-5"><a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="n">cancel-on</span><span class="w">   </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;alarm.disarmed&quot;</span><span class="p">]</span>
+</span><span id="__span-4-6"><a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a>
+</span><span id="__span-4-7"><a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a><span class="w">  </span><span class="k">[[rule.step]]</span>
+</span><span id="__span-4-8"><a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a><span class="w">  </span><span class="n">do</span><span class="w">   </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;redis&quot;</span>
+</span><span id="__span-4-9"><a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a><span class="w">  </span><span class="n">list</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;scooter:blinker&quot;</span>
+</span><span id="__span-4-10"><a id="__codelineno-4-10" name="__codelineno-4-10" href="#__codelineno-4-10"></a><span class="w">  </span><span class="n">push</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;both&quot;</span>
+</span><span id="__span-4-11"><a id="__codelineno-4-11" name="__codelineno-4-11" href="#__codelineno-4-11"></a>
+</span><span id="__span-4-12"><a id="__codelineno-4-12" name="__codelineno-4-12" href="#__codelineno-4-12"></a><span class="w">  </span><span class="k">[[rule.step]]</span>
+</span><span id="__span-4-13"><a id="__codelineno-4-13" name="__codelineno-4-13" href="#__codelineno-4-13"></a><span class="w">  </span><span class="n">after</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;30s&quot;</span>
+</span><span id="__span-4-14"><a id="__codelineno-4-14" name="__codelineno-4-14" href="#__codelineno-4-14"></a><span class="w">  </span><span class="n">do</span><span class="w">    </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;redis&quot;</span>
+</span><span id="__span-4-15"><a id="__codelineno-4-15" name="__codelineno-4-15" href="#__codelineno-4-15"></a><span class="w">  </span><span class="n">list</span><span class="w">  </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;scooter:blinker&quot;</span>
+</span><span id="__span-4-16"><a id="__codelineno-4-16" name="__codelineno-4-16" href="#__codelineno-4-16"></a><span class="w">  </span><span class="n">push</span><span class="w">  </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;off&quot;</span>
+</span></code></pre></div>
+<p>On the alarm, the hazards go on immediately; thirty seconds later the second
+step turns them off, unless <code>alarm.disarmed</code> cancels the run first.</p>
+<p><code>on</code> matches a topic exactly, with <code>*</code> for everything or <code>prefix.*</code> for
+anything starting with <code>prefix.</code>. Mid-pattern globs are not supported: a
+pattern matches literally or not at all, so a typo in a topic name fires
+nothing rather than something unintended. <code>when</code>, at rule level or step
+level, is an <code>expr</code> expression compiled once at load, evaluated against
+<code>topic</code>, <code>src</code>, <code>from</code>, <code>to</code>, <code>data</code>, and <code>state("hash", "field")</code> for the
+last value event-service's own shadow store observed for a hash field the
+event itself does not carry. A rule with no <code>when</code> fires on every event <code>on</code>
+matches; a step with no <code>when</code> always runs once it is reached.</p>
+<h3 id="step-sequences">Step sequences<a class="headerlink" href="#step-sequences" title="Permanent link">&para;</a></h3>
+<p>A rule can carry several <code>[[rule.step]]</code> blocks. They run strictly in order:
+a step is submitted only once the one before it finished, and a step that
+fails ends the run, with the remaining steps not run. A sequence is a recipe,
+so carrying on past a failed step would act on a state that step never
+established.</p>
+<p>A step may carry <code>after</code>, a duration that delays it relative to the step
+before it finishing. A step waiting out <code>after</code> holds no worker thread; it
+sits on a scheduler timer, so a rule can say "and thirty seconds later, turn
+it off" without occupying anything for the wait.</p>
+<h3 id="durability">Durability<a class="headerlink" href="#durability" title="Permanent link">&para;</a></h3>
+<p>A step with <code>after</code> is <code>durable</code> by default. The waiting step is written to
+the <code>extensions:pending</code> hash the moment it is scheduled and removed when it
+fires or is cancelled, so a service restart between "hazards on" and
+"hazards off thirty seconds later" does not leave the vehicle half-changed.
+On the next start, a recorded step whose delay already ran out fires
+immediately; one still in the future waits out what is left, both before the
+bus subscription reopens. A rule with <code>repeat</code> resumes on the pass it was on.</p>
+<p>A record is dropped instead of replayed, with a log line saying why, if its
+rule is no longer loaded, if that rule no longer has a step at the recorded
+index, if the step at that index was reconfigured while the service was
+down, if it is more than <code>--replay-window</code> (default 5 minutes) past due, or
+if it is dated further ahead than the step's own <code>after</code> could ever put it,
+which is what a clock that ran backwards over the restart leaves behind.
+Editing rule files while the service is down is expected: a record
+identifies its step by what that step was configured to do, not just its
+position, so reordering or rewriting steps drops the stale record instead of
+firing whatever now sits at the same index. A replay window of zero or less
+replays only what is still in the future, so a scooter that was off for a
+week does not come back up acting on what it was doing when it went down.</p>
+<p>Records go through the rule's <code>concurrency</code> policy the same way a live
+trigger does, so a rule that ends up with two records resumes one run rather
+than two. A step that comes due while the action pool has no room for it
+keeps its record: the step provably did not run, so the next start is what
+runs it, and the same holds for a step still queued in the pool when the
+service is stopped.</p>
+<p>Write <code>durable = false</code> on a step to opt out. <code>durable</code> on a step with no
+<code>after</code> is a load error: there is no wait for it to mean anything about.
+Nothing is recorded for the gap between <code>repeat</code> passes or for a trigger
+sitting in a <code>queue</code> backlog; neither has acted on the vehicle yet, so
+neither needs to survive a restart.</p>
+<h3 id="concurrency-and-cancellation">Concurrency and cancellation<a class="headerlink" href="#concurrency-and-cancellation" title="Permanent link">&para;</a></h3>
+<p><code>concurrency</code> decides what a fresh trigger does to a run of the same rule
+that has not finished:</p>
+<ul>
+<li><code>restart</code> (default): drop the pending tail of the live run and start over.</li>
+<li><code>drop</code>: ignore the trigger while a run is live; the rule fires normally
+  again once that run ends.</li>
+<li><code>queue</code>: hold the trigger and run the sequence again once the live run has
+  finished, so runs go back to back rather than side by side. The backlog is
+  capped at 8 per rule; anything past that is refused, counted in <code>refused</code>,
+  and logged.</li>
+</ul>
+<p><code>cancel-on</code> takes topics in the same form as <code>on</code>. A matching event drops
+every live run of that rule: pending timers are cancelled, the queued
+backlog is thrown away, and no further step is submitted. It is applied
+before matching, so one event can cancel one rule and fire another in the
+same pass.</p>
+<p>A step already handed to the worker pool when the cancel arrives is <strong>not</strong>
+interrupted, whether a worker is already running it or it is still waiting
+its turn in the pool's queue. A <code>redis</code> push or <code>exec</code> command already
+accepted completes. What cancelling guarantees is that no step after it
+runs.</p>
+<h3 id="repeat">Repeat<a class="headerlink" href="#repeat" title="Permanent link">&para;</a></h3>
+<p><code>repeat = { count = 3, every = "700ms" }</code> at rule level runs the whole step
+sequence again once it finishes, <code>count</code> times total, waiting <code>every</code>
+between one pass ending and the next starting. With no <code>repeat</code> key, or
+<code>count = 1</code>, a rule runs a single pass. <code>every</code> only has to be set, and only
+has to be positive, once <code>count</code> is greater than 1. The gap between passes is
+not durable, only a step's own <code>after</code> is: a restart during the gap simply
+ends the run on the pass it had reached.</p>
+<h3 id="cooldown-and-debounce">Cooldown and debounce<a class="headerlink" href="#cooldown-and-debounce" title="Permanent link">&para;</a></h3>
+<p><code>cooldown</code> (a duration) is a leading-edge suppressor: the first event of a
+burst fires the rule immediately, and any further match within the window is
+ignored outright.</p>
+<p><code>debounce</code> (a duration) is a trailing edge: nothing fires while matching
+events keep arriving, each one restarting the window, and once the window
+elapses without another match the rule fires exactly once, carrying the most
+recent event seen rather than the one that opened the window.</p>
+<p>They compose rather than conflict. With both set, <code>cooldown</code> is checked
+against the debounced dispatch itself, not against each event that only
+restarted the quiet window, so a burst that never goes quiet long enough to
+satisfy <code>debounce</code> never reaches <code>cooldown</code> at all.</p>
+<h3 id="naming-and-load-errors">Naming and load errors<a class="headerlink" href="#naming-and-load-errors" title="Permanent link">&para;</a></h3>
+<p>A rule's <code>name</code> must be unique across every file in the directory: it is the
+handle a rule's runs, concurrency policy and <code>cancel-on</code> list are grouped
+under, so two rules sharing one name would fight over all three. The second
+definition of a name fails to load with an error naming both files; the
+rest of both files still load. A disabled rule (<code>enabled = false</code>) claims no
+name, and neither does a rule that fails to compile, so an old copy kept
+around under <code>enabled = false</code> while a variant is tried, or a fix landing
+under the name a broken rule already failed to claim, both work as expected.</p>
+<p><code>can</code>, <code>lua</code> and <code>http</code> step kinds are not supported yet; a rule naming one
+fails to load. An unrecognised <code>concurrency</code> value is rejected the same way,
+naming the rule, the file, and the three accepted values.</p>
+<h2 id="actions">Actions<a class="headerlink" href="#actions" title="Permanent link">&para;</a></h2>
+<ul>
+<li><code>redis</code>: <code>LPUSH</code> a fixed value (<code>push</code>) onto an existing list (<code>list</code>).
+  One datastore round trip, no process spawned; the default choice for
+  anything that stays on the vehicle.</li>
+<li><code>exec</code>: run <code>command</code> with a <code>timeout</code> (default <code>10s</code>). The event is on
+  stdin as JSON, plus environment variables <code>LS_TOPIC</code>, <code>LS_SRC</code>, <code>LS_FROM</code>,
+  <code>LS_TO</code>, <code>LS_ID</code>, and one <code>LS_DATA_&lt;KEY&gt;</code> per scalar <code>data</code> field, so a
+  short shell script needs no JSON parser. The command runs in its own
+  process group; the hard timeout kills the whole group, not just the
+  direct child.</li>
+<li><code>can</code>, <code>lua</code>, <code>http</code>: designed, not built. See <code>EVENT-SERVICE-DESIGN.md</code>.</li>
+</ul>
+<h2 id="safety">Safety<a class="headerlink" href="#safety" title="Permanent link">&para;</a></h2>
+<p>There is no allowlist, no rate limit, and no interlock on what a rule can
+do. A <code>redis</code> step can push onto <code>scooter:state</code>, <code>scooter:horn</code>,
+<code>scooter:blinker</code>, <code>scooter:seatbox</code>, or any other command queue, exactly as
+freely as vehicle-service's own legitimate callers can. Two rules can watch
+each other's output topics and cycle a command back and forth indefinitely,
+including through the steering lock; nothing here detects or breaks that
+loop. The extension subsystem is a power-user feature by design, and it is
+deliberately not event-service's job to second-guess what a rule tells the
+vehicle to do.</p>
+<p>Durability extends the same stance across a restart. A step with <code>after</code>
+survives the service going down and finishes on the next start, so a rule
+nobody retriggered this session, left waiting from before the restart, can
+still push to a command queue once the service is back up, with nothing in
+between that the rider watching the vehicle now would connect to it. That is
+intentional: durability exists so a sequence that already told the vehicle
+to do half of something finishes the other half, and there is no separate
+check asking whether it still should. Do not write an <code>after</code> step onto a
+command queue that should not fire from something that happened before the
+current rider ever saw the vehicle.</p>
+<h2 id="installation">Installation<a class="headerlink" href="#installation" title="Permanent link">&para;</a></h2>
+<p><strong>Unit file:</strong> <code>librescoot-events.service</code></p>
+<div class="language-ini highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="k">[Unit]</span>
+</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="na">Description</span><span class="o">=</span><span class="s">Librescoot Event Service</span>
+</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="na">After</span><span class="o">=</span><span class="s">valkey.service</span>
+</span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="na">Wants</span><span class="o">=</span><span class="s">valkey.service</span>
+</span><span id="__span-5-5"><a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a>
+</span><span id="__span-5-6"><a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a><span class="k">[Service]</span>
+</span><span id="__span-5-7"><a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a><span class="na">Type</span><span class="o">=</span><span class="s">simple</span>
+</span><span id="__span-5-8"><a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a><span class="na">ExecStart</span><span class="o">=</span><span class="s">/usr/bin/event-service </span>\
+</span><span id="__span-5-9"><a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a><span class="w">    </span><span class="s">--redis=localhost:6379 </span>\
+</span><span id="__span-5-10"><a id="__codelineno-5-10" name="__codelineno-5-10" href="#__codelineno-5-10"></a><span class="w">    </span><span class="s">--log-level=info</span>
+</span><span id="__span-5-11"><a id="__codelineno-5-11" name="__codelineno-5-11" href="#__codelineno-5-11"></a><span class="na">Restart</span><span class="o">=</span><span class="s">always</span>
+</span><span id="__span-5-12"><a id="__codelineno-5-12" name="__codelineno-5-12" href="#__codelineno-5-12"></a><span class="na">RestartSec</span><span class="o">=</span><span class="s">5</span>
+</span><span id="__span-5-13"><a id="__codelineno-5-13" name="__codelineno-5-13" href="#__codelineno-5-13"></a><span class="na">User</span><span class="o">=</span><span class="s">root</span>
+</span><span id="__span-5-14"><a id="__codelineno-5-14" name="__codelineno-5-14" href="#__codelineno-5-14"></a>
+</span><span id="__span-5-15"><a id="__codelineno-5-15" name="__codelineno-5-15" href="#__codelineno-5-15"></a><span class="na">Nice</span><span class="o">=</span><span class="s">5</span>
+</span><span id="__span-5-16"><a id="__codelineno-5-16" name="__codelineno-5-16" href="#__codelineno-5-16"></a><span class="na">CPUWeight</span><span class="o">=</span><span class="s">20</span>
+</span><span id="__span-5-17"><a id="__codelineno-5-17" name="__codelineno-5-17" href="#__codelineno-5-17"></a><span class="na">MemoryMax</span><span class="o">=</span><span class="s">48M</span>
+</span><span id="__span-5-18"><a id="__codelineno-5-18" name="__codelineno-5-18" href="#__codelineno-5-18"></a><span class="na">TasksMax</span><span class="o">=</span><span class="s">64</span>
+</span><span id="__span-5-19"><a id="__codelineno-5-19" name="__codelineno-5-19" href="#__codelineno-5-19"></a>
+</span><span id="__span-5-20"><a id="__codelineno-5-20" name="__codelineno-5-20" href="#__codelineno-5-20"></a><span class="na">StandardOutput</span><span class="o">=</span><span class="s">journal</span>
+</span><span id="__span-5-21"><a id="__codelineno-5-21" name="__codelineno-5-21" href="#__codelineno-5-21"></a><span class="na">StandardError</span><span class="o">=</span><span class="s">journal</span>
+</span><span id="__span-5-22"><a id="__codelineno-5-22" name="__codelineno-5-22" href="#__codelineno-5-22"></a>
+</span><span id="__span-5-23"><a id="__codelineno-5-23" name="__codelineno-5-23" href="#__codelineno-5-23"></a><span class="k">[Install]</span>
+</span><span id="__span-5-24"><a id="__codelineno-5-24" name="__codelineno-5-24" href="#__codelineno-5-24"></a><span class="na">WantedBy</span><span class="o">=</span><span class="s">multi-user.target</span>
+</span></code></pre></div>
+<p>The resource caps (<code>Nice</code>, <code>CPUWeight</code>, <code>MemoryMax</code>, <code>TasksMax</code>) are meant to
+make the extension subsystem structurally incapable of starving
+vehicle-service, regardless of what a rule set does. <code>--rules-dir</code> is not
+passed, so the compiled-in default (<code>/data/extensions</code>) applies.</p>
+<h2 id="dependencies">Dependencies<a class="headerlink" href="#dependencies" title="Permanent link">&para;</a></h2>
+<ul>
+<li><strong>Redis (valkey)</strong> - for the event stream, the <code>ev:*</code> channels, the
+  <code>extensions</code> and <code>extensions:pending</code> hashes, and reading the hashes the
+  adapter watches.</li>
+<li><strong>Whatever hash or command queue a rule's <code>redis</code> step targets</strong> - the
+  rules engine does not own those queues; it pushes onto them the same way
+  any other client would.</li>
+</ul>
+<h2 id="related-documentation">Related Documentation<a class="headerlink" href="#related-documentation" title="Permanent link">&para;</a></h2>
+<ul>
+<li><a href="../../redis/">Redis Operations</a> - datastore conventions this
+  service follows</li>
+<li><a href="../">Librescoot Services</a> - service overview</li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-circle-arrow-up" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="m16 12-4-4-4 4M12 16V8"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+    
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+    <div class="md-copyright__highlight">
+      Copyright &copy; 2025-2026 Librescoot contributors
+    </div>
+  
+  
+    Made with
+    <a href="https://zensical.org/" target="_blank" rel="noopener">
+      Zensical
+    </a>
+  
+</div>
+      
+        
+<div class="md-social">
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://github.com/librescoot" target="_blank" rel="noopener" title="github.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.3.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2026 Fonticons, Inc.--><path fill="currentColor" d="M216.5 362.5c-66-8-112.5-55.5-112.5-117 0-25 9-52 24-70-6.5-16.5-5.5-51.5 2-66 20-2.5 47 8 63 22.5 19-6 39-9 63.5-9s44.5 3 62.5 8.5c15.5-14 43-24.5 63-22 7 13.5 8 48.5 1.5 65.5 16 19 24.5 44.5 24.5 70.5 0 61.5-46.5 108-113.5 116.5 17 11 28.5 35 28.5 62.5v52c0 15 12.5 23.5 27.5 17.5C441 459.5 512 369 512 257 512 115.5 397 0 255.5 0S0 115.5 0 257c0 111 70.5 203 165.5 237.5 13.5 5 26.5-4 26.5-17.5v-40c-7 3-16 5-24 5-33 0-52.5-18-66.5-51.5-5.5-13.5-11.5-21.5-23-23-6-.5-8-3-8-6 0-6 10-10.5 20-10.5 14.5 0 27 9 40 27.5 10 14.5 20.5 21 33 21s20.5-4.5 32-16c8.5-8.5 15-16 21-21"/></svg>
+    </a>
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://discord.gg/VrumFruSzJ" target="_blank" rel="noopener" title="discord.gg" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512"><!--! Font Awesome Free 7.3.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2026 Fonticons, Inc.--><path fill="currentColor" d="M492.5 69.8c-.2-.3-.4-.6-.8-.7-38.1-17.5-78.4-30-119.7-37.1-.4-.1-.8 0-1.1.1s-.6.4-.8.8c-5.5 9.9-10.5 20.2-14.9 30.6-44.6-6.8-89.9-6.8-134.4 0-4.5-10.5-9.5-20.7-15.1-30.6-.2-.3-.5-.6-.8-.8s-.7-.2-1.1-.2C162.5 39 122.2 51.5 84.1 69c-.3.1-.6.4-.8.7C7.1 183.5-13.8 294.6-3.6 404.2c0 .3.1.5.2.8s.3.4.5.6c44.4 32.9 94 58 146.8 74.2.4.1.8.1 1.1 0s.7-.4.9-.7c11.3-15.4 21.4-31.8 30-48.8.1-.2.2-.5.2-.8s0-.5-.1-.8-.2-.5-.4-.6-.4-.3-.7-.4c-15.8-6.1-31.2-13.4-45.9-21.9-.3-.2-.5-.4-.7-.6s-.3-.6-.3-.9 0-.6.2-.9.3-.5.6-.7c3.1-2.3 6.2-4.7 9.1-7.1.3-.2.6-.4.9-.4s.7 0 1 .1c96.2 43.9 200.4 43.9 295.5 0 .3-.1.7-.2 1-.2s.7.2.9.4c2.9 2.4 6 4.9 9.1 7.2.2.2.4.4.6.7s.2.6.2.9-.1.6-.3.9-.4.5-.6.6c-14.7 8.6-30 15.9-45.9 21.8-.2.1-.5.2-.7.4s-.3.4-.4.7-.1.5-.1.8.1.5.2.8c8.8 17 18.8 33.3 30 48.8.2.3.6.6.9.7s.8.1 1.1 0c52.9-16.2 102.6-41.3 147.1-74.2.2-.2.4-.4.5-.6s.2-.5.2-.8c12.3-126.8-20.5-236.9-86.9-334.5zm-302 267.7c-29 0-52.8-26.6-52.8-59.2s23.4-59.2 52.8-59.2c29.7 0 53.3 26.8 52.8 59.2 0 32.7-23.4 59.2-52.8 59.2m195.4 0c-29 0-52.8-26.6-52.8-59.2s23.4-59.2 52.8-59.2c29.7 0 53.3 26.8 52.8 59.2 0 32.7-23.2 59.2-52.8 59.2"/></svg>
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate":null,"base":"../..","features":["content.action.edit","content.code.copy","content.code.select","content.tooltips","navigation.footer","navigation.indexes","navigation.instant","navigation.instant.prefetch","navigation.path","navigation.sections","navigation.top","navigation.tracking","search.highlight","toc.follow"],"search":"../../assets/javascripts/workers/search.7d14d953.min.js","tags":null,"translations":{"clipboard.copied":"Copied to clipboard","clipboard.copy":"Copy to clipboard","search.result.more.one":"1 more on this page","search.result.more.other":"# more on this page","search.result.none":"No matching documents","search.result.one":"1 matching document","search.result.other":"# matching documents","search.result.placeholder":"Type to start searching","search.result.term.missing":"Missing","select.version":"Select version"},"version":{"provider":"mike"}}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.69c251d7.min.js"></script>
+      
+    
+  </body>
+</html>

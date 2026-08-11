@@ -1257,6 +1257,17 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
+  <a href="#flat-status" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Flat status
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#error-types" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
@@ -1714,6 +1725,17 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
+  <a href="#flat-status" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Flat status
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#error-types" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
@@ -2021,24 +2043,29 @@
 </span></code></pre></div>
 <p>CLI flags override Redis settings. <code>--component</code> and <code>--redis-addr</code> are CLI-only.</p>
 <h2 id="systemd-units">Systemd Units<a class="headerlink" href="#systemd-units" title="Permanent link">&para;</a></h2>
+<p>Both boards run the same unit name, <code>librescoot-update.service</code>. There is no
+<code>-mdb</code> or <code>-dbc</code> suffix on the installed unit; the component comes from the
+arguments, and each board's image ships its own version of the file:</p>
 <table>
 <thead>
 <tr>
-<th>Unit</th>
-<th>Component</th>
+<th>Board</th>
+<th>ExecStart</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td><code>librescoot-update-mdb.service</code></td>
 <td>MDB</td>
+<td><code>/usr/bin/update-service --component=mdb --boot-update</code></td>
 </tr>
 <tr>
-<td><code>librescoot-update-dbc.service</code></td>
 <td>DBC</td>
+<td><code>/usr/bin/update-service --component=dbc --redis-addr=192.168.7.1:6379 --boot-update</code></td>
 </tr>
 </tbody>
 </table>
+<p>The DBC points at the MDB's datastore, since there is only one and it lives on the
+MDB. <code>systemctl status librescoot-update</code> is the same command on either board.</p>
 <p>Binary: <code>/usr/bin/update-service</code></p>
 <h2 id="redis-operations">Redis Operations<a class="headerlink" href="#redis-operations" title="Permanent link">&para;</a></h2>
 <h3 id="hash-ota-written">Hash: <code>ota</code> (written)<a class="headerlink" href="#hash-ota-written" title="Permanent link">&para;</a></h3>
@@ -2114,8 +2141,80 @@
 </tr>
 </tbody>
 </table>
+<p>Two fields on the same hash are <strong>not</strong> namespaced, and describe the vehicle rather
+than one board:</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Description</th>
+<th>Values</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>status</code></td>
+<td>Flat update status, stock convention</td>
+<td><code>downloading-updates</code>, <code>installing-updates</code>, <code>installation-complete-waiting-reboot</code>, or empty</td>
+</tr>
+<tr>
+<td><code>update-type</code></td>
+<td>Whether the flat status blocks use of the vehicle</td>
+<td><code>blocking</code>, or empty</td>
+</tr>
+</tbody>
+</table>
 <p><strong>Published channel:</strong> <code>ota</code>
 - All field updates are published atomically on state transitions</p>
+<h4 id="flat-status">Flat status<a class="headerlink" href="#flat-status" title="Permanent link">&para;</a></h4>
+<p><code>status</code> and <code>update-type</code> mirror the per-component state into the non-namespaced
+convention used by stock, for consumers that do not know about <code>status:mdb</code> and
+<code>status:dbc</code>. They carry no information the namespaced fields lack; anything written
+against Librescoot should read those instead.</p>
+<p>The mapping from a component's status:</p>
+<table>
+<thead>
+<tr>
+<th>Component status</th>
+<th><code>status</code></th>
+<th><code>update-type</code></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>downloading</code></td>
+<td><code>downloading-updates</code></td>
+<td><code>blocking</code></td>
+</tr>
+<tr>
+<td><code>preparing</code>, <code>installing</code></td>
+<td><code>installing-updates</code></td>
+<td><code>blocking</code></td>
+</tr>
+<tr>
+<td><code>pending-reboot</code></td>
+<td><code>installation-complete-waiting-reboot</code></td>
+<td><code>blocking</code></td>
+</tr>
+<tr>
+<td><code>idle</code>, <code>error</code>, absent, unrecognised</td>
+<td>empty</td>
+<td>empty</td>
+</tr>
+</tbody>
+</table>
+<p>Both components feed the same pair, and when they disagree <strong>the least advanced one
+wins</strong>. If the MDB is still downloading while the DBC is staged and waiting for its
+power cycle, the pair reads <code>downloading-updates</code>. The pair only clears once neither
+board is busy, so a consumer asking "is this scooter mid-update" never sees it clear
+while one board is still pulling bytes.</p>
+<p>The MDB's update-service is the sole writer. It watches <code>status:mdb</code> and <code>status:dbc</code>
+and recomputes on either change, including once at startup, so a service restart in
+the middle of an update cannot leave a stale <code>blocking</code> behind. The DBC never writes
+these fields; a second writer would race the first on the same two keys.</p>
+<p>An <code>error</code> on either component maps to the empty pair, not to a distinct flat value.
+A consumer that needs to distinguish a failed update from no update has to read
+<code>error:{component}</code>.</p>
 <h4 id="error-types">Error types<a class="headerlink" href="#error-types" title="Permanent link">&para;</a></h4>
 <p>Values <code>error:{component}</code> takes, with <code>error-message:{component}</code> carrying the detail.</p>
 <table>
