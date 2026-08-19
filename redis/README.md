@@ -698,6 +698,10 @@ Librescoot adds per-component update tracking:
 | download-abort-reason:{mdb,dbc} | string | Why a download was abandoned as too slow | "stalled" |
 | download-skip-checks:{mdb,dbc} | integer | Update checks still to be skipped before retrying | "4" |
 | heartbeat:{mdb,dbc} | integer (unix seconds) | Refreshed every 30s while an operation runs | "1786298400" |
+| preview-channel:{mdb,dbc} | string | Channel the last channel preview asked about | "stable" |
+| preview-status:{mdb,dbc} | string | Outcome of the last channel preview | "ready" |
+| preview-version:{mdb,dbc} | string | Release tag the preview resolved to (`ready` only) | "v1.4.2" |
+| preview-size:{mdb,dbc} | integer | Size of that release's full `.mender` artifact (`ready` only) | "401234432" |
 | status | string | Flat status, not namespaced, stock convention | "downloading-updates" |
 | update-type | string | Whether the flat status blocks use of the vehicle | "blocking" |
 
@@ -724,6 +728,18 @@ power cycle. An absent heartbeat is not a stale one either, since older images n
 wrote the field. See [services/librescoot-update.md](../services/librescoot-update.md)
 for the full caveats and for what vehicle-service actually does, which is not an age
 test.
+
+The `preview-*` fields answer a `preview-channel:<channel>` command and are unrelated
+to any update in flight: they say what a switch to that channel *would* fetch, and the
+update status fields are never touched by a preview. `preview-status` is `checking`,
+`ready`, `unavailable` (that channel carries nothing for this board's `variant_id`) or
+`error` (bad channel, or the release index could not be reached inside 20 seconds).
+`preview-channel` is echoed on every write so a reader can tell the answer it asked for
+from a stale one. All four are cleared at service start. Each component answers only for
+itself; a reader wanting the cost of a scooter-wide switch asks both and sums the sizes.
+The size is always the full artifact, because a channel switch has no delta base to
+patch against and so forces a full update regardless of
+`updates.{component}.method`.
 
 See [update-service documentation](../services/librescoot-update.md) for details.
 
@@ -1053,9 +1069,18 @@ redis-cli -h 192.168.7.1 LPUSH scooter:update:dbc "update-from-file:/data/ota/im
 
 # Install from a URL
 redis-cli -h 192.168.7.1 LPUSH scooter:update:mdb "update-from-url:https://example.com/update.mender"
+
+# Ask what a switch to another channel would download (changes nothing)
+redis-cli -h 192.168.7.1 LPUSH scooter:update:mdb preview-channel:stable
+redis-cli -h 192.168.7.1 HMGET ota preview-status:mdb preview-version:mdb preview-size:mdb
 ```
 
-**Per-component commands** (`scooter:update:mdb` / `scooter:update:dbc`): `check-now`, `update-from-file:<path>[#sha256=<hex>]`, `update-from-url:<url>[#sha256=<hex>]`
+**Per-component commands** (`scooter:update:mdb` / `scooter:update:dbc`): `check-now`, `preview-channel:<channel>`, `update-from-file:<path>[#sha256=<hex>]`, `update-from-url:<url>[#sha256=<hex>]`
+
+`preview-channel:<channel>` reports the latest release on `<channel>` for this
+component's `variant_id` and the size of its `.mender` artifact, into the `ota` hash's
+`preview-*` fields. It sets nothing and downloads nothing; the dashboard uses it to
+price a channel switch before asking the rider to confirm.
 
 The shared `scooter:update` list is consumed by **vehicle-service**, not the updaters: update-service pushes lifecycle commands (`start`, `complete`, `start-dbc`, `complete-dbc`) there to drive the vehicle's `updating` state.
 

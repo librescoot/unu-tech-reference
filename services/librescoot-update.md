@@ -211,6 +211,7 @@ silence, not 90 seconds of heartbeat age.
 
 - `scooter:update:{component}` — component-specific commands:
   - `check-now` — trigger immediate update check
+  - `preview-channel:<channel>` — report what a switch to `<channel>` would fetch, without changing anything
   - `update-from-file:/path/to/file.mender` — install from local file
   - `update-from-file:/path/to/file.mender#sha256=<hex>` - with checksum
   - `update-from-url:https://...` — install from URL
@@ -260,7 +261,41 @@ redis-cli LPUSH scooter:update:dbc "update-from-file:/data/ota/librescoot-dbc-ni
 
 # Install from URL
 redis-cli LPUSH scooter:update:mdb "update-from-url:https://example.com/update.mender#sha256=abc123..."
+
+# Price a channel switch before committing to it
+redis-cli LPUSH scooter:update:mdb preview-channel:stable
+redis-cli LPUSH scooter:update:dbc preview-channel:stable
+redis-cli HMGET ota preview-status:mdb preview-version:mdb preview-size:mdb
 ```
+
+## Channel Previews
+
+`preview-channel:<channel>` answers "what would switching to this channel fetch" before
+anything is committed to. It reads the release index for `<channel>`, resolves the
+latest release carrying a `.mender` for this component's `variant_id`, and publishes the
+tag and artifact size to the `ota` hash. It sets no configuration, starts no download,
+and never writes the update status fields, so it is safe to issue mid-update.
+
+| Field | Meaning |
+|-------|---------|
+| `preview-channel:{component}` | The channel asked about, echoed so a reader can spot a stale answer |
+| `preview-status:{component}` | `checking`, `ready`, `unavailable`, or `error` |
+| `preview-version:{component}` | Release tag, on `ready` |
+| `preview-size:{component}` | Bytes of the full `.mender` artifact, on `ready` |
+
+`unavailable` means the channel carries nothing for this board's variant, which is a
+real answer rather than a failure to retry. `error` covers an invalid channel and a
+release index that could not be reached: a preview is bounded at 20 seconds end to end
+rather than running the full retry ladder a background check uses, because a rider is
+waiting on it. All four fields are cleared at service start.
+
+The size reported is always the full artifact. A channel switch has no delta base to
+patch against, so `checkForUpdates` forces `full` whenever the installed version's
+channel differs from the configured one, whatever `updates.{component}.method` says.
+
+Each component answers only for itself. The dashboard's
+Settings > System > Updates > Release Channel entry asks both and sums the two sizes
+before prompting the rider to confirm.
 
 ## Update Method
 

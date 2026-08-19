@@ -122,6 +122,7 @@ Additionally polled (no subscription): `system`, `version:mdb`, `version:dbc` (3
 | `dashboard` | `backlight-enabled` | `true`/`false` | On backlight control |
 | `navigation` | `latitude`, `longitude`, `address`, `timestamp`, `destination` | lat/lon (6 dp), address string, ISO-8601 UTC, `lat,lon` | When the rider picks a destination in the UI (then publishes `navigation` = `updated`) |
 | `settings` | `dashboard.*` | user values | On settings changes via menu |
+| `settings` | `updates.{mdb,dbc}.channel`, `.method`, `.check-interval` | user values | Settings > System > Updates; channel only after confirmation |
 | `usb` | `mode` | `normal`/`ums-by-dbc` | On USB mode change |
 
 Note: scootui is not consume-only on the `navigation` hash. When the rider sets a destination in the UI, NavigationService writes the destination fields above and publishes `navigation` = `updated`; clearing the destination blanks the same fields and publishes `navigation` = `cleared`.
@@ -132,6 +133,7 @@ Note: scootui is not consume-only on the `navigation` hash. When the rider sets 
 |------|----------|-----------|
 | `scooter:blinker` | `left`, `right`, `both`, `off` | Blinker/hazard controls |
 | `scooter:hop-on` | `engage`, `engage-learning`, `release` | HopOnStore |
+| `scooter:update:{mdb,dbc}` | `check-now`, `preview-channel:<channel>` | Settings > System > Updates |
 
 ### HDEL
 
@@ -167,6 +169,23 @@ Settings are stored in the `settings` Redis hash. Managed by settings-service.
 | `dashboard.maps.auto-download` | `true`/`false` | `false` | Auto-download map updates |
 | `dashboard.milestone-celebrations` | `true`/`false` | `false` | Confetti + banner when passing a 500 km odometer milestone or an easter-egg number. Off suppresses all milestone output (including easter eggs) |
 | `dashboard.hop-on-combo` | pipe-delimited tokens | _(empty)_ | Custom hop-on unlock combo |
+
+Settings > System > Updates also writes the update-service keys. Each entry writes both
+components at once, so the two boards never end up on different channels:
+
+| Key | Values | Description |
+|-----|--------|-------------|
+| `updates.{mdb,dbc}.channel` | `stable`/`testing`/`nightly` | Release channel. Written only after the rider confirms on the channel-switch screen |
+| `updates.{mdb,dbc}.method` | `delta`/`full` | Update type |
+| `updates.{mdb,dbc}.check-interval` | duration, `0` to disable | How often to look for updates |
+
+The Release Channel entry does not apply a selection directly. It first pushes
+`preview-channel:<channel>` to both `scooter:update:mdb` and `scooter:update:dbc`, sums
+the two `ota[preview-size:*]` answers, and shows the total on a confirm screen; only
+confirming writes the setting and pushes `check-now` to both components. With no
+connectivity there is nothing to preview and nothing that could download, so the same
+screen instead explains that the target channel's `.mender` can be installed over
+Update Mode. See [update-service](librescoot-update.md) for the preview protocol.
 
 When `dashboard.theme` is `auto`, AutoThemeService drives light/dark switching from the `dashboard` hash field `brightness` (lux). It listens on the `dashboard` pub/sub channel and also polls every 1 s, smooths the value, and switches with hysteresis (dark below 15 lux, light above 25 lux).
 
