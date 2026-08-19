@@ -179,7 +179,13 @@ components at once, so the two boards never end up on different channels:
 | `updates.{mdb,dbc}.method` | `delta`/`full` | Update type |
 | `updates.{mdb,dbc}.check-interval` | duration, `0` to disable | How often to look for updates |
 
-The Release Channel entry does not apply a selection directly. It first pushes
+Neither of the two entries that write these applies on the tap that lands on it:
+Change Update Type and Switch Release Channel both open a list of checkable rows,
+because a single stray brake tap on a cycle would have turned the next update into
+a full-image download with no confirmation. Both rows carry their current value
+beside the chevron.
+
+The Switch Release Channel entry does not apply a selection directly either. It first pushes
 `preview-channel:<channel>` to both `scooter:update:mdb` and `scooter:update:dbc`, sums
 the two `ota[preview-size:*]` answers, and shows the total on a confirm screen; only
 confirming writes the setting and pushes `check-now` to both components. With no

@@ -294,7 +294,7 @@ patch against, so `checkForUpdates` forces `full` whenever the installed version
 channel differs from the configured one, whatever `updates.{component}.method` says.
 
 Each component answers only for itself. The dashboard's
-Settings > System > Updates > Release Channel entry asks both and sums the two sizes
+Settings > System > Updates > Switch Release Channel entry asks both and sums the two sizes
 before prompting the rider to confirm.
 
 ## Update Method
