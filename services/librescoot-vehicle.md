@@ -60,6 +60,7 @@ Usage of vehicle-service:
 - `settings` - Reads behavior settings (e.g., `scooter.brake-hibernation`)
 - `ble` - Reads `status` field (Bluetooth link "connected"/"disconnected") to drive lock-on-disconnect
 - `ota` - Reads OTA status for DBC updates (`status:dbc`)
+- `system` - Reads `keycard-master-count` and `keycard-authorized-count` to resolve the usb0 gate
 
 ### Channels subscribed (PUBSUB)
 
@@ -197,15 +198,53 @@ The service controls 8 PWM LED channels via the `imx_pwm_led` kernel module:
    - Plays initial LED cue (cue 0)
    - Opens GPIO input device
    - Opens GPIO output lines
-8. Checks initial handlebar lock sensor state
-9. Registers input callbacks for all monitored inputs
-10. Publishes initial sensor states to Redis
-11. Restores LED state based on saved vehicle state (if parked or ready-to-drive)
-12. Marks system as initialized
-13. Handles initial dashboard ready state (if dashboard was already ready)
-14. Publishes initial vehicle state to Redis
-15. Transitions from `init` to `stand-by` if still in init state
-16. Starts Redis listeners (PUBSUB and BRPOP)
+8. Resolves the usb0 gate (see below) and applies it, or starts waiting for the keycard counts
+9. Checks initial handlebar lock sensor state
+10. Registers input callbacks for all monitored inputs
+11. Publishes initial sensor states to Redis
+12. Restores LED state based on saved vehicle state (if parked or ready-to-drive)
+13. Marks system as initialized
+14. Handles initial dashboard ready state (if dashboard was already ready)
+15. Publishes initial vehicle state to Redis
+16. Transitions from `init` to `stand-by` if still in init state
+17. Starts Redis listeners (PUBSUB and BRPOP)
+
+### usb0 Link Gating
+
+vehicle-service owns whether `usb0` (the USB gadget link to the DBC, 192.168.7.1)
+is administratively up. `10-usb0.network` sets `ActivationPolicy=manual`, so
+networkd configures the address but never raises the link.
+
+The `scooter.usb0-policy` setting picks the intent:
+
+| Value | Meaning |
+|-------|---------|
+| `auto` | Default. The link tracks `vehicle[dashboard:power]`, so it is down whenever the DBC is off. |
+| `always-on` | The link is held up regardless of dashboard power, for installer and diagnostic reachability. |
+
+`auto` is gated on keycard pairings, because `usb0` is also the way back into a
+scooter whose cards do not work. The gate is closed (the policy takes effect)
+only once `(master >= 1 AND authorized >= 1) OR authorized >= 2`, read from
+`system[keycard-master-count]` and `system[keycard-authorized-count]`. Below
+that threshold the link is held up as if the policy were `always-on`.
+
+The counts are absent, not zero, for the first seconds of a boot: Redis does
+not persist across a reboot and keycard-service publishes them at startup. An
+absent count resolves the gate to *unknown*, and an unknown gate leaves the
+link down while a background resolver waits up to 30s for the counts to
+appear. If they never do, the gate opens.
+
+The resolved decision is published to `system[usb0-gate]` as `open` or
+`closed`. It is never published while the gate is unknown, which is what lets
+`librescoot-usb0-failsafe.timer` tell "vehicle-service decided to keep the link
+down" from "vehicle-service never got far enough to decide". That timer raises
+`usb0` itself at 120s into the boot if the field is still absent.
+
+The gate is re-read at each existing decision point — startup, a
+`dashboard:power` change, and a `scooter.usb0-policy` change — rather than
+subscribed to. Pairing a second card mid-install therefore does not take
+`usb0` away from a running installer session; the tighter policy applies from
+the next transition.
 
 ### State Machine Behavior
 

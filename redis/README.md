@@ -154,6 +154,7 @@ hgetall system
 | dbc-version | string | Dashboard computer version | "v1.15.0+430553" |
 | keycard-master-count | integer | Master keycards enrolled, written by keycard-service | "1" |
 | keycard-authorized-count | integer | Authorized keycards enrolled, written by keycard-service | "3" |
+| usb0-gate | string | This boot's usb0 gate decision, written by vehicle-service: `open` (link held up) or `closed` (link tracks `dashboard:power`). Absent until vehicle-service resolves the gate. | "closed" |
 
 ### Power Management (`power-manager`)
 ```
