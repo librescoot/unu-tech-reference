@@ -1041,6 +1041,45 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#trigger-sources" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Trigger Sources
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Trigger Sources">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#handlebar-baseline" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Handlebar Baseline
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#handlebar-settling-window" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Handlebar Settling Window
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#alarm-state-machine" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
@@ -1906,6 +1945,45 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#trigger-sources" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Trigger Sources
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Trigger Sources">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#handlebar-baseline" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Handlebar Baseline
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#handlebar-settling-window" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Handlebar Settling Window
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#alarm-state-machine" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
@@ -2226,7 +2304,7 @@
 
 <h1 id="librescoot-alarm-alarm-service">librescoot-alarm (alarm-service)<a class="headerlink" href="#librescoot-alarm-alarm-service" title="Permanent link">&para;</a></h1>
 <h2 id="description">Description<a class="headerlink" href="#description" title="Permanent link">&para;</a></h2>
-<p>Motion-based security alarm for the scooter. alarm-service is a pure FSM/policy layer — as of the <a href="../librescoot-motion/">motion-service refactor</a>, it does not touch the BMX055 directly. It publishes its FSM state (<code>alarm.status</code>) so motion-service can reactively configure the chip; consumes <code>motion:interrupt</code> events; and uses one synchronous <code>motion:rpc/prepare-hibernation</code> Call to gate pm-service's hibernation entry.</p>
+<p>Security alarm for the scooter, driven by motion, button presses, the handlebar sensors and unauthorized seatbox openings. alarm-service is a pure FSM/policy layer — as of the <a href="../librescoot-motion/">motion-service refactor</a>, it does not touch the BMX055 directly. It publishes its FSM state (<code>alarm.status</code>) so motion-service can reactively configure the chip; consumes <code>motion:interrupt</code> events; and uses one synchronous <code>motion:rpc/prepare-hibernation</code> Call to gate pm-service's hibernation entry.</p>
 <h2 id="version">Version<a class="headerlink" href="#version" title="Permanent link">&para;</a></h2>
 <p>Librescoot alarm-service v0.10+ (Phase 4 of the motion-service refactor).</p>
 <h2 id="command-line-options">Command-Line Options<a class="headerlink" href="#command-line-options" title="Permanent link">&para;</a></h2>
@@ -2259,7 +2337,8 @@
 <h3 id="hash-settings">Hash: <code>settings</code><a class="headerlink" href="#hash-settings" title="Permanent link">&para;</a></h3>
 <p><strong>Fields read:</strong>
 - <code>alarm.enabled</code>, <code>alarm.honk</code>, <code>alarm.duration</code>, <code>alarm.seatbox-trigger</code>
-- <code>alarm.hairtrigger</code>, <code>alarm.hairtrigger-duration</code>, <code>alarm.l1-cooldown</code></p>
+- <code>alarm.hairtrigger</code>, <code>alarm.hairtrigger-duration</code>, <code>alarm.l1-cooldown</code>
+- <code>alarm.trigger.motion</code>, <code>alarm.trigger.buttons</code>, <code>alarm.trigger.handlebar</code> (per-source trigger gates, see <a href="#trigger-sources">Trigger Sources</a>)</p>
 <p><strong>Fields written (if CLI flags set):</strong> same fields, overrides Redis values on startup.</p>
 <p><strong>Subscribed channels:</strong> <code>settings</code></p>
 <h3 id="hash-power-manager">Hash: <code>power-manager</code><a class="headerlink" href="#hash-power-manager" title="Permanent link">&para;</a></h3>
@@ -2269,10 +2348,11 @@
 <p><strong>Fields read on startup:</strong> <code>wake-cause</code> (deleted after consumption). Durable backstop for the wake-from-hibernation indicator across the startup-ordering race with motion-service's pub/sub.</p>
 <h3 id="pubsub-channels">Pub/Sub Channels<a class="headerlink" href="#pubsub-channels" title="Permanent link">&para;</a></h3>
 <p><strong>Subscribes to:</strong>
-- <code>vehicle</code> — state, seatbox:opened event, seatbox:lock
+- <code>vehicle</code> — state, seatbox:opened event, seatbox:lock, handlebar:lock-sensor, handlebar:position
 - <code>settings</code> — alarm.* changes
 - <code>power-manager</code> — state field
-- <code>motion:interrupt</code> — JSON envelope <code>{type, timestamp, engine}</code> from motion-service. <code>type</code> becomes <code>BMXInterruptEvent.Data</code> (the FSM discriminates <code>wake-hibernation</code> from regular edges).</p>
+- <code>motion:interrupt</code> — JSON envelope <code>{type, timestamp, engine}</code> from motion-service. <code>type</code> becomes <code>BMXInterruptEvent.Data</code> (the FSM discriminates <code>wake-hibernation</code> from regular edges).
+- <code>buttons</code>: raw input edges from vehicle-service (<code>brake:left:{on,off}</code>, <code>brake:right:{on,off}</code>, <code>horn:{on,off}</code>, <code>seatbox:{on,off}</code>). Blinker edges share the channel and are ignored.</p>
 <h3 id="rpc-calls-synchronous-via-redis-ipc-callmethod">RPC Calls (synchronous, via redis-ipc CallMethod)<a class="headerlink" href="#rpc-calls-synchronous-via-redis-ipc-callmethod" title="Permanent link">&para;</a></h3>
 <ul>
 <li><strong><code>motion:rpc/prepare-hibernation</code></strong> — called when <code>power-manager.state</code> flips to <code>hibernating-imminent</code> while in <code>StateArmed</code>, OR on entry to <code>StateArmed</code> if <code>hibernationImminent</code> is already true. Blocks until motion-service confirms the chip is in <code>armed-hibernation</code> profile. ~180 ms round-trip. On failure: alarm-service holds the suspend inhibitor and pm-service stays blocked rather than hibernating with an unverified chip profile.</li>
@@ -2290,6 +2370,79 @@
 <li><code>scooter:horn</code> — <code>on</code>, <code>off</code></li>
 <li><code>scooter:blinker</code> — <code>both</code>, <code>off</code></li>
 </ul>
+<h2 id="trigger-sources">Trigger Sources<a class="headerlink" href="#trigger-sources" title="Permanent link">&para;</a></h2>
+<p>Four inputs escalate the alarm out of <code>armed</code>. Each has its own settings gate.</p>
+<table>
+<thead>
+<tr>
+<th>Setting</th>
+<th>Source</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>alarm.trigger.motion</code></td>
+<td><code>motion:interrupt</code> events from motion-service</td>
+<td><code>true</code></td>
+</tr>
+<tr>
+<td><code>alarm.trigger.buttons</code></td>
+<td>brake left/right, horn and seatbox button presses on the <code>buttons</code> channel</td>
+<td><code>true</code></td>
+</tr>
+<tr>
+<td><code>alarm.trigger.handlebar</code></td>
+<td><code>vehicle[handlebar:lock-sensor]</code> going <code>unlocked</code>, <code>vehicle[handlebar:position]</code> going <code>off-place</code></td>
+<td><code>false</code></td>
+</tr>
+<tr>
+<td><code>alarm.seatbox-trigger</code></td>
+<td>unauthorized <code>vehicle[seatbox:lock]</code> = <code>open</code></td>
+<td><code>true</code></td>
+</tr>
+</tbody>
+</table>
+<p>The defaults are the settings-service schema values, which settings-service
+writes into the <code>settings</code> hash at startup. Without settings-service the
+compiled-in fallbacks apply, and those are <code>true</code> for all three
+<code>alarm.trigger.*</code> flags.</p>
+<p>Button and handlebar edges are filtered in the Redis subscriber, so a source
+that is switched off never reaches the FSM. Motion is filtered in the FSM
+instead: a motion event also carries the wake-from-hibernation stamp that the
+re-hibernate bookkeeping depends on, and the stamp has to survive the drop.</p>
+<p>Switching a source off suppresses the alarm, not the wake. The accelerometer
+still asserts its interrupt and the nRF52 still wakes the MDB;
+<code>alarm.trigger.motion=false</code> only means the resulting event is dropped instead
+of escalated.</p>
+<p>Only the pressed edge of a button counts, so one press is one trigger. Throttle
+is not a source: it exists only as an ECU CAN payload and the ECU is powered
+down in stand-by.</p>
+<h3 id="handlebar-baseline">Handlebar Baseline<a class="headerlink" href="#handlebar-baseline" title="Permanent link">&para;</a></h3>
+<p>The two handlebar fields count only on a genuine safe-to-unsafe transition,
+<code>locked</code> -&gt; <code>unlocked</code> and <code>on-place</code> -&gt; <code>off-place</code>. The first value each field
+delivers after startup is recorded as a baseline and triggers nothing. Plenty of
+scooters park with the handlebar lock never engaged and report <code>unlocked</code> as
+their resting value, which the initial hash sync would otherwise turn into an
+alarm on every service restart.</p>
+<h3 id="handlebar-settling-window">Handlebar Settling Window<a class="headerlink" href="#handlebar-settling-window" title="Permanent link">&para;</a></h3>
+<p>Both handlebar sources stay muted for <strong>90 seconds</strong> after every entry into
+<code>armed</code> (<code>handlebarSettleDelay</code> in <code>internal/fsm/state_machine.go</code>). Locking the
+vehicle is itself a handlebar event: vehicle-service drives the lock solenoid
+for 1.1 s with up to 3 retries, and a rider who still has to swing the bars into
+place gets a 60 s positioning window that pulses again at the end of it. Either
+can bounce the lock sensor or move the position sensor while the alarm has
+already armed.</p>
+<p>Arming starts ~5 s after the vehicle reaches stand-by, so a 60 s window here
+would expire just as vehicle-service's own closes, and the retry pulses of a
+late positioning would land outside it entirely. 90 s clears both with ~30 s to
+spare.</p>
+<p>Edges inside the window are dropped rather than queued. Replaying a stale edge
+once the window closes would sound the alarm for something that finished a
+minute ago. The timer keeps running when <code>armed</code> is left, so an escalation
+cannot strand the sources muted, and a disarm/rearm cycle opens a fresh window.
+Motion, buttons and the seatbox are never muted, so the vehicle keeps a live
+tamper path throughout.</p>
 <h2 id="alarm-state-machine">Alarm State Machine<a class="headerlink" href="#alarm-state-machine" title="Permanent link">&para;</a></h2>
 <div class="language-text highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>init → waiting_enabled → disarmed → delay_armed (5s) → armed
 </span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>                                         ↑                ↓ motion detected (motion:interrupt)
@@ -2307,7 +2460,7 @@
 <li><strong>waiting_enabled</strong>: Alarm disabled, waiting for enable command</li>
 <li><strong>disarmed</strong>: Alarm enabled but vehicle not in stand-by</li>
 <li><strong>delay_armed</strong>: 5-second delay before arming (allows user to leave)</li>
-<li><strong>armed</strong>: Armed and monitoring for motion (motion:interrupt drives transitions)</li>
+<li><strong>armed</strong>: Armed and monitoring the enabled trigger sources (motion, buttons, handlebar, seatbox)</li>
 <li><strong>trigger_level_1_wait</strong>: Cooldown after motion detected (default 5s, configurable; with hair trigger: immediate short alarm)</li>
 <li><strong>trigger_level_1</strong>: 5-second check for continued movement</li>
 <li><strong>trigger_level_2</strong>: Full alarm activated (horn + hazards, 50s duration, max 4 cycles)</li>
@@ -2323,12 +2476,12 @@
 </ul>
 <h3 id="triggering">Triggering<a class="headerlink" href="#triggering" title="Permanent link">&para;</a></h3>
 <ul>
-<li><code>motion:interrupt</code> arrives while in <code>armed</code></li>
+<li>An enabled <a href="#trigger-sources">trigger source</a> fires while in <code>armed</code>: a <code>motion:interrupt</code>, a button press, or a handlebar edge past the settling window</li>
 <li><code>armed</code> → <code>trigger_level_1_wait</code></li>
 <li>Hazards blink once</li>
 <li>If hair trigger enabled: short horn pulse (skipped if this edge was the wake-from-hibernation edge — <code>wakeFromHibernation</code> flag gates it)</li>
 <li>Cooldown (default 5s, configurable) → <code>trigger_level_1</code></li>
-<li>5s verification window → if more motion: <code>trigger_level_2</code>; else: back through <code>delay_armed</code> to <code>armed</code></li>
+<li>5s verification window → if another trigger arrives: <code>trigger_level_2</code>; else: back through <code>delay_armed</code> to <code>armed</code></li>
 </ul>
 <h3 id="disarming">Disarming<a class="headerlink" href="#disarming" title="Permanent link">&para;</a></h3>
 <ul>
@@ -2378,6 +2531,10 @@
 </span><span id="__span-2-9"><a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a><span class="c1"># Enable hair trigger</span>
 </span><span id="__span-2-10"><a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a>redis-cli<span class="w"> </span>HSET<span class="w"> </span>settings<span class="w"> </span>alarm.hairtrigger<span class="w"> </span><span class="nb">true</span>
 </span><span id="__span-2-11"><a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a>redis-cli<span class="w"> </span>PUBLISH<span class="w"> </span>settings<span class="w"> </span>alarm.hairtrigger
+</span><span id="__span-2-12"><a id="__codelineno-2-12" name="__codelineno-2-12" href="#__codelineno-2-12"></a>
+</span><span id="__span-2-13"><a id="__codelineno-2-13" name="__codelineno-2-13" href="#__codelineno-2-13"></a><span class="c1"># Switch off one trigger source</span>
+</span><span id="__span-2-14"><a id="__codelineno-2-14" name="__codelineno-2-14" href="#__codelineno-2-14"></a>redis-cli<span class="w"> </span>HSET<span class="w"> </span>settings<span class="w"> </span>alarm.trigger.handlebar<span class="w"> </span><span class="nb">false</span>
+</span><span id="__span-2-15"><a id="__codelineno-2-15" name="__codelineno-2-15" href="#__codelineno-2-15"></a>redis-cli<span class="w"> </span>PUBLISH<span class="w"> </span>settings<span class="w"> </span>alarm.trigger.handlebar
 </span></code></pre></div>
 <h3 id="settings-via-command-line">Settings via Command Line<a class="headerlink" href="#settings-via-command-line" title="Permanent link">&para;</a></h3>
 <p>CLI flags override Redis settings when explicitly provided:</p>
