@@ -240,8 +240,8 @@ The resolved decision is published to `system[usb0-gate]` as `open` or
 down" from "vehicle-service never got far enough to decide". That timer raises
 `usb0` itself at 120s into the boot if the field is still absent.
 
-The gate is re-read at each existing decision point — startup, a
-`dashboard:power` change, and a `scooter.usb0-policy` change — rather than
+The gate is re-read at each existing decision point (startup, a
+`dashboard:power` change, and a `scooter.usb0-policy` change) rather than
 subscribed to. Pairing a second card mid-install therefore does not take
 `usb0` away from a running installer session; the tighter policy applies from
 the next transition.
