@@ -2825,8 +2825,8 @@ appear. If they never do, the gate opens.</p>
 <code>librescoot-usb0-failsafe.timer</code> tell "vehicle-service decided to keep the link
 down" from "vehicle-service never got far enough to decide". That timer raises
 <code>usb0</code> itself at 120s into the boot if the field is still absent.</p>
-<p>The gate is re-read at each existing decision point — startup, a
-<code>dashboard:power</code> change, and a <code>scooter.usb0-policy</code> change — rather than
+<p>The gate is re-read at each existing decision point (startup, a
+<code>dashboard:power</code> change, and a <code>scooter.usb0-policy</code> change) rather than
 subscribed to. Pairing a second card mid-install therefore does not take
 <code>usb0</code> away from a running installer session; the tighter policy applies from
 the next transition.</p>
