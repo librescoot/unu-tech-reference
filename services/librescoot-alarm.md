@@ -162,7 +162,7 @@ init → waiting_enabled → disarmed → delay_armed (5s) → armed
                                          |                ↓
                                          |        trigger_level_1 (5s check)
                                          |                ↓ major movement
-                                         |        trigger_level_2 (50s, max 4 cycles)
+                                         |        trigger_level_2 (alarm.duration, max 6 cycles)
                                          |________________|
 ```
 
@@ -175,9 +175,9 @@ Plus `seatbox_access` (transient state during authorized seatbox openings) and `
 - **disarmed**: Alarm enabled but vehicle not in stand-by
 - **delay_armed**: 5-second delay before arming (allows user to leave)
 - **armed**: Armed and monitoring the enabled trigger sources (motion, buttons, handlebar, seatbox)
-- **trigger_level_1_wait**: Cooldown after motion detected (default 5s, configurable; with hair trigger: immediate short alarm)
+- **trigger_level_1_wait**: Cooldown after a trigger. `alarm.l1-cooldown`, default 15s. With hair trigger: immediate short alarm.
 - **trigger_level_1**: 5-second check for continued movement
-- **trigger_level_2**: Full alarm activated (horn + hazards, 50s duration, max 4 cycles)
+- **trigger_level_2**: Full alarm activated (horn + hazards). Duration is `alarm.duration`, default 30s. Capped at 6 cycles.
 - **seatbox_access**: Authorized seatbox opening — alarm temporarily inhibited
 - **waiting_movement**: Between L2 cycles, waiting for re-trigger
 
