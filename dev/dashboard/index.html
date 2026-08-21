@@ -23,7 +23,7 @@
       
       
       <link rel="icon" href="../assets/images/favicon.png">
-      <meta name="generator" content="zensical-0.0.53">
+      <meta name="generator" content="zensical-0.0.56">
     
     
       
@@ -2377,7 +2377,7 @@
 <div class="language-text highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>ZRANGE dashboard:debug 0 -1 WITHSCORES
 </span></code></pre></div></p>
 <p>The values are other Redis keys to be displayed on the screen, e.g.</p>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>ZADD dashboard:debug 0 &quot;aux-battery charge-status&quot;
+<div class="language-text highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>ZADD dashboard:debug 0 "aux-battery charge-status"
 </span></code></pre></div>
 <p>would show the charge-status of the 12V AUX battery on the screen.
 The scores indicate the priority. As many values as possible are fit on the screen, based on their score.</p>
@@ -2533,8 +2533,8 @@ The scores indicate the priority. As many values as possible are fit on the scre
 <p>The turtle / reduced-power icon is not part of the top status bar. It is one of the telltales in the floating bottom-left telltale panel, alongside engine-warning, hazard-lights, and parking-brake telltales, shown when a present and active battery pack is at or below 20% charge.</p>
 <h4 id="internet-status-redis-keys">Internet Status Redis Keys<a class="headerlink" href="#internet-status-redis-keys" title="Permanent link">&para;</a></h4>
 <p>The connection status is determined by these Redis keys:</p>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>HGET internet status       # &quot;connected&quot; or &quot;disconnected&quot;
-</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>HGET internet unu-cloud    # &quot;connected&quot; or &quot;disconnected&quot;
+<div class="language-text highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>HGET internet status       # "connected" or "disconnected"
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>HGET internet unu-cloud    # "connected" or "disconnected"
 </span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>HGET internet signal-quality  # 0-100 signal strength percentage
 </span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>HGET internet access-tech  # Network type (LTE, UMTS, etc.)
 </span></code></pre></div>
@@ -2921,7 +2921,7 @@ The scores indicate the priority. As many values as possible are fit on the scre
       <script id="__config" type="application/json">{"annotate":null,"base":"..","features":["content.action.edit","content.code.copy","content.code.select","content.tooltips","navigation.footer","navigation.indexes","navigation.instant","navigation.instant.prefetch","navigation.path","navigation.sections","navigation.top","navigation.tracking","search.highlight","toc.follow"],"search":"../assets/javascripts/workers/search.7d14d953.min.js","tags":null,"translations":{"clipboard.copied":"Copied to clipboard","clipboard.copy":"Copy to clipboard","search.result.more.one":"1 more on this page","search.result.more.other":"# more on this page","search.result.none":"No matching documents","search.result.one":"1 matching document","search.result.other":"# matching documents","search.result.placeholder":"Type to start searching","search.result.term.missing":"Missing","select.version":"Select version"},"version":{"provider":"mike"}}</script>
     
     
-      <script src="../assets/javascripts/bundle.69c251d7.min.js"></script>
+      <script src="../assets/javascripts/bundle.e886cdf1.min.js"></script>
       
     
   </body>

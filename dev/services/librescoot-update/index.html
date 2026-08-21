@@ -23,7 +23,7 @@
       
       
       <link rel="icon" href="../../assets/images/favicon.png">
-      <meta name="generator" content="zensical-0.0.53">
+      <meta name="generator" content="zensical-0.0.56">
     
     
       
@@ -1388,6 +1388,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#channel-previews" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Channel Previews
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#update-method" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
@@ -1849,6 +1860,17 @@
     <span class="md-ellipsis">
       <span class="md-typeset">
         Commands
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#channel-previews" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Channel Previews
       </span>
     </span>
   </a>
@@ -2344,6 +2366,7 @@ silence, not 90 seconds of heartbeat age.</p>
 <ul>
 <li><code>scooter:update:{component}</code> — component-specific commands:</li>
 <li><code>check-now</code> — trigger immediate update check</li>
+<li><code>preview-channel:&lt;channel&gt;</code> — report what a switch to <code>&lt;channel&gt;</code> would fetch, without changing anything</li>
 <li><code>update-from-file:/path/to/file.mender</code> — install from local file</li>
 <li><code>update-from-file:/path/to/file.mender#sha256=&lt;hex&gt;</code> - with checksum</li>
 <li><code>update-from-url:https://...</code> — install from URL</li>
@@ -2381,11 +2404,59 @@ silence, not 90 seconds of heartbeat age.</p>
 </span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>redis-cli<span class="w"> </span>LPUSH<span class="w"> </span>scooter:update:dbc<span class="w"> </span>check-now
 </span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>
 </span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="c1"># Install from local file</span>
-</span><span id="__span-2-6"><a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>redis-cli<span class="w"> </span>LPUSH<span class="w"> </span>scooter:update:dbc<span class="w"> </span><span class="s2">&quot;update-from-file:/data/ota/librescoot-dbc-nightly-20251212T024719.mender&quot;</span>
+</span><span id="__span-2-6"><a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>redis-cli<span class="w"> </span>LPUSH<span class="w"> </span>scooter:update:dbc<span class="w"> </span><span class="s2">"update-from-file:/data/ota/librescoot-dbc-nightly-20251212T024719.mender"</span>
 </span><span id="__span-2-7"><a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a>
 </span><span id="__span-2-8"><a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a><span class="c1"># Install from URL</span>
-</span><span id="__span-2-9"><a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a>redis-cli<span class="w"> </span>LPUSH<span class="w"> </span>scooter:update:mdb<span class="w"> </span><span class="s2">&quot;update-from-url:https://example.com/update.mender#sha256=abc123...&quot;</span>
+</span><span id="__span-2-9"><a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a>redis-cli<span class="w"> </span>LPUSH<span class="w"> </span>scooter:update:mdb<span class="w"> </span><span class="s2">"update-from-url:https://example.com/update.mender#sha256=abc123..."</span>
+</span><span id="__span-2-10"><a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a>
+</span><span id="__span-2-11"><a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a><span class="c1"># Price a channel switch before committing to it</span>
+</span><span id="__span-2-12"><a id="__codelineno-2-12" name="__codelineno-2-12" href="#__codelineno-2-12"></a>redis-cli<span class="w"> </span>LPUSH<span class="w"> </span>scooter:update:mdb<span class="w"> </span>preview-channel:stable
+</span><span id="__span-2-13"><a id="__codelineno-2-13" name="__codelineno-2-13" href="#__codelineno-2-13"></a>redis-cli<span class="w"> </span>LPUSH<span class="w"> </span>scooter:update:dbc<span class="w"> </span>preview-channel:stable
+</span><span id="__span-2-14"><a id="__codelineno-2-14" name="__codelineno-2-14" href="#__codelineno-2-14"></a>redis-cli<span class="w"> </span>HMGET<span class="w"> </span>ota<span class="w"> </span>preview-status:mdb<span class="w"> </span>preview-version:mdb<span class="w"> </span>preview-size:mdb
 </span></code></pre></div>
+<h2 id="channel-previews">Channel Previews<a class="headerlink" href="#channel-previews" title="Permanent link">&para;</a></h2>
+<p><code>preview-channel:&lt;channel&gt;</code> answers "what would switching to this channel fetch" before
+anything is committed to. It reads the release index for <code>&lt;channel&gt;</code>, resolves the
+latest release carrying a <code>.mender</code> for this component's <code>variant_id</code>, and publishes the
+tag and artifact size to the <code>ota</code> hash. It sets no configuration, starts no download,
+and never writes the update status fields, so it is safe to issue mid-update.</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>preview-channel:{component}</code></td>
+<td>The channel asked about, echoed so a reader can spot a stale answer</td>
+</tr>
+<tr>
+<td><code>preview-status:{component}</code></td>
+<td><code>checking</code>, <code>ready</code>, <code>unavailable</code>, or <code>error</code></td>
+</tr>
+<tr>
+<td><code>preview-version:{component}</code></td>
+<td>Release tag, on <code>ready</code></td>
+</tr>
+<tr>
+<td><code>preview-size:{component}</code></td>
+<td>Bytes of the full <code>.mender</code> artifact, on <code>ready</code></td>
+</tr>
+</tbody>
+</table>
+<p><code>unavailable</code> means the channel carries nothing for this board's variant, which is a
+real answer rather than a failure to retry. <code>error</code> covers an invalid channel and a
+release index that could not be reached: a preview is bounded at 20 seconds end to end
+rather than running the full retry ladder a background check uses, because a rider is
+waiting on it. All four fields are cleared at service start.</p>
+<p>The size reported is always the full artifact. A channel switch has no delta base to
+patch against, so <code>checkForUpdates</code> forces <code>full</code> whenever the installed version's
+channel differs from the configured one, whatever <code>updates.{component}.method</code> says.</p>
+<p>Each component answers only for itself. The dashboard's
+Settings &gt; System &gt; Updates &gt; Switch Release Channel entry asks both and sums the two sizes
+before prompting the rider to confirm.</p>
 <h2 id="update-method">Update Method<a class="headerlink" href="#update-method" title="Permanent link">&para;</a></h2>
 <ul>
 <li><strong>full</strong> — downloads and installs a complete Mender artifact</li>
@@ -2564,7 +2635,7 @@ silence, not 90 seconds of heartbeat age.</p>
       <script id="__config" type="application/json">{"annotate":null,"base":"../..","features":["content.action.edit","content.code.copy","content.code.select","content.tooltips","navigation.footer","navigation.indexes","navigation.instant","navigation.instant.prefetch","navigation.path","navigation.sections","navigation.top","navigation.tracking","search.highlight","toc.follow"],"search":"../../assets/javascripts/workers/search.7d14d953.min.js","tags":null,"translations":{"clipboard.copied":"Copied to clipboard","clipboard.copy":"Copy to clipboard","search.result.more.one":"1 more on this page","search.result.more.other":"# more on this page","search.result.none":"No matching documents","search.result.one":"1 matching document","search.result.other":"# matching documents","search.result.placeholder":"Type to start searching","search.result.term.missing":"Missing","select.version":"Select version"},"version":{"provider":"mike"}}</script>
     
     
-      <script src="../../assets/javascripts/bundle.69c251d7.min.js"></script>
+      <script src="../../assets/javascripts/bundle.e886cdf1.min.js"></script>
       
     
   </body>

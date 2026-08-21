@@ -23,7 +23,7 @@
       
       
       <link rel="icon" href="../../assets/images/favicon.png">
-      <meta name="generator" content="zensical-0.0.53">
+      <meta name="generator" content="zensical-0.0.56">
     
     
       
@@ -2392,6 +2392,12 @@
 <td>On settings changes via menu</td>
 </tr>
 <tr>
+<td><code>settings</code></td>
+<td><code>updates.{mdb,dbc}.channel</code>, <code>.method</code>, <code>.check-interval</code></td>
+<td>user values</td>
+<td>Settings &gt; System &gt; Updates; channel only after confirmation</td>
+</tr>
+<tr>
 <td><code>usb</code></td>
 <td><code>mode</code></td>
 <td><code>normal</code>/<code>ums-by-dbc</code></td>
@@ -2419,6 +2425,11 @@
 <td><code>scooter:hop-on</code></td>
 <td><code>engage</code>, <code>engage-learning</code>, <code>release</code></td>
 <td>HopOnStore</td>
+</tr>
+<tr>
+<td><code>scooter:update:{mdb,dbc}</code></td>
+<td><code>check-now</code>, <code>preview-channel:&lt;channel&gt;</code></td>
+<td>Settings &gt; System &gt; Updates</td>
 </tr>
 </tbody>
 </table>
@@ -2564,6 +2575,46 @@
 </tr>
 </tbody>
 </table>
+<p>Settings &gt; System &gt; Updates also writes the update-service keys. Each entry writes both
+components at once, so the two boards never end up on different channels:</p>
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>Values</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>updates.{mdb,dbc}.channel</code></td>
+<td><code>stable</code>/<code>testing</code>/<code>nightly</code></td>
+<td>Release channel. Written only after the rider confirms on the channel-switch screen</td>
+</tr>
+<tr>
+<td><code>updates.{mdb,dbc}.method</code></td>
+<td><code>delta</code>/<code>full</code></td>
+<td>Update type</td>
+</tr>
+<tr>
+<td><code>updates.{mdb,dbc}.check-interval</code></td>
+<td>duration, <code>0</code> to disable</td>
+<td>How often to look for updates</td>
+</tr>
+</tbody>
+</table>
+<p>Neither of the two entries that write these applies on the tap that lands on it:
+Change Update Type and Switch Release Channel both open a list of checkable rows,
+because a single stray brake tap on a cycle would have turned the next update into
+a full-image download with no confirmation. Both rows carry their current value
+beside the chevron.</p>
+<p>The Switch Release Channel entry does not apply a selection directly either. It first pushes
+<code>preview-channel:&lt;channel&gt;</code> to both <code>scooter:update:mdb</code> and <code>scooter:update:dbc</code>, sums
+the two <code>ota[preview-size:*]</code> answers, and shows the total on a confirm screen; only
+confirming writes the setting and pushes <code>check-now</code> to both components. With no
+connectivity there is nothing to preview and nothing that could download, so the same
+screen instead explains that the target channel's <code>.mender</code> can be installed over
+Update Mode. See <a href="../librescoot-update/">update-service</a> for the preview protocol.</p>
 <p>When <code>dashboard.theme</code> is <code>auto</code>, AutoThemeService drives light/dark switching from the <code>dashboard</code> hash field <code>brightness</code> (lux). It listens on the <code>dashboard</code> pub/sub channel and also polls every 1 s, smooths the value, and switches with hysteresis (dark below 15 lux, light above 25 lux).</p>
 <h2 id="hardware-interfaces">Hardware Interfaces<a class="headerlink" href="#hardware-interfaces" title="Permanent link">&para;</a></h2>
 <h3 id="serial-number">Serial Number<a class="headerlink" href="#serial-number" title="Permanent link">&para;</a></h3>
@@ -2743,7 +2794,7 @@
       <script id="__config" type="application/json">{"annotate":null,"base":"../..","features":["content.action.edit","content.code.copy","content.code.select","content.tooltips","navigation.footer","navigation.indexes","navigation.instant","navigation.instant.prefetch","navigation.path","navigation.sections","navigation.top","navigation.tracking","search.highlight","toc.follow"],"search":"../../assets/javascripts/workers/search.7d14d953.min.js","tags":null,"translations":{"clipboard.copied":"Copied to clipboard","clipboard.copy":"Copy to clipboard","search.result.more.one":"1 more on this page","search.result.more.other":"# more on this page","search.result.none":"No matching documents","search.result.one":"1 matching document","search.result.other":"# matching documents","search.result.placeholder":"Type to start searching","search.result.term.missing":"Missing","select.version":"Select version"},"version":{"provider":"mike"}}</script>
     
     
-      <script src="../../assets/javascripts/bundle.69c251d7.min.js"></script>
+      <script src="../../assets/javascripts/bundle.e886cdf1.min.js"></script>
       
     
   </body>
