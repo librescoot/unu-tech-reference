@@ -350,7 +350,7 @@ lsc diag handlebar unlock
 
 **Redis operations:**
 - Reads from `version:mdb` and `version:dbc` hashes
-- Reads from `battery:0:fault`, `battery:1:fault`, `engine-ecu:fault` sets
+- Reads from `vehicle:fault`, `engine-ecu:fault`, `battery:0:fault` and `battery:1:fault` sets
 - Reads from `events:faults` stream using XREAD
 - Sends commands to `scooter:blinker`, `scooter:horn`, `scooter:handlebar` lists
 
@@ -409,6 +409,76 @@ lsc monitor
 **Redis operations:**
 - Subscribes to all channels and displays real-time updates
 - Samples and logs metrics at intervals
+
+### Log Extraction
+
+Collect service journals, dmesg and a Redis snapshot into one archive.
+
+```bash
+# All services, last 24h, into /data/log-bundles
+lsc logs
+
+# One service, shorter window
+lsc logs vehicle --since 1h
+
+# Several services, explicit window and destination
+lsc logs battery ecu --since 24h --output /data/debug
+
+# Errors only
+lsc logs all --priority err
+```
+
+**Flags:**
+- `--since <time>` - Start of the journal window, default `24h`. Bare durations (`30m`, `1h`, `1d`, `2w`) are rewritten to journalctl's "N units ago"; anything containing a space, `-` or `:` is passed through as an absolute timestamp
+- `--until <time>` - End of the window, default now
+- `--priority <level>` - journalctl priority filter (`err`, `warning`, `info`, `debug`)
+- `--output <dir>` - Where the archive is written, default `/data/log-bundles`
+
+**Service names** (from `serviceMap` in `cmd/lsc/logs/logs.go`; unknown names are
+skipped with a warning): `vehicle`, `battery`, `ecu`/`motor`, `modem`,
+`pm`/`power`, `update`, `settings`, `keycard`, `bluetooth`/`ble`, `ums`,
+`radio-gaga`/`uplink`, `all` (the default).
+
+One `logs-<timestamp>.tar.gz` lands in the output directory. The tree is staged
+in a `.staging-<timestamp>` sibling and removed once the archive is written:
+
+```
+logs-2025-10-25-13-54/
+  metadata.json               bundle format 2: collected_at, since, until, hosts, tool, services, priority
+  mdb/
+    metadata.json             hostname, boot_timestamp, uptime_seconds, kernel_release, os_release_*, byte counts, fault_events
+    dmesg.log
+    librescoot-vehicle.log    one journalctl dump per requested service, short-monotonic format
+    librescoot-battery.log
+    redis/
+      vehicle.json            one HGETALL snapshot per hash, ':' becomes '-' in the filename
+      battery-0.json
+      version-mdb.json
+      events-faults.log
+```
+
+**Redis operations:**
+- HGETALL over `settings`, `vehicle`, `gps`, `battery:0`, `battery:1`, `aux-battery`, `cb-battery`, `engine-ecu`, `power-manager`, `modem`, `internet`, `alarm`, `ble`, `system`, `dashboard`, `ota`, `power-mux`, `version:mdb`, `version:dbc`. A hash that is missing or empty writes no file
+- XREVRANGE over the `events:faults` stream, capped at 1000 entries to match the writers' `MAXLEN ~ 1000`
+
+`redis/events-faults.log` is the fault history, oldest entry first:
+
+```
+# events:faults (Redis stream, oldest first)
+# stream-id  time-utc  event  group  code  description
+1761400443123-0  2025-10-25T13:54:03.123Z  RAISE  vehicle  3  CAN bus timeout
+1761400500456-0  2025-10-25T13:55:00.456Z  CLEAR  vehicle  3
+```
+
+The time comes from the millisecond component of the entry ID, the only clock
+the stream carries. A clear is stored as the raised code with a leading minus
+and renders as `CLEAR` against the code it refers to. Missing fields print `-`.
+
+The file is always written. A scooter that raised no faults this boot has no
+`events:faults` key at all, and that case gets the two header lines plus
+`# no fault events recorded`, so an empty history stays distinguishable from a
+capture that failed. The entry count also lands in `mdb/metadata.json` as
+`fault_events`.
 
 ### Saved Locations
 
