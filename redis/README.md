@@ -394,6 +394,9 @@ Librescoot adds persistent settings managed by the settings-service:
 | alarm.honk | "true"/"false" | Horn enabled during alarm | "false" |
 | alarm.duration | integer (sec) | Alarm duration in seconds | "30" |
 | alarm.seatbox-trigger | "true"/"false" | Trigger alarm on unauthorized seatbox opening | "true" |
+| alarm.trigger.motion | "true"/"false" | Motion is an alarm trigger source (default true) | "true" |
+| alarm.trigger.buttons | "true"/"false" | Brake, horn and seatbox button presses are an alarm trigger source (default true) | "true" |
+| alarm.trigger.handlebar | "true"/"false" | Handlebar lock sensor and position are an alarm trigger source (default false; muted for 90 s after arming) | "false" |
 | alarm.hairtrigger | "true"/"false" | Hair trigger mode (immediate short alarm on first motion) | "false" |
 | alarm.hairtrigger-duration | integer (sec) | Hair trigger alarm duration in seconds | "3" |
 | alarm.l1-cooldown | integer (sec) | Level 1 cooldown duration in seconds | "15" |
