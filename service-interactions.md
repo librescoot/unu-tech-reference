@@ -584,7 +584,7 @@ transitions.
 
 ### GAP-1: ecu-service publishes to wrong channel names (Critical Bug)
 
-**File:** `/home/teal/src/librescoot/ecu-service/ipc_tx.go`
+**File:** `ecu-service/ipc_tx.go`
 
 The ecu-service publishes notifications using channel names with **spaces** embedded:
 ```go
@@ -604,7 +604,7 @@ Additionally, the message payload is `nil`. Other services send the field name a
 
 ### GAP-2: settings-service does not PUBLISH when loading settings at boot (High Bug)
 
-**File:** `/home/teal/src/librescoot/settings-service/internal/redis/client.go`
+**File:** `settings-service/internal/redis/client.go`
 
 `ReplaceSettings()` and `SetSettings()` use DEL + HSET in a pipeline but never call PUBLISH. Services that subscribe to `settings` for startup configuration (vehicle-service, battery-service, ecu-service, alarm-service, pm-service) won't receive notifications when settings-service loads the TOML on boot.
 
@@ -614,7 +614,7 @@ The services handle this by reading settings on startup directly (HGET), so they
 
 ### GAP-3: version-service writes to `os-release` but no service reads it (Normal)
 
-**File:** `/home/teal/src/librescoot/version-service/cmd/version-service/main.go`
+**File:** `version-service/cmd/version-service/main.go`
 
 version-service writes OS release data to the `os-release` Redis hash. The hash name is configurable (`--hash` flag, default `"os-release"`). No other service in the codebase reads `HGET os-release` or subscribes to an `os-release` channel.
 
@@ -626,7 +626,7 @@ The `bluetooth-service` looks for `"system"` hash with field `"mdb-version"` (wr
 
 ### GAP-4: `version:<component>` hash written by nobody, read by update-service (Normal)
 
-**File:** `/home/teal/src/librescoot/update-service/internal/redis/client.go` lines 113–130
+**File:** `update-service/internal/redis/client.go` lines 113–130
 
 update-service reads `version:<component>/version_id` and `version/<component>/variant_id` to check if an update is needed. Nothing in the analyzed codebase writes these hashes. The hash appears intended to be populated by the Mender boot updater or an init script, not a running service.
 
@@ -636,7 +636,7 @@ If the `version:*` hashes are absent (new device, or after factory reset), updat
 
 ### GAP-5: `events:faults` stream is written correctly but consumed incorrectly (Normal)
 
-**File:** `/home/teal/src/librescoot/uplink-service/internal/telemetry/collector.go`
+**File:** `uplink-service/internal/telemetry/collector.go`
 
 The `events:faults` key is a Redis **Stream** (written via XADD by vehicle-service and modem-service). The uplink-service telemetry collector does `HGetAll("events:faults")` which is a **hash** operation against a stream key. This will always return empty and silently fail — HGETALL on a stream returns nothing.
 
@@ -646,7 +646,7 @@ The `events:faults` key is a Redis **Stream** (written via XADD by vehicle-servi
 
 ### GAP-6: battery-service subscribes to `vehicle` channel but misses `seatbox:opened` event (Normal)
 
-**File:** `/home/teal/src/librescoot/battery-service/battery/service.go` lines 145–148
+**File:** `battery-service/battery/service.go` lines 145–148
 
 battery-service handles `msg.Payload == "seatbox:lock"` (the field update) but not `"seatbox:opened"` (the event from `vehicle-service/PublishSeatboxOpened`). The alarm-service correctly handles the `"seatbox:opened"` event via its `OnEvent()` handler. Battery-service uses `seatbox:lock` field changes instead.
 
@@ -656,7 +656,7 @@ This is mostly fine in practice since `seatbox:lock` changes from "closed" to "o
 
 ### GAP-7: pm-service reads `battery:0` only — ignores battery:1 state (Normal)
 
-**File:** `/home/teal/src/librescoot/pm-service/internal/service/service.go` line 134
+**File:** `pm-service/internal/service/service.go` line 134
 
 pm-service only subscribes to `battery:0` state changes. For dual-battery configurations, if battery:0 becomes inactive but battery:1 is still active, pm-service will believe "battery is inactive" and may allow suspend. This is a potential data integrity risk in dual-battery setups.
 
@@ -664,7 +664,7 @@ pm-service only subscribes to `battery:0` state changes. For dual-battery config
 
 ### GAP-8: Startup race — vehicle-service subscribes after reading initial dashboard state (Low)
 
-**File:** `/home/teal/src/librescoot/vehicle-service/internal/messaging/redis.go` lines 102–115
+**File:** `vehicle-service/internal/messaging/redis.go` lines 102–115
 
 vehicle-service reads `dashboard/ready` in `Connect()` and then starts the `dashboardWatcher` later in `StartListening()`. There is a window between the initial read and the subscription where `dashboard/ready` could change (scootui publishes) without vehicle-service noticing.
 
@@ -674,7 +674,7 @@ This is not critical because scootui publishes `ready=true` only once at startup
 
 ### GAP-9: ecu-service uses go-redis v8, all others use v9 (Low)
 
-**File:** `/home/teal/src/librescoot/ecu-service/ipc_rx.go`, `ipc_tx.go`
+**File:** `ecu-service/ipc_rx.go`, `ipc_tx.go`
 
 ```go
 import "github.com/go-redis/redis/v8"
@@ -692,7 +692,7 @@ Both `vehicle-service` (`redis.go:576`) and `pm-service` (`service.go:812`) writ
 
 ### GAP-11: keycard hash has 10s TTL — no consumer handles key expiry (Low)
 
-**File:** `/home/teal/src/librescoot/keycard-service/keycard/redis.go` line 51
+**File:** `keycard-service/keycard/redis.go` line 51
 
 keycard-service sets a 10-second TTL on the `keycard` hash. vehicle-service subscribes to `keycard/authentication` changes. When the key expires, there is no TTL expiry notification in the pub/sub protocol used (keyspace notifications are not enabled by default in Redis). If vehicle-service somehow reads `keycard/authentication` after expiry, it would get a redis.Nil error, which it handles gracefully. But a consumer polling this value could be confused.
 

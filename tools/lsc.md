@@ -658,11 +658,11 @@ XREAD STREAMS events:faults 0
 
 ## Development
 
-Source code: `/home/teal/src/librescoot/lsc/`
+Source: [`github.com/librescoot/lsc`](https://github.com/librescoot/lsc)
 
 ```bash
 # Build for development
-cd /home/teal/src/librescoot/lsc
+cd lsc
 go build -o lsc .
 
 # Build for target (ARM)
