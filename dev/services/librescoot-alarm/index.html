@@ -2450,7 +2450,7 @@ tamper path throughout.</p>
 </span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>                                         |                ↓
 </span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>                                         |        trigger_level_1 (5s check)
 </span><span id="__span-1-6"><a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>                                         |                ↓ major movement
-</span><span id="__span-1-7"><a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>                                         |        trigger_level_2 (50s, max 4 cycles)
+</span><span id="__span-1-7"><a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>                                         |        trigger_level_2 (alarm.duration, max 6 cycles)
 </span><span id="__span-1-8"><a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a>                                         |________________|
 </span></code></pre></div>
 <p>Plus <code>seatbox_access</code> (transient state during authorized seatbox openings) and <code>waiting_movement</code> (between L2 cycles).</p>
@@ -2461,9 +2461,9 @@ tamper path throughout.</p>
 <li><strong>disarmed</strong>: Alarm enabled but vehicle not in stand-by</li>
 <li><strong>delay_armed</strong>: 5-second delay before arming (allows user to leave)</li>
 <li><strong>armed</strong>: Armed and monitoring the enabled trigger sources (motion, buttons, handlebar, seatbox)</li>
-<li><strong>trigger_level_1_wait</strong>: Cooldown after motion detected (default 5s, configurable; with hair trigger: immediate short alarm)</li>
+<li><strong>trigger_level_1_wait</strong>: Cooldown after a trigger. <code>alarm.l1-cooldown</code>, default 15s. With hair trigger: immediate short alarm.</li>
 <li><strong>trigger_level_1</strong>: 5-second check for continued movement</li>
-<li><strong>trigger_level_2</strong>: Full alarm activated (horn + hazards, 50s duration, max 4 cycles)</li>
+<li><strong>trigger_level_2</strong>: Full alarm activated (horn + hazards). Duration is <code>alarm.duration</code>, default 30s. Capped at 6 cycles.</li>
 <li><strong>seatbox_access</strong>: Authorized seatbox opening — alarm temporarily inhibited</li>
 <li><strong>waiting_movement</strong>: Between L2 cycles, waiting for re-trigger</li>
 </ul>

@@ -1461,6 +1461,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#usb0-link-gating" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        usb0 Link Gating
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#state-machine-behavior" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
@@ -2180,6 +2191,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#usb0-link-gating" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        usb0 Link Gating
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#state-machine-behavior" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
@@ -2631,6 +2653,7 @@
 <li><code>settings</code> - Reads behavior settings (e.g., <code>scooter.brake-hibernation</code>)</li>
 <li><code>ble</code> - Reads <code>status</code> field (Bluetooth link "connected"/"disconnected") to drive lock-on-disconnect</li>
 <li><code>ota</code> - Reads OTA status for DBC updates (<code>status:dbc</code>)</li>
+<li><code>system</code> - Reads <code>keycard-master-count</code> and <code>keycard-authorized-count</code> to resolve the usb0 gate</li>
 </ul>
 <h3 id="channels-subscribed-pubsub">Channels subscribed (PUBSUB)<a class="headerlink" href="#channels-subscribed-pubsub" title="Permanent link">&para;</a></h3>
 <ul>
@@ -2753,6 +2776,7 @@
 <li>Plays initial LED cue (cue 0)</li>
 <li>Opens GPIO input device</li>
 <li>Opens GPIO output lines</li>
+<li>Resolves the usb0 gate (see below) and applies it, or starts waiting for the keycard counts</li>
 <li>Checks initial handlebar lock sensor state</li>
 <li>Registers input callbacks for all monitored inputs</li>
 <li>Publishes initial sensor states to Redis</li>
@@ -2763,6 +2787,49 @@
 <li>Transitions from <code>init</code> to <code>stand-by</code> if still in init state</li>
 <li>Starts Redis listeners (PUBSUB and BRPOP)</li>
 </ol>
+<h3 id="usb0-link-gating">usb0 Link Gating<a class="headerlink" href="#usb0-link-gating" title="Permanent link">&para;</a></h3>
+<p>vehicle-service owns whether <code>usb0</code> (the USB gadget link to the DBC, 192.168.7.1)
+is administratively up. <code>10-usb0.network</code> sets <code>ActivationPolicy=manual</code>, so
+networkd configures the address but never raises the link.</p>
+<p>The <code>scooter.usb0-policy</code> setting picks the intent:</p>
+<table>
+<thead>
+<tr>
+<th>Value</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>auto</code></td>
+<td>Default. The link tracks <code>vehicle[dashboard:power]</code>, so it is down whenever the DBC is off.</td>
+</tr>
+<tr>
+<td><code>always-on</code></td>
+<td>The link is held up regardless of dashboard power, for installer and diagnostic reachability.</td>
+</tr>
+</tbody>
+</table>
+<p><code>auto</code> is gated on keycard pairings, because <code>usb0</code> is also the way back into a
+scooter whose cards do not work. The gate is closed (the policy takes effect)
+only once <code>(master &gt;= 1 AND authorized &gt;= 1) OR authorized &gt;= 2</code>, read from
+<code>system[keycard-master-count]</code> and <code>system[keycard-authorized-count]</code>. Below
+that threshold the link is held up as if the policy were <code>always-on</code>.</p>
+<p>The counts are absent, not zero, for the first seconds of a boot: Redis does
+not persist across a reboot and keycard-service publishes them at startup. An
+absent count resolves the gate to <em>unknown</em>, and an unknown gate leaves the
+link down while a background resolver waits up to 30s for the counts to
+appear. If they never do, the gate opens.</p>
+<p>The resolved decision is published to <code>system[usb0-gate]</code> as <code>open</code> or
+<code>closed</code>. It is never published while the gate is unknown, which is what lets
+<code>librescoot-usb0-failsafe.timer</code> tell "vehicle-service decided to keep the link
+down" from "vehicle-service never got far enough to decide". That timer raises
+<code>usb0</code> itself at 120s into the boot if the field is still absent.</p>
+<p>The gate is re-read at each existing decision point — startup, a
+<code>dashboard:power</code> change, and a <code>scooter.usb0-policy</code> change — rather than
+subscribed to. Pairing a second card mid-install therefore does not take
+<code>usb0</code> away from a running installer session; the tighter policy applies from
+the next transition.</p>
 <h3 id="state-machine-behavior">State Machine Behavior<a class="headerlink" href="#state-machine-behavior" title="Permanent link">&para;</a></h3>
 <h4 id="ready-to-drive-conditions">Ready-to-Drive Conditions<a class="headerlink" href="#ready-to-drive-conditions" title="Permanent link">&para;</a></h4>
 <p>Vehicle enters <code>ready-to-drive</code> when ALL are true:
