@@ -17,8 +17,7 @@ Generated from source analysis of all service repositories.
  bluetooth-service writes──> ble, ble:fault, system (mdb-version, nrf-fw-version), engine-ecu (odometer)
  pm-service ─────writes──> power-manager, power-manager:busy-services, system (cpu:governor)
  modem-service ──writes──> internet, modem, gps, internet:fault, events:faults
- dbc-backlight ──writes──> dashboard (backlight, brightness)
- dbc-illumination writes──> dashboard (illumination)
+ dbc-backlight ──writes──> dashboard (backlight, brightness, from the OPT3001)
  alarm-service ──writes──> alarm
  version-service  writes──> os-release  (one-shot at boot, no pub/sub notification)
  settings-service writes──> settings  (WARNING: no PUBLISH on initial load, see gaps)
@@ -52,7 +51,7 @@ Generated from source analysis of all service repositories.
  battery:1     ← published by battery-service
  engine-ecu    ← published by bluetooth-service (odometer), NOT by ecu-service (see gaps)
  keycard       ← published by keycard-service
- dashboard     ← published by scootui (ready, serial-number), dbc-backlight, dbc-illumination
+ dashboard     ← published by scootui (ready, serial-number, backlight-enabled), dbc-backlight
  power-manager ← published by pm-service
  system        ← published by vehicle-service (cpu:governor), bluetooth-service (mdb-version, nrf-fw-version)
  ota           ← published by update-service
@@ -401,25 +400,20 @@ Note: version-service does NOT publish to the `os-release` channel. It runs once
 **Writes:**
 | Hash | Fields | Channel |
 |------|--------|---------|
-| `dashboard` | `backlight` (int), `brightness` (float lux) | `dashboard` |
+| `dashboard` | `backlight` (int 0-10240), `brightness` (float lux) | `dashboard` |
 
 **Reads:**
-- `dashboard/brightness` (illuminance value from dbc-illumination-service)
+- `dashboard/backlight-enabled` (override; absent means enabled)
+- `settings/dashboard.backlight-mode` (auto, low, medium, high; absent means auto)
 
-**Hardware access:** `/sys/class/backlight/*` or sysfs PWM
+**Subscribes:** `dashboard` (payload `backlight-enabled`), `settings` (payload `dashboard.backlight-mode`)
 
----
+**Hardware access:** OPT3001 ambient light sensor via IIO, and `/sys/class/backlight/backlight/brightness`
 
-### dbc-illumination-service
-
-**Writes:**
-| Hash | Fields | Channel |
-|------|--------|---------|
-| `dashboard` | `illumination` (float lux) | `dashboard` |
-
-**Reads:** None (hardware-driven)
-
-**Hardware access:** OPT3001 ambient light sensor via I2C
+The service reads the sensor itself; there is no separate illumination service on
+the DBC. It publishes the reading as `dashboard/brightness` for scootui-qt's auto
+light/dark theme, which is why the field keeps updating even when the backlight is
+overridden off or pinned to a fixed level.
 
 ---
 
@@ -500,7 +494,7 @@ Note: version-service does NOT publish to the `os-release` channel. It runs once
 | `engine-ecu` | ecu-service (data), bluetooth-service (odometer) | bluetooth-service, uplink-service, scootui |
 | `keycard` | keycard-service (10s TTL) | vehicle-service |
 | `ble` | bluetooth-service | scootui, uplink-service |
-| `dashboard` | scootui (ready/serial-number), dbc-backlight (backlight/brightness), dbc-illumination (illumination) | vehicle-service (ready), dbc-backlight (brightness) |
+| `dashboard` | scootui (ready/serial-number/backlight-enabled), dbc-backlight (backlight/brightness), vehicle-service (backlight-enabled) | vehicle-service (ready), dbc-backlight (backlight-enabled), scootui (brightness) |
 | `power-manager` | pm-service | bluetooth-service, scootui, uplink-service |
 | `power-manager:busy-services` | pm-service | monitoring only |
 | `system` | vehicle-service (cpu:governor), bluetooth-service (mdb-version, nrf-fw-version), pm-service (cpu:governor) | bluetooth-service, uplink-service, scootui |

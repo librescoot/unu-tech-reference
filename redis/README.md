@@ -540,12 +540,28 @@ Librescoot adds these fields to the dashboard hash:
 
 | Field | Type | Description | Example |
 |-------|------|-------------|----------|
-| illumination | integer (lux) | Ambient light level | "42" |
-| backlight | integer | Current backlight brightness | "9700" |
-| brightness | integer (lux) | Alias for illumination | "42" |
+| brightness | float (lux) | Ambient light level from the OPT3001 | "42.00" |
+| backlight | integer | Current backlight brightness, 0 to 10240 | "9700" |
+| backlight-enabled | string | Override; "false" forces the backlight to 0 | "true" |
 
-The `dbc-illumination-service` monitors the OPT3001 sensor and publishes to `illumination`.
-The `dbc-backlight-service` reads `illumination` and adjusts `backlight` automatically.
+`dbc-backlight-service` on the DBC owns all three. It reads the OPT3001 through
+IIO itself, publishes the reading to `brightness`, maps it through a
+lux-to-brightness curve, and writes the level it applied to `backlight`. Each
+write is followed by a `PUBLISH dashboard <field>`.
+
+`backlight` is an index into the interpolated step range the `pwm-backlight`
+device tree node exposes, not a raw duty cycle. `max_brightness` is 10240.
+
+`backlight-enabled` is a hard override rather than a mode: false writes 0 and
+holds, true releases back to whatever the ambient level calls for. vehicle-service
+asserts it on entering parked and ready-to-drive, scootui-qt clears it for the
+hop-on lock overlay and the OTA and maintenance screens, and `lsc backlight on|off`
+drives it by hand. The mode itself lives in settings, as
+`dashboard.backlight-mode` (auto, low, medium, high).
+
+scootui-qt reads `brightness` for its automatic light/dark theme when
+`dashboard.theme` is `auto`, which is why the field keeps updating even while
+the backlight is overridden off or pinned to a fixed level.
 
 ### Modem Management (`modem`) - Librescoot Only
 
