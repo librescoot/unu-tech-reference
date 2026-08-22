@@ -26,8 +26,6 @@ Usage of vehicle-service:
 - `blinker:state` - Blinker active state ("on", "off")
 - `blinker:start_nanos` - Monotonic start time of current blinker cycle (for UI sync)
 - `blinker:switch` - Blinker switch position ("left", "right", "both", "off")
-- `horn:button` - Horn button state ("on", "off")
-- `seatbox:button` - Seatbox button state ("on", "off")
 - `seatbox:lock` - Seatbox lock state ("open", "closed")
 - `kickstand` - Kickstand position ("up", "down")
 - `handlebar:position` - Handlebar position ("on-place", "off-place")
@@ -179,11 +177,11 @@ The service controls 8 PWM LED channels via the `imx_pwm_led` kernel module:
 
 - **Unit file:** `/usr/lib/systemd/system/librescoot-vehicle.service`
 - **Binary:** `/usr/bin/vehicle-service`
-- **Started by:** systemd at boot (after `valkey.service`; `redis.service` before Librescoot 1.2)
+- **Started by:** systemd at boot (after `redis.service`)
 - **Restart policy:** Always
 - **Priority:** Nice value -10
 - **User:** root
-- **Type:** simple
+- **Type:** idle
 
 ## Observable Behavior
 
@@ -204,7 +202,7 @@ The service controls 8 PWM LED channels via the `imx_pwm_led` kernel module:
    - Plays initial LED cue (cue 0)
    - Opens GPIO input device
    - Opens GPIO output lines
-8. Resolves the usb0 gate (see below) and applies it, or starts waiting for the keycard counts
+8. Reads `scooter.usb0-policy` and applies it (see below)
 9. Checks initial handlebar lock sensor state
 10. Registers input callbacks for all monitored inputs
 11. Publishes initial sensor states to Redis
@@ -218,8 +216,8 @@ The service controls 8 PWM LED channels via the `imx_pwm_led` kernel module:
 ### usb0 Link Gating
 
 vehicle-service owns whether `usb0` (the USB gadget link to the DBC, 192.168.7.1)
-is administratively up. `10-usb0.network` sets `ActivationPolicy=manual`, so
-networkd configures the address but never raises the link.
+is administratively up. `10-usb0.network` configures the address; vehicle-service
+raises or lowers the link itself according to the policy below.
 
 The `scooter.usb0-policy` setting picks the intent:
 
@@ -234,17 +232,10 @@ only once `(master >= 1 AND authorized >= 1) OR authorized >= 2`, read from
 `system[keycard-master-count]` and `system[keycard-authorized-count]`. Below
 that threshold the link is held up as if the policy were `always-on`.
 
-The counts are absent, not zero, for the first seconds of a boot: Redis does
-not persist across a reboot and keycard-service publishes them at startup. An
-absent count resolves the gate to *unknown*, and an unknown gate leaves the
-link down while a background resolver waits up to 30s for the counts to
-appear. If they never do, the gate opens.
-
-The resolved decision is published to `system[usb0-gate]` as `open` or
-`closed`. It is never published while the gate is unknown, which is what lets
-`librescoot-usb0-failsafe.timer` tell "vehicle-service decided to keep the link
-down" from "vehicle-service never got far enough to decide". That timer raises
-`usb0` itself at 120s into the boot if the field is still absent.
+An absent count reads as zero, so during the first seconds of a boot (Redis
+does not persist across a reboot and keycard-service publishes the counts at
+startup) the threshold is not met and the link is held up, which is the safe
+direction: the recovery path stays open until the counts prove otherwise.
 
 The gate is re-read at each existing decision point (startup, a
 `dashboard:power` change, and a `scooter.usb0-policy` change) rather than
@@ -344,30 +335,6 @@ The service implements automatic blinker logic:
   - Cue 12: LED_BLINK_BOTH (hazard lights)
 - Publishes blinker switch and state changes to Redis
 - Publishes immediate button events to `buttons` channel for UI response
-
-##### Hazard switch detection - Librescoot 1.2+
-
-The stock handlebar switch offers left and right only, on separate GPIO inputs
-(`blinker_left`, `blinker_right`). Aftermarket switch assemblies with a physical
-hazard button close both inputs at once, which the earlier code could not
-represent: the press registered as left or right, never both.
-
-`handleBlinkerChange` now reads the peer switch out of the `activeKeys` cache
-when a blinker event fires. `io.go` updates `activeKeys` before invoking each
-callback, so the second event's handler always sees the first switch as already
-active. Both active means a combined `blinker:switch` of `both` and LED cue 12,
-which drives the hazard lights. If the peer read fails the handler falls back to
-the last known state rather than assuming off, since assuming off would collapse
-a real hazard state into left/right/off and publish a misleading edge.
-
-The `buttons` PUBSUB event always reflects the triggering channel's own edge,
-independently of the combined switch state. Releasing one side of a hazard pair
-therefore emits `blinker:right:off` even though the combined state moves to
-`left` rather than `off`. Consumers that track edges stay correct; consumers
-that want the combined position read `blinker:switch`.
-
-Stock switches are unaffected: the peer input is never active, so every
-transition behaves exactly as before.
 
 #### Seatbox Control
 
@@ -608,8 +575,8 @@ The service responds to settings changes via PUBSUB:
 # Build for ARM Cortex-A7 (default target)
 make build
 
-# Build for the host platform (development/testing)
-make build-host
+# Build for AMD64 (development/testing)
+make build-amd64
 
 # Output: bin/vehicle-service
 ```

@@ -19,7 +19,7 @@ The scooter configures a UART interface on pins
 - rts_pin = GPIO 0 Pin 30
 - cts_pin = GPIO 0 Pin 29
 
-with a boot baud rate of 115200, no parity, and hardware flow control disabled. Both sides come up at 115200; the MDB then probes the nRF with message type 0xA0A0 (LINK) and, if the firmware reports the capability, switches the link to 1000000 baud. The link drops back to 115200 before an nRF firmware update, when the i.MX6 suspends, and when the keepalive is lost.
+with a baud rate of 115200, no parity, and hardware flow control disabled.
 
 ## Frame Structure
 
@@ -94,16 +94,6 @@ Messages use 16-bit type identifiers organized hierarchically:
 - **0x0400** - Extended Response (response string written to BLE characteristic, up to 512 bytes)
 - **0xA040** - Scooter Info (mileage, software version, navigation active, UMS status)
 - **0xAA00** - BLE Commands (advertising, bonding)
-
-### Raw Frames (BLE OTA Tunnel)
-
-Three frame IDs carry **raw, non-CBOR payloads** for the BLE OTA firmware transfer — the nRF forwards OTA characteristic writes verbatim and relays status back without touching the content:
-
-- **0xB0** (nRF → iMX6) - OTA data chunk (verbatim OTA_DATA characteristic write)
-- **0xB1** (nRF → iMX6) - OTA control message (verbatim OTA_CONTROL characteristic write)
-- **0xB2** (iMX6 → nRF) - OTA status message, notified verbatim on OTA_STATUS
-
-See [BLE OTA Firmware Transfer](../bluetooth/ota-transfer.md).
 
 ### Sub-Types Examples
 
@@ -195,6 +185,6 @@ Observable startup sequence from iMX6 to nRF:
 - **Bidirectional**: Both directions use same frame format
 - **Asynchronous**: nRF sends unsolicited status updates
 - **Little-Endian**: Multi-byte values in frame header
-- **Max Payload**: 1024 bytes on the MDB side (the nRF frame buffer holds 512 bytes)
+- **Max Payload**: 2048 bytes
 - **Sync Pattern**: 0xF6 0xD9 for frame start
 - **End Character**: 0xF6 terminates communication sequences

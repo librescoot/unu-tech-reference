@@ -2,12 +2,37 @@
 
 Reverse-engineered technical documentation of the unu Scooter Pro.
 
-## About this version
+## What changed in v1.1.0
 
-You are reading `dev`, which tracks the `main` branch of this repository and
-describes the current state of the code, including work that has not shipped in
-any release yet. For what a released image actually contains, pick that version
-from the selector above.
+First release containing motion-service, which takes ownership of the BMX055
+IMU from alarm-service.
+
+- Power management: suspend with no drive battery inserted, `hibernate-for`,
+  cron-scheduled hibernation, and a last-ditch hibernate that fires on a low CBB
+  or low aux voltage to avoid deep discharge
+- Service mode, with a settings overlay and `lsc service-mode`
+- Manual backlight control, plus slower lux smoothing to cut flicker
+- Low-charge warnings for the internal batteries, and optional CBB/AUX charge
+  icons in the status bar
+- Hop-on can be unlocked with a keycard
+- New settings: disable the horn button while the seatbox is open, and lock on
+  Bluetooth disconnect. New menu entry to lock the scooter
+- Battery cell and CBB temperatures on the debug screen
+- Regen reworked: ecu-service publishes the applied EBS voltage and current and
+  derives regen availability, and the power bar follows it
+
+[Release notes](https://github.com/librescoot/librescoot/releases/tag/v1.1.0)
+
+### nRF firmware
+
+Ships nRF firmware **v2.6.0-ls**, up from v2.4.0-ls in v1.0.5.
+
+- The radio can hold a wake timer and bring the scooter back up on its own.
+  This is what makes "hibernate for" and scheduled hibernation possible: the
+  rest of the system can be fully powered down and still return at a set time.
+- A suspended scooter re-checks itself every few hours instead of waiting
+  indefinitely for an external event.
+- A hard reboot ends in stand-by rather than bringing every rail back up.
 
 ## System Architecture
 
@@ -51,7 +76,6 @@ The unu Scooter Pro uses a distributed architecture with several key systems:
 - **Bluetooth LE** - Local device connectivity
   - Service UUIDs documented in [Bluetooth Docs](bluetooth/README.md)
   - Device control and status monitoring
-  - Firmware updates over BLE ([OTA transfer protocol](bluetooth/ota-transfer.md))
 
 - **Cellular** - Remote connectivity
   - SIM7100E module on MDB

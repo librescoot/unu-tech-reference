@@ -10,7 +10,7 @@ Generated from source analysis of all service repositories.
 
                     Hashes (state storage + pub/sub notification)
                     ─────────────────────────────────────────────
- vehicle-service ──writes──> vehicle, system, dashboard, vehicle:fault, events:faults
+ vehicle-service ──writes──> vehicle, system, ota, dashboard, buttons, vehicle:fault, events:faults
  battery-service ──writes──> battery:0, battery:1, battery:N:fault
  ecu-service ────writes──> engine-ecu  (WARNING: publishes to broken channels, see gaps)
  keycard-service ─writes──> keycard  (with 10s TTL)
@@ -19,7 +19,7 @@ Generated from source analysis of all service repositories.
  modem-service ──writes──> internet, modem, gps, internet:fault, events:faults
  dbc-backlight ──writes──> dashboard (backlight, brightness, from the OPT3001)
  alarm-service ──writes──> alarm
- version-service  writes──> version:mdb (MDB), version:dbc (DBC)  (one-shot at boot, no pub/sub notification)
+ version-service  writes──> os-release  (one-shot at boot, no pub/sub notification)
  settings-service writes──> settings  (WARNING: no PUBLISH on initial load, see gaps)
  update-service ──writes──> ota  (status:*, update-version:*, download-progress:*, etc.)
  ums-service ────writes──> usb
@@ -79,7 +79,7 @@ Generated from source analysis of all service repositories.
 
                     Streams (event log)
                     ───────────────────
- events:faults  ── written by vehicle-service, ecu-service, battery-service, modem-service, bluetooth-service; read by uplink-service (stream consumer)
+ events:faults  ── written by vehicle-service, modem-service; read by uplink-service (HGetAll)
 ```
 
 ## Per-Service Detail
@@ -91,14 +91,11 @@ Generated from source analysis of all service repositories.
 |------|--------|---------|
 | `vehicle` | `state`, `state:timestamp`, `blinker:switch`, `blinker:state`, `brake:left`, `brake:right`, `seatbox:lock`, `kickstand`, `handlebar:lock-sensor`, `handlebar:position`, `dashboard:power`, `dbc-updating`, `update:status`, `auto-standby-remaining` (deprecated), `auto-standby-deadline` | `vehicle` |
 | `system` | `cpu:governor` | `system` |
+| `ota` | `standby-timer-start` | `ota` |
 | `dashboard` | `ready` (deletes on standby) | `dashboard` |
+| `buttons` | `horn:on`, `horn:off`, `seatbox:on`, `seatbox:off` | `buttons` |
 | `vehicle:fault` | fault codes (Redis Set) | `vehicle` (payload: "fault") |
 | `events:faults` | fault events (Redis Stream) | — |
-
-**Publishes (channel only, no hash behind them):**
-
-- `buttons` - button edges, e.g. `horn:on`, `seatbox:off`, `brake:left:on`, `blinker:right:off`
-- `input-events` - synthesized gestures, e.g. `brake:left:hold`, `brake:right:tap`
 
 **Reads:**
 
@@ -108,6 +105,7 @@ Generated from source analysis of all service repositories.
 - `keycard/authentication` (from keycard-service)
 - `settings/*` (any field, for scooter.*, alarm settings via watch)
 - `ota/status:mdb`, `ota/status:dbc` (checks OTA status on update commands)
+- `ota/standby-timer-start` (indirectly via update-service)
 
 **Consumes queues (BRPOP):**
 
@@ -122,23 +120,9 @@ Generated from source analysis of all service repositories.
 
 **DBC update power hold.** `start-dbc` makes vehicle-service keep dashboard power up and
 defer the power cut that entering stand-by would normally perform, until `complete-dbc`
-arrives. A watchdog bounds that hold, reset on any `ota` hash field ending in `:dbc`:
+arrives. A watchdog bounds that hold at 15 minutes, reset on any `ota` hash field
+ending in `:dbc`.
 
-| condition | timeout |
-|---|---|
-| a `heartbeat:dbc` has been seen during this update | 3 min |
-| no heartbeat seen | 15 min |
-
-The longer fallback exists for a DBC whose update-service is too old to publish
-`heartbeat:{component}`; cutting its power early could interrupt an install. The short
-timeout applies only once the DBC has proven it publishes heartbeats. The flag is
-seeded on vehicle-service startup from `heartbeat:dbc`, because the `ota` watcher does
-not replay field values after a restart.
-
-Dashboard power has a second holder: scootui-qt holds it for the duration of a map or
-routing tile download, tracked by vehicle-service alongside the update hold. When the
-update watchdog expires it will not cut power while a map download is still holding
-the rail.
 
 **Produces queues (LPUSH):**
 
@@ -296,6 +280,7 @@ Note: Sets 10-second TTL on `keycard` hash after publish.
 
 - `vehicle/state` (watches; state-based update triggering)
 - `vehicle/state:timestamp` (for standby duration check)
+- `ota/standby-timer-start` (from vehicle-service, for timing)
 - `ota/status:<component>` (self-read)
 - `ota/update-version:<component>`, `ota/update-method:<component>`
 - `version:<component>/version_id`, `version:<component>/variant_id`
@@ -349,9 +334,9 @@ Note: Sets 10-second TTL on `keycard` hash after publish.
 **Writes (one-shot at boot, no pub/sub publish):**
 | Hash | Fields |
 |------|--------|
-| `version:mdb` (MDB), `version:dbc` (DBC) | All fields from `/etc/os-release` (lowercase), `serial_number`, `serial_number_real` |
+| `os-release` | All fields from `/etc/os-release` (lowercase), `serial_number`, `serial_number_real` |
 
-Note: version-service does not publish on any channel. It runs once at boot via systemd (Type=oneshot) and exits. The hash name comes from the `-hash` flag; the installed units pass `version:mdb` on the MDB and `version:dbc` on the DBC, so the compiled-in default `os-release` is never used on a vehicle. The `system` hash for `mdb-version` is written by bluetooth-service (from nRF).
+Note: version-service does NOT publish to the `os-release` channel. It runs once at boot via systemd (Type=oneshot) and exits. The `system` hash for `mdb-version` is written by bluetooth-service (from nRF).
 
 **Hardware access:** `/sys/bus/nvmem/devices/imx-ocotp0/nvmem`, `/sys/fsl_otp/HW_OCOTP_CFG0`/`CFG1`
 
@@ -448,7 +433,7 @@ overridden off or pinned to a fixed level.
 
 ---
 
-### scootui-qt (Qt/QML dashboard)
+### scootui (Flutter dashboard)
 
 **Writes:**
 | Hash | Fields | Channel |
@@ -475,7 +460,7 @@ overridden off or pinned to a fixed level.
 
 - `buttons` channel (button events)
 
-**Hardware access:** Display via Qt EGLFS (`eglfs_kms`) on the imx-drm KMS device
+**Hardware access:** Display via Flutter framebuffer/DRM backend
 
 ---
 
@@ -591,7 +576,6 @@ Inhibitor ids worth knowing, because fleet tooling matches on their prefixes:
 | `download-transfer:{component}` | suspend-only | update-service | an OTA transfer is in flight, both components |
 | `download:{component}`, `preparing:{component}`, `install:{component}` | delay | update-service | the corresponding update phase (advisory only, see below) |
 | `dbc-update` | suspend-only | vehicle-service | a DBC update holds dashboard power |
-| `map-download` | suspend-only | vehicle-service | the dashboard is mid map or tile download |
 
 `download-transfer` is what keeps the MDB out of suspend during an OTA. Without it
 pm-service suspends roughly a minute into stand-by and takes the modem with it, so a
@@ -610,7 +594,6 @@ orphan a suspend inhibit that nothing ever clears:
 |---|---|
 | update-service | normally, on every exit path of the transfer |
 | update-service | at startup, clearing a stale one left by a crash or power cut |
-| vehicle-service | whenever it cuts dashboard power, since that is what orphans it |
 
 The `delay`-typed inhibits are advisory: pm-service's blocking check honours only
 `block` and `suspend-only`, and the duration carried in the JSON is not read. They
@@ -651,7 +634,39 @@ The services handle this by reading settings on startup directly (HGET), so they
 
 **Severity:** High — services may silently use stale or default settings if settings-service restarts after them.
 
-### GAP-3: battery-service subscribes to `vehicle` channel but misses `seatbox:opened` event (Normal)
+### GAP-3: version-service writes to `os-release` but no service reads it (Normal)
+
+**File:** `version-service/cmd/version-service/main.go`
+
+version-service writes OS release data to the `os-release` Redis hash. The hash name is configurable (`--hash` flag, default `"os-release"`). No other service in the codebase reads `HGET os-release` or subscribes to an `os-release` channel.
+
+The `bluetooth-service` looks for `"system"` hash with field `"mdb-version"` (written by nRF via UART). The `uplink-service` telemetry reads `"system"` but not `"os-release"`. `lsc` does not appear to read it either.
+
+**Impact:** The version information is lost. Intended consumer not implemented.
+
+**Severity:** Normal — the data is written but never consumed; functionality gap.
+
+### GAP-4: `version:<component>` hash written by nobody, read by update-service (Normal)
+
+**File:** `update-service/internal/redis/client.go` lines 113–130
+
+update-service reads `version:<component>/version_id` and `version/<component>/variant_id` to check if an update is needed. Nothing in the analyzed codebase writes these hashes. The hash appears intended to be populated by the Mender boot updater or an init script, not a running service.
+
+If the `version:*` hashes are absent (new device, or after factory reset), update-service falls back gracefully (returns empty string, treats it as "no version installed" → always updates). This is documented behavior but creates unnecessary update cycles.
+
+**Severity:** Normal — by-design but undocumented dependency on external init scripts.
+
+### GAP-5: `events:faults` stream is written correctly but consumed incorrectly (Normal)
+
+**File:** `uplink-service/internal/telemetry/collector.go`
+
+The `events:faults` key is a Redis **Stream** (written via XADD by vehicle-service and modem-service). The uplink-service telemetry collector does `HGetAll("events:faults")` which is a **hash** operation against a stream key. This will always return empty and silently fail — HGETALL on a stream returns nothing.
+
+**Impact:** Fault event history is never included in telemetry snapshots sent to the uplink server.
+
+**Severity:** Normal — telemetry data is incomplete, faults not forwarded to fleet management.
+
+### GAP-6: battery-service subscribes to `vehicle` channel but misses `seatbox:opened` event (Normal)
 
 **File:** `battery-service/battery/service.go` lines 145–148
 
@@ -661,7 +676,7 @@ This is mostly fine in practice since `seatbox:lock` changes from "closed" to "o
 
 **Severity:** Low — functional but subtly different timing from intended protocol.
 
-### GAP-4: pm-service reads `battery:0` only, ignores battery:1 state (Normal)
+### GAP-7: pm-service reads `battery:0` only — ignores battery:1 state (Normal)
 
 **File:** `pm-service/internal/service/service.go` line 134
 
@@ -669,7 +684,7 @@ pm-service only subscribes to `battery:0` state changes. For dual-battery config
 
 **Severity:** Normal — relevant only for dual-battery mode, but could cause data loss on incorrect suspend.
 
-### GAP-5: Startup race, vehicle-service subscribes after reading initial dashboard state (Low)
+### GAP-8: Startup race — vehicle-service subscribes after reading initial dashboard state (Low)
 
 **File:** `vehicle-service/internal/messaging/redis.go` lines 102–115
 
@@ -679,7 +694,7 @@ This is not critical because scootui publishes `ready=true` only once at startup
 
 **Severity:** Low — timing window is small and consequences are benign (vehicle would need a keycard auth to advance state anyway).
 
-### GAP-6: ecu-service uses go-redis v8, all others use v9 (Low)
+### GAP-9: ecu-service uses go-redis v8, all others use v9 (Low)
 
 **File:** `ecu-service/ipc_rx.go`, `ipc_tx.go`
 
@@ -691,13 +706,13 @@ All other services use `github.com/redis/go-redis/v9` (the renamed, actively mai
 
 **Severity:** Low — functional but creates maintenance debt.
 
-### GAP-7: `system` hash has two conflicting writers for `cpu:governor` (Low)
+### GAP-10: `system` hash has two conflicting writers for `cpu:governor` (Low)
 
 Both `vehicle-service` (`redis.go:576`) and `pm-service` (`service.go:812`) write to `system/cpu:governor`. If they write different values concurrently, or if one doesn't know about the other's write, the hash value could be misleading. Currently pm-service handles the actual sysfs write and publishes to the hash; vehicle-service also writes to the hash when it sends the governor command to pm-service via `scooter:governor`. This double-write is redundant at best.
 
 **Severity:** Low — the value in Redis may be briefly inconsistent between the command send and the pm-service processing it.
 
-### GAP-8: keycard hash has 10s TTL, no consumer handles key expiry (Low)
+### GAP-11: keycard hash has 10s TTL — no consumer handles key expiry (Low)
 
 **File:** `keycard-service/keycard/redis.go` line 51
 
@@ -713,8 +728,11 @@ keycard-service sets a 10-second TTL on the `keycard` hash. vehicle-service subs
 |---|----------|---------|-------|
 | 1 | High | ecu-service | Publishes to broken channel names with spaces — all throttle/kers/speed notifications silently dropped |
 | 2 | High | settings-service | No PUBLISH when loading settings from TOML — services miss initial settings on settings-service restart |
-| 3 | Normal | pm-service | Only tracks `battery:0` state, dual-battery suspend guard incomplete |
-| 4 | Low | vehicle-service | Tiny startup race between initial dashboard state read and subscription |
-| 5 | Low | ecu-service | Uses go-redis v8 while all others use v9, maintenance burden |
-| 6 | Low | vehicle+pm | Double-write to `system/cpu:governor`, minor inconsistency window |
-| 7 | Low | keycard-service | 10s TTL with no keyspace notification support for expiry |
+| 3 | Normal | version-service | `os-release` hash written but never read — intended consumer not implemented |
+| 4 | Normal | update-service | Reads `version:<component>` hash that nothing writes — depends on undocumented external init |
+| 5 | Normal | uplink-service | Uses HGETALL on `events:faults` stream — always returns empty, fault history never telemetrized |
+| 6 | Normal | pm-service | Only tracks `battery:0` state — dual-battery suspend guard incomplete |
+| 7 | Low | vehicle-service | Tiny startup race between initial dashboard state read and subscription |
+| 8 | Low | ecu-service | Uses go-redis v8 while all others use v9 — maintenance burden |
+| 9 | Low | vehicle+pm | Double-write to `system/cpu:governor` — minor inconsistency window |
+| 10 | Low | keycard-service | 10s TTL with no keyspace notification support for expiry |
