@@ -126,7 +126,7 @@ The dashboard subscribes to these channels to receive real-time updates:
 - `customer:type` - Customer type (D2C, etc.)
 - `scooter.auto-standby-seconds` - Auto-lock timeout when parked in seconds (0=disabled)
 - `dashboard.show-raw-speed` - Show raw uncorrected speed ("true"/"false")
-- `dashboard.show-clock` - Clock visibility (always/never)
+- `dashboard.show-clock` - Clock format and visibility (always/date-time/alternate/never)
 - `dashboard.show-gps` - GPS indicator visibility (always/active-or-error/error/never)
 - `dashboard.show-bluetooth` - Bluetooth indicator visibility
 - `dashboard.show-cloud` - Cloud indicator visibility
@@ -271,4 +271,4 @@ Common log messages output by the dashboard UI:
 - `"Could not find enum for [value]"` - Redis value doesn't match expected enum
 
 ### Application Info
-- **Application name**: unu-dashboard-ui
+- **Application name**: ScootUI

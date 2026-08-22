@@ -15,7 +15,7 @@ Librescoot motion-service v0.1+ (semver via git tags; PV from `git describe`).
 ```
 --i2c-bus=/dev/i2c-3                                    I2C bus device path for BMX055
 --redis=localhost:6379                                  Redis address
---polling-rate=10                                       Sensor polling rate (Hz)
+--polling-rate=5                                        Sensor polling rate (Hz)
 --evdev-device=/dev/input/by-path/platform-gpio-keys-event   gpio-keys input for the BMX INT line (empty -> poller-only)
 --evdev-keycode=43                                      Keycode for the BMX INT line on the gpio-keys device
 --log-level=info                                        Log level (debug, info, warn, error)
@@ -37,6 +37,7 @@ motion-service unbinds the kernel driver at startup and drives all three over `/
 ### Hash: `motion`
 
 **Fields written:**
+
 - `initialized` — `true` once sensors are up
 - `streaming` — `enabled`/`disabled`
 - `polling-rate-hz` — current sensor poll rate
@@ -52,17 +53,18 @@ motion-service unbinds the kernel driver at startup and drives all three over `/
   - `heading-tilt` — angle from level
   - `heading-tilt-comp` — `true` if accel-based tilt compensation was applied to this sample
 
-**Published channel:** `motion`
+**Pub/sub on hash writes:** none. Every `motion` hash write goes out with `NoPublish`, so consumers must poll the hash; live data streams on the `motion:*` channels below.
 
 ### Subscribed Hashes (HashWatcher with 50 ms debounce + StartWithSync)
 
 - `alarm` — field `status`. Drives chip profile derivation.
 - `power-manager` — field `state`. Hibernation-imminent states route armed → armed-hibernation profile.
+- `vehicle`, field `state`: sets the telemetry poll rate on both pollers (5 Hz in `parked` / `ready-to-drive`, 1 Hz otherwise).
 
 ### Pub/Sub Channels
 
-- **`motion:sensors`** (10 Hz) — JSON `SensorReading` with `timestamp`, `accel`, `gyro`, optional `mag`, each as `{x, y, z, magnitude, unit}`.
-- **`motion:heading`** (5 Hz) — JSON `HeadingReading`:
+- **`motion:sensors`** (5 Hz in `parked` / `ready-to-drive`, 1 Hz otherwise) — JSON `SensorReading` with `timestamp`, `accel`, `gyro`, optional `mag`, each as `{x, y, z, magnitude, unit}`.
+- **`motion:heading`** (5 Hz in `parked` / `ready-to-drive`, 1 Hz otherwise) — JSON `HeadingReading`:
   ```json
   {
     "timestamp": 1777996408778,
@@ -109,7 +111,7 @@ motion-service watches `alarm.status` and `power-manager.state`. The mapping tab
 | `armed` | not hibernating-imminent | `armed-awake` | any-motion (slope) | 31.25 Hz | 0x06 (~23 mg) | 4 | both, interrupt on |
 | `armed` | `hibernating-*-imminent` / `hibernating-*` | `armed-hibernation` | any-motion (slope) | 31.25 Hz | 0x08 (~31 mg) | 4 | both, interrupt on |
 | `level-1-triggered` | * | `level1` | slow-motion | 15.63 Hz | 0x08 (~31 mg) | 4 | both, interrupt on |
-| `level-2-triggered` | * | `waiting` | slow-motion | 7.81 Hz | 0x06 (~23 mg) | 3 | none, interrupt off |
+| `level-2-triggered` | * | `waiting` | slow-motion | 7.81 Hz | 0x06 (~23 mg) | 4 | INT1, interrupt on |
 
 Profile values match alarm-service's pre-Phase-4 sensor configs verbatim — the production tunings carry over.
 
@@ -133,7 +135,7 @@ Total elapsed ~150–180 ms on the bench. With the 50 ms HashWatcher debounce, t
 **Two redundant sources, one envelope shape:**
 
 - **Fast path: `InterruptWatcher`** — reads the gpio-keys input device for the BMX055 INT line (`/dev/input/by-path/platform-gpio-keys-event`, keycode 43 by default). Wakes within milliseconds of the GPIO edge.
-- **Watchdog path: `InterruptPoller`** — 100 ms polling of `INT_STATUS_0`. Catches anything the watcher missed (e.g. evdev unavailable, kernel tick delays).
+- **Watchdog path: `InterruptPoller`** — 1 s polling of `INT_STATUS_0`. Catches anything the watcher missed (e.g. evdev unavailable, kernel tick delays).
 
 Both publish identical `MotionEvent` JSON envelopes on `motion:interrupt` and clear the chip latch. They're enabled in lockstep with the profile (gated by `controller.Apply`).
 
@@ -168,7 +170,7 @@ For long-term accuracy, an ellipsoid fit (accounting for soft-iron from the chas
 
 ## Magnetometer Operating Mode
 
-BMM150 in `forced` mode at 5 Hz with `high-accuracy` REPXY/REPZ presets (47/83 reps). The trim compensation is the full Bosch BMM050 reference port (int64 to avoid the integer-truncation pitfall).
+BMM150 in `normal` mode at ODR 10 Hz with the `regular` REPXY/REPZ presets (9/15 reps), polled by the host at the sensor-poller rate (5 Hz in `parked` / `ready-to-drive`, 1 Hz otherwise). The trim compensation is the full Bosch BMM050 reference port (int64 to avoid the integer-truncation pitfall).
 
 ## systemd Unit
 
@@ -183,7 +185,7 @@ Wants=valkey.service
 ExecStart=/usr/bin/motion-service \
     --i2c-bus=/dev/i2c-3 \
     --redis=localhost:6379 \
-    --polling-rate=10 \
+    --polling-rate=5 \
     --log-level=info
 Restart=always
 RestartSec=5
@@ -206,7 +208,7 @@ redis-cli HGET motion current-profile
 # Live heading at 5 Hz
 redis-cli SUBSCRIBE motion:heading
 
-# Live IMU stream at 10 Hz
+# Live IMU stream (5 Hz parked / ready-to-drive, 1 Hz otherwise)
 redis-cli SUBSCRIBE motion:sensors
 
 # Watch motion edges

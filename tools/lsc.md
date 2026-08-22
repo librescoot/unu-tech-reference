@@ -21,7 +21,7 @@ The `lsc` binary is typically installed to `/usr/bin/lsc` on Librescoot systems.
 ```bash
 # From the lsc source directory
 make build              # Build for ARM
-make build-native       # Build for local platform
+make build-host         # Build for local platform
 
 # Or manually
 GOOS=linux GOARCH=arm GOARM=7 go build -o lsc .
@@ -59,6 +59,7 @@ lsc vehicle open
 ```
 
 **Redis operations:**
+
 - Sends commands to `scooter:state` list (lock, unlock, force-lock, lock-hibernate)
 - Sends commands to `scooter:seatbox` list (open)
 - Monitors `vehicle` hash for state changes
@@ -101,6 +102,7 @@ lsc settings set pm.scheduled-hibernate-enabled true
 ```
 
 **Redis operations:**
+
 - Sends commands to `scooter:power` list
 - Reads from `power-manager` hash
 
@@ -164,6 +166,7 @@ resolved literally, so the datastore row read `inactive` / `not-found` on 1.2
 images and `status`, `restart` and `logs` failed for it.
 
 **System integration:**
+
 - Uses `systemctl` commands via D-Bus
 - Uses `journalctl` for log retrieval
 
@@ -180,6 +183,7 @@ lsc led fade <channel> <index>
 ```
 
 **Redis operations:**
+
 - Sends commands to `scooter:led:cue` list
 - Sends commands to `scooter:led:fade` list
 
@@ -201,6 +205,7 @@ lsc battery --json
 ```
 
 **Redis operations:**
+
 - Reads from `battery:0` and `battery:1` hashes
 
 ### GPS Tracking
@@ -219,6 +224,7 @@ lsc gps status --json
 ```
 
 **Redis operations:**
+
 - Reads from `gps` hash
 - Subscribes to `gps` channel for real-time updates
 
@@ -241,7 +247,9 @@ lsc alarm trigger
 ```
 
 **Redis operations:**
-- Sends commands to `scooter:alarm` list (enable, disable, start, stop)
+
+- `arm`/`disarm` set `settings[alarm.enabled]` and publish `alarm.enabled` on the `settings` channel
+- `trigger` pushes `start:<seconds>` and `silence` pushes `disarm` to the `scooter:alarm` list
 - Reads from `alarm` hash
 - Reads from `settings` hash (alarm.enabled, alarm.honk)
 
@@ -255,11 +263,11 @@ lsc settings
 
 # Get a specific setting (also via: lsc get)
 lsc settings get alarm.enabled
-lsc get scooter.mode
+lsc get scooter.auto-standby-seconds
 
 # Set a setting (also via: lsc set)
 lsc settings set alarm.honk true
-lsc set scooter.speed_limit 25
+lsc set scooter.enable-horn true
 
 # Delete a setting (also via: lsc del)
 lsc settings del custom.field
@@ -267,19 +275,21 @@ lsc del custom.field
 ```
 
 **Common settings:**
+
 - `alarm.enabled` - Enable/disable alarm system (true/false)
 - `alarm.honk` - Enable horn during alarm (true/false)
 - `alarm.duration` - Alarm duration in seconds
 - `alarm.seatbox-trigger` - Trigger alarm on unauthorized seatbox opening (true/false)
 - `alarm.hairtrigger` - Enable hair trigger mode (true/false)
 - `alarm.hairtrigger-duration` - Hair trigger alarm duration in seconds
-- `scooter.speed_limit` - Speed limit in km/h
-- `scooter.mode` - Drive mode (eco/sport)
+- `scooter.auto-standby-seconds` - Auto-lock timeout when parked, in seconds (0 disables)
+- `scooter.enable-horn` - Horn enable mode (true/false/in-drive)
 - `cellular.apn` - Cellular APN configuration
 - `updates.mdb.channel` - MDB update channel (stable/testing/nightly)
 - `updates.dbc.channel` - DBC update channel
 
 **Redis operations:**
+
 - Reads/writes `settings` hash
 - Publishes to `settings` channel for changes
 
@@ -302,8 +312,9 @@ lsc ota status --json
 ```
 
 **Redis operations:**
+
 - Reads from `ota` hash (status:mdb, status:dbc, download-progress, etc.)
-- Sends commands to `scooter:update` list (check-now)
+- Sends commands to the `scooter:update:{mdb,dbc}` lists (check-now)
 
 ### Diagnostics
 
@@ -349,10 +360,11 @@ lsc diag handlebar unlock
 ```
 
 **Redis operations:**
+
 - Reads from `version:mdb` and `version:dbc` hashes
 - Reads from `vehicle:fault`, `engine-ecu:fault`, `battery:0:fault` and `battery:1:fault` sets
 - Reads from `events:faults` stream using XREAD
-- Sends commands to `scooter:blinker`, `scooter:horn`, `scooter:handlebar` lists
+- Sends commands to the `scooter:blinker` and `scooter:horn` lists, and `handlebar:lock` / `handlebar:unlock` to `scooter:hardware`
 
 ### Hardware Control
 
@@ -371,6 +383,7 @@ lsc engine off
 ```
 
 **Redis operations:**
+
 - Sends commands to `scooter:hardware` list (dashboard:on, dashboard:off, engine:on, engine:off)
 
 ### Status Overview
@@ -386,6 +399,7 @@ lsc status --json
 ```
 
 Shows summary of:
+
 - Vehicle state
 - Motor status (speed, odometer, temperature)
 - Battery status for all batteries
@@ -407,6 +421,7 @@ lsc monitor
 ```
 
 **Redis operations:**
+
 - Subscribes to all channels and displays real-time updates
 - Samples and logs metrics at intervals
 
@@ -429,6 +444,7 @@ lsc logs all --priority err
 ```
 
 **Flags:**
+
 - `--since <time>` - Start of the journal window, default `24h`. Bare durations (`30m`, `1h`, `1d`, `2w`) are rewritten to journalctl's "N units ago"; anything containing a space, `-` or `:` is passed through as an absolute timestamp
 - `--until <time>` - End of the window, default now
 - `--priority <level>` - journalctl priority filter (`err`, `warning`, `info`, `debug`)
@@ -458,6 +474,7 @@ logs-2025-10-25-13-54/
 ```
 
 **Redis operations:**
+
 - HGETALL over `settings`, `vehicle`, `gps`, `battery:0`, `battery:1`, `aux-battery`, `cb-battery`, `engine-ecu`, `power-manager`, `modem`, `internet`, `alarm`, `ble`, `system`, `dashboard`, `ota`, `power-mux`, `version:mdb`, `version:dbc`. A hash that is missing or empty writes no file
 - XREVRANGE over the `events:faults` stream, capped at 1000 entries to match the writers' `MAXLEN ~ 1000`
 

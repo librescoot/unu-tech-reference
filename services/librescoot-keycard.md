@@ -12,7 +12,7 @@ Handles NFC-based authentication for the scooter. Detects keycards via the PN715
   --redis string        Redis server address (default: localhost:6379)
   --log int             Log level 0-3 (0=error, 3=debug) (default: 2)
   --led-device string   I2C device for LP5562 LED (empty = script-based control)
-  --led-address string  I2C address for LP5562 LED (default: 0x30)
+  --led-address uint    I2C address for LP5562 LED (default: 48 / 0x30)
   --debug               Enable debug logging
 ```
 
@@ -21,14 +21,19 @@ Handles NFC-based authentication for the scooter. Detects keycards via the PN715
 ### Hash: `keycard` (written)
 
 **Fields written on authentication:**
+
 - `authentication` - `passed` when authorized UID detected
 - `type` - `scooter`
-- `uid` - UID of the card that authenticated (expires after 10 seconds)
+- `uid` - UID of the card that authenticated
+
+A successful auth sets a 10-second TTL on the entire `keycard` key, so all three fields (and any `command-result` written before it) expire together.
 
 **Fields written on command response:**
+
 - `command-result` - Result of last management command (e.g. `ok`, `count:3`, `card:<uid>`, `error:<reason>`)
 
 **Published channel:** `keycard`
+
 - `authentication` - Published when authorized keycard detected
 
 ### List: `scooter:keycard` (consumed)
@@ -41,10 +46,10 @@ Management commands via LPUSH:
 | `count` | `count:<n>` |
 | `add:<uid>` | `ok` or `error:<reason>` |
 | `remove:<uid>` | `ok` or `error:<reason>` (cannot remove last card) |
-| `set-master:<uid>` | Sets master UID; use `NONE` to disable; clears authorized list |
+| `set-master:<uid>` | Replaces the master list with this single UID; `NONE` disables the physical master and leaves authorized cards intact; any other UID also clears the authorized list |
 | `learn:start` | Enter learn mode programmatically |
 | `learn:stop` | Exit learn mode, saving learned cards (additive) |
-| `learn:master:start` | Enter master teach-in mode; next non-registered tap becomes master |
+| `learn:master:start` | Enter master teach-in mode; next non-registered tap is appended as an additional master (authorized list untouched) |
 | `learn:master:stop` | Exit master teach-in mode without committing |
 | `reset` | Reset all auth state (master + authorized cards) |
 
@@ -68,15 +73,18 @@ Transient per-tap progress events during teach-in flows, for real-time subscribe
 ### LED Controllers
 
 **I2C LED (LP5562 tri-color):**
+
 - I2C bus 2, address `0x30`
 - Enabled with `--led-device /dev/i2c-2`
 - Green: authorized card; Red: unauthorized; Amber: lookup in progress; Blinking: master learning mode
 
 **PWM LEDs (learn mode):**
+
 - `/dev/pwm_led3`, `/dev/pwm_led7` — on during learn mode
 - Controlled via `/usr/bin/ledcontrol.sh`
 
 **Script-based fallback** (when `--led-device` not set):
+
 - `/usr/bin/greenled.sh` — color/on/off
 - `/usr/bin/ledcontrol.sh` — PWM pattern control
 
@@ -84,7 +92,8 @@ Transient per-tap progress events during teach-in flows, for real-time subscribe
 
 ### Master Learning Mode (first boot)
 
-Activated when `master_uids.txt` does not exist:
+Activated at startup when no master UID is loaded (file missing or empty):
+
 1. RGB LED blinks (500ms) — waiting for master card
 2. First card presented becomes master UID, saved to `master_uids.txt`
 3. Authorized list cleared; RGB LED flashes once to confirm
@@ -101,6 +110,7 @@ Activated when `master_uids.txt` does not exist:
 ### Learn Mode
 
 Activated by presenting master UID or via `learn:start`:
+
 1. PWM LEDs 3 + 7 turn on
 2. Each new card presented: added to session queue, Green LED flash
 3. Present master UID again or `learn:stop` to exit
@@ -113,7 +123,7 @@ Activated by presenting master UID or via `learn:start`:
 | Path | Purpose |
 |------|---------|
 | `/data/keycard/authorized_uids.txt` | Authorized keycard UIDs (one per line) |
-| `/data/keycard/master_uids.txt` | Master UID |
+| `/data/keycard/master_uids.txt` | Master UIDs (one per line; multiple masters supported) |
 
 Files are written atomically (write to `.tmp`, sync, rename).
 
@@ -128,7 +138,7 @@ Files are written atomically (write to `.tmp`, sync, rename).
 
 ```bash
 make build        # ARM
-make build-local  # Host
+make build-host   # Host
 ```
 
 ## Related Documentation

@@ -13,25 +13,26 @@ Librescoot alarm-service v0.10+ (Phase 4 of the motion-service refactor).
 ```
 --redis=localhost:6379         Redis address
 --log-level=info               Log level (debug, info, warn, error)
---alarm-enabled=false          Enable alarm system (writes to Redis on startup)
---alarm-duration=10            Alarm duration in seconds
+--alarm-enabled=true           Enable alarm system (writes to Redis on startup)
+--alarm-duration=30            Alarm duration in seconds
 --horn-enabled=false           Enable horn during alarm (overrides Redis setting)
 --seatbox-trigger=true         Trigger alarm on unauthorized seatbox opening
 --hair-trigger=false           Enable hair trigger mode (immediate short alarm on first motion)
 --hair-trigger-duration=3      Hair trigger alarm duration in seconds
---l1-cooldown=5                Level 1 cooldown duration in seconds
+--l1-cooldown=15               Level 1 cooldown duration in seconds
 --version                      Print version and exit
 ```
 
 `--i2c-bus`, `--evdev-device`, `--evdev-keycode`, `--poller-interval-ms` are gone. motion-service owns the chip.
 
-These flags only take effect when explicitly passed; each one then writes its value to the `settings` hash on startup. The production unit passes none of them, so the settings-service schema defaults apply (notably `alarm.duration` defaults to **30**, not the compiled-in flag default of 10).
+These flags only take effect when explicitly passed; each one then writes its value to the `settings` hash on startup. The production unit passes none of them, so the settings-service schema defaults apply; the compiled-in flag defaults now match the schema (`alarm.duration` 30, `alarm.l1-cooldown` 15).
 
 ## Redis Operations
 
 ### Hash: `alarm`
 
 **Fields written:**
+
 - `status` — current alarm status:
   - `disabled` — alarm system is disabled
   - `disarmed` — alarm enabled but not armed (vehicle not in stand-by)
@@ -48,6 +49,7 @@ These flags only take effect when explicitly passed; each one then writes its va
 ### Hash: `settings`
 
 **Fields read:**
+
 - `alarm.enabled`, `alarm.honk`, `alarm.duration`, `alarm.seatbox-trigger`
 - `alarm.hairtrigger`, `alarm.hairtrigger-duration`, `alarm.l1-cooldown`
 - `alarm.trigger.motion`, `alarm.trigger.buttons`, `alarm.trigger.handlebar` (per-source trigger gates, see [Trigger Sources](#trigger-sources))
@@ -69,6 +71,7 @@ These flags only take effect when explicitly passed; each one then writes its va
 ### Pub/Sub Channels
 
 **Subscribes to:**
+
 - `vehicle` — state, seatbox:opened event, seatbox:lock, handlebar:lock-sensor, handlebar:position
 - `settings` — alarm.* changes
 - `power-manager` — state field
@@ -91,6 +94,7 @@ These flags only take effect when explicitly passed; each one then writes its va
 
 - `scooter:horn` — `on`, `off`
 - `scooter:blinker` — `both`, `off`
+- `scooter:power` (`hibernate-manual`, sent 5 minutes after a wake from hibernation if nothing triggers again)
 
 ## Trigger Sources
 
@@ -105,8 +109,8 @@ Four inputs escalate the alarm out of `armed`. Each has its own settings gate.
 
 The defaults are the settings-service schema values, which settings-service
 writes into the `settings` hash at startup. Without settings-service the
-compiled-in fallbacks apply, and those are `true` for all three
-`alarm.trigger.*` flags.
+compiled-in fallbacks apply: `true` for `alarm.trigger.motion` and
+`alarm.trigger.buttons`, `false` for `alarm.trigger.handlebar`.
 
 Button and handlebar edges are filtered in the Redis subscriber, so a source
 that is switched off never reaches the FSM. Motion is filtered in the FSM
@@ -194,7 +198,7 @@ Plus `seatbox_access` (transient state during authorized seatbox openings) and `
 - `armed` → `trigger_level_1_wait`
 - Hazards blink once
 - If hair trigger enabled: short horn pulse (skipped if this edge was the wake-from-hibernation edge — `wakeFromHibernation` flag gates it)
-- Cooldown (default 5s, configurable) → `trigger_level_1`
+- Cooldown (default 15s, configurable) → `trigger_level_1`
 - 5s verification window → if another trigger arrives: `trigger_level_2`; else: back through `delay_armed` to `armed`
 
 ### Disarming
@@ -222,6 +226,7 @@ This is the only synchronous call alarm-service makes. All other chip-config flo
 When motion-service starts up after a hibernation wake AND finds `INT_STATUS_0` already latched, it publishes a one-shot `motion:interrupt {type: "wake-hibernation", ...}` AND writes `motion.wake-cause = <unix-ms>` to its hash. The hash field is durable across the startup-ordering race.
 
 alarm-service on startup:
+
 1. Calls `MotionClient.ConsumeWakeCause(ctx)` — HGET + HDEL on `motion.wake-cause`. If the timestamp is within 30 s of now, returns true.
 2. If true: sends `BMXInterruptEvent{Data:"wake-hibernation"}` to the FSM at `StateInit`. Sets `wakeFromHibernation=true`.
 3. FSM init checks the flag at `InitCompleteEvent`: if alarm-enabled + standby + wakeFromHibernation, transitions directly to `StateTriggerLevel1Wait` (treats the wake-edge as the L1 trigger). Hair trigger is skipped on this entry — the wake-edge isn't a tampering event by itself.

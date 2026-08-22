@@ -28,6 +28,7 @@ The system can dynamically select between the CB Battery and AUX Battery for pow
 ### Main Battery Detection
 
 The main driving battery's active state is detected using the DC/DC pin as a proxy:
+
 - When this pin is HIGH: DC converter is on; Main battery is considered ACTIVE
 - When this pin is LOW: DC converter is off; Main battery is considered NOT ACTIVE
 
@@ -50,6 +51,7 @@ The power flow between batteries works as follows:
 ### Power Source Selection Details
 
 The power source selection logic has additional nuances:
+
 - Power source switching between AUX and CB batteries only occurs when the vehicle is in the OFF state
 - When the main battery status changes (becomes active or inactive):
   - If the vehicle is ON (any state other than OFF): No power source switching occurs
@@ -141,7 +143,7 @@ The nRF controls different Power Management Integrated Circuit (PMIC) control pi
 - **1.5V Rail Control (GPIO 0 Pin 2)**: Controls +1.5V, almost always on, powers the MDB i.MX6 and RAM
 
 The nRF itself always receives +3.3V power that it can toggle, but it is normally kept always on.
-This 3.3V power also supplies the combined accelerometer/gyroscope/magnetometer sensor (BMG160).
+This 3.3V power also supplies the combined accelerometer/gyroscope/magnetometer sensor (BMX055).
 
 ## Configuration
 
@@ -154,6 +156,7 @@ This 3.3V power also supplies the combined accelerometer/gyroscope/magnetometer 
 ### Auto-Hibernation Conditions
 
 The system automatically enters hibernation when:
+
 1. The iMX6 processor is in suspended state
 2. The CB battery SoC is at or below 25%
 3. The main driving battery is not active
@@ -162,7 +165,8 @@ The system automatically enters hibernation when:
 
 When auto-hibernation conditions are met, the system starts a 5-minute timer before entering hibernation. This gives the system time to complete any pending operations and allows the user to intervene if needed.
 
-The timer is logged by unu-bluetooth:
+The timer is logged by the nRF firmware:
+
 - "auto-hibernation: starting 5 minutes hibernation timer"
 
 ### Timers
@@ -190,6 +194,7 @@ The timer is logged by unu-bluetooth:
 ### AUX Battery Charging
 
 The AUX battery charging is controlled by hardware with software monitoring:
+
 - The AUX battery charger is enabled by default
 - Charging occurs primarily when the main driving battery is active
 - The charging process follows a standard three-stage profile controlled by hardware:
@@ -202,6 +207,7 @@ The AUX battery charging is controlled by hardware with software monitoring:
 #### Charging Circuit Control
 
 The AUX battery charging circuit has dedicated control and monitoring:
+
 - Charger Enable/Disable: Controlled via a dedicated pin (active high)
   - LOW (default): Charger enabled
   - HIGH: Charger disabled
@@ -261,6 +267,7 @@ When in hibernation Level 1 (L1), if the CB battery state of charge drops to 10%
 **Exception**: If the CB battery is already at or below the wakeup threshold (10%) at the time of entering hibernation, the wakeup is skipped to avoid unnecessary power consumption.
 
 Logged as:
+
 - "CBB SoC %d%%<=%d%% in hibernation L1 -> wake up iMX for low-CBB-SoC event"
 - "CBB SoC is low at the time of hibernation -> skipping low-CBB-SoC wakeup"
 

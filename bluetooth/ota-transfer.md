@@ -123,13 +123,13 @@ Cumulative: `acked_offset` is the number of bytes received in order so far. Flag
 |-------|---------|
 | `0x00` | Verifying (SHA-256 of the staged bundle, or update-service "preparing") |
 | `0x01` | Installing (`percent` is install progress 0–100) |
-| `0x02` | Pending reboot — install done; the scooter reboots itself after 3 minutes of sustained stand-by |
+| `0x02` | Pending reboot: install done. The MDB reboots itself after 3 minutes of sustained stand-by; a DBC bundle applies on the DBC's next power-on |
 | `0x03` | Rebooting |
 | `0x04` | Success |
 | `0x05` | Failure (`msg` carries the error message) |
 | `0x06` | Idle (no transfer or install active) |
 
-Phases `0x02`, `0x04`, `0x05` are terminal. The last phase is retained after the install finishes, so a phone that reconnects later can still fetch the outcome via STATUS_REQ.
+Phases `0x02`, `0x04`, `0x05` are terminal. Only a successful outcome (`0x02` or `0x04`) is retained, and only until the component's status in the `ota` hash clears back to idle, at which point the receiver latches `0x06` and pushes an idle frame. Failures and stalled installs are cleared to idle immediately so they cannot block a later transfer, and an idle receiver with no pending outcome answers STATUS_REQ with idle rather than the stale last phase.
 
 #### ERROR codes
 

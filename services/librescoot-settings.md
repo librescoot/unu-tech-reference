@@ -23,6 +23,7 @@ REDIS_ADDR=localhost:6379             Redis server address (environment variable
 ### Hash: `settings`
 
 **Fields read and written:**
+
 - Any field with format `<section>.<key>` (e.g., `scooter.speed_limit`, `cellular.apn`)
 
 The service syncs all fields in the `settings` hash with the TOML file.
@@ -30,6 +31,7 @@ The service syncs all fields in the `settings` hash with the TOML file.
 **Subscribed channel:** `settings`
 
 When a field is published to the `settings` channel, the service:
+
 1. Reads the new value from Redis
 2. Updates the TOML file
 3. Performs special handling for certain fields (e.g., APN updates)
@@ -39,6 +41,7 @@ When a field is published to the `settings` channel, the service:
 Consumed by settings-service via BRPOP. Applies or clears a named settings overlay without touching `/data/settings.toml`.
 
 **Commands:**
+
 - `apply:<name>` - apply the named overlay (currently only `service` is defined)
 - `clear:<name>` - clear the named overlay and restore base values
 
@@ -54,6 +57,7 @@ See [Overlays](#settings-overlays) below for the overlay mechanics and the full 
 Settings are organized by section. Examples:
 
 **Alarm settings:**
+
 - `alarm.enabled` - Alarm system enabled ("true"/"false")
 - `alarm.honk` - Horn enabled during alarm ("true"/"false")
 - `alarm.duration` - Alarm duration in seconds
@@ -72,17 +76,21 @@ Settings are organized by section. Examples:
 - `scooter.horn-when-seatbox-open` - Allow the manual horn button while the seatbox is open and the scooter is unlocked (default: false). When false, the manual horn is muted in any non-standby state while the seatbox sensor reads open, so the open seat lid resting on the button does not honk. Does not affect the alarm or remote/CLI horn.
 
 **Cellular settings:**
+
 - `cellular.apn` - Cellular APN for data connection
 
 **Power management settings:**
-- `hibernation-timer` - Hibernation timeout in seconds (0=disabled)
+
+- `pm.hibernation-timer` - Hibernation timeout in seconds (default: 259200; 0 = disabled)
 
 **Scooter settings:**
-- `scooter.auto-standby-seconds` - Auto-lock timeout when parked in seconds (default: 0 = disabled; max 3600). The last 60 s are shown as a cancellable countdown on the dashboard; any user input (brake, kickstand, seatbox button) resets the timer.
+
+- `scooter.auto-standby-seconds` - Auto-lock timeout when parked in seconds (default: 900; 0 = disabled). The last 60 s are shown as a cancellable countdown on the dashboard; any user input (brake, kickstand, seatbox button) resets the timer.
 - `scooter.lock-on-bluetooth-disconnect-seconds` - Grace period in seconds before the scooter locks (enters stand-by) after the connected phone's Bluetooth link drops while parked (default: 0 = disabled; floored at 5 s when set). Reuses the auto-standby countdown: the deadline is published to `vehicle` `auto-standby-deadline` and shown on the dashboard. Any user input (brake, kickstand, seatbox button) or a Bluetooth reconnect cancels it.
 - `scooter.brake-hibernation` - Enable brake lever hibernation ("enabled"/"disabled")
 
 **Update settings:**
+
 - `updates.mdb.channel` - MDB update channel (stable/testing/nightly)
 - `updates.mdb.check-interval` - Update check interval as Go duration ("6h", "24h", "never")
 - `updates.mdb.method` - Update method (full/delta)
@@ -95,11 +103,12 @@ Settings are organized by section. Examples:
 - `updates.dbc.dry-run` - DBC dry-run mode
 - `updates.dbc.releases-url` - DBC releases API endpoint
 - `updates.dbc.last-check-time` - DBC last check timestamp
-- `updates.mdb.orchestrate-dbc` - Auto power-on DBC and trigger update check when newer DBC release available (default: false)
+- `updates.mdb.orchestrate-dbc` - Auto power-on DBC and trigger update check when newer DBC release available (default: true)
 
 **Dashboard settings:**
+
 - `dashboard.show-raw-speed` - Show raw uncorrected speed ("true"/"false")
-- `dashboard.show-clock` - Clock visibility (always/never)
+- `dashboard.show-clock` - Clock format in the status bar (always = time only / date-time / alternate / never)
 - `dashboard.show-gps` - GPS indicator visibility (always/active-or-error/error/never)
 - `dashboard.show-bluetooth` - Bluetooth indicator visibility
 - `dashboard.show-cloud` - Cloud indicator visibility
@@ -109,19 +118,20 @@ Settings are organized by section. Examples:
 - `dashboard.map.type` - Map tile source (online/offline)
 - `dashboard.map.render-mode` - Map rendering mode (vector/raster)
 - `dashboard.theme` - UI theme (light/dark/auto)
-- `dashboard.mode` - Default screen mode (speedometer/navigation)
+- `dashboard.mode` - Default screen mode (speedometer/navigation/debug)
 - `dashboard.valhalla-url` - Valhalla routing service endpoint
 - `dashboard.app` - Display app to launch on DBC boot ("scootui-qt"/"scootui-tui"; default: "scootui-qt")
 - `dashboard.power-display-mode` - Power display unit (kw/amps; default: "kw")
-- `dashboard.battery-display-mode` - Battery display mode (percentage/range)
+- `dashboard.battery-display-mode` - Battery display mode (percentage/range/icon)
 - `dashboard.hop-on-combo` - Custom hop-on unlock combo, pipe-delimited tokens (empty = no combo)
-- `dashboard.maps.check-for-updates` - Auto-check for map updates weekly when online (default: true)
+- `dashboard.maps.check-for-updates` - Auto-check for map updates weekly when online (default: false)
 - `dashboard.maps.auto-download` - Auto-download map updates (default: false)
 - `dashboard.milestone-celebrations` - Celebrate odometer milestones and easter-egg numbers with confetti + banner when parking (default: false; off suppresses all milestone output)
 - `dashboard.maps-available` - Offline map tiles available (system-managed; default: false)
 - `dashboard.navigation-available` - Full navigation available (system-managed; default: false)
 
 **ECU settings:**
+
 - `engine-ecu.kers` - KERS enable/disable ("enabled"/"disabled"; default: "enabled")
 - `engine-ecu.kers-power` - KERS regenerative braking current in mA
 - `engine-ecu.boost` - Enable motor boost mode (default: false)
@@ -209,6 +219,7 @@ When `cellular.apn` is updated, the service automatically updates:
 **File:** `/etc/NetworkManager/system-connections/wwan.nmconnection`
 
 The service:
+
 1. Reads the existing nmconnection file
 2. Updates the `apn=` field in the `[gsm]` section
 3. Writes the updated file
@@ -218,10 +229,10 @@ The service:
 
 On startup, the service manages WireGuard VPN connections:
 
-1. **Deletes all existing WireGuard connections** from NetworkManager
-2. **Waits for internet connectivity** (event-driven: subscribes to `internet` channel and polls `internet` hash; falls back to a 120s timeout if Redis is unavailable or internet never connects)
-3. **Imports all `*.conf` files** from `/data/wireguard/` directory
-4. Each `.conf` file becomes a new WireGuard connection in NetworkManager
+1. **Waits for NetworkManager to report RUNNING** (polled with exponential backoff from 2 s up to a 60 s cap; no internal timeout, and the sync runs in a background goroutine so the rest of the service starts immediately)
+2. **Removes orphaned WireGuard connections** from NetworkManager (any wireguard connection with no matching `.conf`)
+3. **Imports new or changed `*.conf` files** from `/data/wireguard/`; unchanged confs are skipped via a `<name>.sha256` sidecar
+4. Each synced connection is set to `connection.autoconnect yes` with `connection.autoconnect-retries 0`
 
 This ensures clean WireGuard state on boot and allows easy VPN configuration via files.
 
@@ -230,18 +241,12 @@ This ensures clean WireGuard state on boot and allows easy VPN configuration via
 ### Startup Sequence
 
 1. Connects to Redis
-2. Checks if `/data/settings.toml` exists
-3. If exists and non-empty:
-   - Flushes existing Redis `settings` hash
-   - Reads TOML file
-   - Populates Redis with all settings
-   - Publishes each setting to `settings` channel
-4. If doesn't exist or empty `[scooter]` section:
-   - Flushes Redis `settings` hash
-   - Creates empty TOML file
-5. Deletes existing WireGuard connections from NetworkManager
-6. Waits for internet connectivity (event-driven; max 120s timeout)
-7. Imports all WireGuard configs from `/data/wireguard/`
+2. Loads the settings schema and seeds a field map from its defaults
+3. Overlays `/data/settings.toml` on top where it exists (user values win; transient keys found in the file are dropped). A missing file is logged and the schema defaults are used on their own; no TOML file is created at startup
+4. Writes the whole map to the Redis `settings` hash in one MULTI/EXEC of HSETs, publishes one notification per field on the `settings` channel, clears any declared-transient keys left over from a previous instance, and publishes the raw schema JSON to `settings:schema`
+5. Waits for NetworkManager to report RUNNING, in the background (polled with backoff from 2 s up to a 60 s cap; no internal timeout)
+6. Removes orphaned NetworkManager WireGuard connections (no matching `.conf`)
+7. Imports new or changed WireGuard configs from `/data/wireguard/`
 8. Begins monitoring Redis for setting changes
 
 ### Runtime Behavior
@@ -257,6 +262,7 @@ redis-cli PUBLISH settings scooter.speed_limit
 ```
 
 The service:
+
 1. Receives the publish notification
 2. Reads the new value from Redis
 3. Parses the section and key (e.g., "scooter" and "speed_limit")
@@ -266,9 +272,10 @@ The service:
 #### TOML to Redis Sync (Startup Only)
 
 On startup, if `/data/settings.toml` exists:
+
 1. Entire file is read
 2. All sections and keys are converted to Redis format
-3. Redis `settings` hash is flushed
+3. Values are overlaid on the schema defaults, which seed every key the file does not set
 4. All settings written to Redis
 5. Each setting published to `settings` channel
 
@@ -281,6 +288,7 @@ On startup, the service publishes the raw schema JSON to this string key so othe
 #### APN Special Handling
 
 When `cellular.apn` is updated:
+
 1. TOML file is updated (normal behavior)
 2. Service checks if `/etc/NetworkManager/system-connections/wwan.nmconnection` exists
 3. If exists:
@@ -293,10 +301,7 @@ When `cellular.apn` is updated:
 
 #### Empty Config Handling
 
-If the TOML file is empty or has an empty `[scooter]` section:
-- Redis `settings` hash is flushed
-- Service treats this as "factory reset" of settings
-- Services using settings will fall back to their defaults
+If `/data/settings.toml` is missing or empty, the service logs it and seeds the `settings` hash from the schema defaults alone. There is no special case for an empty `[scooter]` section, and nothing flushes the hash: a TOML that simply lacks a key leaves that key at its schema default.
 
 ### WireGuard Management
 
@@ -318,8 +323,9 @@ PersistentKeepalive = 25
 ```
 
 **Management process:**
-1. On startup: Service deletes all existing WireGuard connections
-2. Waits for internet connectivity (event-driven; falls back to 120s timeout)
+
+1. On startup: Service waits for NetworkManager to report RUNNING (polled with backoff from 2 s up to a 60 s cap; no internal timeout)
+2. Removes NetworkManager WireGuard connections with no matching `.conf`
 3. Scans `/data/wireguard/` for `*.conf` files
 4. Imports each file as a NetworkManager connection
 5. Connections are named based on filename (e.g., `vpn.conf` → "vpn")
@@ -410,7 +416,7 @@ make build-amd64
 
 The service is typically installed via systemd:
 
-**Unit file:** `/etc/systemd/system/librescoot-settings.service`
+**Unit file:** `/usr/lib/systemd/system/librescoot-settings.service`
 
 ```ini
 [Unit]
@@ -427,9 +433,12 @@ Before=librescoot-vehicle.service
 # so Before=librescoot-vehicle.service guarantees consumers see it. The
 # datastore is not persisted; it starts empty every boot.
 Type=notify
+User=root
+Group=root
 ExecStart=/usr/bin/settings-service
 Restart=always
-Environment="REDIS_ADDR=localhost:6379"
+RestartSec=10
+KillMode=mixed
 
 [Install]
 WantedBy=multi-user.target
@@ -438,6 +447,7 @@ WantedBy=multi-user.target
 ## Log Output
 
 The service logs to stdout/stderr (captured by systemd):
+
 - TOML file read/write operations
 - Redis synchronization events
 - APN configuration updates
@@ -462,6 +472,7 @@ All Librescoot services can use the settings system:
 - **modem-service**: APN is configured via NetworkManager
 
 Services should:
+
 1. Subscribe to `settings` channel
 2. Read from `settings` hash when notified
 3. Apply new settings immediately

@@ -3,6 +3,7 @@
 ## Connection Details
 
 The scooter runs the datastore on the MDB accessible at:
+
 - Host: 192.168.7.1  
 - Port: 6379
 
@@ -48,7 +49,7 @@ hgetall vehicle
 | brake:right | "on"/"off" | Right brake state | "off" |
 | blinker:switch | "left"/"right"/"both"/"off" | Blinker switch position | "off" |
 | blinker:state | "on"/"off" | Blinker active state | "off" |
-| state | "stand-by"/"parked"/"hop-on"/"hop-on-learning"/"ready-to-drive"/"waiting-seatbox"/"shutting-down"/"updating"/"waiting-hibernation"/"waiting-hibernation-advanced"/"waiting-hibernation-seatbox"/"waiting-hibernation-confirm" | Vehicle operating state | "stand-by" |
+| state | "stand-by"/"parked"/"hop-on"/"hop-on-learning"/"ready-to-drive"/"waiting-seatbox"/"shutting-down"/"updating"/"waiting-hibernation"/"waiting-hibernation-seatbox"/"waiting-hibernation-confirm" | Vehicle operating state | "stand-by" |
 | auto-standby-deadline | integer (Unix timestamp) | When auto-standby will trigger (only present when timer active) | "1734567890" |
 
 ### Engine ECU (`engine-ecu`)
@@ -76,7 +77,7 @@ hgetall engine-ecu
 | raw-speed | integer (km/h) | Raw speed before calibration | "0" |
 | throttle | "on"/"off" | Throttle state | "off" |
 | brake | "on"/"off" | Brake state | "off" |
-| gear | integer | Current gear (Bosch 1-3, 0 if unknown; Votol reports 0) | "1" |
+| gear | integer | Current gear (1-3, 0 if unknown) | "1" |
 | fw-version | hex string | ECU firmware version | "0445400C" |
 | odometer | integer (m) | Total distance | "632900" |
 | temperature | integer (°C) | ECU temperature | "16" |
@@ -245,6 +246,7 @@ redis-cli -h 192.168.7.1 LPUSH scooter:bluetooth "command-name"
 ```
 
 Available commands:
+
 - `advertising-start-with-whitelisting` - Start BLE advertising with whitelist filtering (only paired devices can connect)
 - `advertising-restart-no-whitelisting` - Restart advertising without whitelist restrictions (any device can connect)
 - `advertising-stop` - Stop BLE advertising completely
@@ -262,11 +264,13 @@ Available commands:
 The Bluetooth service subscribes to several Redis channels and automatically updates the nRF52 module when values change:
 
 **Vehicle State Updates:**
+
 - `vehicle:state` - Vehicle operating state changes
 - `vehicle:seatbox:lock` - Seatbox lock status changes
 - `vehicle:handlebar:lock-sensor` - Handlebar lock status changes
 
 **Battery Status Updates:**
+
 - `battery:0:state` - Main battery 0 state changes
 - `battery:0:present` - Main battery 0 presence detection
 - `battery:0:charge` - Main battery 0 charge level
@@ -275,6 +279,7 @@ The Bluetooth service subscribes to several Redis channels and automatically upd
 - `battery:1:charge` - Main battery 1 charge level
 
 **Power Management Updates:**
+
 - `power-manager:state` - Power state changes trigger automatic data stream management
 
 #### Bluetooth-Triggered Redis Requests
@@ -282,11 +287,13 @@ The Bluetooth service subscribes to several Redis channels and automatically upd
 The Bluetooth service can write requests to Redis when receiving commands via BLE:
 
 **Scooter Control:**
+
 - `scooter:state` → `unlock` / `lock` / `lock-hibernate`
 - `scooter:seatbox` → `open`
 - `scooter:blinker` → `right` / `left` / `both` / `off`
 
 **Power Management:**
+
 - `scooter:power` → `hibernate` / `hibernate-manual`
 
 ### Keycard Authentication (`keycard`)
@@ -419,13 +426,13 @@ Librescoot adds persistent settings managed by the settings-service:
 | updates.mdb.check-interval | duration | MDB update check interval ("never" to disable) | "6h" |
 | updates.mdb.dry-run | "true"/"false" | MDB update dry-run mode | "false" |
 | updates.mdb.method | string | MDB update method | "full" or "delta" |
-| updates.mdb.github-releases-url | string | GitHub Releases API endpoint for MDB | "https://api.github.com/repos/librescoot/librescoot/releases" |
+| updates.mdb.releases-url | string | Release index base URL for MDB | "https://downloads.librescoot.org/releases" |
 | updates.mdb.last-check-time | string (ISO8601) | Last MDB update check timestamp | "2025-01-15T10:30:00Z" |
 | updates.dbc.channel | string | DBC update channel | "stable" |
 | updates.dbc.check-interval | duration | DBC update check interval ("never" to disable) | "6h" |
 | updates.dbc.dry-run | "true"/"false" | DBC update dry-run mode | "false" |
 | updates.dbc.method | string | DBC update method | "full" or "delta" |
-| updates.dbc.github-releases-url | string | GitHub Releases API endpoint for DBC | "https://api.github.com/repos/librescoot/librescoot/releases" |
+| updates.dbc.releases-url | string | Release index base URL for DBC | "https://downloads.librescoot.org/releases" |
 | updates.dbc.last-check-time | string (ISO8601) | Last DBC update check timestamp | "2025-01-15T10:30:00Z" |
 | dashboard.show-raw-speed | "true"/"false" | Show raw uncorrected speed from ECU | "false" |
 | dashboard.show-clock | string | Clock visibility (always/never) | "always" |
@@ -493,6 +500,7 @@ hgetall alarm
 | status | string | Current alarm status | "armed" |
 
 **Possible status values:**
+
 - `disabled` - Alarm system is disabled
 - `disarmed` - Alarm enabled but not armed (vehicle not in stand-by)
 - `armed` - Alarm is armed and monitoring for motion
@@ -523,6 +531,7 @@ motion-service owns the BMX055 9-axis IMU and publishes its state here. The lega
 | heading-deg / heading-accuracy / heading-tilt / heading-tilt-comp | string | Smoothed heading, 1-σ accuracy, tilt, tilt-compensation flag | "192.50" |
 
 **Pub/sub channels:**
+
 - `motion:sensors` (10 Hz) - JSON sensor reading: `timestamp`, `accel`, `gyro`, optional `mag`, each axis as `{x, y, z, magnitude, unit}`
 - `motion:heading` (5 Hz) - JSON heading payload (`heading_deg`, `accuracy_deg`, `tilt_deg`, ...)
 - `motion:interrupt` - JSON motion event: `{"type": "edge"|"wake-hibernation", "timestamp": ..., "engine": "any-motion"|"slow-motion"}`
@@ -649,6 +658,7 @@ Librescoot adds modem health tracking:
 | link-layer | string | Local stack assessment: `ok`, or `<failed-layer>` / `<failed-layer>: <reason>` | "ok" |
 
 **Modem health states:**
+
 - `normal` - Modem operating normally
 - `recovering` - Attempting recovery
 - `recovery-failed-waiting-reboot` - Recovery failed, waiting for reboot
@@ -910,6 +920,7 @@ XREAD STREAMS events:faults 0
 ```
 
 Each entry contains:
+
 - `group` - Component group (e.g., "cb-battery", "modem")
 - `code` - Fault code
 - `description` - Human-readable fault description

@@ -19,7 +19,7 @@ The scooter configures a UART interface on pins
 - rts_pin = GPIO 0 Pin 30
 - cts_pin = GPIO 0 Pin 29
 
-with a baud rate of 115200, no parity, and hardware flow control disabled.
+with a boot baud rate of 115200, no parity, and hardware flow control disabled. Both sides come up at 115200; the MDB then probes the nRF with message type 0xA0A0 (LINK) and, if the firmware reports the capability, switches the link to 1000000 baud. The link drops back to 115200 before an nRF firmware update, when the i.MX6 suspends, and when the keepalive is lost.
 
 ## Frame Structure
 
@@ -46,6 +46,7 @@ Payloads are encoded using CBOR (Concise Binary Object Representation) format vi
 ### Payload Structure
 
 Each payload contains a nested CBOR map:
+
 - **Outer map**: Single key = Message Type (16-bit integer, e.g., 0x0060)
 - **Inner map**: Keys = Sub-types (16-bit integers, e.g., 0x0061), Values = Data (int, string, array, etc.)
 
@@ -57,6 +58,7 @@ Example:
 ### Data Types
 
 CBOR supports multiple data types observed in the protocol:
+
 - **Integers**: CBOR integers (int64/uint64)
 - **Strings**: CBOR text strings (UTF-8)
 - **Arrays**: CBOR arrays (e.g., `[0x12345678, 42]` for reset info)
@@ -108,6 +110,7 @@ See [BLE OTA Firmware Transfer](../bluetooth/ota-transfer.md).
 Each message type contains sub-types as CBOR map keys:
 
 **CB Battery (0x0060):**
+
 - 0x0061: Charge (%)
 - 0x0062: Current (mA)
 - 0x0063: Remaining Capacity (mAh)
@@ -116,18 +119,21 @@ Each message type contains sub-types as CBOR map keys:
 - 0x0072: Charge Status
 
 **Vehicle State (0x0020):**
+
 - 0x0021: Vehicle state (0=stand-by, 1=parked, 2=ready-to-drive, 3=shutting-down, 4=updating, 5=off, 6=hop-on)
   - **6 (hop-on)** uses parked-equivalent power rails (`POWER_MODE_ACTIVE`, PMIC_EN2 on, AUX battery) but advertises whitelist-only and presents the 9a590021 BLE state-string as `stand-by` so mobile apps that don't know about hop-on still see a "locked" scooter. `hop-on-learning` collapses to `1 (parked)` on the wire — externally parked-equivalent.
 - 0x0022: Seatbox lock (0=closed, 1=open)
 - 0x0023: Handlebar lock (0=locked, 1=unlocked)
 
 **Battery Status (0x00E0):**
+
 - 0x00E2/0x00EE: Battery 0/1 state (0=unknown, 1=asleep, 2=idle, 3=active)
 - 0x00E3/0x00EF: Battery 0/1 presence (boolean)
 - 0x00E6/0x00F2: Battery 0/1 cycle count
 - 0x00E9/0x00F5: Battery 0/1 remaining charge (%)
 
 **Power Management (0x0800):**
+
 - 0x0801: PM State. Observed values: `0` suspending, `1` running,
   `2` hibernating, `3` suspending-imminent, `4` hibernating-imminent,
   `5` reboot.
@@ -137,9 +143,11 @@ Each message type contains sub-types as CBOR map keys:
 - 0x0805: Wake Timer Set (iMX6 → nRF, uint32 seconds). Arms a single-shot `app_timer` on the nRF52 that wakes the iMX6 after the given duration; `0` disarms any pending timer. Long durations are chunked at 500 s (under the 24-bit hardware compare at the default 32.768 kHz RTC prescaler) and re-armed internally. Any unrelated wake source (brake, accelerometer, manual BLE) calls `power_management_stop_all_timers()` and disarms a pending wake. The nRF echoes the same subtype back as an ACK with the value it stored; bluetooth-service publishes `power-manager:wake-timer-armed` based on the echo.
 
 **Power Mux (0x0100):**
+
 - 0x0101: Power Mux State (0=AUX battery, 1=CB battery)
 
 **Scooter Info (0xA040):**
+
 - 0xA041: Software version (string, iMX → nRF)
 - 0xA042: Mileage/odometer (int32, iMX → nRF)
 - 0xA043: System time (string, phone → nRF → iMX)
@@ -147,20 +155,24 @@ Each message type contains sub-types as CBOR map keys:
 - 0xA045: UMS status (uint8: 0=normal, 1=ums, iMX → nRF)
 
 **Accelerometer (0x0200):**
+
 - 0x0201: Wake-up from suspend (nRF → iMX, sent immediately)
 - 0x0202: Wake-up from hibernation (nRF → iMX, sent after VERSION handshake on next boot)
 
 **Extended Commands (0x0400):**
+
 - 0x0401: Command (string, phone → nRF → iMX, up to 128 bytes)
 - 0x0402: Response (string, iMX → nRF → phone, up to 512 bytes, bypasses proto_t 128-byte limit via direct CBOR parsing)
 
 **Reset Information (0xA020):**
+
 - 0xA021: Reset Info array `[reason, count]` - reason is Nordic RESETREAS register value
 - 0xA023: Reset ACK (acknowledgment from iMX6)
 
 ## Initialization Sequence
 
 Observable startup sequence from iMX6 to nRF:
+
 1. Disable Data Streaming
 2. Request BLE Firmware Version
 3. Request BLE MAC Address
@@ -183,6 +195,6 @@ Observable startup sequence from iMX6 to nRF:
 - **Bidirectional**: Both directions use same frame format
 - **Asynchronous**: nRF sends unsolicited status updates
 - **Little-Endian**: Multi-byte values in frame header
-- **Max Payload**: 2048 bytes
+- **Max Payload**: 1024 bytes on the MDB side (the nRF frame buffer holds 512 bytes)
 - **Sync Pattern**: 0xF6 0xD9 for frame start
 - **End Character**: 0xF6 terminates communication sequences

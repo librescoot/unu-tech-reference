@@ -9,7 +9,7 @@ Manages over-the-air (OTA) updates for MDB and DBC components. Runs as two separ
 ```
   --component string         Component to update: mdb or dbc (required)
   --redis-addr string        Redis server address (default: localhost:6379)
-  --channel string           Update channel: stable, testing, nightly (default: nightly; auto-detected from installed version)
+  --channel string           Update channel: stable, testing, nightly (no default; inferred from the installed version, and the service exits if none can be determined)
   --releases-url string      Release index base URL (default: https://downloads.librescoot.org/releases)
   --check-interval duration  Interval between update checks; 0 to disable (default: 6h)
   --download-dir string      OTA file download directory (default: /data/ota/{component})
@@ -17,7 +17,6 @@ Manages over-the-air (OTA) updates for MDB and DBC components. Runs as two separ
   --boot-update              Enable boot partition updates
   --boot-mount string        Boot partition mount point (default: /uboot)
   --boot-device string       U-Boot device path (auto-detected if empty)
-  --boot-dtb string          DTB filename (default: librescoot-{component}.dtb)
   --boot-uboot-seek int64    512-byte blocks to seek before writing U-Boot (default: 2)
 ```
 
@@ -69,6 +68,7 @@ than one board:
 | `update-type` | Whether the flat status blocks use of the vehicle | `blocking`, or empty |
 
 **Published channel:** `ota`
+
 - All field updates are published atomically on state transitions
 
 #### Flat status
@@ -186,6 +186,7 @@ silence, not 90 seconds of heartbeat age.
 ### Hash: `settings` (read/written)
 
 **Fields read:**
+
 - `updates.{component}.channel` — update channel (`stable`, `testing`, `nightly`)
 - `updates.{component}.check-interval` — check interval (e.g. `6h`, `30m`)
 - `updates.{component}.releases-url` — release index base URL
@@ -197,9 +198,11 @@ silence, not 90 seconds of heartbeat age.
 - `updates.mdb.orchestrate-dbc` — MDB-only: whether MDB orchestrates DBC updates
 
 **Fields written:**
+
 - `updates.{component}.last-check-time` — RFC3339 timestamp of last update check
 
 **Subscribed channel:** `settings`
+
 - All `updates.{component}.*` field changes are applied at runtime
 
 ### Hash: `version:{component}` (read)
