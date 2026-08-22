@@ -24,7 +24,7 @@ Handles NFC-based authentication for the scooter. Detects keycards via the PN715
 
 - `authentication` - `passed` when authorized UID detected
 - `type` - `scooter`
-- `uid` - UID of the card that authenticated (expires after 10 seconds)
+- `uid` - UID of the card that authenticated. Each successful auth also sets a 10-second TTL on the whole `keycard` hash, so `authentication`, `type` and `uid` expire together (as does any `command-result` written into the same hash inside that window).
 
 **Fields written on command response:**
 

@@ -23,7 +23,7 @@ Usage of vehicle-service:
 - `state` - Vehicle state (see States section below)
 - `brake:left` - Left brake state ("on", "off")
 - `brake:right` - Right brake state ("on", "off")
-- `blinker:state` - Blinker active state ("on", "off")
+- `blinker:state` - Blinker active state ("off", "left", "right", "both")
 - `blinker:start_nanos` - Monotonic start time of current blinker cycle (for UI sync)
 - `blinker:switch` - Blinker switch position ("left", "right", "both", "off")
 - `main-power` - Commanded main power rail state ("on", "off")
@@ -277,7 +277,7 @@ Will manually transition to `ready-to-drive` and blink the main light once for c
    - If seatbox open: transition to `waiting-hibernation-seatbox` state to notify user
 5. **Final Confirmation:**
    - Transition to `waiting-hibernation-confirm` state
-   - 3-second non-abortable countdown
+   - 3-second countdown, abortable: the seatbox button, an `unlock` command, or raising the kickstand all cancel it back out of hibernation
    - Then transition to `shutting-down` with hibernation flag
    - Send "hibernate-manual" command to power manager
 
@@ -462,7 +462,7 @@ During DBC (Dashboard Controller) firmware updates:
 
 - Dashboard power is kept on regardless of vehicle state
 - Power state changes are deferred until update completes
-- Dashboard power can be cycled remotely via `scooter:update` command
+- A dashboard power-cycle handler exists in the core, but it is unreachable in this release: the `scooter:update` list handler rejects "cycle-dashboard-power" before dispatching
 - Service tracks update status via `ota` hash `status:dbc` field
 
 **Force Standby:**

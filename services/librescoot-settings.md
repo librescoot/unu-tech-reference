@@ -6,7 +6,7 @@ The settings service is a LibreScoot-only service that provides bidirectional sy
 
 ## Version
 
-LibreScoot settings-service v1.0.0+
+LibreScoot settings-service v0.6.0 (v1.0.5 pinned SRCREV 479896e)
 
 ## Command-Line Options
 

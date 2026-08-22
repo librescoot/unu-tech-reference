@@ -146,7 +146,7 @@ Services store state in Redis hashes:
 
 All services are managed by systemd:
 
-- Service files in `/etc/systemd/system/`
+- Service files in `/usr/lib/systemd/system/` (`/lib` is a symlink to `usr/lib`, so `/lib/systemd/system/` is the same directory); `/etc/systemd/system/` holds the `*.wants` enable symlinks, unit aliases, drop-in overrides and masks
 - Started via `systemctl start <service>`
 - Logs via `journalctl -u <service>`
 

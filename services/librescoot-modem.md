@@ -2,7 +2,7 @@
 
 ## Description
 
-The modem service manages the cellular modem (SimCom SIM7100E) for internet connectivity and GPS functionality using ModemManager (mmcli). It monitors network registration, signal quality, access technology (2G/3G/4G), handles modem power management and recovery, manages network connectivity, and provides GPS coordinates via gpsd. The service implements intelligent health monitoring with multi-strategy recovery procedures and GPS-specific recovery mechanisms.
+The modem service manages the cellular modem (SimCom SIM7100E) for internet connectivity and GPS functionality using ModemManager over D-Bus. It monitors network registration, signal quality, access technology (2G/3G/4G), handles modem power management and recovery, manages network connectivity, and provides GPS coordinates via gpsd. The service implements intelligent health monitoring with multi-strategy recovery procedures and GPS-specific recovery mechanisms.
 
 ## Command-Line Options
 
@@ -187,7 +187,7 @@ The modem typically uses:
 - SIM lock status
 - Network registration state (home/roaming/denied/searching)
 - Signal quality (0-100 or 255 for unknown)
-- Access technology (2G/GSM, 3G/UMTS, 4G/LTE, 5G)
+- Access technology (GSM, EDGE, UMTS, 3G, HSPA, HSPA+, 4G, 5G)
 - Operator name and code
 - Roaming status
 - IMEI, IMSI, ICCID identifiers
@@ -377,7 +377,7 @@ GPS events:
 
 Recovery events:
 
-- "Modem failure detected: wrong_primary_port/wrong_power_state/etc"
+- "Modem failure detected: probe_failed/internet_connectivity_failed/data_session_stalled/gps_stuck_after_gps_recovery"
 - "Attempting modem recovery (attempt N/5)"
 - "Attempting to reset the modem via D-Bus"
 - "Attempting USB recovery (unbind/bind)..."

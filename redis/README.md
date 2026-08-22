@@ -341,10 +341,10 @@ LibreScoot adds persistent settings managed by the settings-service:
 | alarm.hairtrigger | "true"/"false" | Hair trigger mode (immediate short alarm on first motion) | "false" |
 | alarm.hairtrigger-duration | integer (sec) | Hair trigger alarm duration in seconds | "3" |
 | alarm.l1-cooldown | integer (sec) | Level 1 cooldown duration in seconds | "15" |
-| battery.ignore-seatbox | "true"/"false" | Ignore seatbox state for battery management | "false" |
+| scooter.battery-keep-active-on-seatbox-open | "true"/"false" | Keep a running battery active when the seatbox opens instead of deactivating it | "false" |
 | cellular.apn | string | Cellular APN | "internet.provider.com" |
 | cellular.sim-pin | string | PIN for SIM unlock and lock-enable (4-8 digits, empty = leave SIM as-is) | "1234" |
-| hibernation-timer | integer (sec) | Hibernation timeout (0=disabled) | "432000" |
+| pm.hibernation-timer | integer (sec) | Hibernation timeout (0=disabled) | "432000" |
 | pm.scheduled-hibernate-enabled | "true"/"false" | Enable cron-driven scheduled hibernation (schema-defined; pm-service does not act on it in v1.0.5) | "false" |
 | pm.scheduled-hibernate-cron | string | 5-field cron expression for scheduled hibernation (empty disables) | "0 22 * * *" |
 | pm.scheduled-hibernate-duration | duration | Wake-by duration applied at each cron fire | "8h" |
@@ -408,13 +408,13 @@ hgetall bmx
 | Field | Type | Description | Example |
 |-------|------|-------------|----------|
 | initialized | "true"/"false" | BMX sensor initialization status | "true" |
-| interrupt | string | Interrupt status | "active" |
-| sensitivity | string | Current sensitivity level | "MEDIUM" |
-| pin | string | Interrupt pin configuration | "INT2" |
+| interrupt | string | Interrupt status | "disabled" |
+| sensitivity | string | Current sensitivity level | "none" |
+| pin | string | Interrupt pin configuration | "none" |
 
-**Sensitivity levels:** `LOW`, `MEDIUM`, `HIGH`
-
-The alarm-service manages BMX055 configuration automatically based on alarm state.
+alarm-service writes these four fields once at startup, with the fixed values
+shown above, and never updates them afterwards. They do not track the live
+BMX055 configuration, which the alarm state machine changes internally.
 
 ### Dashboard Backlight (`dashboard`) - LibreScoot Enhancement
 
@@ -621,24 +621,16 @@ redis-cli -h 192.168.7.1 LPUSH scooter:alarm start:30
 redis-cli -h 192.168.7.1 LPUSH scooter:alarm stop
 ```
 
-**Available commands**: `enable`, `disable`, `start:<seconds>`, `stop`
+**Available commands**: `enable`, `disable`, `arm`, `disarm`, `start:<seconds>`, `stop`
 
-### BMX Sensor Control (`scooter:bmx`) - LibreScoot Only
+### BMX Sensor Control - LibreScoot Only
 
-Controls BMX055 accelerometer/gyroscope configuration. Typically used by alarm-service.
+There is no `scooter:bmx` command list in this release. No service subscribes to
+it, so anything pushed there is simply never read.
 
-```bash
-# Configure sensitivity
-redis-cli -h 192.168.7.1 LPUSH scooter:bmx sensitivity:MEDIUM
-
-# Configure interrupt pin
-redis-cli -h 192.168.7.1 LPUSH scooter:bmx pin:INT2
-
-# Enable interrupt
-redis-cli -h 192.168.7.1 LPUSH scooter:bmx interrupt:enable
-```
-
-**Available commands**: `sensitivity:<LOW|MEDIUM|HIGH>`, `pin:<NONE|INT1|INT2>`, `interrupt:<enable|disable>`
+alarm-service owns the BMX055 outright and reconfigures the interrupt pin and
+motion thresholds from its own state machine as the alarm state changes. There
+is no external command surface for it.
 
 ### Power Control (`scooter:power`) - LibreScoot Enhanced
 
@@ -686,9 +678,10 @@ redis-cli -h 192.168.7.1 LPUSH scooter:modem gps:disable
 
 **Available commands**: `enable`, `disable`, `gps:enable`, `gps:disable`
 
-### Update Control (`scooter:update`) - LibreScoot Only
+### Update Control (`scooter:update:mdb`, `scooter:update:dbc`) - LibreScoot Only
 
-Controls OTA update system.
+Controls the OTA update system. Each update-service instance consumes only its
+own component list.
 
 ```bash
 # Force immediate update check (one list per component)

@@ -183,7 +183,7 @@ On Linux startup:
 
 ### Shutdown
 
-On SIGTERM or `vehicle state` → `shutting-down`: `ShutdownStore::forceBlackout()` blacks out the display.
+On SIGTERM: `ShutdownStore::forceBlackout()` sets `showBlackout` and `ShutdownOverlay.qml` fades to black over 600 ms. A `vehicle state` of `shutting-down` never reaches `forceBlackout()`; `onVehicleStateChanged()` calls `beginShutdown()` instead, and only when the previous state was in the parked family (`Parked`, `HopOn`, `HopOnLearning`) or `ready-to-drive`. That leaves `showBlackout` false and plays the slower 1500 ms shutdown fade with the shutdown and OTA text.
 
 ## Map Tiles
 
@@ -206,7 +206,6 @@ qml/
   widgets/        Reusable UI components
   overlays/       Modal overlays (menu, toast, ...)
   simulator/      Simulator panel (desktop mode only)
-  theme/          Theme definitions
 ```
 
 ## Dependencies
