@@ -309,6 +309,23 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="What changed in v1.2.1">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#nrf-firmware" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        nRF firmware
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -1608,6 +1625,23 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="What changed in v1.2.1">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#nrf-firmware" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        nRF firmware
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -1788,6 +1822,15 @@ v1.2.0; the only difference is in the Yocto layer, where dropbear keeps SHA-1
 <code>ssh-rsa</code> enabled and gains legacy <code>ssh-dss</code> support so cross-version ssh keeps
 working during installation.</p>
 <p><a href="https://github.com/librescoot/librescoot/releases/tag/v1.2.1">Release notes</a></p>
+<h3 id="nrf-firmware">nRF firmware<a class="headerlink" href="#nrf-firmware" title="Permanent link">&para;</a></h3>
+<p>Ships nRF firmware <strong>v2.7.2-ls</strong>, up from v2.6.0-ls in v1.1.0.</p>
+<ul>
+<li>File transfer over Bluetooth, which is what lets software updates be installed
+  from the companion app. See
+  <a href="bluetooth/ota-transfer/">BLE OTA Firmware Transfer</a>.</li>
+<li>Bonded phones can reconnect while the scooter is in ready-to-drive.</li>
+<li>A reliability fix in the link handover when the scooter suspends.</li>
+</ul>
 <h2 id="system-architecture">System Architecture<a class="headerlink" href="#system-architecture" title="Permanent link">&para;</a></h2>
 <p>The unu Scooter Pro uses a distributed architecture with several key systems:</p>
 <h3 id="core-electronics">Core Electronics<a class="headerlink" href="#core-electronics" title="Permanent link">&para;</a></h3>
