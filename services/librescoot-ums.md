@@ -24,7 +24,7 @@ UMS_MENDER_TIMEOUT=15m       Per-file timeout for Mender update transfers (envir
 
 **Fields written:**
 - `status` - Service status (`idle`, `preparing`, `active`, `processing`)
-- `step` - Current processing step (`settings`, `wireguard`, `updates`, `maps`, or empty)
+- `step` - Current processing step, e.g. `settings`, `wireguard`, `uplink-service`, `onboot`, `updates`, `maps`, or empty between cycles
 - `progress` - Upload progress percentage (0–100) during file transfers
 - `detail` - Human-readable transfer sub-step (e.g. `map.mbtiles (120/380 MB)`)
 

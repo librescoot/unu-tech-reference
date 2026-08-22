@@ -142,7 +142,7 @@ Services store state in Redis hashes:
 ## Service Configuration
 
 All services are managed by systemd:
-- Service files in `/etc/systemd/system/`
+- Service files in `/usr/lib/systemd/system/` (the images enable `usrmerge`); `/etc/systemd/system/` holds only admin overrides and the `*.wants` enable symlinks
 - Started via `systemctl start <service>`
 - Logs via `journalctl -u <service>`
 

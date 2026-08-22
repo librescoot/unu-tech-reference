@@ -334,22 +334,22 @@ LibreScoot adds persistent settings managed by the settings-service:
 | alarm.hairtrigger | "true"/"false" | Hair trigger mode (immediate short alarm on first motion) | "false" |
 | alarm.hairtrigger-duration | integer (sec) | Hair trigger alarm duration in seconds | "3" |
 | alarm.l1-cooldown | integer (sec) | Level 1 cooldown duration in seconds | "15" |
-| battery.ignore-seatbox | "true"/"false" | Ignore seatbox state for battery management | "false" |
+| scooter.battery-keep-active-on-seatbox-open | "true"/"false" | Keep a running battery active when the seatbox opens instead of deactivating it | "false" |
 | cellular.apn | string | Cellular APN | "internet.provider.com" |
-| hibernation-timer | integer (sec) | Hibernation timeout (0=disabled) | "432000" |
+| pm.hibernation-timer | integer (sec) | Hibernation timeout (0=disabled) | "432000" |
 | scooter.auto-standby-seconds | integer (sec) | Auto-lock timeout when parked (0=disabled) | "0" |
 | scooter.brake-hibernation | "enabled"/"disabled" | Enable brake lever hibernation | "enabled" |
 | updates.mdb.channel | string | MDB update channel | "nightly" |
 | updates.mdb.check-interval | duration | MDB update check interval ("never" to disable) | "6h" |
 | updates.mdb.dry-run | "true"/"false" | MDB update dry-run mode | "false" |
 | updates.mdb.method | string | MDB update method | "full" or "delta" |
-| updates.mdb.github-releases-url | string | GitHub Releases API endpoint for MDB | "https://api.github.com/repos/librescoot/librescoot/releases" |
+| updates.mdb.releases-url | url | Release index base URL for MDB | "https://downloads.librescoot.org/releases" |
 | updates.mdb.last-check-time | string (ISO8601) | Last MDB update check timestamp | "2025-01-15T10:30:00Z" |
 | updates.dbc.channel | string | DBC update channel | "stable" |
 | updates.dbc.check-interval | duration | DBC update check interval ("never" to disable) | "6h" |
 | updates.dbc.dry-run | "true"/"false" | DBC update dry-run mode | "false" |
 | updates.dbc.method | string | DBC update method | "full" or "delta" |
-| updates.dbc.github-releases-url | string | GitHub Releases API endpoint for DBC | "https://api.github.com/repos/librescoot/librescoot/releases" |
+| updates.dbc.releases-url | url | Release index base URL for DBC | "https://downloads.librescoot.org/releases" |
 | updates.dbc.last-check-time | string (ISO8601) | Last DBC update check timestamp | "2025-01-15T10:30:00Z" |
 | dashboard.show-raw-speed | "true"/"false" | Show raw uncorrected speed from ECU | "false" |
 | dashboard.show-clock | string | Clock visibility (always/never) | "always" |
@@ -669,16 +669,25 @@ redis-cli -h 192.168.7.1 LPUSH scooter:modem gps:disable
 
 **Available commands**: `enable`, `disable`, `gps:enable`, `gps:disable`
 
-### Update Control (`scooter:update`) - LibreScoot Only
+### Update Control (`scooter:update:mdb` / `scooter:update:dbc`) - LibreScoot Only
 
-Controls OTA update system.
+Controls the OTA update system. Each update-service instance consumes only its own component list;
+there is no shared `check-now`.
 
 ```bash
-# Force immediate update check (both MDB and DBC)
-redis-cli -h 192.168.7.1 LPUSH scooter:update check-now
+# Force immediate update check
+redis-cli -h 192.168.7.1 LPUSH scooter:update:mdb check-now
+redis-cli -h 192.168.7.1 LPUSH scooter:update:dbc check-now
+
+# Install a local artifact
+redis-cli -h 192.168.7.1 LPUSH scooter:update:dbc "update-from-file:/data/ota/dbc/image.mender"
 ```
 
-**Available commands**: `check-now`
+**Available commands**: `check-now`, `update-from-file:<path>`, `update-from-url:<url>` (the file and
+URL forms each accept an optional `:sha256:<hex>` suffix)
+
+The bare `scooter:update` list is a different queue: it carries the `start`, `complete`, `start-dbc`
+and `complete-dbc` lifecycle commands, which vehicle-service consumes.
 
 ### Command Channel Notes
 

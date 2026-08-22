@@ -23,7 +23,7 @@ Handles NFC-based authentication for the scooter. Detects keycards via the PN715
 **Fields written on authentication:**
 - `authentication` - `passed` when authorized UID detected
 - `type` - `scooter`
-- `uid` - UID of the card that authenticated (expires after 10 seconds)
+- `uid` - UID of the card that authenticated. Each successful auth also sets a 10-second TTL on the whole `keycard` hash, so `authentication`, `type` and `uid` all expire together.
 
 **Fields written on command response:**
 - `command-result` - Result of last management command (e.g. `ok`, `count:3`, `card:<uid>`, `error:<reason>`)
@@ -116,7 +116,7 @@ Files are written atomically (write to `.tmp`, sync, rename).
 
 ```bash
 make build        # ARM
-make build-local  # Host
+make build-host   # Host
 ```
 
 ## Related Documentation

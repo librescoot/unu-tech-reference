@@ -141,7 +141,7 @@ The nRF controls different Power Management Integrated Circuit (PMIC) control pi
 - **1.5V Rail Control (GPIO 0 Pin 2)**: Controls +1.5V, almost always on, powers the MDB i.MX6 and RAM
 
 The nRF itself always receives +3.3V power that it can toggle, but it is normally kept always on.
-This 3.3V power also supplies the combined accelerometer/gyroscope/magnetometer sensor (BMG160).
+This 3.3V power also supplies the combined accelerometer/gyroscope/magnetometer sensor (BMX055).
 
 ## Configuration
 

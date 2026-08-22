@@ -48,7 +48,6 @@ Settings are organized by section. Examples:
 - `alarm.l1-cooldown` - Level 1 cooldown duration in seconds
 
 - `scooter.max-voltage-delta` - Maximum voltage difference between batteries in mV before dual battery activation is refused (default: 1000; 0 to disable)
-- `scooter.battery-ignores-seatbox` - Runtime override of `--dangerously-ignore-seatbox` (default: false)
 - `scooter.battery-keep-active-on-seatbox-open` - Keep active battery on across seatbox opens (default: false)
 - `scooter.dual-battery` - Enable dual battery mode (default: false)
 - `scooter.dbc-blinker-led` - Blink DBC boot LED with blinkers ("enabled"/"disabled"; default: "disabled")
@@ -58,10 +57,11 @@ Settings are organized by section. Examples:
 - `cellular.apn` - Cellular APN for data connection
 
 **Power management settings:**
-- `hibernation-timer` - Hibernation timeout in seconds (0=disabled)
+- `pm.hibernation-timer` - Hibernation timeout in seconds (default: 259200; 0=disabled)
+- `pm.default-state` - Power state to return to (`run`/`suspend`; default: "run")
 
 **Scooter settings:**
-- `scooter.auto-standby-seconds` - Auto-lock timeout when parked in seconds (default: 0 = disabled; max 3600). The last 60 s are shown as a cancellable countdown on the dashboard; any user input (brake, kickstand, seatbox button) resets the timer.
+- `scooter.auto-standby-seconds` - Auto-lock timeout when parked in seconds (default: 900; 0 = disabled, no upper bound). The last 60 s are shown as a cancellable countdown on the dashboard; any user input (brake, kickstand, seatbox button) resets the timer.
 - `scooter.brake-hibernation` - Enable brake lever hibernation ("enabled"/"disabled")
 
 **Update settings:**
@@ -97,7 +97,7 @@ Settings are organized by section. Examples:
 - `dashboard.power-display-mode` - Power display unit (kw/amps; default: "kw")
 - `dashboard.battery-display-mode` - Battery display mode (percentage/range)
 - `dashboard.hop-on-combo` - Custom hop-on unlock combo, pipe-delimited tokens (empty = no combo)
-- `dashboard.maps.check-for-updates` - Auto-check for map updates weekly when online (default: true)
+- `dashboard.maps.check-for-updates` - Auto-check for map updates weekly when online (default: false)
 - `dashboard.maps.auto-download` - Auto-download map updates (default: false)
 - `dashboard.maps-available` - Offline map tiles available (system-managed; default: false)
 - `dashboard.navigation-available` - Full navigation available (system-managed; default: false)
@@ -173,15 +173,9 @@ This ensures clean WireGuard state on boot and allows easy VPN configuration via
 ### Startup Sequence
 
 1. Connects to Redis
-2. Checks if `/data/settings.toml` exists
-3. If exists and non-empty:
-   - Flushes existing Redis `settings` hash
-   - Reads TOML file
-   - Populates Redis with all settings
-   - Publishes each setting to `settings` channel
-4. If doesn't exist or empty `[scooter]` section:
-   - Flushes Redis `settings` hash
-   - Creates empty TOML file
+2. Loads the settings schema from `/usr/share/settings-service/settings.schema.json` and collects every key that carries a `default`
+3. Overlays `/data/settings.toml` on top of those defaults (user values win). A missing TOML file just means schema defaults only; no empty TOML file is created.
+4. Atomically replaces the Redis `settings` hash in one pipeline (DEL, then HSET of every merged field) and publishes a single `reload` message on the `settings` channel
 5. Deletes existing WireGuard connections from NetworkManager
 6. Waits for internet connectivity (event-driven; max 120s timeout)
 7. Imports all WireGuard configs from `/data/wireguard/`
@@ -208,12 +202,11 @@ The service:
 
 #### TOML to Redis Sync (Startup Only)
 
-On startup, if `/data/settings.toml` exists:
-1. Entire file is read
-2. All sections and keys are converted to Redis format
-3. Redis `settings` hash is flushed
-4. All settings written to Redis
-5. Each setting published to `settings` channel
+On startup:
+1. Schema defaults are collected from `settings.schema.json`
+2. If `/data/settings.toml` exists, it is read and its sections and keys are converted to Redis format, overriding the schema defaults
+3. Redis `settings` hash is deleted and rewritten with the merged field set, in a single pipeline
+4. One `reload` message is published to the `settings` channel (individual field names are not published on startup)
 
 This ensures Redis reflects the persistent configuration.
 
@@ -236,10 +229,9 @@ When `cellular.apn` is updated:
 
 #### Empty Config Handling
 
-If the TOML file is empty or has an empty `[scooter]` section:
-- Redis `settings` hash is flushed
-- Service treats this as "factory reset" of settings
-- Services using settings will fall back to their defaults
+If the TOML file is missing or empty:
+- Redis `settings` hash is deleted and repopulated from the schema defaults alone
+- Services see the schema default for every key that declares one, and only keys without a schema default are absent
 
 ### WireGuard Management
 
@@ -345,27 +337,31 @@ systemctl restart librescoot-settings
 # Build for ARM target
 make build
 
-# Build for AMD64 (development)
-make build-amd64
+# Build for the host platform (development)
+make build-host
 ```
 
 ## Installation
 
 The service is typically installed via systemd:
 
-**Unit file:** `/etc/systemd/system/librescoot-settings.service`
+**Unit file:** `/usr/lib/systemd/system/librescoot-settings.service`
 
 ```ini
 [Unit]
 Description=LibreScoot Settings Service
-After=redis.service
 Requires=redis.service
+After=redis.service
+Before=librescoot-vehicle.service
 
 [Service]
 Type=simple
+User=root
+Group=root
 ExecStart=/usr/bin/settings-service
 Restart=always
-Environment="REDIS_ADDR=localhost:6379"
+RestartSec=10
+KillMode=mixed
 
 [Install]
 WantedBy=multi-user.target

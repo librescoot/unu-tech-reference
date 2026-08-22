@@ -21,7 +21,7 @@ The `lsc` binary is typically installed to `/usr/bin/lsc` on LibreScoot systems.
 ```bash
 # From the lsc source directory
 make build              # Build for ARM
-make build-native       # Build for local platform
+make build-host         # Build for local platform
 
 # Or manually
 GOOS=linux GOARCH=arm GOARM=7 go build -o lsc .
@@ -33,7 +33,10 @@ All commands support these global flags:
 
 - `--json` - Output in JSON format for automation and scripting
 - `--redis-addr <host:port>` - Redis server address (default: `192.168.7.1:6379`)
-- `--no-block` - Don't wait for state change confirmation (vehicle commands only)
+- `-v`, `--verbose` - Enable verbose logging
+
+`--no-block` is **not** a global flag. It is registered as a persistent flag on `lsc vehicle` and on
+`lsc alarm`, and separately on the `lock`, `unlock` and `open` shortcuts.
 
 ## Commands
 
@@ -115,18 +118,27 @@ lsc svc logs battery --follow        # Follow in real-time (-f)
 lsc svc logs redis --lines 100       # Show 100 lines (-n 100)
 ```
 
-**Service name shortcuts:**
+**Service name shortcuts** (every mapped name resolves to a `librescoot-*` unit):
 - `vehicle` → `librescoot-vehicle.service`
-- `battery` → `battery-service.service`
-- `ecu` → `ecu-service.service`
-- `alarm` → `alarm-service.service`
-- `modem` → `modem-service.service`
-- `settings` → `settings-service.service`
-- `bluetooth` → `bluetooth-service.service`
-- `pm` → `librescoot-pm.service`
+- `battery` → `librescoot-battery.service`
+- `ecu` → `librescoot-ecu.service`
+- `modem` → `librescoot-modem.service`
+- `alarm` → `librescoot-alarm.service`
+- `settings` → `librescoot-settings.service`
 - `keycard` → `librescoot-keycard.service`
-- `update` → `update-service.service`
-- `redis` → `redis.service`
+- `boot-led` → `librescoot-boot-led.service`
+- `bluetooth` → `librescoot-bluetooth.service`
+- `ums` → `librescoot-ums.service`
+- `brightness` → `librescoot-brightness.service`
+- `onboot` → `librescoot-onboot.service`
+- `backlight` → `dbc-backlight.service`
+- `pm` → `librescoot-pm.service`
+- `update` → `librescoot-update.service`
+- `version` → `librescoot-version.service`
+- `netconfig` → `librescoot-netconfig.service`
+
+Any name not in the map is passed through unchanged with `.service` appended, so `lsc svc logs redis`
+resolves to `redis.service`.
 
 **System integration:**
 - Uses `systemctl` commands via D-Bus
@@ -137,11 +149,11 @@ lsc svc logs redis --lines 100       # Show 100 lines (-n 100)
 Control LED cues and fade animations.
 
 ```bash
-# Trigger LED cue by index
-lsc led cue <index>
+# Trigger LED cue by index or name
+lsc led cue <index|name>
 
-# Trigger LED fade animation
-lsc led fade <channel> <index>
+# Trigger LED fade animation by index or name
+lsc led fade <channel> <index|name>
 ```
 
 **Redis operations:**
@@ -166,7 +178,7 @@ lsc battery --json
 ```
 
 **Redis operations:**
-- Reads from `battery:0` and `battery:1` hashes
+- Reads from the `battery:0`, `battery:1`, `aux-battery` and `cb-battery` hashes, plus the `battery:<id>:faults` sets
 
 ### GPS Tracking
 
@@ -185,7 +197,7 @@ lsc gps status --json
 
 **Redis operations:**
 - Reads from `gps` hash
-- Subscribes to `gps` channel for real-time updates
+- `lsc gps watch` re-reads the `gps` hash on a 1 s ticker (it does not subscribe to any channel)
 
 ### Alarm System
 
@@ -201,14 +213,19 @@ lsc alarm arm
 # Disable the alarm
 lsc alarm disarm
 
-# Manually trigger the alarm
+# Manually trigger the alarm (duration in seconds; falls back to alarm.duration)
 lsc alarm trigger
+lsc alarm trigger 30
+
+# Temporarily silence a sounding alarm without changing alarm.enabled
+lsc alarm silence
 ```
 
 **Redis operations:**
-- Sends commands to `scooter:alarm` list (enable, disable, start, stop)
-- Reads from `alarm` hash
-- Reads from `settings` hash (alarm.enabled, alarm.honk)
+- `arm` / `disarm` HSET `alarm.enabled` in the `settings` hash and PUBLISH `settings` — they do not touch `scooter:alarm`
+- `trigger [duration]` sends `start:<seconds>` to the `scooter:alarm` list; `silence` sends `disarm`
+- Reads from `alarm` hash (`status`)
+- Reads from `settings` hash (alarm.enabled, alarm.honk, alarm.duration, alarm.seatbox-trigger, alarm.hairtrigger, alarm.hairtrigger-duration)
 
 ### Settings Management
 
@@ -220,11 +237,11 @@ lsc settings
 
 # Get a specific setting (also via: lsc get)
 lsc settings get alarm.enabled
-lsc get scooter.mode
+lsc get updates.mdb.channel
 
 # Set a setting (also via: lsc set)
 lsc settings set alarm.honk true
-lsc set scooter.speed_limit 25
+lsc set updates.mdb.channel stable
 
 # Delete a setting (also via: lsc del)
 lsc settings del custom.field
@@ -238,8 +255,8 @@ lsc del custom.field
 - `alarm.seatbox-trigger` - Trigger alarm on unauthorized seatbox opening (true/false)
 - `alarm.hairtrigger` - Enable hair trigger mode (true/false)
 - `alarm.hairtrigger-duration` - Hair trigger alarm duration in seconds
-- `scooter.speed_limit` - Speed limit in km/h
-- `scooter.mode` - Drive mode (eco/sport)
+- `pm.hibernation-timer` - Hibernation timeout in seconds
+- `scooter.auto-standby-seconds` - Auto-lock timeout when parked (0 = disabled)
 - `cellular.apn` - Cellular APN configuration
 - `updates.mdb.channel` - MDB update channel (stable/testing/nightly)
 - `updates.dbc.channel` - DBC update channel
@@ -256,6 +273,17 @@ Manage over-the-air updates.
 # View OTA update status
 lsc ota status
 
+# Follow update progress live
+lsc ota watch
+
+# Trigger an immediate update check (both components, or one)
+lsc ota check
+lsc ota check mdb
+
+# Show or set the release channel for both components
+lsc ota channel
+lsc ota channel stable
+
 # Install update from local file
 lsc ota install /path/to/update.mender
 
@@ -267,8 +295,8 @@ lsc ota status --json
 ```
 
 **Redis operations:**
-- Reads from `ota` hash (status:mdb, status:dbc, download-progress, etc.)
-- Sends commands to `scooter:update` list (check-now)
+- Reads from the `ota` hash (status:mdb, status:dbc, download-progress, etc.), plus `settings`, `vehicle`, and `version_id` from `version:mdb` / `version:dbc`
+- `lsc ota check [mdb|dbc]` sends `check-now` to `scooter:update:mdb` and/or `scooter:update:dbc`
 
 ### Diagnostics
 
@@ -314,10 +342,10 @@ lsc diag handlebar unlock
 ```
 
 **Redis operations:**
-- Reads from `version:mdb` and `version:dbc` hashes
-- Reads from `battery:0:fault`, `battery:1:fault`, `engine-ecu:fault` sets
+- `diag version` reads the `system`, `engine-ecu`, `battery:0`, `battery:1` and `ota` hashes
+- `diag faults` reads the `vehicle:fault`, `battery:0:faults` and `battery:1:faults` sets
 - Reads from `events:faults` stream using XREAD
-- Sends commands to `scooter:blinker`, `scooter:horn`, `scooter:handlebar` lists
+- Sends commands to the `scooter:blinker` and `scooter:horn` lists; `diag handlebar lock|unlock` goes to `scooter:hardware` as `handlebar:lock` / `handlebar:unlock`
 
 ### Hardware Control
 
@@ -351,28 +379,28 @@ lsc status --json
 ```
 
 Shows summary of:
-- Vehicle state
-- Motor status (speed, odometer, temperature)
-- Battery status for all batteries
-- Power manager state
-- GPS status
-- Internet connectivity
-- Active faults
+- Vehicle state (state, kickstand, brakes, blinker switch, seatbox, ambient temperature)
+- Motor status (speed, RPM, throttle, odometer, voltage, current, temperature, KERS)
+- Main batteries 0 and 1, plus the AUX and CB batteries
+
+It reads `vehicle`, `engine-ecu`, `battery:0`, `battery:1`, `aux-battery`, `cb-battery` and `scooter`. Power-manager state, GPS and internet are not part of `lsc status` - use `lsc power status` and `lsc gps status`.
 
 ### Real-time Monitoring
 
 Monitor Redis pub/sub channels and record metrics.
 
 ```bash
-# Watch Redis pub/sub channels
-lsc watch
+# Watch Redis pub/sub channels (at least one channel name is required)
+lsc watch vehicle
+lsc watch vehicle alarm battery:0
 
-# Record metrics over time
-lsc monitor
+# Record metrics over time (at least one subsystem is required)
+lsc monitor gps --duration 1h
+lsc monitor all --duration 30m
 ```
 
 **Redis operations:**
-- Subscribes to all channels and displays real-time updates
+- Subscribes to the channels named on the command line and displays real-time updates
 - Samples and logs metrics at intervals
 
 ### Saved Locations
@@ -391,16 +419,16 @@ All commands support `--json` flag for automation:
 ```bash
 # Get structured output
 lsc status --json | jq '.vehicle.state'
-lsc battery --json | jq '.[0].charge'
+lsc battery --json | jq '.batteries[0].charge'
 lsc settings --json | jq '.["alarm.enabled"]'
 
 # Check if alarm is enabled
-if [ "$(lsc get alarm.enabled --json | jq -r .value)" = "true" ]; then
+if [ "$(lsc get alarm.enabled --json | jq -r '."alarm.enabled"')" = "true" ]; then
   echo "Alarm is enabled"
 fi
 
 # Get battery charge percentage
-CHARGE=$(lsc bat 0 --json | jq '.charge')
+CHARGE=$(lsc bat 0 --json | jq '.batteries[0].charge')
 echo "Battery charge: $CHARGE%"
 ```
 
@@ -505,7 +533,7 @@ lsc gps status
 lsc gps watch
 
 # Get coordinates in JSON
-lsc gps status --json | jq '.latitude, .longitude'
+lsc gps status --json | jq '.position.latitude, .position.longitude'
 ```
 
 ## Architecture
