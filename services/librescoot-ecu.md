@@ -2,7 +2,7 @@
 
 ## Description
 
-The ECU service (`ecu-service`) provides a unified interface for communicating with electric scooter motor controllers (ECUs) via CAN bus. It monitors motor speed, RPM, voltage, current, temperature, throttle state, KERS (kinetic energy recovery system) status, odometer, power metrics, and fault codes. The service publishes this data to Redis for consumption by the dashboard and other services, and manages KERS functionality based on battery temperature and vehicle state.
+The ECU service (`ecu-service`) provides a unified interface for communicating with electric scooter motor controllers (ECUs) via CAN bus. It supports both Bosch and Votol ECU types, monitoring motor speed, RPM, voltage, current, temperature, throttle state, KERS (kinetic energy recovery system) status, odometer, power metrics, and fault codes. The service publishes this data to Redis for consumption by the dashboard and other services, and manages KERS functionality based on battery temperature and vehicle state.
 
 ## Command-Line Options
 
@@ -10,16 +10,18 @@ The ECU service (`ecu-service`) provides a unified interface for communicating w
 Usage of ecu-service:
   -can_device string
         CAN device name (default "can0")
-  -gear_ratios string
-        Bosch ECU gear ratios (comma-separated values 1-3, each 1-255, e.g. '100,150,200')
+  -ecu_type string
+        ECU type (bosch or votol) (default "bosch")
+  -help
+        Print help
   -log int
-        Log level (0=NONE 1=ERROR 2=WARN 3=INFO 4=DEBUG) (default 3)
+        Log level (0=NONE, 1=ERROR, 2=WARN, 3=INFO, 4=DEBUG) (default 3)
   -redis_port int
         Redis server port (default 6379)
   -redis_server string
         Redis server address (default "127.0.0.1")
   -version
-        Print version and exit
+        Print version info
 ```
 
 ## Redis Operations
@@ -41,7 +43,7 @@ Usage of ecu-service:
 - `odometer` - Total distance traveled in meters
 - `kers` - KERS (regenerative braking) state ("on", "off")
 - `boost` - Boost mode state ("on", "off")
-- `gear` - Current gear (1-3, 0 if unknown)
+- `gear` - Current gear (Bosch: 1-3, 0 if unknown; Votol reports 0)
 - `power` - Instantaneous power in mW
 - `energy:consumed` - Cumulative energy consumed in mWh
 - `energy:recovered` - Cumulative energy recovered via regenerative braking in mWh
@@ -49,27 +51,8 @@ Usage of ecu-service:
 - `kers-accepted-voltage` - EBS regen voltage cap the ECU accepted, in mV (Bosch only; 0 otherwise). The ECU echoes this after clamping the EBS Set command; it is the stored config, not a live measurement. Distinct from the commanded `engine-ecu.kers-voltage` setpoint.
 - `kers-accepted-current` - EBS regen current limit the ECU accepted, in mA (Bosch only; 0 otherwise). Distinct from the commanded `engine-ecu.kers-power` setpoint.
 - `regen-available` - Derived ("on"/"off"): whether regen can happen right now.
-- `regen-reason` - Derived: why regen is unavailable ("none"/"cold"/"hot"/"off"/"standstill"/"full"). "standstill" means wheel RPM is below the ECU's regen engage deadband (~90 wheel RPM, ~7 km/h). "full" means the pack is at its voltage cap. Empirically derived envelope; non-Bosch controllers report gating only.
+- `regen-reason` - Derived: why regen is unavailable ("none"/"cold"/"hot"/"off"/"full"). "full" means the pack is at its voltage cap. Empirically derived envelope; non-Bosch controllers report gating only.
 - `regen-expected` - Derived: expected regen current envelope in mA (0 on non-Bosch controllers). `motor:current` remains the real-measurement source for actual regen.
-- `ecu-status` - ECU enable state ("enabled"/"disabled"), decoded from the Status4 paired enable/disable bits
-- `boost-status` - Boost enable state ("enabled"/"disabled"), same Status4 signal as `boost`
-- `gear-mode` - Gear-mode enable state ("enabled"/"disabled"), from Status4
-- `fw-version` - ECU firmware identification word, 8 hex digits (written once the ECU has reported it)
-- `warranty-date` - Companion identification word from the same frame, 8 hex digits (written once the ECU has reported it)
-- `motor:rated-power-kw` - Motor rated power in kW
-- `motor:max-speed-kmh` - Motor maximum speed in km/h
-- `fw:base-version` - Base software version (e.g. "4.0")
-- `fw:app-version` - Application software revision
-- `gear:high-current-ratio`, `gear:mid-current-ratio`, `gear:low-current-ratio` - Per-gear current scaling in percent
-- `gear:high-torque-ratio`, `gear:mid-torque-ratio`, `gear:low-torque-ratio` - Per-gear torque scaling in percent
-- `config:ov-threshold-mv` - ECU-reported over-voltage threshold in mV
-- `config:uv-threshold-mv` - ECU-reported under-voltage threshold in mV
-- `config:speed-limit-ratio` - ECU-reported speed limit in percent
-- `config:wheel-circumference-cm` - ECU-reported wheel circumference in cm
-- `config:max-phase-current-ma` - ECU-reported peak phase current in mA
-- `config:startup-phase-current-ma` - ECU-reported startup phase current in mA
-
-The `config:*` fields are deleted from the hash rather than written as 0 while the ECU has not reported them, so a missing field means "not reported" and not a real zero.
 
 **Published channels:**
 
@@ -104,11 +87,11 @@ The service subscribes to the following channels to monitor system state:
 
 **Set:** `engine-ecu:fault`
 
-- Contains the active fault code (SADD when a fault is raised; the key is DELeted when the fault clears)
+- Contains active fault codes (SADD when fault occurs, SREM when cleared)
 
 **Stream:** `events:faults`
 
-- Publishes fault events with group="engine-ecu"; a raised fault carries `code`, `description` and `severity`, a cleared fault carries `code` 0
+- Publishes fault events with group="engine-ecu", code (positive when set, negative when cleared), and description
 - Limited to 1000 entries (MAXLEN)
 
 **Published channel for faults:** `engine-ecu` with payload "fault"
@@ -119,13 +102,15 @@ The service subscribes to the following channels to monitor system state:
 
 - **CAN device:** Configurable via `-can_device` option (default: `can0`)
 - **Interface type:** SocketCAN
-- **Connected to:** Bosch motor controller/ECU
+- **Connected to:** Motor controller/ECU (Bosch or Votol)
 
 The service uses standard Linux SocketCAN to communicate with the motor controller.
 
 ### ECU Communication
 
-The service talks to a Bosch ECU over CAN.
+The service supports two ECU types, selectable via the `-ecu_type` flag:
+
+#### Bosch ECU
 
 **CAN Message IDs:**
 
@@ -152,11 +137,34 @@ The service talks to a Bosch ECU over CAN.
 - Sends enable/disable commands via CAN ID 0x4E0
 - Supports gear mode and boost mode flags
 
+#### Votol ECU
+
+**CAN Message IDs:**
+
+- `0x9026105A` - Display to controller (speed, odometer)
+- `0x90261022` - Controller to display (RPM, voltage, current)
+- `0x90261023` - Controller status (temperature, fault codes)
+
+**Speed Calculation:**
+
+- Speed calculated from RPM: `speed = rpm * 0.0783744`
+- No separate speed calibration applied
+
+**KERS Control:**
+
+- KERS control not yet implemented for Votol (TODO in code)
+- State tracking only, no active control
+
+**Throttle State:**
+
+- Votol ECU does not report throttle state in current implementation
+- Throttle field always reports "off"
+
 ## Configuration
 
 ### Systemd Unit
 
-- **Unit file:** `/usr/lib/systemd/system/librescoot-ecu.service`
+- **Unit file:** `/usr/lib/systemd/system/ecu-service.service`
 - **Started by:** systemd at boot
 - **Restart policy:** Always
 
@@ -174,8 +182,8 @@ This is typically done by a systemd service or udev rule.
 
 ### Startup Sequence
 
-1. Parse command-line options (CAN device, Redis settings, log level, gear ratios)
-2. Validate the log level and the `-gear_ratios` string
+1. Parse command-line options (ECU type, CAN device, Redis settings, log level)
+2. Validate ECU type (must be "bosch" or "votol")
 3. Connect to Redis server with timeout (5s connection timeout)
 4. Initialize components:
    - Battery monitor (tracks 2 battery slots)
@@ -185,7 +193,7 @@ This is typically done by a systemd service or udev rule.
    - KERS manager (with 1.5s ready-to-drive delay timer)
    - Diagnostics manager (fault tracking)
    - Initialize CAN bus interface
-   - Create the Bosch ECU instance
+   - Create ECU instance (Bosch or Votol based on flag)
 5. Set up IPC RX subscriptions:
    - Subscribe to `vehicle` channel
    - Subscribe to `battery:0` and `battery:1` channels
@@ -229,7 +237,7 @@ The service manages KERS based on battery temperature and vehicle state:
 - **Battery Temperature Monitoring:**
   - Monitors both battery slots (battery:0 and battery:1)
   - Uses temperature state of whichever battery is marked "active"
-  - If no battery is active the temperature state is unknown and KERS state is not updated; when both are active the more restrictive of the two temperature states wins
+  - If no battery is active or both are active, KERS state is not updated
 
 - **State Machine:**
   - Subscribes to `vehicle` channel for state changes
@@ -275,7 +283,7 @@ The service monitors ECU fault codes and manages them through Redis. Faults are 
 - Active faults added to `engine-ecu:fault` set
 - Fault events published to `events:faults` stream
 - Notification published to `engine-ecu` channel with "fault" payload
-- When the fault clears, the `engine-ecu:fault` key is deleted and a `code` 0 entry is logged to the stream
+- When fault clears, code is removed from set and negative code logged to stream
 
 #### Power Metrics
 
@@ -285,7 +293,7 @@ The service calculates and tracks power consumption and recovery:
 - **Energy Integration:** Power integrated over time to calculate energy in mWh
 - **Consumed Energy:** Tracked when power is positive (motor driving)
 - **Recovered Energy:** Tracked when power is negative (regenerative braking)
-- **Maximum Delta:** 2 second maximum between updates (prevents large accumulation when ECU is off)
+- **Maximum Delta:** 5 second maximum between updates (prevents large accumulation when ECU is off)
 
 ## Log Output
 
@@ -311,15 +319,44 @@ The service logs to journald (or stdout when not running under systemd). Common 
   - KERS update decisions
   - Power metrics calculations
 
-Use `journalctl -u librescoot-ecu` to view logs.
+Use `journalctl -u ecu-service` to view logs.
 
 ## Dependencies
 
 - **CAN device** - Must have configured SocketCAN interface (e.g., can0)
-- **ECU/Motor controller** - Must be powered and responsive on CAN bus
+- **ECU/Motor controller** - Must be powered and responsive on CAN bus (Bosch or Votol)
 - **Redis server** - At specified host:port (default: 127.0.0.1:6379)
 - **Battery service** - For temperature state monitoring (publishes to battery:0 and battery:1)
 - **Vehicle state manager** - For ready-to-drive state (publishes to vehicle channel)
+
+## ECU Type Comparison
+
+### Bosch vs Votol
+
+| Feature | Bosch ECU | Votol ECU |
+|---------|-----------|-----------|
+| **CAN IDs** | Standard (0x7E0-0x7E3) | Extended (0x90261xxx) |
+| **Speed Source** | Direct from ECU | Calculated from RPM |
+| **Speed Calibration** | Yes (1.03 × 1.155556) | RPM-based (× 0.0783744) |
+| **Throttle Reporting** | Yes (via Status1) | No (always "off") |
+| **KERS Control** | Full (voltage, current, enable) | Not implemented (state only) |
+| **Odometer** | Via Status3 (calibrated ×1.07) | Via Display message |
+| **Fault Codes** | 32-bit code | 8-bit bitmask |
+| **Voltage Scaling** | 10mV per bit | 100mV per bit |
+| **Current Scaling** | 10mA per bit | 100mA per bit |
+| **Endianness** | Big-endian | Little-endian |
+
+### When to Use Each ECU Type
+
+- Use `-ecu_type bosch` for:
+  - Bosch motor controllers
+  - When KERS control via CAN is required
+  - When throttle state monitoring is needed
+
+- Use `-ecu_type votol` for:
+  - Votol motor controllers
+  - When only monitoring is needed (no KERS control)
+  - Systems where RPM-based speed calculation is preferred
 
 ## Related Documentation
 

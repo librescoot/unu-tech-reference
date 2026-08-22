@@ -6,7 +6,7 @@ The Dashboard Controller (DBC) provides the primary user interface for the scoot
 
 ## Implementation
 
-The dashboard UI is implemented as a Qt/QML application (scootui-qt) that:
+The dashboard UI is implemented as a Qt/QML application (unu-dashboard-ui) that:
 
 - Runs on the DBC (Dashboard Controller)
 - Connects to Redis at 192.168.7.1:6379 in production (defaults to 127.0.0.1:6379, configurable via command-line options)
@@ -207,7 +207,7 @@ Theme transitions include animation timing for smooth visual changes.
 
 ### Startup Sequence
 
-1. Dashboard application starts (scootui-qt)
+1. Dashboard application starts (unu-dashboard-ui)
 2. Connects to Redis (192.168.7.1:6379 in production, defaults to 127.0.0.1:6379, configurable via `-b` and `-p` options)
 3. Subscribes to all service Redis pub/sub channels
 4. Reads OS version from `/etc/os-release` and sets `system dbc-version` to VERSION_ID+BUILD_ID

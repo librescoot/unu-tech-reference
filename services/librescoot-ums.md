@@ -115,7 +115,7 @@ first lets the in-flight entry observe it and abandon itself.
 │   └── librescoot-dbc-*.mender
 ├── maps/                # place map files here
 │   ├── *.mbtiles
-│   └── *tiles.tar or valhalla_tiles_*.tar, plain or .zst
+│   └── *tiles.tar or valhalla_tiles_*.tar
 ├── rpms/
 │   ├── mdb/             # RPMs to install on MDB
 │   └── dbc/             # RPMs to transfer and install on DBC
