@@ -2,12 +2,24 @@
 
 Reverse-engineered technical documentation of the unu Scooter Pro.
 
-## About this version
+## What changed in v1.2.1
 
-You are reading `dev`, which tracks the `main` branch of this repository and
-describes the current state of the code, including work that has not shipped in
-any release yet. For what a released image actually contains, pick that version
-from the selector above.
+Hotfix for a first-installation problem. It ships service revisions identical to
+v1.2.0; the only difference is in the Yocto layer, where dropbear keeps SHA-1
+`ssh-rsa` enabled and gains legacy `ssh-dss` support so cross-version ssh keeps
+working during installation.
+
+[Release notes](https://github.com/librescoot/librescoot/releases/tag/v1.2.1)
+
+### nRF firmware
+
+Ships nRF firmware **v2.7.2-ls**, up from v2.6.0-ls in v1.1.0.
+
+- File transfer over Bluetooth, which is what lets software updates be installed
+  from the companion app. See
+  [BLE OTA Firmware Transfer](bluetooth/ota-transfer.md).
+- Bonded phones can reconnect while the scooter is in ready-to-drive.
+- A reliability fix in the link handover when the scooter suspends.
 
 ## System Architecture
 

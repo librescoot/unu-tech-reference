@@ -42,14 +42,14 @@ hgetall vehicle
 | handlebar:lock-sensor | "locked"/"unlocked" | Handlebar lock state | "unlocked" |
 | main-power | "on"/"off" | Main power state | "off" |
 | kickstand | "up"/"down" | Side stand position | "down" |
-| seatbox:button | "on"/"off" | Seat open button state | "off" |
+| seatbox:button | "on"/"off" | Seat open button state (stock only; Librescoot 1.2.0's vehicle-service does not write this field, so dashboard reads come back empty) | "off" |
 | seatbox:lock | "open"/"closed" | Seat lock state | "closed" |
-| horn:button | "on"/"off" | Horn button state | "off" |
+| horn:button | "on"/"off" | Horn button state (stock only; Librescoot 1.2.0's vehicle-service does not write this field) | "off" |
 | brake:left | "on"/"off" | Left brake state | "off" |
 | brake:right | "on"/"off" | Right brake state | "off" |
 | blinker:switch | "left"/"right"/"both"/"off" | Blinker switch position | "off" |
 | blinker:state | "on"/"off" | Blinker active state | "off" |
-| state | "stand-by"/"parked"/"hop-on"/"hop-on-learning"/"ready-to-drive"/"waiting-seatbox"/"shutting-down"/"updating"/"waiting-hibernation"/"waiting-hibernation-seatbox"/"waiting-hibernation-confirm" | Vehicle operating state | "stand-by" |
+| state | "stand-by"/"parked"/"hop-on"/"hop-on-learning"/"ready-to-drive"/"waiting-seatbox"/"shutting-down"/"updating"/"waiting-hibernation"/"waiting-hibernation-advanced"/"waiting-hibernation-seatbox"/"waiting-hibernation-confirm" | Vehicle operating state | "stand-by" |
 | auto-standby-deadline | integer (Unix timestamp) | When auto-standby will trigger (only present when timer active) | "1734567890" |
 
 ### Engine ECU (`engine-ecu`)
@@ -77,7 +77,7 @@ hgetall engine-ecu
 | raw-speed | integer (km/h) | Raw speed before calibration | "0" |
 | throttle | "on"/"off" | Throttle state | "off" |
 | brake | "on"/"off" | Brake state | "off" |
-| gear | integer | Current gear (1-3, 0 if unknown) | "1" |
+| gear | integer | Current gear (Bosch 1-3, 0 if unknown; Votol reports 0) | "1" |
 | fw-version | hex string | ECU firmware version | "0445400C" |
 | odometer | integer (m) | Total distance | "632900" |
 | temperature | integer (°C) | ECU temperature | "16" |
@@ -168,7 +168,6 @@ hgetall system
 | dbc-version | string | Dashboard computer version | "v1.15.0+430553" |
 | keycard-master-count | integer | Master keycards enrolled, written by keycard-service | "1" |
 | keycard-authorized-count | integer | Authorized keycards enrolled, written by keycard-service | "3" |
-| usb0-gate | string | This boot's usb0 gate decision, written by vehicle-service: `open` (link held up) or `closed` (link tracks `dashboard:power`). Absent until vehicle-service resolves the gate. | "closed" |
 
 ### Power Management (`power-manager`)
 ```
@@ -415,9 +414,9 @@ Librescoot adds persistent settings managed by the settings-service:
 | alarm.honk | "true"/"false" | Horn enabled during alarm | "false" |
 | alarm.duration | integer (sec) | Alarm duration in seconds | "30" |
 | alarm.seatbox-trigger | "true"/"false" | Trigger alarm on unauthorized seatbox opening | "true" |
-| alarm.trigger.motion | "true"/"false" | Motion is an alarm trigger source (default true) | "true" |
-| alarm.trigger.buttons | "true"/"false" | Brake, horn and seatbox button presses are an alarm trigger source (default true) | "true" |
-| alarm.trigger.handlebar | "true"/"false" | Handlebar lock sensor and position are an alarm trigger source (default false; muted for 90 s after arming) | "false" |
+| alarm.trigger.motion | "true"/"false" | Declared in the settings schema (default true) but not yet honoured by alarm-service in this release | "true" |
+| alarm.trigger.buttons | "true"/"false" | Declared in the settings schema (default true) but not yet honoured by alarm-service in this release | "true" |
+| alarm.trigger.handlebar | "true"/"false" | Declared in the settings schema (default true) but not yet honoured by alarm-service in this release | "true" |
 | alarm.hairtrigger | "true"/"false" | Hair trigger mode (immediate short alarm on first motion) | "false" |
 | alarm.hairtrigger-duration | integer (sec) | Hair trigger alarm duration in seconds | "3" |
 | alarm.l1-cooldown | integer (sec) | Level 1 cooldown duration in seconds | "15" |
@@ -439,13 +438,13 @@ Librescoot adds persistent settings managed by the settings-service:
 | updates.mdb.check-interval | duration | MDB update check interval ("never" to disable) | "6h" |
 | updates.mdb.dry-run | "true"/"false" | MDB update dry-run mode | "false" |
 | updates.mdb.method | string | MDB update method | "full" or "delta" |
-| updates.mdb.releases-url | string | Release index base URL for MDB | "https://downloads.librescoot.org/releases" |
+| updates.mdb.github-releases-url | string | GitHub Releases API endpoint for MDB | "https://api.github.com/repos/librescoot/librescoot/releases" |
 | updates.mdb.last-check-time | string (ISO8601) | Last MDB update check timestamp | "2025-01-15T10:30:00Z" |
 | updates.dbc.channel | string | DBC update channel | "stable" |
 | updates.dbc.check-interval | duration | DBC update check interval ("never" to disable) | "6h" |
 | updates.dbc.dry-run | "true"/"false" | DBC update dry-run mode | "false" |
 | updates.dbc.method | string | DBC update method | "full" or "delta" |
-| updates.dbc.releases-url | string | Release index base URL for DBC | "https://downloads.librescoot.org/releases" |
+| updates.dbc.github-releases-url | string | GitHub Releases API endpoint for DBC | "https://api.github.com/repos/librescoot/librescoot/releases" |
 | updates.dbc.last-check-time | string (ISO8601) | Last DBC update check timestamp | "2025-01-15T10:30:00Z" |
 | dashboard.show-raw-speed | "true"/"false" | Show raw uncorrected speed from ECU | "false" |
 | dashboard.show-clock | string | Clock visibility (always/never) | "always" |
@@ -539,7 +538,6 @@ motion-service owns the BMX055 9-axis IMU and publishes its state here. The lega
 | interrupt / pin / mode / bandwidth / threshold / duration | string | Motion-engine config as programmed, written by the profile controller on every apply | "enabled" / "both" / "any-motion" / "0x0A" / "0x06" / "0x03" |
 | last-interrupt-timestamp | integer (unix-ms) | Last motion interrupt | "1777996408778" |
 | error-count / last-error | string | Diagnostic counters | "0" |
-| wake-cause | integer (unix-ms) | Written once at startup if the chip woke the system from hibernation; alarm-service reads + deletes it | "1777996408778" |
 | heading | integer (0-359°) | Magnetic heading | "192" |
 | heading-deg / heading-accuracy / heading-tilt / heading-tilt-comp | string | Smoothed heading, 1-σ accuracy, tilt, tilt-compensation flag | "192.50" |
 
@@ -550,11 +548,11 @@ motion-service owns the BMX055 9-axis IMU and publishes its state here. The lega
 - `motion:interrupt` - JSON motion event: `{"type": "edge"|"wake-hibernation", "timestamp": ..., "engine": "any-motion"|"slow-motion"}`
 - `motion:ready` - fired once at startup after the first profile-apply; payload is a unix-ms timestamp
 
-**RPC channel `motion:rpc`** (redis-ipc CallServer): methods `prepare-hibernation`, `get-calibration`, `clear-latch`, `soft-reset`, `set-polling`, `set-streaming`.
+**RPC channel `motion:rpc`** (redis-ipc CallServer): methods `prepare-hibernation`, `get-calibration`, `clear-latch`, `soft-reset`.
 
 `soft-reset` resets accel + gyro and then reprograms the current profile. It does not leave the chip at register defaults, since that would mean no motion detection on an armed scooter.
 
-The `sensitivity` field is gone. Sensitivity is a property of the applied profile, so `current-profile` plus `threshold` describe it. motion-service deletes the stale field at startup on units upgrading from an older build.
+The `motion` hash still carries a `sensitivity` field. motion-service seeds it to `"none"` at startup and rewrites it whenever a `sensitivity:<level>` command arrives on `scooter:motion`. It is advisory: the profile controller reprograms threshold and duration on the next `alarm` or `power-manager` transition regardless of it.
 
 Chip configuration is reactive: motion-service derives the profile from the `alarm` and `power-manager` hashes, consumers never write registers. The `bmx:interrupt` channel survives only as a relay: bluetooth-service publishes `wake-suspend` / `wake-hibernation` there when the nRF52 reports an accelerometer wake event.
 
@@ -693,31 +691,6 @@ icon) use it to decide whether being offline is worth surfacing:
 Hysteresis: `connected`->`disconnected` waits 3 min (ride out tunnels), `denied`
 waits 60 s before committing; `disabled`/`no-sim`/`failed` commit immediately.
 
-### Cellular Data Usage (`internet-usage`) - Librescoot Only
-
-Written by modem-service from the ModemManager bearer's byte counters. There is
-no channel notification: the totals move on every poll while data is flowing, so
-consumers poll the hash.
-
-| Field | Type | Description | Example |
-|-------|------|-------------|----------|
-| rx-bytes | integer | Bytes received over the cellular bearer since `since` | "1843729104" |
-| tx-bytes | integer | Bytes transmitted over the cellular bearer since `since` | "204118392" |
-| rx-bytes-roaming | integer | Part of `rx-bytes` that moved while roaming | "8110422" |
-| tx-bytes-roaming | integer | Part of `tx-bytes` that moved while roaming | "991200" |
-| since | string | RFC 3339 timestamp of when counting started | "2026-08-08T21:00:00Z" |
-| updated | string | RFC 3339 timestamp of the last write | "2026-08-09T07:31:04Z" |
-
-The totals are monotonic and survive both a bearer teardown and a reboot, so
-usage over a window is the difference between two readings; the vehicle does not
-model billing periods. The roaming fields are a subset of the totals rather than
-a separate pot, so home traffic is `rx-bytes - rx-bytes-roaming`.
-
-The counters are device-reported and not billing-grade, and are persisted at
-power transitions rather than on a timer, so a hard power cut can lose several
-hours of counted traffic. A `since` that has moved forward means the vehicle lost
-its stored total and restarted the baseline.
-
 ### OTA Updates (`ota`) - Librescoot Enhancement
 
 Librescoot adds per-component update tracking:
@@ -738,13 +711,6 @@ Librescoot adds per-component update tracking:
 | error:dbc | string | DBC error type | "" |
 | error-message:mdb | string | MDB error message | "" |
 | error-message:dbc | string | DBC error message | "" |
-| download-abort-reason:{mdb,dbc} | string | Why a download was abandoned as too slow | "stalled" |
-| download-skip-checks:{mdb,dbc} | integer | Update checks still to be skipped before retrying | "4" |
-| heartbeat:{mdb,dbc} | integer (unix seconds) | Refreshed every 30s while an operation runs | "1786298400" |
-| preview-channel:{mdb,dbc} | string | Channel the last channel preview asked about | "stable" |
-| preview-status:{mdb,dbc} | string | Outcome of the last channel preview | "ready" |
-| preview-version:{mdb,dbc} | string | Release tag the preview resolved to (`ready` only) | "v1.4.2" |
-| preview-size:{mdb,dbc} | integer | Size of that release's full `.mender` artifact (`ready` only) | "401234432" |
 | status | string | Flat status, not namespaced, stock convention | "downloading-updates" |
 | update-type | string | Whether the flat status blocks use of the vehicle | "blocking" |
 
@@ -756,14 +722,10 @@ advanced one wins, so the pair only clears once neither board is busy. The MDB's
 update-service is the sole writer. They carry nothing the namespaced fields lack; read
 `status:{component}` instead. See
 [services/librescoot-update.md](../services/librescoot-update.md) for the full mapping.
-
-A download abandoned for being too slow returns the component to `idle`, not `error`,
-and records `download-abort-reason` plus `download-skip-checks`. `download-bytes` and
+ `download-bytes` and
 `download-total` are preserved across such an abort so the partial's progress stays
 visible; the next attempt resumes from it.
 
-`heartbeat:{component}` proves an operation is still alive during stretches that write
-nothing else, such as the delta path's multi-minute waits between download attempts.
 A heartbeat that has stopped advancing while `status` is `downloading`, `preparing` or
 `installing` means the reporter is gone rather than merely quiet. `pending-reboot` is
 excluded: a DBC install ends there and the heartbeat legitimately stops until the next
@@ -771,9 +733,7 @@ power cycle. An absent heartbeat is not a stale one either, since older images n
 wrote the field. See [services/librescoot-update.md](../services/librescoot-update.md)
 for the full caveats and for what vehicle-service actually does, which is not an age
 test.
-
-The `preview-*` fields answer a `preview-channel:<channel>` command and are unrelated
-to any update in flight: they say what a switch to that channel *would* fetch, and the
+ they say what a switch to that channel *would* fetch, and the
 update status fields are never touched by a preview. `preview-status` is `checking`,
 `ready`, `unavailable` (that channel carries nothing for this board's `variant_id`) or
 `error` (bad channel, or the release index could not be reached inside 20 seconds).
@@ -872,8 +832,8 @@ rather than `off`. Consumers that want the combined switch position read
 
 Nothing on this channel carries a timestamp or duration. For press duration
 semantics use `input-events`; for the current level of an input read the
-`vehicle` hash (`horn:button`, `seatbox:button`, `brake:left`, `brake:right`,
-`blinker:switch`).
+`vehicle` hash (`brake:left`, `brake:right`, `blinker:switch`). `horn:button`
+and `seatbox:button` are not written in this release.
 
 There is no `buttons` hash. Between Librescoot 1.x (2025-12) and this release a
 `buttons` hash existed with fields `horn:on` / `horn:off` / `seatbox:on` /
@@ -1030,11 +990,11 @@ redis-cli -h 192.168.7.1 LPUSH scooter:alarm stop
 
 ### Motion Sensor Control - Librescoot Only
 
-The `scooter:motion` command queue has been removed, as was `scooter:bmx` before it. Chip configuration is reactive: motion-service derives the profile from the `alarm` and `power-manager` hashes, so there is nothing to configure by hand.
+The `scooter:motion` command queue still exists (the older `scooter:bmx` queue is gone). motion-service BRPOPs it and accepts `sensitivity:<level>`, `pin:<pin>`, `interrupt:<enable|disable>`, `reset`, `polling:<hz>` and `streaming:<enable|disable>`.
 
-The manual `sensitivity`, `pin` and `interrupt` commands wrote registers that the profile controller overwrote on the next alarm or power-manager transition, which made them look like they worked and then silently revert. `reset` duplicated the `soft-reset` RPC.
+These are dev conveniences, not configuration: chip configuration is reactive, and the profile controller reprograms the registers on the next `alarm` or `power-manager` transition, so a manual `sensitivity`, `pin` or `interrupt` looks like it worked and then reverts. `reset` duplicates the `soft-reset` RPC.
 
-The remaining manual controls are RPC methods on `motion:rpc`. See [Motion / IMU (`motion`)](#motion--imu-motion---librescoot-only).
+There are also RPC methods on `motion:rpc`. See [Motion / IMU (`motion`)](#motion--imu-motion---librescoot-only).
 
 ### Power Control (`scooter:power`) - Librescoot Enhanced
 
@@ -1119,7 +1079,7 @@ redis-cli -h 192.168.7.1 LPUSH scooter:update:mdb preview-channel:stable
 redis-cli -h 192.168.7.1 HMGET ota preview-status:mdb preview-version:mdb preview-size:mdb
 ```
 
-**Per-component commands** (`scooter:update:mdb` / `scooter:update:dbc`): `check-now`, `preview-channel:<channel>`, `update-from-file:<path>[#sha256=<hex>]`, `update-from-url:<url>[#sha256=<hex>]`
+**Per-component commands** (`scooter:update:mdb` / `scooter:update:dbc`): `check-now`, `update-from-file:<path>[#sha256=<hex>]`, `update-from-url:<url>[#sha256=<hex>]`
 
 `preview-channel:<channel>` reports the latest release on `<channel>` for this
 component's `variant_id` and the size of its `.mender` artifact, into the `ota` hash's

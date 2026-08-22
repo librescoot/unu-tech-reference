@@ -15,7 +15,7 @@ Librescoot motion-service v0.1+ (semver via git tags; PV from `git describe`).
 ```
 --i2c-bus=/dev/i2c-3                                    I2C bus device path for BMX055
 --redis=localhost:6379                                  Redis address
---polling-rate=5                                        Sensor polling rate (Hz)
+--polling-rate=10                                       Sensor polling rate (Hz)
 --evdev-device=/dev/input/by-path/platform-gpio-keys-event   gpio-keys input for the BMX INT line (empty -> poller-only)
 --evdev-keycode=43                                      Keycode for the BMX INT line on the gpio-keys device
 --log-level=info                                        Log level (debug, info, warn, error)
@@ -42,10 +42,9 @@ motion-service unbinds the kernel driver at startup and drives all three over `/
 - `streaming` — `enabled`/`disabled`
 - `polling-rate-hz` — current sensor poll rate
 - `current-profile` — profile name applied to chip (`idle`, `armed-awake`, `armed-hibernation`, `level1`, `waiting`)
-- `interrupt`, `pin`, `mode`, `bandwidth`, `threshold`, `duration` — motion-engine config as programmed. Written by the profile controller on every apply, so they describe the chip rather than the last manual command. The old `sensitivity` field is gone (it is a property of the profile); motion-service deletes it at startup on upgraded units.
+- `interrupt`, `pin`, `threshold`, `duration`, `sensitivity` — motion-engine config, seeded by `publishInitialStatus` at startup and updated only by the `scooter:motion` command handlers. They describe the last manual command, not necessarily the chip: `controller.Apply` writes only `current-profile`, so these drift as soon as a profile is applied.
 - `last-interrupt-timestamp` — unix-ms of last interrupt
 - `error-count`, `last-error` — diagnostic counters
-- `wake-cause` — unix-ms timestamp written **once on startup** if INT_STATUS_0 had a latched bit at boot. Durable backstop for the wake-from-hibernation indicator. alarm-service reads + deletes this on its own startup.
 - Heading fields (refreshed from each magnetometer publish):
   - `heading` — 0–359 degrees, integer
   - `heading-deg` — float, medium-EMA-smoothed
@@ -53,18 +52,17 @@ motion-service unbinds the kernel driver at startup and drives all three over `/
   - `heading-tilt` — angle from level
   - `heading-tilt-comp` — `true` if accel-based tilt compensation was applied to this sample
 
-**Pub/sub on hash writes:** none. Every `motion` hash write goes out with `NoPublish`, so consumers must poll the hash; live data streams on the `motion:*` channels below.
+**Published channel:** `motion`
 
 ### Subscribed Hashes (HashWatcher with 50 ms debounce + StartWithSync)
 
 - `alarm` — field `status`. Drives chip profile derivation.
 - `power-manager` — field `state`. Hibernation-imminent states route armed → armed-hibernation profile.
-- `vehicle`, field `state`: sets the telemetry poll rate on both pollers (5 Hz in `parked` / `ready-to-drive`, 1 Hz otherwise).
 
 ### Pub/Sub Channels
 
-- **`motion:sensors`** (5 Hz in `parked` / `ready-to-drive`, 1 Hz otherwise) — JSON `SensorReading` with `timestamp`, `accel`, `gyro`, optional `mag`, each as `{x, y, z, magnitude, unit}`.
-- **`motion:heading`** (5 Hz in `parked` / `ready-to-drive`, 1 Hz otherwise) — JSON `HeadingReading`:
+- **`motion:sensors`** (10 Hz) — JSON `SensorReading` with `timestamp`, `accel`, `gyro`, optional `mag`, each as `{x, y, z, magnitude, unit}`.
+- **`motion:heading`** (5 Hz) — JSON `HeadingReading`:
   ```json
   {
     "timestamp": 1777996408778,
@@ -97,9 +95,7 @@ motion-service hosts a single redis-ipc `CallServer` on this channel, dispatchin
 | `prepare-hibernation` | `{profile: "armed-hibernation"}` | `{programmed: bool, profile: string}` | Synchronous chip-config confirmation. alarm-service Calls this before releasing pm-service's suspend inhibitor. ~180 ms round-trip on the bench. |
 | `get-calibration` | `{}` | `{hard_iron_offset, axis_order, axis_sign, yaw_offset_deg}` | Diagnostic — returns the magnetometer calibration applied to the heading pipeline. |
 | `clear-latch` | `{}` | `{ok: bool}` | Clears the BMX055 latched INT bits. Useful for support if the chip is stuck asserted. |
-| `soft-reset` | `{}` | `{ok: bool}` | Soft-resets accel + gyro, then reprograms the current profile. It deliberately does not leave the chip at register defaults: a reset wipes the motion engine, and on an armed scooter that means no motion detection. |
-| `set-polling` | `{rate_hz: 1..100}` | `{ok: bool}` | Overrides the telemetry poll rate on both pollers. An override, not a setting — the vehicle-state watcher re-derives the rate on the next `vehicle.state` change. Replaces `LPUSH scooter:motion polling:N`. |
-| `set-streaming` | `{enabled: bool}` | `{ok: bool}` | Gates the `motion:sensors` stream. Replaces `LPUSH scooter:motion streaming:enable\|disable`. |
+| `soft-reset` | `{}` | `{ok: bool}` | Soft-resets accel + gyro. The currently-applied profile is deliberately NOT re-applied — the caller has to trigger a re-apply, typically by writing to the `alarm` hash. |
 
 ## Chip Profile Derivation
 
@@ -111,7 +107,7 @@ motion-service watches `alarm.status` and `power-manager.state`. The mapping tab
 | `armed` | not hibernating-imminent | `armed-awake` | any-motion (slope) | 31.25 Hz | 0x06 (~23 mg) | 4 | both, interrupt on |
 | `armed` | `hibernating-*-imminent` / `hibernating-*` | `armed-hibernation` | any-motion (slope) | 31.25 Hz | 0x08 (~31 mg) | 4 | both, interrupt on |
 | `level-1-triggered` | * | `level1` | slow-motion | 15.63 Hz | 0x08 (~31 mg) | 4 | both, interrupt on |
-| `level-2-triggered` | * | `waiting` | slow-motion | 7.81 Hz | 0x06 (~23 mg) | 4 | INT1, interrupt on |
+| `level-2-triggered` | * | `waiting` | slow-motion | 7.81 Hz | 0x06 (~23 mg) | 3 | none, interrupt off |
 
 Profile values match alarm-service's pre-Phase-4 sensor configs verbatim — the production tunings carry over.
 
@@ -135,22 +131,22 @@ Total elapsed ~150–180 ms on the bench. With the 50 ms HashWatcher debounce, t
 **Two redundant sources, one envelope shape:**
 
 - **Fast path: `InterruptWatcher`** — reads the gpio-keys input device for the BMX055 INT line (`/dev/input/by-path/platform-gpio-keys-event`, keycode 43 by default). Wakes within milliseconds of the GPIO edge.
-- **Watchdog path: `InterruptPoller`** — 1 s polling of `INT_STATUS_0`. Catches anything the watcher missed (e.g. evdev unavailable, kernel tick delays).
+- **Watchdog path: `InterruptPoller`** — 100 ms polling of `INT_STATUS_0`. Catches anything the watcher missed (e.g. evdev unavailable, kernel tick delays).
 
 Both publish identical `MotionEvent` JSON envelopes on `motion:interrupt` and clear the chip latch. They're enabled in lockstep with the profile (gated by `controller.Apply`).
 
 ## Startup Invariants
 
 1. Unbind kernel BMX055 driver.
-2. Connect the redis-ipc client. One client serves the publisher, the hash watchers and the RPC server, so it comes up before anything that needs to write Redis.
+2. Connect the legacy Redis client. It serves the publisher and the `scooter:motion` command queue. A second, redis-ipc client is created later (after the first profile apply) for the hash watchers and the RPC server.
 3. Initialize accel, gyro, mag (with retries on I²C transient errors).
 4. Start sensor + magnetometer pollers (telemetry).
 5. Start interrupt poller + watcher (initially disabled).
 6. **Read `INT_STATUS_0` BEFORE the first `controller.Apply`.** If a slope or slow-no-motion bit is latched, this is a wake-from-hibernation; record it.
 7. Apply `Idle` profile (always — defends against any half-state from a previous owner).
-8. If wake-from-hibernation was detected: `PUBLISH motion:interrupt {type:"wake-hibernation",...}` AND `HSET motion wake-cause <unix-ms>`. The hash field is the durable backstop for consumers that started after motion-service published.
+8. If wake-from-hibernation was detected: `PUBLISH motion:interrupt {type:"wake-hibernation",...}`. There is no durable hash backstop — a consumer that starts after this publish misses the signal.
 9. Start `Subscriber` (HashWatchers on alarm + power-manager, `StartWithSync` so the chip syncs to current vehicle state on first dispatch).
-10. Start `CallServer` with `prepare-hibernation`, `get-calibration`, `clear-latch`, `soft-reset`, `set-polling`, `set-streaming`.
+10. Start `CallServer` with `prepare-hibernation`, `get-calibration`, `clear-latch`, `soft-reset`.
 11. `PUBLISH motion:ready`.
 
 ## Magnetometer Calibration
@@ -170,7 +166,7 @@ For long-term accuracy, an ellipsoid fit (accounting for soft-iron from the chas
 
 ## Magnetometer Operating Mode
 
-BMM150 in `normal` mode at ODR 10 Hz with the `regular` REPXY/REPZ presets (9/15 reps), polled by the host at the sensor-poller rate (5 Hz in `parked` / `ready-to-drive`, 1 Hz otherwise). The trim compensation is the full Bosch BMM050 reference port (int64 to avoid the integer-truncation pitfall).
+BMM150 in `forced` mode at 5 Hz with `high-accuracy` REPXY/REPZ presets (47/83 reps). The trim compensation is the full Bosch BMM050 reference port (int64 to avoid the integer-truncation pitfall).
 
 ## systemd Unit
 
@@ -185,7 +181,7 @@ Wants=valkey.service
 ExecStart=/usr/bin/motion-service \
     --i2c-bus=/dev/i2c-3 \
     --redis=localhost:6379 \
-    --polling-rate=5 \
+    --polling-rate=10 \
     --log-level=info
 Restart=always
 RestartSec=5
@@ -208,7 +204,7 @@ redis-cli HGET motion current-profile
 # Live heading at 5 Hz
 redis-cli SUBSCRIBE motion:heading
 
-# Live IMU stream (5 Hz parked / ready-to-drive, 1 Hz otherwise)
+# Live IMU stream at 10 Hz
 redis-cli SUBSCRIBE motion:sensors
 
 # Watch motion edges

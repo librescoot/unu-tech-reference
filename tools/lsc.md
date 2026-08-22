@@ -21,7 +21,7 @@ The `lsc` binary is typically installed to `/usr/bin/lsc` on Librescoot systems.
 ```bash
 # From the lsc source directory
 make build              # Build for ARM
-make build-host         # Build for local platform
+make build-native       # Build for local platform
 
 # Or manually
 GOOS=linux GOARCH=arm GOARM=7 go build -o lsc .
@@ -130,7 +130,7 @@ lsc svc status pm
 # View service logs
 lsc svc logs vehicle
 lsc svc logs battery --follow        # Follow in real-time (-f)
-lsc svc logs redis --lines 100       # Show 100 lines (-n 100)
+lsc svc logs valkey --lines 100      # Show 100 lines (-n 100)
 ```
 
 **Service name shortcuts** (from `serviceNameMap` in `cmd/lsc/service/service.go`;
@@ -153,7 +153,6 @@ a name with no entry is passed through with `.service` appended):
 - `update` → `librescoot-update.service`
 - `version` → `librescoot-version.service`
 - `netconfig` → `librescoot-netconfig.service`
-- `redis`, `valkey` → resolved at runtime, see below
 
 The datastore alias is special-cased: lsc asks systemd whether
 `valkey.service` is loaded and uses it if so, falling back to `redis.service`.
@@ -248,8 +247,7 @@ lsc alarm trigger
 
 **Redis operations:**
 
-- `arm`/`disarm` set `settings[alarm.enabled]` and publish `alarm.enabled` on the `settings` channel
-- `trigger` pushes `start:<seconds>` and `silence` pushes `disarm` to the `scooter:alarm` list
+- Sends commands to `scooter:alarm` list (enable, disable, start, stop)
 - Reads from `alarm` hash
 - Reads from `settings` hash (alarm.enabled, alarm.honk)
 
@@ -263,11 +261,11 @@ lsc settings
 
 # Get a specific setting (also via: lsc get)
 lsc settings get alarm.enabled
-lsc get scooter.auto-standby-seconds
+lsc get scooter.mode
 
 # Set a setting (also via: lsc set)
 lsc settings set alarm.honk true
-lsc set scooter.enable-horn true
+lsc set scooter.speed_limit 25
 
 # Delete a setting (also via: lsc del)
 lsc settings del custom.field
@@ -282,8 +280,8 @@ lsc del custom.field
 - `alarm.seatbox-trigger` - Trigger alarm on unauthorized seatbox opening (true/false)
 - `alarm.hairtrigger` - Enable hair trigger mode (true/false)
 - `alarm.hairtrigger-duration` - Hair trigger alarm duration in seconds
-- `scooter.auto-standby-seconds` - Auto-lock timeout when parked, in seconds (0 disables)
-- `scooter.enable-horn` - Horn enable mode (true/false/in-drive)
+- `scooter.speed_limit` - Speed limit in km/h
+- `scooter.mode` - Drive mode (eco/sport)
 - `cellular.apn` - Cellular APN configuration
 - `updates.mdb.channel` - MDB update channel (stable/testing/nightly)
 - `updates.dbc.channel` - DBC update channel
@@ -314,7 +312,7 @@ lsc ota status --json
 **Redis operations:**
 
 - Reads from `ota` hash (status:mdb, status:dbc, download-progress, etc.)
-- Sends commands to the `scooter:update:{mdb,dbc}` lists (check-now)
+- Sends commands to `scooter:update` list (check-now)
 
 ### Diagnostics
 
@@ -361,10 +359,10 @@ lsc diag handlebar unlock
 
 **Redis operations:**
 
-- Reads from `version:mdb` and `version:dbc` hashes
-- Reads from `vehicle:fault`, `engine-ecu:fault`, `battery:0:fault` and `battery:1:fault` sets
+- Reads firmware versions from the `system` hash
+- Reads from `vehicle:fault`, `battery:0:faults` and `battery:1:faults` sets
 - Reads from `events:faults` stream using XREAD
-- Sends commands to the `scooter:blinker` and `scooter:horn` lists, and `handlebar:lock` / `handlebar:unlock` to `scooter:hardware`
+- Sends commands to `scooter:blinker`, `scooter:horn`, `scooter:handlebar` lists
 
 ### Hardware Control
 
@@ -462,7 +460,7 @@ in a `.staging-<timestamp>` sibling and removed once the archive is written:
 logs-2025-10-25-13-54/
   metadata.json               bundle format 2: collected_at, since, until, hosts, tool, services, priority
   mdb/
-    metadata.json             hostname, boot_timestamp, uptime_seconds, kernel_release, os_release_*, byte counts, fault_events
+    metadata.json             hostname, boot_timestamp, uptime_seconds, kernel_release, os_release_*, byte counts
     dmesg.log
     librescoot-vehicle.log    one journalctl dump per requested service, short-monotonic format
     librescoot-battery.log
@@ -470,13 +468,11 @@ logs-2025-10-25-13-54/
       vehicle.json            one HGETALL snapshot per hash, ':' becomes '-' in the filename
       battery-0.json
       version-mdb.json
-      events-faults.log
 ```
 
 **Redis operations:**
 
 - HGETALL over `settings`, `vehicle`, `gps`, `battery:0`, `battery:1`, `aux-battery`, `cb-battery`, `engine-ecu`, `power-manager`, `modem`, `internet`, `alarm`, `ble`, `system`, `dashboard`, `ota`, `power-mux`, `version:mdb`, `version:dbc`. A hash that is missing or empty writes no file
-- XREVRANGE over the `events:faults` stream, capped at 1000 entries to match the writers' `MAXLEN ~ 1000`
 
 `redis/events-faults.log` is the fault history, oldest entry first:
 
