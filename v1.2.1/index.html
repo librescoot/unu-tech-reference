@@ -301,6 +301,17 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#what-changed-in-v121" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        What changed in v1.2.1
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#system-architecture" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
@@ -1589,6 +1600,17 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#what-changed-in-v121" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        What changed in v1.2.1
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#system-architecture" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
@@ -1760,6 +1782,12 @@
 
 <h1 id="unu-scooter-pro-technical-documentation">unu Scooter Pro - Technical Documentation<a class="headerlink" href="#unu-scooter-pro-technical-documentation" title="Permanent link">&para;</a></h1>
 <p>Reverse-engineered technical documentation of the unu Scooter Pro.</p>
+<h2 id="what-changed-in-v121">What changed in v1.2.1<a class="headerlink" href="#what-changed-in-v121" title="Permanent link">&para;</a></h2>
+<p>Hotfix for a first-installation problem. It ships service revisions identical to
+v1.2.0; the only difference is in the Yocto layer, where dropbear keeps SHA-1
+<code>ssh-rsa</code> enabled and gains legacy <code>ssh-dss</code> support so cross-version ssh keeps
+working during installation.</p>
+<p><a href="https://github.com/librescoot/librescoot/releases/tag/v1.2.1">Release notes</a></p>
 <h2 id="system-architecture">System Architecture<a class="headerlink" href="#system-architecture" title="Permanent link">&para;</a></h2>
 <p>The unu Scooter Pro uses a distributed architecture with several key systems:</p>
 <h3 id="core-electronics">Core Electronics<a class="headerlink" href="#core-electronics" title="Permanent link">&para;</a></h3>
