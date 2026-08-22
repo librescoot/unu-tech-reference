@@ -2,6 +2,23 @@
 
 Reverse-engineered technical documentation of the unu Scooter Pro.
 
+## What changed in v1.2.0
+
+- Software updates over Bluetooth: bundles can be pushed from the companion
+  mobile app, staged through update-service and installed
+- Operating system moved to the Yocto wrynose base with Linux 6.12
+- SMS send and receive support
+- Support for mechanical hazard switches, detected as a simultaneous left and
+  right blinker press
+- The datastore moved from Redis to Valkey; service units now order against
+  `valkey.service`
+- Stale GPS positions no longer jump the system clock, and the modem is no
+  longer restarted when an internet endpoint is merely unreachable
+- Blinkers are shown on the waiting-for-GPS screen
+- Update Mode entry can be cancelled with a left brake hold
+
+[Release notes](https://github.com/librescoot/librescoot/releases/tag/v1.2.0)
+
 ## System Architecture
 
 The unu Scooter Pro uses a distributed architecture with several key systems:
