@@ -14,7 +14,7 @@ Two user-facing hibernation features are layered on top of the base FSM:
 ```
 Usage of pm-service:
   -default-state string
-        Fallback power state if pm.default-state setting is not configured (run, suspend, hibernate, hibernate-manual, hibernate-timer, reboot) (default "suspend")
+        Default power state (run, suspend, hibernate, hibernate-manual, hibernate-timer, reboot) (default "suspend")
   -dry-run
         Dry run state (don't actually issue power state changes)
   -hibernation-timer duration
@@ -31,11 +31,9 @@ Usage of pm-service:
         Path for the Unix domain socket for inhibitor connections (default "/tmp/suspend_inhibitor")
   -suspend-imminent-delay duration
         Duration for which low-power-state-imminent state is held (default 5s)
-  -version
-        Print version and exit
 ```
 
-**Note:** The hibernation timer default is 72 hours (3 days). The shipped systemd unit passes no flags; when the `pm.default-state` settings field is set, it takes precedence over the `-default-state` CLI fallback.
+**Note:** The hibernation timer default is 72 hours (3 days). The systemd unit file typically overrides the default state to `run` to prevent automatic suspends during development.
 
 ## Redis Operations
 
@@ -243,8 +241,8 @@ The `-default-state` option sets the target power state at startup:
 
 ### Hibernation Timer
 
-- **Configuration:** Via `-hibernation-timer` option (duration) or `settings pm.hibernation-timer` Redis field (seconds)
-- **Default:** 3 days (72 hours)
+- **Configuration:** Via `-hibernation-timer` option (duration) or `settings hibernation-timer` Redis field (seconds)
+- **Default:** 5 days (120 hours)
 - **Purpose:** Auto-hibernate after extended inactivity
 - **Activation:** Timer starts when vehicle leaves `ready-to-drive`; stops when vehicle re-enters `ready-to-drive`
 - **Dynamic updates:** Can be changed at runtime via Redis settings; set to 0 to disable
@@ -382,7 +380,7 @@ EnterWaitingInhibitors
 EnterIssuingLowPower        Blocks for wake-timer-armed=true on power-manager,
                             up to pm.wake-timer-ack-timeout (default 10 s).
         │
-        ├─ on ACK → logind PowerOff
+        ├─ on ACK → systemctl poweroff
         └─ on timeout → emit EvPowerRun, abort
 ```
 
@@ -450,20 +448,20 @@ The service logs to journald. Common log patterns:
 **Power state changes:**
 
 - `Received power command: hibernate`
-- `FSM state transition: running -> low-power-imminent`
-- `Entering low-power-imminent state (target: hibernate)`
+- `FSM state transition: running -> hibernate-imminent`
+- `Entering hibernate-imminent state`
 - `Issuing poweroff command`
 
 **Inhibitors:**
 
 - `Redis inhibitor added: update-service (block) by update-service — downloading`
-- `Added inhibitor: default delay (delay) by pm-service for delay`
-- `Removed inhibitor: default delay (delay) by pm-service`
+- `New inhibitor connected: @`
+- `Inhibitor disconnected: @`
 
 **Wakeup:**
 
 - `Wakeup detected with reason: 45`
-- `RTC wakeup detected (IRQ 45), using fast path`
+- `RTC wakeup detected, using fast path`
 - `Publishing wakeup source: 45`
 
 **CPU governor:**
@@ -508,7 +506,7 @@ Use `journalctl -u librescoot-pm.service` to view logs.
 **Hibernation Timer (`internal/hibernation/timer.go`)**
 
 - Tracks whether vehicle is in an idle state (not `ready-to-drive`)
-- Configurable timer duration (default 3 days); set to 0 to disable. A non-zero value below `MinTimerSeconds` (300 s) is clamped up to 300 s.
+- Configurable timer duration (default 5 days); set to 0 to disable
 - Fires `EvHibernationTimerExpired` into the FSM on expiry
 
 **Hibernation Scheduler (`internal/hibernation/scheduler.go`)**
@@ -567,7 +565,10 @@ After wakeup, reads IRQ from `/sys/power/pm_wakeup_irq` and publishes to Redis.
 make build
 
 # Build for local architecture
-make build-host
+make build-local
+
+# Install to /usr/bin
+sudo make install
 
 # Run with dry-run mode (no actual power transitions)
 ./pm-service -dry-run
@@ -604,7 +605,7 @@ redis-cli LPUSH scooter:governor powersave
 
 **With settings-service:**
 
-- Reads `settings pm.hibernation-timer` for timer duration in seconds
+- Reads `settings hibernation-timer` for timer duration in seconds
 - Subscribes to settings changes for dynamic updates
 
 **With update-service:**

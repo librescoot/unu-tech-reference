@@ -28,7 +28,7 @@ ScootUI is the primary user interface for Librescoot. It runs on the DBC (Dashbo
 
 ### Navigation
 - Offline vector map support (MBTiles via QMapLibre)
-- Online map tiles (VersaTiles OSM) as alternative
+- Online map tiles (CartoDB) as alternative
 - Valhalla routing (on-device or remote)
 - Speed limit indicators from vector tiles
 - Auto-rotating map with heading tracking
@@ -101,7 +101,6 @@ make clean    # Remove build directory
 | `motion:heading` (5 Hz) + `motion:sensors` (10 Hz) pub/sub + `motion` hash | MotionStore | push + 5 s safety poll |
 | `ble` | BluetoothStore | 5 s |
 | `internet` | InternetStore | 5 s |
-| `modem` | ModemStore | 5 s |
 | `navigation` | NavigationStore | 5 s |
 | `settings` | SettingsStore | 5 s |
 | `ota` | OtaStore | 5 s |
@@ -122,7 +121,6 @@ Additionally polled (no subscription): `system`, `version:mdb`, `version:dbc` (3
 | `dashboard` | `backlight-enabled` | `true`/`false` | On backlight control |
 | `navigation` | `latitude`, `longitude`, `address`, `timestamp`, `destination` | lat/lon (6 dp), address string, ISO-8601 UTC, `lat,lon` | When the rider picks a destination in the UI (then publishes `navigation` = `updated`) |
 | `settings` | `dashboard.*` | user values | On settings changes via menu |
-| `settings` | `updates.{mdb,dbc}.channel`, `.method`, `.check-interval` | user values | Settings > System > Updates; channel only after confirmation |
 | `usb` | `mode` | `normal`/`ums-by-dbc` | On USB mode change |
 
 Note: scootui is not consume-only on the `navigation` hash. When the rider sets a destination in the UI, NavigationService writes the destination fields above and publishes `navigation` = `updated`; clearing the destination blanks the same fields and publishes `navigation` = `cleared`.
@@ -133,7 +131,6 @@ Note: scootui is not consume-only on the `navigation` hash. When the rider sets 
 |------|----------|-----------|
 | `scooter:blinker` | `left`, `right`, `both`, `off` | Blinker/hazard controls |
 | `scooter:hop-on` | `engage`, `engage-learning`, `release` | HopOnStore |
-| `scooter:update:{mdb,dbc}` | `check-now`, `preview-channel:<channel>` | Settings > System > Updates |
 
 ### HDEL
 
@@ -154,46 +151,22 @@ Settings are stored in the `settings` Redis hash. Managed by settings-service.
 | `dashboard.show-bluetooth` | `always`/`active-or-error`/`error`/`never` | `active-or-error` | Bluetooth icon |
 | `dashboard.show-cloud` | `always`/`active-or-error`/`error`/`never` | `active-or-error` | Cloud connection icon. Only shown when `internet[unu-cloud]` is present (a cloud client is running); hidden on de-clouded scooters |
 | `dashboard.show-internet` | `always`/`active-or-error`/`error`/`never` | `active-or-error` | Cellular icon. `active-or-error` shows when `internet[connectivity]` is `connected`/`disconnected`/`failed`, hides on `disabled`/`no-sim`/`denied` |
-| `dashboard.show-clock` | `always`/`date-time`/`alternate`/`never` | `always` | Clock format and visibility |
+| `dashboard.show-clock` | `always`/`never` | `always` | Clock visibility |
 | `dashboard.theme` | `light`/`dark`/`auto` | `auto` | UI theme |
 | `dashboard.blinker-style` | `icon`/`overlay` | `icon` | Blinker indicator style |
 | `dashboard.language` | `en`, `de`, … | `en` | UI language |
-| `dashboard.battery-display-mode` | `percentage`/`range`/`icon` | `percentage` | Battery display |
+| `dashboard.battery-display-mode` | `percentage`/`range` | `percentage` | Battery display |
 | `dashboard.power-display-mode` | `kw`/`amps` | `kw` | Power unit |
-| `dashboard.mode` | `speedometer`/`navigation`/`debug` | `speedometer` | Default screen |
+| `dashboard.mode` | `speedometer`/`navigation` | `speedometer` | Default screen |
 | `dashboard.map.type` | `online`/`offline` | `offline` | Map source |
-| `dashboard.map.render-mode` | `vector`/`raster` | `vector` | Offline map rendering |
+| `dashboard.map.render-mode` | `vector`/`raster` | `raster` | Offline map rendering |
 | `dashboard.map.traffic-overlay` | `true`/`false` | `false` | Traffic overlay (online only) |
 | `dashboard.valhalla-url` | URL | `http://127.0.0.1:8002/` | Valhalla routing endpoint |
-| `dashboard.maps.check-for-updates` | `true`/`false` | `false` | Auto-check for map updates |
+| `dashboard.maps.check-for-updates` | `true`/`false` | `true` | Auto-check for map updates |
 | `dashboard.maps.auto-download` | `true`/`false` | `false` | Auto-download map updates |
 | `dashboard.milestone-celebrations` | `true`/`false` | `false` | Confetti + banner when passing a 500 km odometer milestone or an easter-egg number. Off suppresses all milestone output (including easter eggs) |
 | `dashboard.hop-on-combo` | pipe-delimited tokens | _(empty)_ | Custom hop-on unlock combo |
-
-Settings > System > Updates also writes the update-service keys. Each entry writes both
-components at once, so the two boards never end up on different channels:
-
-| Key | Values | Description |
-|-----|--------|-------------|
-| `updates.{mdb,dbc}.channel` | `stable`/`testing`/`nightly` | Release channel. Written only after the rider confirms on the channel-switch screen |
-| `updates.{mdb,dbc}.method` | `delta`/`full` | Update type |
-| `updates.{mdb,dbc}.check-interval` | duration, `0` to disable | How often to look for updates |
-
-Neither of the two entries that write these applies on the tap that lands on it:
-Change Update Type and Switch Release Channel both open a list of checkable rows,
-because a single stray brake tap on a cycle would have turned the next update into
-a full-image download with no confirmation. Both rows carry their current value
-beside the chevron.
-
-The Switch Release Channel entry does not apply a selection directly either. It first pushes
-`preview-channel:<channel>` to both `scooter:update:mdb` and `scooter:update:dbc`, sums
-the two `ota[preview-size:*]` answers, and shows the total on a confirm screen; only
-confirming writes the setting and pushes `check-now` to both components. With no
-connectivity there is nothing to preview and nothing that could download, so the same
-screen instead explains that the target channel's `.mender` can be installed over
-Update Mode. See [update-service](librescoot-update.md) for the preview protocol.
-
-When `dashboard.theme` is `auto`, AutoThemeService drives light/dark switching from the `dashboard` hash field `brightness` (lux). It listens on the `dashboard` pub/sub channel and also polls every 1 s, and switches with hysteresis (dark below 8 lux, light above 20 lux) after the reading has held past the threshold for 2.5 s, then locks out the reverse flip for 10 s.
+When `dashboard.theme` is `auto`, AutoThemeService drives light/dark switching from the `dashboard` hash field `brightness` (lux). It listens on the `dashboard` pub/sub channel and also polls every 1 s, smooths the value, and switches with hysteresis (dark below 15 lux, light above 25 lux).
 
 ## Hardware Interfaces
 
@@ -220,7 +193,7 @@ Offline tiles expected at `/data/maps/map.mbtiles` on the DBC. The app watches `
 
 Routing tiles live separately at `/data/valhalla/tiles.tar`, which Valhalla mmaps as its `tile_extract` and which therefore has to stay an uncompressed seekable tar.
 
-`MapDownloadService` fetches both from the manifest at `downloads.librescoot.org/releases/tiles.json`, keyed by region slug. Each region's `valhalla` entry may carry an optional nested `compressed` object (`codec`, `url`, `size`, `sha256`); when it is present and the codec is `zstd`, the service downloads that instead, verifies its SHA256, and decompresses it into place at install. The parent `url`, `size` and `sha256` continue to describe the uncompressed tar, so a client that predates the compressed asset keeps working unchanged. Downloads resume via HTTP `Range` against the artifact actually being fetched; the compressed variant uses its own `.part` file.
+`MapDownloadService` fetches both from the manifest at `downloads.librescoot.org/releases/tiles.json`, keyed by region slug. Each region's `map` and `valhalla` entries carry `url`, `size` and `sha256` describing the uncompressed artifact. Downloads resume via HTTP `Range` into a per-asset `.part` file.
 
 The `.mbtiles` is not compressed for transport. Its vector tiles are already gzipped per tile, so the archive only compresses by about 1.14x.
 
@@ -241,6 +214,7 @@ qml/
   widgets/        Reusable UI components
   overlays/       Modal overlays (menu, toast, ...)
   simulator/      Simulator panel (desktop mode only)
+  theme/          Theme definitions
 ```
 
 ## Dependencies
