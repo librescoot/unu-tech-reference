@@ -6,7 +6,7 @@
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width,initial-scale=1">
       
-        <meta name="description" content="Hardware and software reference for the LibreScoot electric scooter platform">
+        <meta name="description" content="Hardware and software reference for the Librescoot electric scooter platform">
       
       
       
@@ -27,7 +27,7 @@
     
     
       
-        <title>librescoot-alarm (alarm-service) - LibreScoot Tech Reference</title>
+        <title>librescoot-alarm (alarm-service) - Librescoot Tech Reference</title>
       
     
     
@@ -105,7 +105,7 @@
 
 <header class="md-header md-header--shadow" data-md-component="header">
   <nav class="md-header__inner md-grid" aria-label="Header">
-    <a href="../.." title="LibreScoot Tech Reference" class="md-header__button md-logo" aria-label="LibreScoot Tech Reference" data-md-component="logo">
+    <a href="../.." title="Librescoot Tech Reference" class="md-header__button md-logo" aria-label="Librescoot Tech Reference" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-book-open" viewBox="0 0 24 24"><path d="M12 5v16M20.001 19A2 2 0 0 0 22 17V5a2 2 0 0 0-1.999-2L16 3.002A5 5 0 0 0 12 5a5 5 0 0 0-4-2H4a2 2 0 0 0-2 2v12a2 2 0 0 0 1.999 2H8a5 5 0 0 1 4 2 5 5 0 0 1 4-2z"/></svg>
@@ -119,7 +119,7 @@
       <div class="md-header__ellipsis">
         <div class="md-header__topic">
           <span class="md-ellipsis">
-            LibreScoot Tech Reference
+            Librescoot Tech Reference
           </span>
         </div>
         <div class="md-header__topic" data-md-component="header-topic">
@@ -214,13 +214,13 @@
 
 <nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
-    <a href="../.." title="LibreScoot Tech Reference" class="md-nav__button md-logo" aria-label="LibreScoot Tech Reference" data-md-component="logo">
+    <a href="../.." title="Librescoot Tech Reference" class="md-nav__button md-logo" aria-label="Librescoot Tech Reference" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-book-open" viewBox="0 0 24 24"><path d="M12 5v16M20.001 19A2 2 0 0 0 22 17V5a2 2 0 0 0-1.999-2L16 3.002A5 5 0 0 0 12 5a5 5 0 0 0-4-2H4a2 2 0 0 0-2 2v12a2 2 0 0 0 1.999 2H8a5 5 0 0 1 4 2 5 5 0 0 1 4-2z"/></svg>
 
     </a>
-    LibreScoot Tech Reference
+    Librescoot Tech Reference
   </label>
   
     <div class="md-nav__source">
@@ -2368,41 +2368,49 @@
 </span></code></pre></div>
 <h2 id="redis-operations">Redis Operations<a class="headerlink" href="#redis-operations" title="Permanent link">&para;</a></h2>
 <h3 id="hash-alarm">Hash: <code>alarm</code><a class="headerlink" href="#hash-alarm" title="Permanent link">&para;</a></h3>
-<p><strong>Fields written:</strong>
-- <code>status</code> - Current alarm status:
-  - <code>disabled</code> - Alarm system is disabled
-  - <code>disarmed</code> - Alarm enabled but not armed (vehicle not in stand-by)
-  - <code>delay-armed</code> - 5-second arming delay in progress
-  - <code>armed</code> - Alarm is armed and monitoring for motion
-  - <code>level-1-triggered</code> - Level 1 alarm (notification only)
-  - <code>level-2-triggered</code> - Level 2 alarm (horn + hazards)
-  - <code>seatbox-access</code> - Authorized seatbox opening, motion detection suspended
-- <code>alarm-active</code> - "true" while the horn/hazard output is running, "false" otherwise</p>
+<p><strong>Fields written:</strong></p>
+<ul>
+<li><code>status</code> - Current alarm status:</li>
+<li><code>disabled</code> - Alarm system is disabled</li>
+<li><code>disarmed</code> - Alarm enabled but not armed (vehicle not in stand-by)</li>
+<li><code>delay-armed</code> - 5-second arming delay in progress</li>
+<li><code>armed</code> - Alarm is armed and monitoring for motion</li>
+<li><code>level-1-triggered</code> - Level 1 alarm (notification only)</li>
+<li><code>level-2-triggered</code> - Level 2 alarm (horn + hazards)</li>
+<li><code>seatbox-access</code> - Authorized seatbox opening, motion detection suspended</li>
+<li><code>alarm-active</code> - "true" while the horn/hazard output is running, "false" otherwise</li>
+</ul>
 <p><strong>Published channel:</strong> <code>alarm</code></p>
 <h3 id="hash-settings">Hash: <code>settings</code><a class="headerlink" href="#hash-settings" title="Permanent link">&para;</a></h3>
-<p><strong>Fields read:</strong>
-- <code>alarm.enabled</code> - Alarm system enabled ("true"/"false")
-- <code>alarm.honk</code> - Horn enabled during alarm ("true"/"false")
-- <code>alarm.duration</code> - Alarm duration in seconds
-- <code>alarm.seatbox-trigger</code> - Trigger alarm on unauthorized seatbox opening ("true"/"false")
-- <code>alarm.hairtrigger</code> - Hair trigger mode enabled ("true"/"false")
-- <code>alarm.hairtrigger-duration</code> - Hair trigger alarm duration in seconds
-- <code>alarm.l1-cooldown</code> - Level 1 cooldown duration in seconds</p>
-<p><strong>Fields written (if CLI flags set):</strong>
-- <code>alarm.enabled</code> - Overrides alarm enabled state
-- <code>alarm.honk</code> - Overrides Redis value with CLI flag value
-- <code>alarm.duration</code> - Overrides alarm duration
-- <code>alarm.seatbox-trigger</code> - Overrides seatbox trigger setting
-- <code>alarm.hairtrigger</code> - Overrides hair trigger setting
-- <code>alarm.hairtrigger-duration</code> - Overrides hair trigger duration
-- <code>alarm.l1-cooldown</code> - Overrides L1 cooldown duration</p>
+<p><strong>Fields read:</strong></p>
+<ul>
+<li><code>alarm.enabled</code> - Alarm system enabled ("true"/"false")</li>
+<li><code>alarm.honk</code> - Horn enabled during alarm ("true"/"false")</li>
+<li><code>alarm.duration</code> - Alarm duration in seconds</li>
+<li><code>alarm.seatbox-trigger</code> - Trigger alarm on unauthorized seatbox opening ("true"/"false")</li>
+<li><code>alarm.hairtrigger</code> - Hair trigger mode enabled ("true"/"false")</li>
+<li><code>alarm.hairtrigger-duration</code> - Hair trigger alarm duration in seconds</li>
+<li><code>alarm.l1-cooldown</code> - Level 1 cooldown duration in seconds</li>
+</ul>
+<p><strong>Fields written (if CLI flags set):</strong></p>
+<ul>
+<li><code>alarm.enabled</code> - Overrides alarm enabled state</li>
+<li><code>alarm.honk</code> - Overrides Redis value with CLI flag value</li>
+<li><code>alarm.duration</code> - Overrides alarm duration</li>
+<li><code>alarm.seatbox-trigger</code> - Overrides seatbox trigger setting</li>
+<li><code>alarm.hairtrigger</code> - Overrides hair trigger setting</li>
+<li><code>alarm.hairtrigger-duration</code> - Overrides hair trigger duration</li>
+<li><code>alarm.l1-cooldown</code> - Overrides L1 cooldown duration</li>
+</ul>
 <p><strong>Subscribed channels:</strong> <code>settings</code> (listens for changes to alarm settings)</p>
 <h3 id="hash-bmx">Hash: <code>bmx</code><a class="headerlink" href="#hash-bmx" title="Permanent link">&para;</a></h3>
-<p><strong>Fields written once at startup and never updated afterwards:</strong>
-- <code>initialized</code> - always <code>true</code>
-- <code>interrupt</code> - always <code>disabled</code>
-- <code>sensitivity</code> - always <code>none</code>
-- <code>pin</code> - always <code>none</code></p>
+<p><strong>Fields written once at startup and never updated afterwards:</strong></p>
+<ul>
+<li><code>initialized</code> - always <code>true</code></li>
+<li><code>interrupt</code> - always <code>disabled</code></li>
+<li><code>sensitivity</code> - always <code>none</code></li>
+<li><code>pin</code> - always <code>none</code></li>
+</ul>
 <p>Per-state sensor and interrupt-pin configuration is applied directly over I2C and
 is not mirrored into this hash, so these values do not track the alarm state.</p>
 <h3 id="lists-consumed-brpop">Lists consumed (BRPOP)<a class="headerlink" href="#lists-consumed-brpop" title="Permanent link">&para;</a></h3>
@@ -2453,19 +2461,25 @@ is not mirrored into this hash, so these values do not track the alarm state.</p
 <li><strong>trigger_level_2</strong>: Full alarm activated (horn + hazards, 50s duration, max 4 cycles)</li>
 </ul>
 <h3 id="state-transitions">State Transitions<a class="headerlink" href="#state-transitions" title="Permanent link">&para;</a></h3>
-<p>The alarm arms when:
-- Alarm is enabled (<code>settings alarm.enabled</code> = "true")
-- Vehicle enters <code>stand-by</code> state
-- 5-second delay_armed period completes</p>
-<p>The alarm triggers when:
-- BMX055 detects motion while armed
-- Level 1: Minor movement detected
-- Level 2: Major movement detected or Level 1 continues</p>
-<p>The alarm disarms when:
-- Vehicle enters <code>parked</code>, <code>ready-to-drive</code> or <code>waiting-seatbox</code> (any other vehicle
-  state leaves the alarm armed)
-- User disables alarm (<code>LPUSH scooter:alarm disable</code>)
-- Runtime disarm (<code>LPUSH scooter:alarm disarm</code>)</p>
+<p>The alarm arms when:</p>
+<ul>
+<li>Alarm is enabled (<code>settings alarm.enabled</code> = "true")</li>
+<li>Vehicle enters <code>stand-by</code> state</li>
+<li>5-second delay_armed period completes</li>
+</ul>
+<p>The alarm triggers when:</p>
+<ul>
+<li>BMX055 detects motion while armed</li>
+<li>Level 1: Minor movement detected</li>
+<li>Level 2: Major movement detected or Level 1 continues</li>
+</ul>
+<p>The alarm disarms when:</p>
+<ul>
+<li>Vehicle enters <code>parked</code>, <code>ready-to-drive</code> or <code>waiting-seatbox</code> (any other vehicle
+  state leaves the alarm armed)</li>
+<li>User disables alarm (<code>LPUSH scooter:alarm disable</code>)</li>
+<li>Runtime disarm (<code>LPUSH scooter:alarm disarm</code>)</li>
+</ul>
 <p><code>LPUSH scooter:alarm stop</code> only silences the horn and hazards; it does not change
 the FSM state.</p>
 <h2 id="hardware-interfaces">Hardware Interfaces<a class="headerlink" href="#hardware-interfaces" title="Permanent link">&para;</a></h2>
@@ -2535,14 +2549,18 @@ the FSM state.</p>
 </table>
 <p><strong>Note:</strong> BMX055 accelerometer bandwidth varies by state: 7.81 Hz (PMU_BW 0x08) for the idle and L2-waiting profiles, 15.63 Hz (0x09) for the Level 1 check, and 31.25 Hz (0x0A) for both armed profiles.</p>
 <h3 id="alarm-outputs">Alarm Outputs<a class="headerlink" href="#alarm-outputs" title="Permanent link">&para;</a></h3>
-<p><strong>Horn Pattern:</strong>
-- 400ms on, 400ms off alternating (800ms per cycle)
-- Runs for integral cycles only (no partial honks)
-- Active during Level 2 trigger and hair trigger (if enabled)
-- Controlled via <code>scooter:horn</code> list</p>
-<p><strong>Hazard Lights:</strong>
-- Continuous during Level 2 alarm
-- Controlled via <code>scooter:blinker</code> list (<code>both</code> command)</p>
+<p><strong>Horn Pattern:</strong></p>
+<ul>
+<li>400ms on, 400ms off alternating (800ms per cycle)</li>
+<li>Runs for integral cycles only (no partial honks)</li>
+<li>Active during Level 2 trigger and hair trigger (if enabled)</li>
+<li>Controlled via <code>scooter:horn</code> list</li>
+</ul>
+<p><strong>Hazard Lights:</strong></p>
+<ul>
+<li>Continuous during Level 2 alarm</li>
+<li>Controlled via <code>scooter:blinker</code> list (<code>both</code> command)</li>
+</ul>
 <h2 id="configuration">Configuration<a class="headerlink" href="#configuration" title="Permanent link">&para;</a></h2>
 <h3 id="settings-via-redis">Settings via Redis<a class="headerlink" href="#settings-via-redis" title="Permanent link">&para;</a></h3>
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="c1"># Enable alarm system</span>
@@ -2620,10 +2638,12 @@ the FSM state.</p>
 <li>State: <code>trigger_level_2</code> → <code>disarmed</code>, then a 5-minute post-alarm cooldown before re-arming</li>
 </ol>
 <h3 id="disarming">Disarming<a class="headerlink" href="#disarming" title="Permanent link">&para;</a></h3>
-<p>Alarm disarms when:
-- Vehicle enters <code>parked</code>, <code>ready-to-drive</code> or <code>waiting-seatbox</code> (user unlocks)
-- Alarm disabled via <code>LPUSH scooter:alarm disable</code>
-- Runtime disarm via <code>LPUSH scooter:alarm disarm</code></p>
+<p>Alarm disarms when:</p>
+<ul>
+<li>Vehicle enters <code>parked</code>, <code>ready-to-drive</code> or <code>waiting-seatbox</code> (user unlocks)</li>
+<li>Alarm disabled via <code>LPUSH scooter:alarm disable</code></li>
+<li>Runtime disarm via <code>LPUSH scooter:alarm disarm</code></li>
+</ul>
 <p><code>LPUSH scooter:alarm stop</code> only stops the horn and hazard output; the FSM stays
 where it is.</p>
 <h2 id="suspend-inhibitor-management">Suspend Inhibitor Management<a class="headerlink" href="#suspend-inhibitor-management" title="Permanent link">&para;</a></h2>
@@ -2788,7 +2808,7 @@ where it is.</p>
       <div class="md-copyright">
   
     <div class="md-copyright__highlight">
-      Copyright &copy; 2025-2026 LibreScoot contributors
+      Copyright &copy; 2025-2026 Librescoot contributors
     </div>
   
   

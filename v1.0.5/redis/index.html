@@ -6,7 +6,7 @@
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width,initial-scale=1">
       
-        <meta name="description" content="Hardware and software reference for the LibreScoot electric scooter platform">
+        <meta name="description" content="Hardware and software reference for the Librescoot electric scooter platform">
       
       
       
@@ -27,7 +27,7 @@
     
     
       
-        <title>Redis Interface Documentation - LibreScoot Tech Reference</title>
+        <title>Redis Interface Documentation - Librescoot Tech Reference</title>
       
     
     
@@ -105,7 +105,7 @@
 
 <header class="md-header md-header--shadow" data-md-component="header">
   <nav class="md-header__inner md-grid" aria-label="Header">
-    <a href="./.." title="LibreScoot Tech Reference" class="md-header__button md-logo" aria-label="LibreScoot Tech Reference" data-md-component="logo">
+    <a href="./.." title="Librescoot Tech Reference" class="md-header__button md-logo" aria-label="Librescoot Tech Reference" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-book-open" viewBox="0 0 24 24"><path d="M12 5v16M20.001 19A2 2 0 0 0 22 17V5a2 2 0 0 0-1.999-2L16 3.002A5 5 0 0 0 12 5a5 5 0 0 0-4-2H4a2 2 0 0 0-2 2v12a2 2 0 0 0 1.999 2H8a5 5 0 0 1 4 2 5 5 0 0 1 4-2z"/></svg>
@@ -119,7 +119,7 @@
       <div class="md-header__ellipsis">
         <div class="md-header__topic">
           <span class="md-ellipsis">
-            LibreScoot Tech Reference
+            Librescoot Tech Reference
           </span>
         </div>
         <div class="md-header__topic" data-md-component="header-topic">
@@ -214,13 +214,13 @@
 
 <nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
-    <a href="./.." title="LibreScoot Tech Reference" class="md-nav__button md-logo" aria-label="LibreScoot Tech Reference" data-md-component="logo">
+    <a href="./.." title="Librescoot Tech Reference" class="md-nav__button md-logo" aria-label="Librescoot Tech Reference" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-book-open" viewBox="0 0 24 24"><path d="M12 5v16M20.001 19A2 2 0 0 0 22 17V5a2 2 0 0 0-1.999-2L16 3.002A5 5 0 0 0 12 5a5 5 0 0 0-4-2H4a2 2 0 0 0-2 2v12a2 2 0 0 0 1.999 2H8a5 5 0 0 1 4 2 5 5 0 0 1 4-2z"/></svg>
 
     </a>
-    LibreScoot Tech Reference
+    Librescoot Tech Reference
   </label>
   
     <div class="md-nav__source">
@@ -2542,9 +2542,11 @@
 
 <h1 id="redis-interface-documentation">Redis Interface Documentation<a class="headerlink" href="#redis-interface-documentation" title="Permanent link">&para;</a></h1>
 <h2 id="connection-details">Connection Details<a class="headerlink" href="#connection-details" title="Permanent link">&para;</a></h2>
-<p>The scooter runs a Redis instance on the MDB accessible at:
-- Host: 192.168.7.1<br />
-- Port: 6379</p>
+<p>The scooter runs a Redis instance on the MDB accessible at:</p>
+<ul>
+<li>Host: 192.168.7.1  </li>
+<li>Port: 6379</li>
+</ul>
 <p>Local connection command:
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>redis-cli<span class="w"> </span>-h<span class="w"> </span><span class="m">192</span>.168.7.1<span class="w"> </span>-p<span class="w"> </span><span class="m">6379</span>
 </span></code></pre></div></p>
@@ -3215,34 +3217,46 @@
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-13-1"><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a><span class="c1"># Send a command to the Bluetooth service</span>
 </span><span id="__span-13-2"><a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a>redis-cli<span class="w"> </span>-h<span class="w"> </span><span class="m">192</span>.168.7.1<span class="w"> </span>LPUSH<span class="w"> </span>scooter:bluetooth<span class="w"> </span><span class="s2">"command-name"</span>
 </span></code></pre></div>
-<p>Available commands:
-- <code>advertising-start-with-whitelisting</code> - Start BLE advertising with whitelist filtering (only paired devices can connect)
-- <code>advertising-restart-no-whitelisting</code> - Restart advertising without whitelist restrictions (any device can connect)
-- <code>advertising-stop</code> - Stop BLE advertising completely
-- <code>delete-all-bonds</code> - Remove all paired/bonded devices from the system</p>
+<p>Available commands:</p>
+<ul>
+<li><code>advertising-start-with-whitelisting</code> - Start BLE advertising with whitelist filtering (only paired devices can connect)</li>
+<li><code>advertising-restart-no-whitelisting</code> - Restart advertising without whitelist restrictions (any device can connect)</li>
+<li><code>advertising-stop</code> - Stop BLE advertising completely</li>
+<li><code>delete-all-bonds</code> - Remove all paired/bonded devices from the system</li>
+</ul>
 <h4 id="bluetooth-event-subscriptions">Bluetooth Event Subscriptions<a class="headerlink" href="#bluetooth-event-subscriptions" title="Permanent link">&para;</a></h4>
 <p>The Bluetooth service subscribes to several Redis channels and automatically updates the nRF52 module when values change:</p>
-<p><strong>Vehicle State Updates:</strong>
-- <code>vehicle:state</code> - Vehicle operating state changes
-- <code>vehicle:seatbox:lock</code> - Seatbox lock status changes
-- <code>vehicle:handlebar:lock-sensor</code> - Handlebar lock status changes</p>
-<p><strong>Battery Status Updates:</strong>
-- <code>battery:0:state</code> - Main battery 0 state changes
-- <code>battery:0:present</code> - Main battery 0 presence detection
-- <code>battery:0:charge</code> - Main battery 0 charge level
-- <code>battery:1:state</code> - Main battery 1 state changes
-- <code>battery:1:present</code> - Main battery 1 presence detection
-- <code>battery:1:charge</code> - Main battery 1 charge level</p>
-<p><strong>Power Management Updates:</strong>
-- <code>power-manager:state</code> - Power state changes trigger automatic data stream management</p>
+<p><strong>Vehicle State Updates:</strong></p>
+<ul>
+<li><code>vehicle:state</code> - Vehicle operating state changes</li>
+<li><code>vehicle:seatbox:lock</code> - Seatbox lock status changes</li>
+<li><code>vehicle:handlebar:lock-sensor</code> - Handlebar lock status changes</li>
+</ul>
+<p><strong>Battery Status Updates:</strong></p>
+<ul>
+<li><code>battery:0:state</code> - Main battery 0 state changes</li>
+<li><code>battery:0:present</code> - Main battery 0 presence detection</li>
+<li><code>battery:0:charge</code> - Main battery 0 charge level</li>
+<li><code>battery:1:state</code> - Main battery 1 state changes</li>
+<li><code>battery:1:present</code> - Main battery 1 presence detection</li>
+<li><code>battery:1:charge</code> - Main battery 1 charge level</li>
+</ul>
+<p><strong>Power Management Updates:</strong></p>
+<ul>
+<li><code>power-manager:state</code> - Power state changes trigger automatic data stream management</li>
+</ul>
 <h4 id="bluetooth-triggered-redis-requests">Bluetooth-Triggered Redis Requests<a class="headerlink" href="#bluetooth-triggered-redis-requests" title="Permanent link">&para;</a></h4>
 <p>The Bluetooth service can write requests to Redis when receiving commands via BLE:</p>
-<p><strong>Scooter Control:</strong>
-- <code>scooter:state</code> → <code>unlock</code> / <code>lock</code> / <code>lock-hibernate</code>
-- <code>scooter:seatbox</code> → <code>open</code>
-- <code>scooter:blinker</code> → <code>right</code> / <code>left</code> / <code>both</code> / <code>off</code></p>
-<p><strong>Power Management:</strong>
-- <code>scooter:power</code> → <code>hibernate</code> / <code>hibernate-manual</code></p>
+<p><strong>Scooter Control:</strong></p>
+<ul>
+<li><code>scooter:state</code> → <code>unlock</code> / <code>lock</code> / <code>lock-hibernate</code></li>
+<li><code>scooter:seatbox</code> → <code>open</code></li>
+<li><code>scooter:blinker</code> → <code>right</code> / <code>left</code> / <code>both</code> / <code>off</code></li>
+</ul>
+<p><strong>Power Management:</strong></p>
+<ul>
+<li><code>scooter:power</code> → <code>hibernate</code> / <code>hibernate-manual</code></li>
+</ul>
 <h3 id="keycard-authentication-keycard">Keycard Authentication (<code>keycard</code>)<a class="headerlink" href="#keycard-authentication-keycard" title="Permanent link">&para;</a></h3>
 <div class="language-text highlight"><pre><span></span><code><span id="__span-14-1"><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a>hgetall keycard
 </span></code></pre></div>
@@ -3744,12 +3758,14 @@
 </tr>
 </tbody>
 </table>
-<p><strong>Possible status values:</strong>
-- <code>disabled</code> - Alarm system is disabled
-- <code>disarmed</code> - Alarm enabled but not armed (vehicle not in stand-by)
-- <code>armed</code> - Alarm is armed and monitoring for motion
-- <code>level-1-triggered</code> - Level 1 alarm (notification only)
-- <code>level-2-triggered</code> - Level 2 alarm (horn + hazards)</p>
+<p><strong>Possible status values:</strong></p>
+<ul>
+<li><code>disabled</code> - Alarm system is disabled</li>
+<li><code>disarmed</code> - Alarm enabled but not armed (vehicle not in stand-by)</li>
+<li><code>armed</code> - Alarm is armed and monitoring for motion</li>
+<li><code>level-1-triggered</code> - Level 1 alarm (notification only)</li>
+<li><code>level-2-triggered</code> - Level 2 alarm (horn + hazards)</li>
+</ul>
 <p>See <a href="../services/librescoot-alarm/">alarm-service documentation</a> for details.</p>
 <h3 id="bmx055-motion-sensor-bmx-librescoot-only">BMX055 Motion Sensor (<code>bmx</code>) - LibreScoot Only<a class="headerlink" href="#bmx055-motion-sensor-bmx-librescoot-only" title="Permanent link">&para;</a></h3>
 <div class="language-text highlight"><pre><span></span><code><span id="__span-21-1"><a id="__codelineno-21-1" name="__codelineno-21-1" href="#__codelineno-21-1"></a>hgetall bmx
@@ -3846,11 +3862,13 @@ The <code>dbc-backlight-service</code> reads <code>illumination</code> and adjus
 </tr>
 </tbody>
 </table>
-<p><strong>GPS states:</strong>
-- <code>off</code> - GPS is disabled
-- <code>searching</code> - Actively searching for GPS signal
-- <code>fix-established</code> - Valid GPS fix obtained (2D or 3D)
-- <code>error</code> - GPS configuration or connection failed</p>
+<p><strong>GPS states:</strong></p>
+<ul>
+<li><code>off</code> - GPS is disabled</li>
+<li><code>searching</code> - Actively searching for GPS signal</li>
+<li><code>fix-established</code> - Valid GPS fix obtained (2D or 3D)</li>
+<li><code>error</code> - GPS configuration or connection failed</li>
+</ul>
 <h3 id="modem-management-modem-librescoot-only">Modem Management (<code>modem</code>) - LibreScoot Only<a class="headerlink" href="#modem-management-modem-librescoot-only" title="Permanent link">&para;</a></h3>
 <div class="language-text highlight"><pre><span></span><code><span id="__span-22-1"><a id="__codelineno-22-1" name="__codelineno-22-1" href="#__codelineno-22-1"></a>hgetall modem
 </span></code></pre></div>
@@ -3934,11 +3952,13 @@ The <code>dbc-backlight-service</code> reads <code>illumination</code> and adjus
 </tr>
 </tbody>
 </table>
-<p><strong>Modem health states:</strong>
-- <code>normal</code> - Modem operating normally
-- <code>recovering</code> - Attempting recovery
-- <code>recovery-failed-waiting-reboot</code> - Recovery failed, waiting for reboot
-- <code>permanent-failure-needs-replacement</code> - Hardware failure</p>
+<p><strong>Modem health states:</strong></p>
+<ul>
+<li><code>normal</code> - Modem operating normally</li>
+<li><code>recovering</code> - Attempting recovery</li>
+<li><code>recovery-failed-waiting-reboot</code> - Recovery failed, waiting for reboot</li>
+<li><code>permanent-failure-needs-replacement</code> - Hardware failure</li>
+</ul>
 <h3 id="ota-updates-ota-librescoot-enhancement">OTA Updates (<code>ota</code>) - LibreScoot Enhancement<a class="headerlink" href="#ota-updates-ota-librescoot-enhancement" title="Permanent link">&para;</a></h3>
 <p>LibreScoot adds per-component update tracking:</p>
 <table>
@@ -4054,10 +4074,12 @@ The <code>dbc-backlight-service</code> reads <code>illumination</code> and adjus
 <p>Stream of system fault events using XADD:</p>
 <div class="language-text highlight"><pre><span></span><code><span id="__span-25-1"><a id="__codelineno-25-1" name="__codelineno-25-1" href="#__codelineno-25-1"></a>XREAD STREAMS events:faults 0
 </span></code></pre></div>
-<p>Each entry contains:
-- <code>group</code> - Component group (e.g., "cb-battery", "modem")
-- <code>code</code> - Fault code
-- <code>description</code> - Human-readable fault description</p>
+<p>Each entry contains:</p>
+<ul>
+<li><code>group</code> - Component group (e.g., "cb-battery", "modem")</li>
+<li><code>code</code> - Fault code</li>
+<li><code>description</code> - Human-readable fault description</li>
+</ul>
 <h2 id="command-channels">Command Channels<a class="headerlink" href="#command-channels" title="Permanent link">&para;</a></h2>
 <p>The scooter accepts control commands via Redis list-based channels using <code>LPUSH</code>. Commands are queued and processed by the vehicle service.</p>
 <h3 id="scooter-state-control-scooterstate">Scooter State Control (<code>scooter:state</code>)<a class="headerlink" href="#scooter-state-control-scooterstate" title="Permanent link">&para;</a></h3>
@@ -4258,7 +4280,7 @@ The <code>dbc-backlight-service</code> reads <code>illumination</code> and adjus
       <div class="md-copyright">
   
     <div class="md-copyright__highlight">
-      Copyright &copy; 2025-2026 LibreScoot contributors
+      Copyright &copy; 2025-2026 Librescoot contributors
     </div>
   
   
