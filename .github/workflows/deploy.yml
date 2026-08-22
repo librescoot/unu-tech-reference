@@ -54,6 +54,9 @@ jobs:
         run: |
           mkdir -p docs
           cp README.md docs/index.md
+          # root-level pages other than README.md are not picked up by the
+          # directory loop below, so copy them explicitly
+          [ -f service-interactions.md ] && cp service-interactions.md docs/service-interactions.md || true
           for d in battery battery-charger bluetooth dashboard electronic mechanical nrf redis services states tools wiring; do
             [ -d "$d" ] && cp -r "$d" "docs/$d"
           done
