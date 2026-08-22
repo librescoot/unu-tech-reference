@@ -10,11 +10,11 @@ The Bluetooth service provides the BLE (Bluetooth Low Energy) interface for the 
 --serial string        Serial device path (default "/dev/ttymxc1")
 --baud int            Serial baud rate (default 115200)
 --redis-addr string   Redis server address (default "localhost:6379")
+--redis-pass string   Redis password (default "")
+--redis-db int        Redis database number (default 0)
 --log-level int       Log level (0=none, 1=error, 2=warning, 3=info, 4=debug) (default 3)
---version             Print version and exit
 --firmware-dir string  Directory containing nRF firmware files (default "/usr/share/nrf-fw")
 --auto-update          Automatically update nRF firmware on startup if newer version available (default true)
---ota-staging-dir string  Staging directory for BLE OTA bundle transfers (default "/data/ota")
 ```
 
 ## Redis Operations
@@ -47,9 +47,9 @@ The Bluetooth service provides the BLE (Bluetooth Low Energy) interface for the 
 - `serial-number` - Serial number
 - `unique-id` - Unique identifier
 - `present` - Battery presence ("true", "false")
-- `charge-status` - Charging status ("not-charging", "charging")
+- `charge-status` - Charging status ("not-charging", "charging", "unknown")
 
-**Published channel:** None (fields are written but not published by this service)
+**Published channel:** `cb-battery` (each field write is an HSET plus a PUBLISH of the field name)
 
 ### Hash: `aux-battery`
 
@@ -60,7 +60,7 @@ The Bluetooth service provides the BLE (Bluetooth Low Energy) interface for the 
 - `charge-status` - Charging status ("absorption-charge", "not-charging", "float-charge", "bulk-charge")
 - `data-stream-enable` - Data streaming enable flag ("0", "1")
 
-**Published channel:** None (fields are written but not published by this service)
+**Published channel:** `aux-battery` (each field write is an HSET plus a PUBLISH of the field name)
 
 ### Hash: `power-manager`
 
@@ -68,8 +68,6 @@ The Bluetooth service provides the BLE (Bluetooth Low Energy) interface for the 
 
 - `nrf-reset-count` - Reset count from nRF52
 - `nrf-reset-reason` - Nordic RESETREAS register value (integer)
-- `wake-timer-armed` - "true"/"false". Echo of the nRF wake-timer ACK: non-zero seconds echoed back means the timer is armed ("true"), zero means disarmed ("false").
-- `power-state-sent` - "suspending". Written when the nRF ACKs the suspending power-management state (state ACK value 0). pm-service gates the actual suspend-to-RAM on this confirmation, because the ACK reply has to fully drain off the UART before the iMX6 suspends.
 
 **Published channel:** `power-manager` (when nrf-reset-reason changes)
 
@@ -87,7 +85,9 @@ The Bluetooth service provides the BLE (Bluetooth Low Energy) interface for the 
 
 - `nrf-fw-version` - nRF52 firmware version string (received from nRF52 during initialization)
 
-- `mdb-version` - MDB firmware version string. Read and forwarded to the nRF52 when it changes, and re-written when the nRF52 echoes it back in a Scooter Info (0xA040) message.
+**Fields read:**
+
+- `mdb-version` - MDB firmware version string (forwarded to nRF52 when it changes). The service also writes this field back if the nRF sends a software-version message (0xA041) of its own.
 
 ### Hash: `engine-ecu`
 
@@ -145,31 +145,14 @@ The Bluetooth service provides the BLE (Bluetooth Low Energy) interface for the 
 - `maps-available` - Offline display maps installed (set by scootui-qt, queried via `status:maps-available`)
 - `navigation-available` - Routing engine available (set by scootui-qt, queried via `status:navigation-available`)
 
-### Hash: `ota:ble`
+### Hashes read
 
-Transfer status of the BLE OTA receiver (see [BLE OTA Firmware Transfer](../bluetooth/ota-transfer.md) and the [field reference](../redis/README.md#ble-ota-transfer-status-otable---librescoot-only)):
-
-**Fields written:**
-
-- `state` - `idle`, `receiving`, or `installing`
-- `bundle-id`, `component`, `received-bytes`, `total-bytes`, `rate-bps` - Active session details
-- `updated-at` - Unix timestamp of the last update
-
-### Hash: `power:inhibits`
-
-**Fields written:**
-
-- `ble-ota` - Block-type power inhibitor held during BLE OTA transfers and installs, so pm-service does not suspend mid-transfer. Removed when the OTA session ends (or after safety timeouts: 10 min transfer idle, 30 min without install feedback).
-
-### Hashes read (not written)
-
-The service reads but does not write to these hashes:
+The service reads these hashes:
 
 - `battery:0` - Reads battery state and charge
 - `battery:1` - Reads battery state and charge
 - `vehicle` - Reads vehicle state for nRF synchronization
-- `power-manager` - Reads power state
-- `ota` - Watched during a BLE-initiated install; `status:<component>`, `install-progress:<component>`, and `error-message:<component>` (written by update-service) are relayed to the phone as INSTALL_PROGRESS notifications
+- `power-manager` - Reads power state (it also writes `nrf-reset-count` and `nrf-reset-reason`, see above)
 
 ### Lists consumed (BRPOP)
 
@@ -197,14 +180,11 @@ The service consumes commands from:
 The service writes requests to:
 
 - `scooter:state` - State change requests ("lock", "unlock", "lock-hibernate")
-- `scooter:power` - Power requests ("hibernate", "hibernate-manual", "reboot", "hibernate-for:<seconds>", "hibernate-cancel")
+- `scooter:power` - Power requests ("hibernate", "hibernate-manual", "reboot")
 - `scooter:seatbox` - Seatbox commands ("open")
 - `scooter:blinker` - Blinker commands ("left", "right", "both", "off")
 - `scooter:keycard` - Keycard management commands ("list", "count", "add:<uid>", "remove:<uid>")
 - `scooter:alarm` - Alarm commands ("enable", "disable", "arm", "disarm", "start:<seconds>", "stop")
-- `scooter:update:mdb` - `update-from-file:<path>` after a verified BLE OTA transfer of an MDB bundle
-- `scooter:update` - `start-dbc` (lock claim + heartbeats) / `complete-dbc` during the BLE OTA DBC handoff
-- `scooter:update:dbc` - `update-from-file:<path>` after delivering a DBC bundle to the dashboard
 
 These are triggered by BLE characteristic writes received from the nRF52 (BLE events or extended commands).
 
@@ -271,9 +251,9 @@ BLE services and characteristics are defined in the nRF52 firmware.
 ### Systemd Unit
 
 - **Unit file:** `/usr/lib/systemd/system/librescoot-bluetooth.service`
-- **Type:** simple
-- **Requires:** `valkey.service` (`redis.service` before Librescoot 1.2)
-- **After:** `valkey.service`
+- **Type:** idle (delayed until other services have started)
+- **Requires:** redis.service
+- **After:** redis.service, librescoot-vehicle.service, librescoot-alarm.service
 - **Started by:** systemd at boot
 - **Restart policy:** Always
 
@@ -413,7 +393,7 @@ Extended commands arrive as string payloads via the EXTENDED_COMMAND BLE charact
 **Navigation:**
 
 - `nav:dest lat,lon[,name]` → sets `navigation` hash fields (latitude, longitude, destination, address)
-- `nav:clear` → sets all `navigation` hash fields (latitude, longitude, destination, address, timestamp) to empty strings (does not HDEL)
+- `nav:clear` → sets all `navigation` hash fields (latitude, longitude, destination, address, timestamp) to empty strings; it does not HDEL them
 - `nav:fav:add lat,lon,name` → adds to `settings:dashboard.saved-locations.<id>.*`
 - `nav:fav:delete <id>` → removes saved location
 - `nav:fav:navigate <id>` → sets navigation destination from saved location
@@ -449,20 +429,7 @@ Extended commands arrive as string payloads via the EXTENDED_COMMAND BLE charact
 - `alarm:start:<N>` → `LPUSH scooter:alarm start:<N>`
 - `alarm:stop` → `LPUSH scooter:alarm stop`
 
-The alarm-service processes the command and the response (`alarm:ok`) is returned via EXTENDED_RESPONSE (0x0402).
-
-**Power management:**
-
-- `pm:hibernate-for <duration>` -> arms a one-shot hibernation that wakes after the given duration. Duration uses Go `time.ParseDuration` syntax (e.g. "8h", "30m", "120s"); it is converted to whole seconds and forwarded as `LPUSH scooter:power hibernate-for:<seconds>`.
-- `pm:hibernate-cancel` -> cancels a pending wake timer and returns the system to run, forwarded as `LPUSH scooter:power hibernate-cancel`.
-
-Responses via EXTENDED_RESPONSE (0x0402):
-
-- `pm:ok` on success
-- `pm:error:invalid duration` if the duration cannot be parsed
-- `pm:error:duration must be positive` if the parsed duration is <= 0 seconds
-- `pm:error:redis` if forwarding to `scooter:power` fails
-- `pm:error:unknown command` for any other `pm:` payload
+bluetooth-service replies `alarm:ok` via EXTENDED_RESPONSE (0x0402) as soon as the command is queued on `scooter:alarm`. The reply confirms the enqueue, not that alarm-service acted on it.
 
 **LTC4020 aux charger control:**
 
@@ -480,16 +447,6 @@ Response codes: `ltc:ok` (success), `ltc:error:unsafe` (rejected as unsafe), `lt
 - `status:navigation-available` → reads `dashboard:navigation-available` (set by scootui-qt)
 
 Responses are sent back via EXTENDED_RESPONSE (0x0402) as string notifications to the phone app.
-
-### BLE OTA Firmware Transfer
-
-The service hosts the scooter side of the BLE OTA transfer (`pkg/ota`): a windowed, resumable receiver for firmware bundles pushed by the phone app through the nRF's transparent OTA tunnel (raw USOCK frames `0xB0` data / `0xB1` control in, `0xB2` status out — no CBOR).
-
-- Bundles are staged under `/data/ota/<mdb|dbc>/` with JSON sidecars so interrupted transfers resume across disconnects and reboots.
-- After SHA-256 verification, MDB bundles are queued with the local update-service (`scooter:update:mdb`); DBC bundles are delivered to the dashboard (HTTP PUT to librescoot-data-server, scp fallback) and queued on `scooter:update:dbc` under the vehicle-service DBC update lock.
-- Install progress from the `ota` hash is relayed to the phone as notifications; a `ble-ota` power inhibitor blocks suspend during transfer and install.
-
-See [BLE OTA Firmware Transfer](../bluetooth/ota-transfer.md) for the protocol and lifecycle.
 
 ### Accelerometer Wake-up Events
 
@@ -609,7 +566,6 @@ When a subscribed field changes, the service:
 ## Related Documentation
 
 - [Bluetooth Protocol](../bluetooth/README.md)
-- [BLE OTA Firmware Transfer](../bluetooth/ota-transfer.md)
 - [nRF UART Protocol](../nrf/UART.md)
 - [nRF Power Management](../nrf/power-management.md)
 - [Redis Operations](../redis/README.md)

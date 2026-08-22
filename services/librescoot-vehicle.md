@@ -23,11 +23,11 @@ Usage of vehicle-service:
 - `state` - Vehicle state (see States section below)
 - `brake:left` - Left brake state ("on", "off")
 - `brake:right` - Right brake state ("on", "off")
-- `blinker:state` - Blinker active state ("on", "off")
+- `blinker:state` - Blinker active state ("off", "left", "right", "both")
 - `blinker:start_nanos` - Monotonic start time of current blinker cycle (for UI sync)
 - `blinker:switch` - Blinker switch position ("left", "right", "both", "off")
-- `horn:button` - Horn button state ("on", "off")
-- `seatbox:button` - Seatbox button state ("on", "off")
+- `main-power` - Commanded main power rail state ("on", "off")
+- `engine-power` - Commanded `engine_power` GPIO state ("on", "off"), read by ecu-service
 - `seatbox:lock` - Seatbox lock state ("open", "closed")
 - `kickstand` - Kickstand position ("up", "down")
 - `handlebar:position` - Handlebar position ("on-place", "off-place")
@@ -47,21 +47,19 @@ Usage of vehicle-service:
 - `scooter:horn` - Horn commands ("on", "off")
 - `scooter:blinker` - Blinker commands ("left", "right", "both", "off")
 - `scooter:hop-on` - Hop-on mode commands:
-  - `engage` - Enter the locked hop-on state (lock screen, LED cue, steering lock with the same positioning grace window as parked->stand-by: locks at once if the handlebar is already in position, otherwise the rider has the lock window to move it fully left; publishes `state=hop-on`)
+  - `engage` - Enter the locked hop-on state (lock screen, LED cue, opportunistic steering lock; publishes `state=hop-on`)
   - `engage-learning` - Enter combo-learning state quietly (no LED cue, no steering lock, no lock screen; publishes `state=hop-on-learning`)
   - `release` - Exit either hop-on sub-state back to `parked`
 - `scooter:led:cue` - LED cue playback commands (integer cue index)
 - `scooter:led:fade` - LED fade playback commands ("channel:fadeIndex")
-- `scooter:update` - Update commands ("start", "complete", "start-dbc", "complete-dbc", "cycle-dashboard-power")
+- `scooter:update` - Update commands ("start", "complete", "start-dbc", "complete-dbc")
 - `scooter:hardware` - Hardware control commands ("dashboard:on", "dashboard:off", "engine:on", "engine:off", "handlebar:lock", "handlebar:unlock")
 
 ### Hashes read
 
 - `dashboard` - Reads `ready` field to check if dashboard initialized
 - `settings` - Reads behavior settings (e.g., `scooter.brake-hibernation`)
-- `ble` - Reads `status` field (Bluetooth link "connected"/"disconnected") to drive lock-on-disconnect
 - `ota` - Reads OTA status for DBC updates (`status:dbc`)
-- `system` - Reads `keycard-master-count` and `keycard-authorized-count` to resolve the usb0 gate
 
 ### Channels subscribed (PUBSUB)
 
@@ -69,15 +67,12 @@ Usage of vehicle-service:
 - `keycard` - Keycard authentication events (payload: "authentication")
 - `ota` - OTA update notifications
 - `power-manager` - Power manager events
-- `vehicle` - Vehicle state change notifications
 - `settings` - Settings update notifications (payload: setting key that changed)
-- `ble` - Bluetooth link status change notifications (payload: "status")
 
 ### Channels published
 
 - `vehicle` - All vehicle state changes and sensor updates
-- `buttons` - Raw input edges for immediate UI response (horn, seatbox, brakes, blinkers)
-- `input-events` - Synthesized gestures (tap, long-tap, hold, double-tap) over the same inputs
+- `buttons` - Button press events for immediate UI response (horn, seatbox, brakes, blinkers)
 
 ### Commands sent to other services
 
@@ -85,18 +80,17 @@ Usage of vehicle-service:
 
 ## Vehicle States
 
-The service implements the canonical vehicle state machine with these states:
+The service's internal FSM (`internal/fsm/states.go`) uses the state IDs below. Several are renamed on the way out: the `vehicle` hash `state` field publishes `hibernation-initial-hold` as `parked`, both `hibernation` and `hibernation-awaiting-confirm` as `waiting-hibernation`, `hibernation-seatbox` as `waiting-hibernation-seatbox`, and `hibernation-confirm` as `waiting-hibernation-confirm`. The other states publish under their own name.
 
-- `init` - Initial/uninitialized state
-- `stand-by` - Powered but motor disabled
+- `stand-by` - Powered but motor disabled. Also the FSM's initial state; there is no separate `init` state.
 - `parked` - Unlocked with kickstand down
 - `ready-to-drive` - All conditions met, motor enabled
 - `waiting-seatbox` - Waiting for seatbox to close
-- `shutting-down` - Transitioning to power down (~4s)
+- `shutting-down` - Transitioning to power down (~5s)
 - `updating` - OTA firmware update in progress
 - `hibernation` - Manual hibernation super-state (entered via brake-lever hold from `parked`)
 - `hibernation-initial-hold` - 15-second initial brake hold phase
-- `hibernation-awaiting-confirm` - Confirmation phase (30s timeout after brakes released; continuous hold also auto-confirms)
+- `hibernation-awaiting-confirm` - Confirmation phase. A 30s state timeout runs from entry regardless of brake state and falls back to `parked`; a separate 15s timer auto-confirms if both brakes are still held when it fires
 - `hibernation-seatbox` - Confirmation blocked by open seatbox; prompts user to close it
 - `hibernation-confirm` - Final 3-second non-abortable hibernation confirmation
 - `at-rest` - Parent state grouping `parked`, `hop-on`, `hop-on-learning`. Owns the auto-standby timer; sibling transitions inside the group don't disturb it. Never the leaf, so `vehicle:state` never reads `at-rest`.
@@ -110,9 +104,9 @@ The manual hibernation sequence works as follows:
 1. **parked** → **hibernation-initial-hold** (15s): Both brakes pressed continuously
 2. **hibernation-initial-hold** → **hibernation-awaiting-confirm**: After 15s, enter confirmation phase
 3. **hibernation-awaiting-confirm**: User can release brakes or keep holding
-   - If brakes released: 30s timeout starts (can be reset by touching brakes)
-   - If brakes held continuously for 30s total: auto-confirm (skip seatbox check)
-   - If brakes re-pressed after release: hold for 15s to auto-confirm
+   - A 30s state timeout runs from entry into the phase, whatever the brakes do; it cannot be reset, and on expiry the vehicle returns to `parked`
+   - A separate 15s timer fires once and re-reads both brake levers: if both are still held it auto-confirms (30s total from the initial press, seatbox check skipped)
+   - Releasing and re-pressing the brakes does not restart that timer
 4. **Keycard tap** or **continuous hold timeout**: Check safety conditions (kickstand down, seatbox closed)
    - If seatbox open: transition to `hibernation-seatbox` and wait for user to close it
 5. **hibernation-confirm**: 3-second final countdown before hibernation
@@ -179,11 +173,11 @@ The service controls 8 PWM LED channels via the `imx_pwm_led` kernel module:
 
 - **Unit file:** `/usr/lib/systemd/system/librescoot-vehicle.service`
 - **Binary:** `/usr/bin/vehicle-service`
-- **Started by:** systemd at boot (after `valkey.service`; `redis.service` before Librescoot 1.2)
+- **Started by:** systemd at boot (after redis.service)
 - **Restart policy:** Always
 - **Priority:** Nice value -10
 - **User:** root
-- **Type:** simple
+- **Type:** idle
 
 ## Observable Behavior
 
@@ -204,53 +198,15 @@ The service controls 8 PWM LED channels via the `imx_pwm_led` kernel module:
    - Plays initial LED cue (cue 0)
    - Opens GPIO input device
    - Opens GPIO output lines
-8. Resolves the usb0 gate (see below) and applies it, or starts waiting for the keycard counts
-9. Checks initial handlebar lock sensor state
-10. Registers input callbacks for all monitored inputs
-11. Publishes initial sensor states to Redis
-12. Restores LED state based on saved vehicle state (if parked or ready-to-drive)
-13. Marks system as initialized
-14. Handles initial dashboard ready state (if dashboard was already ready)
-15. Publishes initial vehicle state to Redis
-16. Transitions from `init` to `stand-by` if still in init state
-17. Starts Redis listeners (PUBSUB and BRPOP)
-
-### usb0 Link Gating
-
-vehicle-service owns whether `usb0` (the USB gadget link to the DBC, 192.168.7.1)
-is administratively up. `10-usb0.network` sets `ActivationPolicy=manual`, so
-networkd configures the address but never raises the link.
-
-The `scooter.usb0-policy` setting picks the intent:
-
-| Value | Meaning |
-|-------|---------|
-| `auto` | Default. The link tracks `vehicle[dashboard:power]`, so it is down whenever the DBC is off. |
-| `always-on` | The link is held up regardless of dashboard power, for installer and diagnostic reachability. |
-
-`auto` is gated on keycard pairings, because `usb0` is also the way back into a
-scooter whose cards do not work. The gate is closed (the policy takes effect)
-only once `(master >= 1 AND authorized >= 1) OR authorized >= 2`, read from
-`system[keycard-master-count]` and `system[keycard-authorized-count]`. Below
-that threshold the link is held up as if the policy were `always-on`.
-
-The counts are absent, not zero, for the first seconds of a boot: Redis does
-not persist across a reboot and keycard-service publishes them at startup. An
-absent count resolves the gate to *unknown*, and an unknown gate leaves the
-link down while a background resolver waits up to 30s for the counts to
-appear. If they never do, the gate opens.
-
-The resolved decision is published to `system[usb0-gate]` as `open` or
-`closed`. It is never published while the gate is unknown, which is what lets
-`librescoot-usb0-failsafe.timer` tell "vehicle-service decided to keep the link
-down" from "vehicle-service never got far enough to decide". That timer raises
-`usb0` itself at 120s into the boot if the field is still absent.
-
-The gate is re-read at each existing decision point (startup, a
-`dashboard:power` change, and a `scooter.usb0-policy` change) rather than
-subscribed to. Pairing a second card mid-install therefore does not take
-`usb0` away from a running installer session; the tighter policy applies from
-the next transition.
+8. Checks initial handlebar lock sensor state
+9. Registers input callbacks for all monitored inputs
+10. Publishes initial sensor states to Redis
+11. Restores LED state based on saved vehicle state (if parked or ready-to-drive)
+12. Marks system as initialized
+13. Handles initial dashboard ready state (if dashboard was already ready)
+14. Publishes initial vehicle state to Redis
+15. Builds and starts the FSM in its initial `stand-by` state, then restores the state saved in Redis if one was persisted
+16. Starts Redis listeners (PUBSUB and BRPOP)
 
 ### State Machine Behavior
 
@@ -260,6 +216,7 @@ Vehicle enters `ready-to-drive` when ALL are true:
 
 - Dashboard ready (`dashboard` hash `ready` field = "true")
 - Kickstand up
+- Handlebar unlocked
 - Current state is `parked`
 
 **Manual Ready-to-Drive Activation:**
@@ -276,7 +233,7 @@ Will manually transition to `ready-to-drive` and blink the main light once for c
 
 1. Must be in `parked` state
 2. Transitions to `shutting-down`
-3. After ~4 seconds, transitions to `stand-by`
+3. After ~5 seconds, transitions to `stand-by`
 4. Power manager then suspends/hibernates
 
 **Unlock command** (`LPUSH scooter:state unlock`):
@@ -308,11 +265,11 @@ Will manually transition to `ready-to-drive` and blink the main light once for c
    - After 15s: transition to `waiting-hibernation` state
 3. **Confirmation Phase:**
    - User can release brakes or keep holding
-   - If brakes released: 30-second timeout starts
-     - Timeout can be reset by touching brakes again
-     - If timeout expires: cancel hibernation, return to `parked`
-   - If brakes held continuously for 30s total from start: auto-confirm (warehouse mode)
-   - If brakes re-pressed after release: hold for 15s to auto-confirm
+   - A 30-second timeout is armed on entry into the confirmation phase, regardless of brake state
+     - It cannot be reset by touching the brakes again
+     - If it expires: cancel hibernation, return to `parked`
+   - A separate 15-second timer fires once and re-reads both brakes; if both are still held it auto-confirms (warehouse mode, 30s total from the initial press)
+   - Releasing and re-pressing the brakes does not restart that 15-second timer
    - **Keycard tap during confirmation:** triggers immediate safety check and confirmation
 4. **Safety Checks:**
    - Kickstand must be down (always required)
@@ -320,7 +277,7 @@ Will manually transition to `ready-to-drive` and blink the main light once for c
    - If seatbox open: transition to `waiting-hibernation-seatbox` state to notify user
 5. **Final Confirmation:**
    - Transition to `waiting-hibernation-confirm` state
-   - 3-second non-abortable countdown
+   - 3-second countdown, abortable: the seatbox button, an `unlock` command, or raising the kickstand all cancel it back out of hibernation
    - Then transition to `shutting-down` with hibernation flag
    - Send "hibernate-manual" command to power manager
 
@@ -344,30 +301,6 @@ The service implements automatic blinker logic:
   - Cue 12: LED_BLINK_BOTH (hazard lights)
 - Publishes blinker switch and state changes to Redis
 - Publishes immediate button events to `buttons` channel for UI response
-
-##### Hazard switch detection - Librescoot 1.2+
-
-The stock handlebar switch offers left and right only, on separate GPIO inputs
-(`blinker_left`, `blinker_right`). Aftermarket switch assemblies with a physical
-hazard button close both inputs at once, which the earlier code could not
-represent: the press registered as left or right, never both.
-
-`handleBlinkerChange` now reads the peer switch out of the `activeKeys` cache
-when a blinker event fires. `io.go` updates `activeKeys` before invoking each
-callback, so the second event's handler always sees the first switch as already
-active. Both active means a combined `blinker:switch` of `both` and LED cue 12,
-which drives the hazard lights. If the peer read fails the handler falls back to
-the last known state rather than assuming off, since assuming off would collapse
-a real hazard state into left/right/off and publish a misleading edge.
-
-The `buttons` PUBSUB event always reflects the triggering channel's own edge,
-independently of the combined switch state. Releasing one side of a hazard pair
-therefore emits `blinker:right:off` even though the combined state moves to
-`left` rather than `off`. Consumers that track edges stay correct; consumers
-that want the combined position read `blinker:switch`.
-
-Stock switches are unaffected: the peer input is never active, so every
-transition behaves exactly as before.
 
 #### Seatbox Control
 
@@ -399,34 +332,6 @@ transition behaves exactly as before.
 
 - After entering `ready-to-drive`, kickstand down events are ignored for 1 second
 - Prevents accidental transition to parked during kickstand retraction
-
-#### Gesture Detection (`input-events`) - Librescoot Only
-
-Alongside the raw edges on `buttons`, vehicle-service runs a gesture detector
-(`internal/core/input_gestures.go`) over the horn button, seatbox button and
-both brake levers, publishing `<source>:<gesture>` on the `input-events`
-channel.
-
-Sources: `horn`, `seatbox`, `brake:left`, `brake:right`.
-
-| Gesture | Fires when | Threshold |
-|---------|-----------|-----------|
-| `press` | Input goes active | - |
-| `release` | Input goes inactive | - |
-| `long-tap` | Still held after the long-tap delay | 800 ms |
-| `hold` | Still held after the hold delay | 3 s |
-| `tap` | Released before the long-tap threshold | - |
-| `double-tap` | Second `tap` within the double-tap window | 800 ms |
-
-`long-tap` and `hold` fire while the input is still down, so a 4-second press
-emits `press`, `long-tap`, `hold`, `release` and no `tap`. Emitting a `long-tap`
-or `hold` clears the pending tap, so a long press between two taps does not
-glue them into a `double-tap`.
-
-Each gesture is emitted exactly once, which makes `input-events` the channel to
-use for anything counting or reacting to discrete user actions. `buttons`
-carries the raw edges; the `vehicle` hash carries the current level. See the
-[Redis reference](../redis/README.md#physical-inputs-buttons-input-events).
 
 ### Command Processing
 
@@ -501,9 +406,9 @@ journalctl -u librescoot-vehicle.service --since "10 minutes ago"
 - **update-service** - For OTA update coordination
 - **power-manager** - For hibernation execution
 
-## Librescoot Implementation Details
+## LibreScoot Implementation Details
 
-The Librescoot **vehicle-service** is a Go-based implementation with the following architecture:
+The LibreScoot **vehicle-service** is a Go-based implementation with the following architecture:
 
 ### Technical Implementation
 
@@ -527,7 +432,7 @@ The Librescoot **vehicle-service** is a Go-based implementation with the followi
 
 ### LED Channel Mapping
 
-Librescoot vehicle-service controls 8 PWM LED channels:
+LibreScoot vehicle-service controls 8 PWM LED channels:
 
 | Index | LED Name              | Description                    | Mode     |
 |-------|-----------------------|--------------------------------|----------|
@@ -548,7 +453,7 @@ Librescoot vehicle-service controls 8 PWM LED channels:
 
 **Kernel module:** The PWM LED system is implemented via the `imx_pwm_led` kernel module, which provides `/dev/pwm_led*` character devices for each channel. The service reloads this module on startup to ensure clean state.
 
-See [i.MX PWM LED kernel module documentation](https://github.com/librescoot/kernel-module-imx-pwm-led/blob/master/README.md) for detailed mode specifications and ioctl interface.
+See [i.MX PWM LED kernel module documentation](https://github.com/unumotors/kernel-module-imx-pwm-led/blob/master/README.md) for detailed mode specifications and ioctl interface.
 
 ### Special Features
 
@@ -557,7 +462,7 @@ During DBC (Dashboard Controller) firmware updates:
 
 - Dashboard power is kept on regardless of vehicle state
 - Power state changes are deferred until update completes
-- Dashboard power can be cycled remotely via `scooter:update` command
+- A dashboard power-cycle handler exists in the core, but it is unreachable in this release: the `scooter:update` list handler rejects "cycle-dashboard-power" before dispatching
 - Service tracks update status via `ota` hash `status:dbc` field
 
 **Force Standby:**
@@ -590,7 +495,7 @@ The service responds to settings changes via PUBSUB:
 - Main goroutine handles system coordination
 - Separate goroutines for:
   - Redis PUBSUB listener
-  - 8 Redis BRPOP command listeners (one per list)
+  - 9 Redis BRPOP command listeners (one per list)
   - Blinker timer (when active)
   - Various hardware timers (hibernation, shutdown, handlebar lock)
 - Thread-safe state access via sync.RWMutex
@@ -611,22 +516,22 @@ make build
 # Build for the host platform (development/testing)
 make build-host
 
-# Output: bin/vehicle-service
+# Output: bin/vehicle-service (ARM), bin/vehicle-service-host (host)
 ```
 
 ### Compatibility
 
-Librescoot vehicle-service maintains Redis protocol compatibility:
+LibreScoot vehicle-service maintains Redis protocol compatibility:
 
 - Same hash fields and structure as original implementation
 - Same command interface (LPUSH to command lists)
 - Same PUBSUB channel usage
-- Compatible with any dashboard that follows the Librescoot Redis protocol
+- Compatible with any dashboard that follows the LibreScoot Redis protocol
 - No changes required to other services
 
 ### Integration Points
 
-Librescoot vehicle-service integrates with:
+LibreScoot vehicle-service integrates with:
 
 - **Redis** - Central message bus (required)
 - **Dashboard service** - Waits for ready signal before allowing drive
@@ -640,6 +545,6 @@ Librescoot vehicle-service integrates with:
 
 - [Vehicle States](../states/README.md) - Complete state machine documentation
 - [Redis Operations](../redis/README.md) - Redis protocol and data structures
-- [Librescoot Services Overview](README.md) - All Librescoot services
-- [i.MX PWM LED kernel module](https://github.com/librescoot/kernel-module-imx-pwm-led) - LED hardware interface
+- [LibreScoot Services Overview](README.md) - All LibreScoot services
+- [i.MX PWM LED kernel module](https://github.com/unumotors/kernel-module-imx-pwm-led) - LED hardware interface
 

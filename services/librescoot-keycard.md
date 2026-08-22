@@ -12,7 +12,7 @@ Handles NFC-based authentication for the scooter. Detects keycards via the PN715
   --redis string        Redis server address (default: localhost:6379)
   --log int             Log level 0-3 (0=error, 3=debug) (default: 2)
   --led-device string   I2C device for LP5562 LED (empty = script-based control)
-  --led-address uint    I2C address for LP5562 LED (default: 48 / 0x30)
+  --led-address uint    I2C address for LP5562 LED (default: 0x30)
   --debug               Enable debug logging
 ```
 
@@ -24,9 +24,7 @@ Handles NFC-based authentication for the scooter. Detects keycards via the PN715
 
 - `authentication` - `passed` when authorized UID detected
 - `type` - `scooter`
-- `uid` - UID of the card that authenticated
-
-A successful auth sets a 10-second TTL on the entire `keycard` key, so all three fields (and any `command-result` written before it) expire together.
+- `uid` - UID of the card that authenticated. Each successful auth also sets a 10-second TTL on the whole `keycard` hash, so `authentication`, `type` and `uid` expire together (as does any `command-result` written into the same hash inside that window).
 
 **Fields written on command response:**
 
@@ -46,22 +44,11 @@ Management commands via LPUSH:
 | `count` | `count:<n>` |
 | `add:<uid>` | `ok` or `error:<reason>` |
 | `remove:<uid>` | `ok` or `error:<reason>` (cannot remove last card) |
-| `set-master:<uid>` | Replaces the master list with this single UID; `NONE` disables the physical master and leaves authorized cards intact; any other UID also clears the authorized list |
+| `set-master:<uid>` | Sets master UID; use `NONE` to disable; clears authorized list |
 | `learn:start` | Enter learn mode programmatically |
-| `learn:stop` | Exit learn mode, saving learned cards (additive) |
-| `learn:master:start` | Enter master teach-in mode; next non-registered tap is appended as an additional master (authorized list untouched) |
-| `learn:master:stop` | Exit master teach-in mode without committing |
-| `reset` | Reset all auth state (master + authorized cards) |
+| `learn:stop` | Exit learn mode, saving learned cards |
 
 Responses are written to `keycard command-result`.
-
-### Channel: `keycard:events` (published)
-
-Transient per-tap progress events during teach-in flows, for real-time subscribers (installer, BLE bridge). Format `<event>` or `<event>:<uid>`:
-
-- Master teach-in: `mode-entered:master`, `mode-exited:master`, `master-learned:<uid>`, `rejected:already-authorized:<uid>`, `error:save-failed:<uid>`
-- Learn mode: `card-learned:<uid>` (queued for commit on `learn:stop`), `card-duplicate:<uid>`
-- Reset: `reset`
 
 ## Hardware
 
@@ -92,7 +79,7 @@ Transient per-tap progress events during teach-in flows, for real-time subscribe
 
 ### Master Learning Mode (first boot)
 
-Activated at startup when no master UID is loaded (file missing or empty):
+Activated when `master_uids.txt` does not exist:
 
 1. RGB LED blinks (500ms) — waiting for master card
 2. First card presented becomes master UID, saved to `master_uids.txt`
@@ -114,7 +101,7 @@ Activated by presenting master UID or via `learn:start`:
 1. PWM LEDs 3 + 7 turn on
 2. Each new card presented: added to session queue, Green LED flash
 3. Present master UID again or `learn:stop` to exit
-4. Learned cards are **appended** to the authorized list in `authorized_uids.txt` (additive)
+4. If cards were learned: **appends** them to the authorized list in `authorized_uids.txt` (already-authorized UIDs are skipped)
 5. If no cards learned: existing list unchanged
 6. PWM LEDs 3 + 7 turn off
 
@@ -123,7 +110,7 @@ Activated by presenting master UID or via `learn:start`:
 | Path | Purpose |
 |------|---------|
 | `/data/keycard/authorized_uids.txt` | Authorized keycard UIDs (one per line) |
-| `/data/keycard/master_uids.txt` | Master UIDs (one per line; multiple masters supported) |
+| `/data/keycard/master_uids.txt` | Master UID |
 
 Files are written atomically (write to `.tmp`, sync, rename).
 
@@ -131,8 +118,8 @@ Files are written atomically (write to `.tmp`, sync, rename).
 
 - **Unit:** `librescoot-keycard.service`
 - **Binary:** `/usr/bin/keycard-service`
-- **Requires:** `valkey.service` (`redis.service` before Librescoot 1.2)
-- **After:** `valkey.service`, `librescoot-vehicle.service`
+- **Requires:** `redis.service`
+- **After:** `redis.service`, `librescoot-vehicle.service`
 
 ## Building
 
@@ -145,4 +132,4 @@ make build-host   # Host
 
 - [Electronic Components](../electronic/README.md) — PN7150 and LP5562 hardware
 - [Redis Operations](../redis/README.md) — Keycard hash details
-- [Librescoot Services](README.md)
+- [LibreScoot Services](README.md)

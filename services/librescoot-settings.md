@@ -2,11 +2,11 @@
 
 ## Description
 
-The settings service is a Librescoot-only service that provides bidirectional synchronization between Redis and persistent TOML configuration files. It enables persistent storage of scooter settings across reboots and provides automatic network configuration management.
+The settings service is a LibreScoot-only service that provides bidirectional synchronization between Redis and persistent TOML configuration files. It enables persistent storage of scooter settings across reboots and provides automatic network configuration management.
 
 ## Version
 
-Librescoot settings-service v1.0.0+
+LibreScoot settings-service v0.6.0 (v1.0.5 pinned SRCREV 479896e)
 
 ## Command-Line Options
 
@@ -36,22 +36,6 @@ When a field is published to the `settings` channel, the service:
 2. Updates the TOML file
 3. Performs special handling for certain fields (e.g., APN updates)
 
-### List: `settings:overlay` (command queue)
-
-Consumed by settings-service via BRPOP. Applies or clears a named settings overlay without touching `/data/settings.toml`.
-
-**Commands:**
-
-- `apply:<name>` - apply the named overlay (currently only `service` is defined)
-- `clear:<name>` - clear the named overlay and restore base values
-
-```bash
-redis-cli LPUSH settings:overlay apply:service
-redis-cli LPUSH settings:overlay clear:service
-```
-
-See [Overlays](#settings-overlays) below for the overlay mechanics and the full service-mode override set.
-
 ### Settings Structure
 
 Settings are organized by section. Examples:
@@ -68,25 +52,29 @@ Settings are organized by section. Examples:
 
 - `scooter.max-voltage-delta` - Maximum voltage difference between batteries in mV before dual battery activation is refused (default: 1000; 0 to disable)
 - `scooter.battery-keep-active-on-seatbox-open` - Keep active battery on across seatbox opens (default: false)
-- `scooter.battery-aux-low-keep-active-enter-mv` - Aux battery voltage in mV below which the keep-active-on-seatbox-open override engages automatically (default: 11500). Hysteresis pairs with the exit threshold.
-- `scooter.battery-aux-low-keep-active-exit-mv` - Aux battery voltage in mV at or above which the aux-low keep-active override disengages (default: 12000). Must be greater than the enter threshold.
 - `scooter.dual-battery` - Enable dual battery mode (default: false)
 - `scooter.dbc-blinker-led` - Blink DBC boot LED with blinkers ("enabled"/"disabled"; default: "disabled")
 - `scooter.enable-horn` - Horn enable mode ("true"/"false"/"in-drive"; default: "true")
-- `scooter.horn-when-seatbox-open` - Allow the manual horn button while the seatbox is open and the scooter is unlocked (default: false). When false, the manual horn is muted in any non-standby state while the seatbox sensor reads open, so the open seat lid resting on the button does not honk. Does not affect the alarm or remote/CLI horn.
 
 **Cellular settings:**
 
 - `cellular.apn` - Cellular APN for data connection
+- `cellular.sim-pin` - PIN for SIM unlock and lock-enable (4-8 digits, empty = leave SIM as-is)
 
 **Power management settings:**
 
-- `pm.hibernation-timer` - Hibernation timeout in seconds (default: 259200; 0 = disabled)
+- `pm.hibernation-timer` - Hibernation timeout in seconds (0=disabled; default 259200)
+- `pm.scheduled-hibernate-enabled` - Enable cron-driven scheduled hibernation ("true"/"false", default false)
+- `pm.scheduled-hibernate-cron` - 5-field cron expression (minute hour day-of-month month day-of-week); empty disables
+- `pm.scheduled-hibernate-duration` - How long the scheduled hibernation lasts; the system wakes at fire-time plus this duration (Go duration, e.g. "8h")
+- `pm.wake-timer-max-seconds` - Safety cap on the wake-timer duration sent to the nRF52; larger requests are clamped (default 604800)
+- `pm.wake-timer-ack-timeout` - How long pm-service waits for the nRF52 wake-timer ACK before aborting hibernation (Go duration, default "10s")
+
+These keys are present in the v1.0.5 settings schema, but pm-service in this release does not yet act on them (scheduled hibernation and the wake-timer handshake land in a later release).
 
 **Scooter settings:**
 
-- `scooter.auto-standby-seconds` - Auto-lock timeout when parked in seconds (default: 900; 0 = disabled). The last 60 s are shown as a cancellable countdown on the dashboard; any user input (brake, kickstand, seatbox button) resets the timer.
-- `scooter.lock-on-bluetooth-disconnect-seconds` - Grace period in seconds before the scooter locks (enters stand-by) after the connected phone's Bluetooth link drops while parked (default: 0 = disabled; floored at 5 s when set). Reuses the auto-standby countdown: the deadline is published to `vehicle` `auto-standby-deadline` and shown on the dashboard. Any user input (brake, kickstand, seatbox button) or a Bluetooth reconnect cancels it.
+- `scooter.auto-standby-seconds` - Auto-lock timeout when parked in seconds (default: 900; 0 = disabled; no upper clamp). The last 60 s are shown as a cancellable countdown on the dashboard; any user input (brake, kickstand, seatbox button) resets the timer.
 - `scooter.brake-hibernation` - Enable brake lever hibernation ("enabled"/"disabled")
 
 **Update settings:**
@@ -103,12 +91,12 @@ Settings are organized by section. Examples:
 - `updates.dbc.dry-run` - DBC dry-run mode
 - `updates.dbc.releases-url` - DBC releases API endpoint
 - `updates.dbc.last-check-time` - DBC last check timestamp
-- `updates.mdb.orchestrate-dbc` - Auto power-on DBC and trigger update check when newer DBC release available (default: true)
+- `updates.mdb.orchestrate-dbc` - Auto power-on DBC and trigger update check when newer DBC release available (default: false)
 
 **Dashboard settings:**
 
 - `dashboard.show-raw-speed` - Show raw uncorrected speed ("true"/"false")
-- `dashboard.show-clock` - Clock format in the status bar (always = time only / date-time / alternate / never)
+- `dashboard.show-clock` - Clock visibility (always/never)
 - `dashboard.show-gps` - GPS indicator visibility (always/active-or-error/error/never)
 - `dashboard.show-bluetooth` - Bluetooth indicator visibility
 - `dashboard.show-cloud` - Cloud indicator visibility
@@ -118,15 +106,14 @@ Settings are organized by section. Examples:
 - `dashboard.map.type` - Map tile source (online/offline)
 - `dashboard.map.render-mode` - Map rendering mode (vector/raster)
 - `dashboard.theme` - UI theme (light/dark/auto)
-- `dashboard.mode` - Default screen mode (speedometer/navigation/debug)
+- `dashboard.mode` - Default screen mode (speedometer/navigation)
 - `dashboard.valhalla-url` - Valhalla routing service endpoint
 - `dashboard.app` - Display app to launch on DBC boot ("scootui-qt"/"scootui-tui"; default: "scootui-qt")
 - `dashboard.power-display-mode` - Power display unit (kw/amps; default: "kw")
-- `dashboard.battery-display-mode` - Battery display mode (percentage/range/icon)
+- `dashboard.battery-display-mode` - Battery display mode (percentage/range)
 - `dashboard.hop-on-combo` - Custom hop-on unlock combo, pipe-delimited tokens (empty = no combo)
 - `dashboard.maps.check-for-updates` - Auto-check for map updates weekly when online (default: false)
 - `dashboard.maps.auto-download` - Auto-download map updates (default: false)
-- `dashboard.milestone-celebrations` - Celebrate odometer milestones and easter-egg numbers with confetti + banner when parking (default: false; off suppresses all milestone output)
 - `dashboard.maps-available` - Offline map tiles available (system-managed; default: false)
 - `dashboard.navigation-available` - Full navigation available (system-managed; default: false)
 
@@ -136,44 +123,6 @@ Settings are organized by section. Examples:
 - `engine-ecu.kers-power` - KERS regenerative braking current in mA
 - `engine-ecu.boost` - Enable motor boost mode (default: false)
 - `engine-ecu.kers-power-dual` - KERS current in mA when both batteries active
-
-## Settings Overlays
-
-An overlay is a named set of key-value pairs that settings-service applies to the live `settings` hash in memory. Overlays are strictly non-persistent:
-
-- Overlay values are **never written to `/data/settings.toml`**. The user's base configuration is unchanged.
-- When an overlay is cleared, every key it touched is restored to its base value from the TOML file.
-- Overlay values are re-applied automatically after reboot (settings-service re-applies active overlays on startup after loading the TOML).
-- An overlay stays active until explicitly cleared with `clear:<name>`.
-
-### Service Mode Overlay (`service`)
-
-Enables a hardware-service mode intended for bench work and diagnostics. It overrides the following settings in memory:
-
-| Setting | Overlay value | Effect |
-|---------|---------------|--------|
-| `scooter.auto-standby-seconds` | `0` | Disables auto-lock timer |
-| `pm.hibernation-timer` | `0` | Disables idle hibernation |
-| `pm.default-state` | `run` | Blocks automatic suspend/hibernate |
-| `alarm.enabled` | `false` | Disables the motion alarm |
-| `scooter.usb0-policy` | `always-on` | Keeps USB port powered |
-| `dashboard.mode` | `debug` | Shows the debug screen on the DBC |
-| `scooter.handlebar-unlocked` | `true` | Releases handlebar latch, suppresses auto re-lock |
-
-**Status:** `settings` hash field `dashboard.service-mode-active` is set to `"true"` while the overlay is active and `"false"` when cleared (read-only; written by settings-service).
-
-**Fan-out:** Because the overlay values are written to the `settings` hash and published on the `settings` channel, all downstream services (pm-service, vehicle-service, alarm-service, scootui) react to the change via their normal settings-channel subscriptions - no special handling is needed in those services.
-
-**CLI:**
-```bash
-lsc service-mode on      # apply:service
-lsc service-mode off     # clear:service
-lsc service-mode status  # check dashboard.service-mode-active
-```
-
-`lsc servicemode` is accepted as an alias.
-
-**No-clobber invariant:** `/data/settings.toml` always reflects the user's chosen values. Run `cat /data/settings.toml` while service mode is active to confirm the TOML is unchanged.
 
 ## File Operations
 
@@ -197,7 +146,7 @@ apn = "internet.provider.com"
 [scooter]
 auto-standby-seconds = "0"
 brake-hibernation = "enabled"
-battery-keep-active-on-seatbox-open = "false"
+dual-battery = "false"
 
 [dashboard]
 theme = "dark"
@@ -229,10 +178,10 @@ The service:
 
 On startup, the service manages WireGuard VPN connections:
 
-1. **Waits for NetworkManager to report RUNNING** (polled with exponential backoff from 2 s up to a 60 s cap; no internal timeout, and the sync runs in a background goroutine so the rest of the service starts immediately)
-2. **Removes orphaned WireGuard connections** from NetworkManager (any wireguard connection with no matching `.conf`)
-3. **Imports new or changed `*.conf` files** from `/data/wireguard/`; unchanged confs are skipped via a `<name>.sha256` sidecar
-4. Each synced connection is set to `connection.autoconnect yes` with `connection.autoconnect-retries 0`
+1. **Deletes all existing WireGuard connections** from NetworkManager
+2. **Waits for internet connectivity** (event-driven: subscribes to `internet` channel and polls `internet` hash; falls back to a 120s timeout if Redis is unavailable or internet never connects)
+3. **Imports all `*.conf` files** from `/data/wireguard/` directory
+4. Each `.conf` file becomes a new WireGuard connection in NetworkManager
 
 This ensures clean WireGuard state on boot and allows easy VPN configuration via files.
 
@@ -241,12 +190,18 @@ This ensures clean WireGuard state on boot and allows easy VPN configuration via
 ### Startup Sequence
 
 1. Connects to Redis
-2. Loads the settings schema and seeds a field map from its defaults
-3. Overlays `/data/settings.toml` on top where it exists (user values win; transient keys found in the file are dropped). A missing file is logged and the schema defaults are used on their own; no TOML file is created at startup
-4. Writes the whole map to the Redis `settings` hash in one MULTI/EXEC of HSETs, publishes one notification per field on the `settings` channel, clears any declared-transient keys left over from a previous instance, and publishes the raw schema JSON to `settings:schema`
-5. Waits for NetworkManager to report RUNNING, in the background (polled with backoff from 2 s up to a 60 s cap; no internal timeout)
-6. Removes orphaned NetworkManager WireGuard connections (no matching `.conf`)
-7. Imports new or changed WireGuard configs from `/data/wireguard/`
+2. Checks if `/data/settings.toml` exists
+3. If it exists:
+   - Starts from the schema defaults, then overlays every key found in the TOML (user value wins)
+   - Writes the merged set to Redis in one MULTI/EXEC transaction
+   - Publishes each setting to the `settings` channel
+   - Clears every schema-declared transient key (`updates.mdb.channel`, `updates.dbc.channel`) afterwards
+4. If it doesn't exist:
+   - Populates Redis with the schema defaults only, logging "No /data/settings.toml found, using schema defaults only"
+   - No TOML file is created; one is written the first time a setting changes
+5. Deletes existing WireGuard connections from NetworkManager
+6. Waits for internet connectivity (event-driven; max 120s timeout)
+7. Imports all WireGuard configs from `/data/wireguard/`
 8. Begins monitoring Redis for setting changes
 
 ### Runtime Behavior
@@ -275,7 +230,7 @@ On startup, if `/data/settings.toml` exists:
 
 1. Entire file is read
 2. All sections and keys are converted to Redis format
-3. Values are overlaid on the schema defaults, which seed every key the file does not set
+3. Redis `settings` hash is flushed
 4. All settings written to Redis
 5. Each setting published to `settings` channel
 
@@ -301,7 +256,11 @@ When `cellular.apn` is updated:
 
 #### Empty Config Handling
 
-If `/data/settings.toml` is missing or empty, the service logs it and seeds the `settings` hash from the schema defaults alone. There is no special case for an empty `[scooter]` section, and nothing flushes the hash: a TOML that simply lacks a key leaves that key at its schema default.
+If the TOML file is missing or empty:
+
+- The Redis `settings` hash is populated from the schema defaults alone
+- There is no special-case handling for an empty `[scooter]` section
+- Services see the schema defaults, not an empty hash
 
 ### WireGuard Management
 
@@ -324,8 +283,8 @@ PersistentKeepalive = 25
 
 **Management process:**
 
-1. On startup: Service waits for NetworkManager to report RUNNING (polled with backoff from 2 s up to a 60 s cap; no internal timeout)
-2. Removes NetworkManager WireGuard connections with no matching `.conf`
+1. On startup: Service deletes all existing WireGuard connections
+2. Waits for internet connectivity (event-driven; falls back to 120s timeout)
 3. Scans `/data/wireguard/` for `*.conf` files
 4. Imports each file as a NetworkManager connection
 5. Connections are named based on filename (e.g., `vpn.conf` → "vpn")
@@ -398,8 +357,8 @@ rm /data/settings.toml
 # Restart settings service
 systemctl restart librescoot-settings
 
-# Redis settings hash is now empty
-# Services will use default values
+# Redis settings hash now holds only the schema defaults
+# Services will use those default values
 ```
 
 ## Building
@@ -408,8 +367,8 @@ systemctl restart librescoot-settings
 # Build for ARM target
 make build
 
-# Build for AMD64 (development)
-make build-amd64
+# Build for the host platform (development)
+make build-host
 ```
 
 ## Installation
@@ -420,19 +379,13 @@ The service is typically installed via systemd:
 
 ```ini
 [Unit]
-Description=Librescoot Settings Service
-Requires=valkey.service
-After=valkey.service
-# Persisted settings live in /data/settings.toml
-RequiresMountsFor=/data
-Wants=NetworkManager.service
+Description=LibreScoot Settings Service
+Requires=redis.service
+After=redis.service
 Before=librescoot-vehicle.service
 
 [Service]
-# Type=notify: READY=1 is sent only once the settings hash has been seeded,
-# so Before=librescoot-vehicle.service guarantees consumers see it. The
-# datastore is not persisted; it starts empty every boot.
-Type=notify
+Type=simple
 User=root
 Group=root
 ExecStart=/usr/bin/settings-service
@@ -464,7 +417,7 @@ Use `journalctl -u librescoot-settings` to view logs.
 
 ## Integration with Other Services
 
-All Librescoot services can use the settings system:
+All LibreScoot services can use the settings system:
 
 - **alarm-service**: Reads `alarm.enabled`, `alarm.honk`
 - **update-service**: Reads `updates.{component}.*` settings
@@ -478,9 +431,9 @@ Services should:
 3. Apply new settings immediately
 4. Fall back to defaults if setting not present
 
-## Librescoot Feature
+## LibreScoot Feature
 
-This is a Librescoot-only service. Benefits:
+This is a LibreScoot-only service. Benefits:
 
 - **Persistent configuration:** Settings survive reboots
 - **Easy backup:** Single TOML file contains all settings
@@ -491,6 +444,6 @@ This is a Librescoot-only service. Benefits:
 ## Related Documentation
 
 - [Redis Operations](../redis/README.md) - Settings hash structure
-- [Librescoot Services](README.md) - Service overview
+- [LibreScoot Services](README.md) - Service overview
 - [Update Service](librescoot-update.md) - Update channel configuration
 - [Alarm Service](librescoot-alarm.md) - Alarm settings

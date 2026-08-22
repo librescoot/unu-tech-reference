@@ -8,7 +8,7 @@ The scooter's operational mode is tracked via the `vehicle:state` Redis key and 
 
 These are the exact string values that appear in Redis and BLE:
 
-- **"unknown"** - Initial/uninitialized state
+- (no "unknown" state) - vehicle-service starts the FSM in `stand-by`; a persisted `vehicle:state` is re-applied on boot, so no initial or uninitialized string is ever published
 - **"stand-by"** - Systems powered but motor disabled, ready for authentication
 - **"parked"** - Vehicle unlocked with kickstand down or not ready to drive
 - **"hop-on"** - Locked hop-on / hop-off mode: rider briefly off, motor disabled, optional steering lock; dashboard renders a lock overlay
@@ -17,8 +17,8 @@ These are the exact string values that appear in Redis and BLE:
 - **"waiting-seatbox"** - Transitional state waiting for seatbox to close
 - **"shutting-down"** - Transitional state before powering down (~5s)
 - **"updating"** - OTA firmware update in progress
-- **"waiting-hibernation"** - Manual hibernation sequence initiated (60s timeout)
-- **"waiting-hibernation-advanced"** - Advanced hibernation wait (brakes held for 10s+)
+- **"waiting-hibernation"** - Manual hibernation sequence initiated (30s timeout back to `parked`; 15s of continuously held brakes auto-confirms instead)
+- **"waiting-hibernation-advanced"** - Legacy value. vehicle-service never publishes it in this release: the advanced/confirmation phase is published as `waiting-hibernation`. The string is still accepted when restoring a persisted state.
 - **"waiting-hibernation-seatbox"** - Hibernation wait with seatbox open notification
 - **"waiting-hibernation-confirm"** - Hibernation confirmation screen (3s)
 
@@ -39,12 +39,11 @@ The wire value 6 is dedicated so the firmware picks `POWER_MODE_ACTIVE` (parked-
 
 ```mermaid
 stateDiagram-v2
-    [*] --> unknown
-    unknown --> stand-by: init complete (initial state)
-    unknown --> updating: init complete (updating)
-    unknown --> ready-to-drive: init complete (default)
+    [*] --> stand-by
+    %% stand-by is the FSM's initial state. A persisted vehicle:state is
+    %% re-applied on boot with SetState, which is not an FSM transition.
 
-    stand-by --> ready-to-drive: keycard auth / unlock request
+    stand-by --> parked: keycard auth / unlock request
 
     ready-to-drive --> parked: kickstand down (after 1s timer)
     ready-to-drive --> ready-to-drive: conditions still met
@@ -52,7 +51,7 @@ stateDiagram-v2
     parked --> ready-to-drive: kickstand up + all conditions met
     parked --> waiting-seatbox: keycard auth (when not activating)
     parked --> shutting-down: lock request
-    parked --> waiting-hibernation-confirm: lock-hibernate request
+    parked --> shutting-down: lock-hibernate request
     parked --> waiting-hibernation: hibernation timer (manual)
 
     parked --> hop-on: scooter:hop-on engage
@@ -62,29 +61,28 @@ stateDiagram-v2
     hop-on --> shutting-down: lock / keycard / auto-standby
     hop-on-learning --> shutting-down: lock / keycard / auto-standby
 
-    waiting-seatbox --> ready-to-drive: seatbox closed + conditions met
-    waiting-seatbox --> parked: seatbox closed (not ready)
-    waiting-seatbox --> shutting-down: keycard auth / lock request
-    waiting-seatbox --> ready-to-drive: unlock request
-    waiting-seatbox --> waiting-hibernation-confirm: lock-hibernate request
+    waiting-seatbox --> shutting-down: seatbox closed / keycard auth / lock request / timeout (30s)
+    waiting-seatbox --> parked: unlock request
+    waiting-seatbox --> stand-by: force-lock request
 
     shutting-down --> stand-by: timeout (~5s)
 
-    updating --> shutting-down: update complete / not updating
-    updating --> shutting-down: timeout (30min abort)
-    updating --> ready-to-drive: keycard auth / unlock request
+    %% updating has no FSM transitions in this release: the state is declared
+    %% but nothing enters or leaves it by event, it is only restored from a
+    %% saved vehicle:state. The DBC update watchdog (15 min) clears the
+    %% dbc-updating flag; it does not drive a state transition.
 
     waiting-hibernation --> waiting-hibernation-seatbox: keycard tap (seatbox open)
-    waiting-hibernation --> waiting-hibernation-advanced: brakes held (10s timer)
-    waiting-hibernation --> ready-to-drive: timeout (60s) / kickstand raised / unlock
-    waiting-hibernation --> shutting-down: lock request
-    waiting-hibernation --> waiting-hibernation-confirm: lock-hibernate request
+    waiting-hibernation --> waiting-hibernation-confirm: keycard tap (seatbox closed)
+    waiting-hibernation --> waiting-hibernation-confirm: brakes still held (15s force timer)
+    waiting-hibernation --> parked: timeout (30s) / unlock / seatbox button / kickstand raised (not ready)
+    waiting-hibernation --> ready-to-drive: kickstand raised (dashboard ready + handlebar unlocked)
 
-    waiting-hibernation-advanced --> ready-to-drive: brakes released
-    waiting-hibernation-advanced --> waiting-hibernation-confirm: keycard auth
+    %% waiting-hibernation-advanced is never published in this release
 
-    waiting-hibernation-seatbox --> waiting-hibernation: seatbox closed
-    waiting-hibernation-seatbox --> waiting-hibernation-confirm: keycard auth
+    waiting-hibernation-seatbox --> waiting-hibernation-confirm: seatbox closed
+    waiting-hibernation-seatbox --> parked: seatbox button / unlock / kickstand raised (not ready)
+    waiting-hibernation-seatbox --> ready-to-drive: kickstand raised (dashboard ready + handlebar unlocked)
 
     waiting-hibernation-confirm --> shutting-down: timeout (3s, then hibernate)
 ```
@@ -96,10 +94,7 @@ Vehicle can enter "ready-to-drive" when ALL conditions are met:
 
 - Dashboard ready
 - Kickstand up
-- Seatbox lock closed
-- Not activating
 - Handlebar unlocked
-- Battery on
 
 #### Hibernation Sequence
 Manual hibernation requires:
@@ -108,7 +103,7 @@ Manual hibernation requires:
 2. Dashboard ready
 3. Not activating
 
-Flow: parked (15s) → waiting-hibernation (brakes held 10s) → waiting-hibernation-advanced → waiting-hibernation-confirm (keycard) → shutting-down (3s) → stand-by (with hibernation flag)
+Flow: parked (both brakes held 15s, still published as `parked`) -> waiting-hibernation -> waiting-hibernation-confirm (keycard tap, or 15s more of held brakes) -> shutting-down (5s) -> stand-by (with hibernation flag)
 
 #### Park Protection
 1-second timer prevents rapid drive → park → drive oscillations
@@ -129,7 +124,7 @@ The power manager (unu-pm) tracks system power states separately from vehicle st
 - **"hibernating-imminent"** - Hibernation about to occur
 - **"hibernating-manual"** - Manual hibernation requested
 - **"hibernating-manual-imminent"** - Manual hibernation about to occur
-- **"hibernating-timer"** - Timer-based hibernation (configurable, default 5 days)
+- **"hibernating-timer"** - Timer-based hibernation (configurable via `-hibernation-timer` or the `pm.hibernation-timer` setting, default 3 days)
 - **"hibernating-timer-imminent"** - Timer hibernation about to occur
 - **"reboot"** - System reboot
 - **"reboot-imminent"** - Reboot about to occur

@@ -2,12 +2,27 @@
 
 Reverse-engineered technical documentation of the unu Scooter Pro.
 
-## About this version
+## What changed in v1.0.5
 
-You are reading `dev`, which tracks the `main` branch of this repository and
-describes the current state of the code, including work that has not shipped in
-any release yet. For what a released image actually contains, pick that version
-from the selector above.
+- `scooter.usb0-policy` defaults to auto
+- Schema keys for scheduled hibernation and the wake timer
+  (`pm.scheduled-hibernate-*`, `pm.wake-timer-*`), defined but not yet acted on
+- Transient settings: settings can be marked transient, the update channels are,
+  and stale transient keys are cleared from Redis on load
+- The address database loads from prebuilt place sidecar tables when present
+- Navigation is cleared at the destination when entering hop-on
+- Only a force-lock can leave ready-to-drive
+
+[Release notes](https://github.com/librescoot/librescoot/releases/tag/v1.0.5)
+
+### nRF firmware
+
+Ships nRF firmware **v2.4.0-ls**, up from v2.3.0-ls in v1.0.0.
+
+- Hop-on gets its own vehicle-state value on the wire. A scooter in hop-on
+  presents to phone apps as locked while keeping parked-equivalent power,
+  instead of being indistinguishable from parked. See
+  [nRF UART Protocol](nrf/UART.md).
 
 ## System Architecture
 
@@ -51,7 +66,6 @@ The unu Scooter Pro uses a distributed architecture with several key systems:
 - **Bluetooth LE** - Local device connectivity
   - Service UUIDs documented in [Bluetooth Docs](bluetooth/README.md)
   - Device control and status monitoring
-  - Firmware updates over BLE ([OTA transfer protocol](bluetooth/ota-transfer.md))
 
 - **Cellular** - Remote connectivity
   - SIM7100E module on MDB
@@ -76,16 +90,16 @@ Detailed documentation available for:
 
 The MDB runs several system services that coordinate vehicle operations. For detailed documentation of each service, see [Services Documentation](services/README.md).
 
-### Librescoot Services
+### LibreScoot Services
 
-Librescoot provides open-source replacement firmware for unu Scooter Pro systems, including:
+LibreScoot provides open-source replacement firmware for unu Scooter Pro systems, including:
 
 - **Core System Services**: alarm, battery, bluetooth, ECU, keycard, modem, power management, settings, vehicle
 - **Dashboard Services**: backlight control, illumination monitoring
 - **Update Services**: OTA updates, version tracking
 - **Communication Services**: nRF52 UART protocol
 
-For complete Librescoot service documentation, see [Librescoot Services](services/README.md).
+For complete LibreScoot service documentation, see [LibreScoot Services](services/README.md).
 
 ## System States
 
@@ -108,9 +122,9 @@ State transitions are triggered by:
 
 ## Command-Line Tools
 
-### lsc - Librescoot Control CLI
+### lsc - LibreScoot Control CLI
 
-`lsc` is a comprehensive command-line tool for controlling and monitoring Librescoot systems. It provides easy access to:
+`lsc` is a comprehensive command-line tool for controlling and monitoring LibreScoot systems. It provides easy access to:
 
 - Vehicle control (lock/unlock, hibernate)
 - Service management (start/stop/logs)

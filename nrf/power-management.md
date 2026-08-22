@@ -143,7 +143,7 @@ The nRF controls different Power Management Integrated Circuit (PMIC) control pi
 - **1.5V Rail Control (GPIO 0 Pin 2)**: Controls +1.5V, almost always on, powers the MDB i.MX6 and RAM
 
 The nRF itself always receives +3.3V power that it can toggle, but it is normally kept always on.
-This 3.3V power also supplies the combined accelerometer/gyroscope/magnetometer sensor (BMX055).
+This 3.3V power also supplies the combined accelerometer/gyroscope/magnetometer sensor (BMX055; its gyroscope sub-device is the BMG160).
 
 ## Configuration
 
@@ -165,7 +165,7 @@ The system automatically enters hibernation when:
 
 When auto-hibernation conditions are met, the system starts a 5-minute timer before entering hibernation. This gives the system time to complete any pending operations and allows the user to intervene if needed.
 
-The timer is logged by the nRF firmware:
+The timer is logged by unu-bluetooth:
 
 - "auto-hibernation: starting 5 minutes hibernation timer"
 
@@ -251,14 +251,8 @@ The system can wake from hibernation through:
    - CB battery state of charge drops below the wake-up threshold (10%).
    - This allows the system to wake up once to send a low battery warning.
 
-3. **Remote Activation**:
+4. **Remote Activation**:
    - Requested via Bluetooth command.
-
-4. **Programmed Wake Timer**:
-   - The iMX6 can arm a single-shot `app_timer` on the nRF52 before powering off via UART subtype `0x0805` (`WAKE_TIMER_SET`, uint32 seconds; `0` disarms).
-   - When the timer expires, the nRF52 re-enables iMX6 power using the same code path as the accelerometer-wake.
-   - Any other wake source that fires first (brake, accelerometer, manual BLE) disarms the pending wake via `power_management_stop_all_timers()`.
-   - Used by pm-service's `hibernate-for <duration>` ad-hoc command and the cron-driven scheduled-hibernation feature; see [pm-service docs](../services/librescoot-pm.md) for the iMX6 side.
 
 ### Low Battery Wakeup Behavior
 

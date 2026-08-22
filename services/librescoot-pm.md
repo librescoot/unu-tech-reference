@@ -4,11 +4,6 @@
 
 The power manager (pm-service) controls system power states including suspend, hibernation, and reboot. It monitors service activity via a Unix socket inhibitor interface, tracks busy services via Redis, implements delays before power transitions, and manages a hibernation timer. The service uses a finite state machine (FSM) backed by librefsm to drive all power state transitions.
 
-Two user-facing hibernation features are layered on top of the base FSM:
-
-- **`hibernate-for <duration>`** — ad-hoc command to hibernate for a specific duration. The nRF52 arms a single-shot wake timer before the iMX6 powers off and pulls the iMX6 back up when the timer expires.
-- **Scheduled hibernation** — a 5-field cron expression plus a wake-by duration. Fires automatically when the scooter is locked (`stand-by`); if the cron triggers while the user is riding or parked-unlocked, the request defers until the next transition into `stand-by` and the wake time is preserved (so a `22:00 + 8h` schedule still wakes at `06:00` even if the user actually locks at `23:00`).
-
 ## Command-Line Options
 
 ```
@@ -31,11 +26,9 @@ Usage of pm-service:
         Path for the Unix domain socket for inhibitor connections (default "/tmp/suspend_inhibitor")
   -suspend-imminent-delay duration
         Duration for which low-power-state-imminent state is held (default 5s)
-  -version
-        Print version and exit
 ```
 
-**Note:** The hibernation timer default is 72 hours (3 days). The shipped systemd unit passes no flags; when the `pm.default-state` settings field is set, it takes precedence over the `-default-state` CLI fallback.
+**Note:** The hibernation timer default is 72 hours (3 days). The shipped `librescoot-pm.service` starts the binary with `-default-state run`, and the `pm.default-state` Redis setting (schema default `run`) overrides the CLI flag at startup and on live changes.
 
 ## Redis Operations
 
@@ -45,19 +38,15 @@ Usage of pm-service:
 
 - `state` - Power manager state (see States section below)
 - `wakeup-source` - IRQ number of wakeup source (e.g., "45" for RTC)
-- `wake-timer-seconds` - Requested wake-timer duration for the next nRF52 wake (decimal seconds; `0` disarms). Written when a `hibernate-for` flow enters `low-power-imminent`, before `EnterIssuingLowPower` blocks for the ACK.
 
 **Fields read:**
 
-- `wake-timer-armed` - Set to `"true"` by bluetooth-service when the nRF52 acknowledges the wake-timer arm, `"false"` on disarm. pm-service blocks (up to `pm.wake-timer-ack-timeout`) on this field flipping to `true` in `EnterIssuingLowPower`; on timeout it aborts the hibernation rather than power off without a confirmed wake source.
-- `power-state-sent` - The nRF suspend-ACK, written by bluetooth-service when it confirms it forwarded a power state to the nRF52. Only the value `"suspending"` is acted on. Before suspending, pm-service publishes the `suspending` state and then blocks (up to `suspendQuiesceTimeout`, 3 s) in `EnterIssuingLowPower` for `power-state-sent=suspending`. The nRF must stop its USOCK TX before the iMX6 sleeps; otherwise routine traffic on the armed ttymxc1 wakeup pulls the iMX6 straight back out of suspend-to-RAM. On ACK it settles a 200 ms margin (so the nRF's reply to the suspending frame can drain) and then suspends; on timeout it aborts back to `running` rather than suspend into the wake loop. This gate applies only to the `suspend` target, not to hibernate/poweroff/reboot.
+- None (hibernation timer settings in `settings` hash)
 
 **Published channel:** `power-manager`
 
 - `state` - Published when power state changes
 - `wakeup-source` - Published when system wakes from suspend
-- `wake-timer-seconds` - Published when pm-service requests a wake-timer change
-- `wake-timer-armed` - Published by bluetooth-service when the nRF52 ACK arrives
 
 ### Hash: `power-manager:busy-services`
 
@@ -88,24 +77,13 @@ pm-service subscribes to the `power:inhibits` channel and syncs entries into its
 
 **Fields read:**
 
-- `pm.hibernation-timer` - Inactivity-based hibernation timer duration in seconds (0 = disabled)
-- `pm.default-state` - Default target power state when idle (`run` / `suspend`)
-- `pm.suspend-when-online` - Bool, default `true`. Only matters when no main battery is present: a pack present (or active) in either slot always blocks suspend (`Cannot enter suspend state: a main battery is present or active`), independent of this setting. With no main battery, the default (`true`) lets the scooter suspend even while online. Set `false` to keep an online scooter awake so cloud commands can still reach it, which blocks suspend with `Suspend blocked: no main battery but online and pm.suspend-when-online disabled`. The guard only applies to the `suspend` target (not hibernate/reboot). Present and active are read live from Redis at the decision point because pub/sub state is lost across a suspend freeze.
-- `pm.scheduled-hibernate-enabled` - Bool: enable cron-driven scheduled hibernation
-- `pm.scheduled-hibernate-cron` - 5-field cron expression (e.g. `0 22 * * *`)
-- `pm.scheduled-hibernate-duration` - Wake-by duration (Go duration syntax: `8h`, `30m`, ...)
-- `pm.wake-timer-max-seconds` - Safety cap on a single wake-timer arm (default 604800 = 1 week)
-- `pm.wake-timer-ack-timeout` - How long to wait for the nRF52 ACK before aborting (default `10s`)
+- `pm.hibernation-timer` - Hibernation timer duration in seconds (0 disables the timer; negative values ignored)
+- `pm.default-state` - Default power target state; overrides `-default-state` whenever it holds a valid value
 
 **Subscribed channel:** `settings`
 
-- Each of the fields above triggers a re-read on change.
-
-### Hash: `gps`
-
-**Fields read:**
-
-- `active` - Polled by pm-service (every 30 s, immediate first check) as the proxy for "the wall clock has been bootstrapped from GPS". modem-service calls `chronyc settime` in the same loop iteration that flips `gps.active` to `true` on a valid fix. The scheduler latches this signal — once observed `true`, the wall-clock validity gate stays open even if the GPS fix is later lost (chrony retains the bootstrap). NTP-only scooters with a broken or absent GPS receiver would never flip this; that's a documented limitation.
+- `pm.hibernation-timer` - Notification when the hibernation timer setting changes
+- `pm.default-state` - Notification when the default power state setting changes
 
 ### Hash: `system`
 
@@ -125,8 +103,6 @@ pm-service subscribes to the `power:inhibits` channel and syncs entries into its
   - `hibernate` - Request hibernation
   - `hibernate-manual` - Manual hibernation (user-initiated)
   - `hibernate-timer` - Timer-based hibernation
-  - `hibernate-for:<seconds>` - Ad-hoc hibernate-for. The integer suffix is the wake-timer duration in seconds (clamped to `pm.wake-timer-max-seconds`).
-  - `hibernate-cancel` - Return target to `run` and disarm any pending wake timer.
   - `reboot` - System reboot
 
 - `scooter:governor` - CPU governor commands
@@ -141,14 +117,9 @@ pm-service subscribes to the `power:inhibits` channel and syncs entries into its
 
 ### Hash subscriptions (field updates)
 
-- `vehicle` -> `state` - Vehicle state monitoring (stand-by, parked, etc.); also drives scheduled-hibernation deferral and the last-ditch standby pre-filter
-- `battery:0` -> `state`, `present`, `charge` - Battery slot 0 state monitoring (idle, active, charging) plus `present`/`charge` for the last-ditch hibernate inputs
-- `battery:1` -> `state`, `present`, `charge` - Battery slot 1 state monitoring plus `present`/`charge` for the last-ditch hibernate inputs
-- `cb-battery` -> `charge` - CBB charge, last-ditch hibernate input
-- `aux-battery` -> `voltage` - Aux 12V rail voltage (millivolts), last-ditch hibernate input
-- `internet` -> `status` - Tracks connectivity (`connected` => online) for the `pm.suspend-when-online` guard
-- `power-manager` -> `wake-timer-armed`, `power-state-sent` - Wake-timer ACK and the nRF suspend-ACK from the nRF52 (both written by bluetooth-service)
-- `settings` -> `pm.suspend-when-online` (among the other `pm.*` fields above) - re-read on change
+- `vehicle` → `state` - Vehicle state monitoring (stand-by, parked, etc.)
+- `battery:0` → `state` - Battery slot 0 state monitoring (idle, active, charging)
+- `battery:1` → `state` - Battery slot 1 state monitoring (idle, active, charging)
 
 ## Power Manager States
 
@@ -157,7 +128,7 @@ The FSM has these internal states:
 - `running` - Normal operation
 - `pre-suspend` - Waiting out the pre-suspend delay (natural suspend path only); publishes `<target>-pending` to Redis (e.g. `suspending-pending`)
 - `suspend-imminent` - Suspend imminent timer running; publishes `suspending-imminent`
-- `low-power-imminent` - Generic prep state for any non-suspend low-power transition (hibernate, hibernate-manual, hibernate-timer, hibernate-for, reboot); the published Redis label is target-derived (e.g. `hibernating-for-imminent`)
+- `hibernate-imminent` - Hibernate/reboot imminent timer running
 - `waiting-inhibitors` - Waiting for blocking inhibitors to clear
 - `issuing-low-power` - Power command issued to systemd
 - `suspended` - System has returned from suspend (transient)
@@ -172,13 +143,11 @@ Redis-published `power-manager state` values:
 | hibernate-imminent | `hibernating-imminent` |
 | hibernate-manual-imminent | `hibernating-manual-imminent` |
 | hibernate-timer-imminent | `hibernating-timer-imminent` |
-| hibernate-for-imminent | `hibernating-for-imminent` |
 | reboot-imminent | `reboot-imminent` |
 | issuing suspend | `suspending` |
 | issuing hibernate | `hibernating` |
 | issuing hibernate-manual | `hibernating-manual` |
 | issuing hibernate-timer | `hibernating-timer` |
-| issuing hibernate-for | `hibernating-for` |
 | issuing reboot | `reboot` |
 
 See [States Documentation](../states/README.md) for complete state machine.
@@ -207,7 +176,7 @@ See [nRF Power Management](../nrf/power-management.md) for details.
 
 - **Unit file:** `librescoot-pm.service` (installed to systemd system directory)
 - **Binary location:** `/usr/bin/pm-service`
-- **Started by:** systemd at boot (requires `valkey.service`; `redis.service` before Librescoot 1.2)
+- **Started by:** systemd at boot (requires redis.service)
 - **Restart policy:** on-failure with 5 second delay
 - **User/Group:** root (required for systemd power operations)
 
@@ -232,7 +201,7 @@ These delays allow services to complete operations before power down.
 
 ### Default Power State
 
-The `-default-state` option sets the target power state at startup:
+The `-default-state` option sets the target power state at startup, but only as a fallback: if `settings pm.default-state` holds a valid value it wins, and a later change to that setting updates the default at runtime.
 
 - `run` - No automatic power transitions
 - `suspend` - Allow suspend when vehicle is in stand-by (default)
@@ -243,7 +212,7 @@ The `-default-state` option sets the target power state at startup:
 
 ### Hibernation Timer
 
-- **Configuration:** Via `-hibernation-timer` option (duration) or `settings pm.hibernation-timer` Redis field (seconds)
+- **Configuration:** Via `-hibernation-timer` option (duration) or the `settings` hash field `pm.hibernation-timer` (seconds)
 - **Default:** 3 days (72 hours)
 - **Purpose:** Auto-hibernate after extended inactivity
 - **Activation:** Timer starts when vehicle leaves `ready-to-drive`; stops when vehicle re-enters `ready-to-drive`
@@ -340,90 +309,6 @@ The hash is replaced atomically on every change.
 8. Issues systemd `poweroff` command
 9. System powers down
 
-### Hibernate-for (nRF-driven scheduled wake)
-
-The `hibernate-for` family of commands hibernates the system for a specific duration and relies on the nRF52 to wake the iMX6 back up. The wake source is independent of the iMX6's own RTC because `systemctl poweroff` fully cuts iMX6 power; only the nRF52 keeps running during hibernation.
-
-#### Ad-hoc
-
-```bash
-redis-cli LPUSH scooter:power "hibernate-for:300"   # hibernate for 5 minutes
-redis-cli LPUSH scooter:power "hibernate-cancel"    # abort and disarm
-```
-
-`lsc hibernate-for <duration>` is a convenience wrapper. Over BLE, mobile apps can issue `pm:hibernate-for <duration>` / `pm:hibernate-cancel` via the extended-command channel.
-
-#### Scheduled
-
-Cron-driven schedule, defined entirely through settings:
-
-```bash
-lsc settings set pm.scheduled-hibernate-cron "0 22 * * *"
-lsc settings set pm.scheduled-hibernate-duration 8h
-lsc settings set pm.scheduled-hibernate-enabled true
-```
-
-Wake-by semantics: the cron fire time + duration is treated as the desired wake-by wall-clock target. If the scooter is in `stand-by` (locked, idle) at fire time, the hibernation goes out immediately with that remaining-time value. If the scooter is in `parked`, `ready-to-drive`, or any other state, the request is **deferred** until the next transition into `stand-by`. The wake-by time is preserved across the defer, so a `22:00 + 8h` schedule still wakes at `06:00` even if the user locks at `23:00`. If the target time has already passed by the time `stand-by` is reached, the pending fire is dropped with a `Pending wake target already in the past on standby; dropping` log line.
-
-#### Wake-timer arm-and-ACK flow
-
-Both flows go through the same FSM transitions as `hibernate-manual` (event `EvPowerHibernateFor`), with an extra arm-and-block step around the systemd call:
-
-```
-EnterLowPowerImminent       Publishes wake-timer-seconds=<N> on power-manager
-        │                   (HSET + PUBLISH)
-        ▼
-suspend-imminent timer (5 s default)
-        │
-        ▼
-EnterWaitingInhibitors
-        │
-        ▼
-EnterIssuingLowPower        Blocks for wake-timer-armed=true on power-manager,
-                            up to pm.wake-timer-ack-timeout (default 10 s).
-        │
-        ├─ on ACK → logind PowerOff
-        └─ on timeout → emit EvPowerRun, abort
-```
-
-bluetooth-service is the bridge: it watches `power-manager:wake-timer-seconds`, forwards the value to the nRF52 over UART (subtype 0x0805 under 0x0800), and writes `wake-timer-armed` back when the nRF52 echoes the ACK.
-
-The system never powers off without a confirmed wake source. If bluetooth-service is down or the nRF52 fails to ACK, the hibernation is aborted and the FSM returns to `running`.
-
-#### Time-sync gate
-
-The scheduler refuses to dispatch any cron occurrence until the wall clock has been confirmed plausible. A polling goroutine (immediate check + every 30 s) reads `gps.active`; once it observes `"true"`, the time-sync latch flips on permanently for the session. Reasoning:
-
-- The iMX6 boots with the system-image build timestamp seeded into the clock, so year-based heuristics ("is the clock recent?") falsely pass.
-- modem-service calls `chronyc settime` in the same loop iteration that flips `gps.active` to `true` on a valid GPS fix, so `gps.active=true` is a reliable proxy for "chrony has been bootstrapped". chrony.conf has `manual`, so settime samples accumulate, and `local stratum 1` is present (which is what makes `chronyc tracking` an unreliable gate on its own).
-- A `Scheduled hibernation fire suppressed: wall clock not time-synced` log line means the latch hasn't flipped yet.
-
-#### Clock-jump resilience
-
-A separate 30 s monitor loop in the scheduler compares monotonic elapsed vs wall-clock elapsed. A delta beyond ±60 s indicates a wall-clock jump (typical when chrony first converges from a wrong startup time). On jump:
-
-1. The cron entry is re-installed so the next-fire is recomputed against the new wall clock.
-2. Any pending deferred wake target is re-evaluated; if it's now in the past, the pending fire is dropped.
-
-### Last-ditch hibernate
-
-A safety feature that force-hibernates the scooter when it has lost enough reserve to risk a brown-out and no main battery is available to recover. pm-service watches the following hashes as inputs:
-
-- `cb-battery` -> `charge` - CBB charge percent
-- `aux-battery` -> `voltage` - aux 12V rail in millivolts
-- `battery:0` / `battery:1` -> `present` and `charge` - per-slot main battery presence and charge
-
-The trigger condition is level-triggered and evaluated inside the FSM guard (`IsLastDitchTriggered`) at transition time:
-
-- Both main slots unusable: a slot counts as missing when `present=false` OR `charge==0`. Both slots must be missing.
-- AND a depleted reserve: CBB charge below `lastDitchHibernateCBBThreshold` (50%) OR the aux rail latched low.
-
-Aux uses a Schmitt trigger to avoid thrash near the threshold: it latches low when voltage drops below `lastDitchHibernateAuxEnterMv` (11500 mV) and releases only once it rises back above `lastDitchHibernateAuxExitMv` (11700 mV). A reading of `-1` (unparseable / no reading yet) means "unknown" and suppresses its sub-condition; CBB and aux both default to unknown until first synced, and the two slot-present flags default to `true` so a missing first sync cannot fire the trigger.
-
-When the condition holds and the vehicle is in `stand-by`, a watcher enqueues `EvLastDitchCheck` carrying a plain `hibernate` target, so the regular priority guard and power-command path apply. The FSM can also route a wake-from-suspend straight into hibernate when the condition holds (for example the CBB drained during suspend-to-RAM). When the trigger fires, pm-service logs which reserve ran low with a `Last-ditch hibernate: no main battery, <reserve>` line, where `<reserve>` is `CBB=NN%`, `aux=NNNN mV`, or both.
-
-**Post-boot grace window:** the trigger is suppressed for the first `lastDitchHibernateBootGrace` (5 minutes) after pm-service starts. After waking from a last-ditch hibernation, Redis still holds the pre-hibernate battery state (slots absent, CBB low) until battery-service re-detects the pack, so firing on the seeded values would power the scooter straight back off before a freshly inserted battery is recognized. During the grace, a met condition is logged once with `Last-ditch hibernate condition met within boot grace; deferring up to <remaining>`. A timer re-evaluates the condition once the grace expires (so a genuinely battery-less scooter still hibernates, just not within the first 5 minutes), even if no further battery/CBB/aux update arrives in the meantime.
-
 ### Wakeup from Suspend
 
 1. Wakeup source triggers (serial port, RTC, etc.)
@@ -450,20 +335,20 @@ The service logs to journald. Common log patterns:
 **Power state changes:**
 
 - `Received power command: hibernate`
-- `FSM state transition: running -> low-power-imminent`
-- `Entering low-power-imminent state (target: hibernate)`
+- `FSM state transition: running -> hibernate-imminent`
+- `Entering hibernate-imminent state`
 - `Issuing poweroff command`
 
 **Inhibitors:**
 
 - `Redis inhibitor added: update-service (block) by update-service — downloading`
-- `Added inhibitor: default delay (delay) by pm-service for delay`
-- `Removed inhibitor: default delay (delay) by pm-service`
+- `New inhibitor connected: @`
+- `Inhibitor disconnected: @`
 
 **Wakeup:**
 
 - `Wakeup detected with reason: 45`
-- `RTC wakeup detected (IRQ 45), using fast path`
+- `RTC wakeup detected, using fast path`
 - `Publishing wakeup source: 45`
 
 **CPU governor:**
@@ -477,7 +362,7 @@ Use `journalctl -u librescoot-pm.service` to view logs.
 ## Dependencies
 
 - **systemd** - For power state commands (suspend, poweroff, reboot)
-- **D-Bus** - For systemd communication
+- **systemctl** - Power commands are issued by exec'ing `systemctl suspend` / `systemctl poweroff` / `systemctl reboot`; pm-service makes no D-Bus calls of its own
 - **Redis server** - For state coordination and service communication
 - **vehicle-service** - Monitors `vehicle state` for power transition triggers
 - **battery-service** - Monitors `battery:0` and `battery:1` state
@@ -491,7 +376,7 @@ Use `journalctl -u librescoot-pm.service` to view logs.
 **FSM (`internal/fsm/definition.go`, `internal/fsm/types.go`)**
 
 - Defines all states, events, and transitions using librefsm
-- States: `running`, `pre-suspend`, `suspend-imminent`, `low-power-imminent`, `waiting-inhibitors`, `issuing-low-power`, `suspended`
+- States: `running`, `pre-suspend`, `suspend-imminent`, `hibernate-imminent`, `waiting-inhibitors`, `issuing-low-power`, `suspended`
 - Priority-based transition guards
 
 **Inhibitor Manager (`internal/inhibitor/inhibitor.go`)**
@@ -508,15 +393,8 @@ Use `journalctl -u librescoot-pm.service` to view logs.
 **Hibernation Timer (`internal/hibernation/timer.go`)**
 
 - Tracks whether vehicle is in an idle state (not `ready-to-drive`)
-- Configurable timer duration (default 3 days); set to 0 to disable. A non-zero value below `MinTimerSeconds` (300 s) is clamped up to 300 s.
+- Configurable timer duration (default 3 days); set to 0 to disable
 - Fires `EvHibernationTimerExpired` into the FSM on expiry
-
-**Hibernation Scheduler (`internal/hibernation/scheduler.go`)**
-
-- Cron-driven scheduler for `pm.scheduled-hibernate-*` settings (uses `github.com/robfig/cron/v3`, standard 5-field parser)
-- Latches a wall-clock validity gate based on `gps.active`; suppresses fires until first observed `"true"`
-- Defers cron fires while the vehicle is not in `stand-by` and dispatches on the next standby transition with the remaining time until the original wake-by target
-- 30 s background monitor detects wall-clock jumps and rebuilds the cron entry / re-evaluates pending deferred wakes accordingly
 
 **Service Coordinator (`internal/service/service.go`)**
 
@@ -530,7 +408,7 @@ Use `journalctl -u librescoot-pm.service` to view logs.
 Power state transitions follow strict priority rules (highest to lowest):
 
 1. **run** - Cancels all lower priority states
-2. **hibernate-manual** / **hibernate-for** - Explicit user-initiated hibernation (brake + keycard, or `hibernate-for <duration>`)
+2. **hibernate-manual** - User-initiated hibernation (brake + keycard)
 3. **hibernate** - Low battery or explicit hibernate command
 4. **hibernate-timer** - Timer-based auto-hibernation
 5. **suspend/reboot** - Normal suspend or reboot operations
@@ -605,6 +483,7 @@ redis-cli LPUSH scooter:governor powersave
 **With settings-service:**
 
 - Reads `settings pm.hibernation-timer` for timer duration in seconds
+- Reads `settings pm.default-state` for the default power target state
 - Subscribes to settings changes for dynamic updates
 
 **With update-service:**
@@ -618,4 +497,4 @@ redis-cli LPUSH scooter:governor powersave
 - [nRF Power Management](../nrf/power-management.md) - Hibernation details
 - [Redis Operations](../redis/README.md) - Power manager hash fields
 - [Vehicle States](../states/README.md) - How vehicle state affects power management
-- [Librescoot Services](README.md) - Service overview
+- [LibreScoot Services](README.md) - Service overview

@@ -141,24 +141,12 @@ Unified extensible command/response channel for phone app interaction
 | `alarm:disarm` | Disarm alarm | `alarm:ok` |
 | `alarm:start` / `alarm:start:<N>` | Trigger alarm; duration in seconds, default from settings | `alarm:ok` |
 | `alarm:stop` | Stop active alarm | `alarm:ok` |
-| `pm:hibernate-for <duration>` | Hibernate for the given duration (Go syntax: `30s`, `10m`, `8h`); nRF52 wakes the iMX6 after the duration | `pm:ok` |
-| `pm:hibernate-cancel` | Cancel a pending hibernate-for and disarm the wake timer | `pm:ok` |
 | `status:maps-available` | Query if offline maps are installed | `status:maps-available:true` or `false` |
 | `status:navigation-available` | Query if routing engine is available | `status:navigation-available:true` or `false` |
 | `cap:list` | Enumerate supported capability categories | `cap:count:<n>` then `cap:<name>` per category |
 | `cap:<category>` | List commands for a category | `cap:<category>:count:<n>` then `cap:<category>:<command>` per command |
 
 Error responses follow the pattern `<prefix>:error:<details>`.
-
-### OTA Transfer Service (9a590500)
-
-Firmware bundle transfer from the phone to the scooter (MDB and DBC updates over BLE). Windowed, resumable, integrity-checked; the nRF forwards these characteristics verbatim to bluetooth-service. See [BLE OTA Firmware Transfer](ota-transfer.md) for the full protocol.
-
-| Characteristic | Description | Values |
-|---------------|-------------|---------|
-| 9a590501 | OTA Data (write w/o response, max 244 B) | `[offset:u32 LE][chunk ≤ 240 B]` |
-| 9a590502 | OTA Control (write, max 128 B) | START / COMPLETE / ABORT / STATUS_REQ messages |
-| 9a590503 | OTA Status (read+notify, max 64 B) | START_ACK / ACK / COMPLETE_ACK / INSTALL_PROGRESS / ABORT_ACK / ERROR messages |
 
 ### Scooter Info Service (9a59a040)
 

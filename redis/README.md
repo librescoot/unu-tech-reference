@@ -2,7 +2,7 @@
 
 ## Connection Details
 
-The scooter runs the datastore on the MDB accessible at:
+The scooter runs a Redis instance on the MDB accessible at:
 
 - Host: 192.168.7.1  
 - Port: 6379
@@ -11,19 +11,6 @@ Local connection command:
 ```bash
 redis-cli -h 192.168.7.1 -p 6379
 ```
-
-### Redis or Valkey - Librescoot Only
-
-Librescoot 1.2 replaced Redis with Valkey 9 (wrynose's meta-oe ships it; the
-tuned config was ported over directly). It speaks the same protocol on the same
-port and `redis-cli` remains as a compat symlink, so everything documented here
-applies unchanged, as do the `--redis-*` flags across the services.
-
-What did change is the systemd unit name: service units now order against
-`valkey.service`, not `redis.service`. Anything that hardcodes the old unit name
-will not find it on 1.2 or later.
-
-Stock ScooterOS and Librescoot 1.1 and earlier still run Redis.
 
 ## Key Structure
 
@@ -49,7 +36,7 @@ hgetall vehicle
 | brake:right | "on"/"off" | Right brake state | "off" |
 | blinker:switch | "left"/"right"/"both"/"off" | Blinker switch position | "off" |
 | blinker:state | "on"/"off" | Blinker active state | "off" |
-| state | "stand-by"/"parked"/"hop-on"/"hop-on-learning"/"ready-to-drive"/"waiting-seatbox"/"shutting-down"/"updating"/"waiting-hibernation"/"waiting-hibernation-seatbox"/"waiting-hibernation-confirm" | Vehicle operating state | "stand-by" |
+| state | "init"/"stand-by"/"parked"/"hop-on"/"hop-on-learning"/"ready-to-drive"/"waiting-seatbox"/"shutting-down"/"updating"/"waiting-hibernation"/"waiting-hibernation-advanced"/"waiting-hibernation-seatbox"/"waiting-hibernation-confirm" | Vehicle operating state | "stand-by" |
 | auto-standby-deadline | integer (Unix timestamp) | When auto-standby will trigger (only present when timer active) | "1734567890" |
 
 ### Engine ECU (`engine-ecu`)
@@ -61,28 +48,14 @@ hgetall engine-ecu
 |-------|------|-------------|----------|
 | kers-reason-off | string | Reason KERS is disabled | "none" |
 | kers | "on"/"off" | KERS active state | "on" |
-| boost | "on"/"off" | Boost mode state | "off" |
-| kers-accepted-voltage | integer (mV) | EBS regen voltage cap the ECU accepted, echoed after clamping (Bosch) | "0" |
-| kers-accepted-current | integer (mA) | EBS regen current limit the ECU accepted (Bosch) | "0" |
-| regen-available | "on"/"off" | Derived: can regen happen right now | "on" |
-| regen-reason | string | Derived: none/cold/hot/off/full | "none" |
-| regen-expected | integer (mA) | Derived: expected regen current envelope (0 on non-Bosch) | "0" |
 | motor:voltage | integer (mV) | Motor voltage | "52140" |
-| motor:current | integer (mA) | Motor current (signed; negative during regen) | "0" |
-| power | integer (mW) | Instantaneous power | "0" |
-| energy:consumed | integer (mWh) | Cumulative energy consumed | "0" |
-| energy:recovered | integer (mWh) | Cumulative energy recovered via regen | "0" |
+| motor:current | integer (mA) | Motor current | "0" |
 | rpm | integer | Motor RPM | "0" |
-| speed | integer (km/h) | Vehicle speed (calibrated) | "0" |
-| raw-speed | integer (km/h) | Raw speed before calibration | "0" |
+| speed | integer (km/h) | Vehicle speed | "0" |
 | throttle | "on"/"off" | Throttle state | "off" |
-| brake | "on"/"off" | Brake state | "off" |
-| gear | integer | Current gear (1-3, 0 if unknown) | "1" |
 | fw-version | hex string | ECU firmware version | "0445400C" |
 | odometer | integer (m) | Total distance | "632900" |
 | temperature | integer (°C) | ECU temperature | "16" |
-| fault:code | integer (32-bit) | Current fault code (0 when no fault) | "0" |
-| fault:description | string | Active fault description (empty when no fault) | "" |
 
 ### Battery Management (`battery:0` and `battery:1`)
 ```
@@ -119,7 +92,7 @@ hgetall aux-battery
 | charge | integer (%) | Battery charge level | "25" |
 | charge-status | string | Charging status | "not-charging" |
 
-### Connectivity Battery Box (`cb-battery`)
+### Connectivity Battery (`cb-battery`)
 ```
 hgetall cb-battery
 ```
@@ -166,9 +139,6 @@ hgetall system
 | environment | string | System environment | "production" |
 | nrf-fw-version | string | NRF firmware version | "v1.12.0" |
 | dbc-version | string | Dashboard computer version | "v1.15.0+430553" |
-| keycard-master-count | integer | Master keycards enrolled, written by keycard-service | "1" |
-| keycard-authorized-count | integer | Authorized keycards enrolled, written by keycard-service | "3" |
-| usb0-gate | string | This boot's usb0 gate decision, written by vehicle-service: `open` (link held up) or `closed` (link tracks `dashboard:power`). Absent until vehicle-service resolves the gate. | "closed" |
 
 ### Power Management (`power-manager`)
 ```
@@ -182,9 +152,6 @@ hgetall power-manager
 | nrf-reset-count | integer | nRF reset counter | "2" |
 | nrf-reset-reason | hex string | nRF reset reason code | "0x00000001" |
 | hibernate-level | string | Hibernation level | "L1"/"L2" |
-| wake-timer-seconds | integer | Requested nRF52 wake-timer duration in seconds (`0` = disarm). Written by pm-service before hibernate-for poweroff. | "300" |
-| wake-timer-armed | "true"/"false" | nRF52 ACK echo published by bluetooth-service after the wake-timer arm request | "true" |
-| power-state-sent | string | nRF52 suspend-ACK published by bluetooth-service. pm-service gates entering suspend on this reaching "suspending". | "suspending" |
 
 ### Power Manager Busy Services (`power-manager:busy-services`)
 ```
@@ -216,9 +183,8 @@ hgetall internet
 | Field | Type | Description | Example |
 |-------|------|-------------|----------|
 | modem-state | string | Modem power state | "off" |
-| connectivity | string | Debounced connectivity classification (see below) | "connected" |
 | status | string | Connection status | "disconnected" |
-| unu-cloud | string | Cloud connection status; written by whichever cloud client runs (`radio-gaga` or `uplink-service`). Field absent = no cloud client configured (de-clouded); the dashboard hides the cloud icon in that case | "disconnected" |
+| unu-cloud | string | Cloud connection status | "disconnected" |
 | ip-address | string | IP address | "1.2.3.4" |
 | access-tech | string | Access technology | "LTE" |
 | signal-quality | integer | Signal strength (0-100) | "0" |
@@ -263,14 +229,7 @@ Available commands:
 - `advertising-start-with-whitelisting` - Start BLE advertising with whitelist filtering (only paired devices can connect)
 - `advertising-restart-no-whitelisting` - Restart advertising without whitelist restrictions (any device can connect)
 - `advertising-stop` - Stop BLE advertising completely
-- `delete-bond` - Remove a single paired/bonded device
 - `delete-all-bonds` - Remove all paired/bonded devices from the system
-- `remove` - Remove the currently connected device
-- `ltc-enable` / `ltc-disable` - Enable/disable the LTC4020 aux charger
-- `ltc-force-enable` / `ltc-force-disable` - Force the LTC4020 aux charger on/off (bypass safety gating)
-- `ltc-status` - Query the LTC4020 aux charger state
-- `data-stream-sync` - Re-push the current data-stream state to the nRF52
-- `firmware-update` - Trigger an nRF52 firmware update from `/usr/share/nrf-fw/`
 
 #### Bluetooth Event Subscriptions
 
@@ -322,63 +281,40 @@ hgetall keycard
 
 **Note**: This hash expires after 10 seconds. Authentication is published on the `keycard` channel (the field name `authentication` is sent as the message payload), not on a separate `keycard:authentication` channel.
 
-Keycard management commands go through the `scooter:keycard` list:
+### Navigation System
+The navigation system uses two related hashes:
 
-```bash
-redis-cli -h 192.168.7.1 LPUSH scooter:keycard learn:start
-```
-
-**Available commands**: `list`, `count`, `add:<uid>`, `remove:<uid>`, `set-master:<uid>` (`NONE` to disable), `learn:start`, `learn:stop`, `learn:master:start`, `learn:master:stop`, `reset`
-
-Command results land in the `keycard` hash field `command-result`. During teach-in flows, per-tap progress events (`card-learned:<uid>`, `master-learned:<uid>`, `mode-entered:master`, ...) are published on the `keycard:events` channel. See [keycard-service documentation](../services/librescoot-keycard.md).
-
-### Navigation (`navigation`)
+Main Navigation Status (`navigation`)
 ```
 hgetall navigation
 ```
 
-Destination for the dashboard's navigation mode. Written by bluetooth-service (BLE nav commands) and `lsc nav`; consumed by scootui-qt.
+| Field | Type | Description | Example |
+|-------|------|-------------|----------|
+| status | string | Navigation status | "unset" |
+
+Navigation Coordinates (`navigation:coord`)
+```
+hgetall navigation:coord
+```
 
 | Field | Type | Description | Example |
 |-------|------|-------------|----------|
-| destination | "lat,lon" | Destination coordinates (6 decimal places) | "52.520008,13.404954" |
-| latitude | string | Destination latitude | "52.520008" |
-| longitude | string | Destination longitude | "13.404954" |
-| address | string | Human-readable destination name (optional) | "Alexanderplatz" |
-| timestamp | string | Last destination update | "2026-06-11T12:00:00Z" |
-
-Clearing navigation sets all fields to empty strings rather than deleting them, so hash watchers get notified.
+| location | ? | probably packed coords? | "378993323372" |
 
 ### GPS Data (`gps`)
 ```
 hgetall gps
 ```
 
-Published by modem-service from gpsd data.
-
 | Field | Type | Description | Example |
 |-------|------|-------------|----------|
-| latitude | string | Current latitude (6 decimal places) | "52.520008" |
-| longitude | string | Current longitude (6 decimal places) | "13.404954" |
-| altitude | string | Current altitude in meters (6 decimal places) | "34.500000" |
-| speed | string | Speed in km/h (6 decimal places) | "0.000000" |
-| course | string | Course over ground in degrees (6 decimal places) | "0.000000" |
-| timestamp | string | GPS timestamp (RFC3339) | "2026-06-11T12:00:00Z" |
-| updated | string | When the hash was last refreshed (RFC3339) | "2026-06-11T12:00:00Z" |
-| state | string | GPS state ("off"/"searching"/"fix-established"/"error") | "fix-established" |
-| mode | string | GNSS positioning mode (currently always "standalone") | "standalone" |
-| fix | string | Fix mode ("none"/"2d"/"3d") | "3d" |
-| snr | float | Mean signal-to-noise ratio (dBHz) | "32.4" |
-| hdop / vdop / pdop | float | Horizontal / vertical / position dilution of precision | "1.2" |
-| eph / eps / ept | float | Estimated position (m) / speed (m/s) / time (s) error | "8.5" |
-| satellites-used | integer | Satellites used in the fix | "9" |
-| satellites-visible | integer | Satellites in view | "14" |
-| active | "true"/"false" | GPS has a valid fix | "true" |
-| connected | "true"/"false" | Connected to gpsd | "true" |
-
-The hash is updated silently; a pub/sub notification on `timestamp` is published only when GPS recovers after an outage. For a continuous stream, subscribe to the **`gps:tpv`** channel, which carries the full snapshot (same fields, JSON) for every fix.
-
-GPS has no commands; modem-service manages it automatically (see `scooter:modem` below). The legacy `gps:raw` and `gps:filtered` hashes no longer exist.
+| latitude | string | Current latitude (6 decimal places) | "0.000000" |
+| longitude | string | Current longitude (6 decimal places) | "0.000000" |
+| altitude | string | Current altitude (6 decimal places) | "0.000000" |
+| timestamp | string | GPS timestamp (ISO format) | "0000-00-00T00:00:00" |
+| speed | string | GPS speed (6 decimal places) | "0.000000" |
+| course | string | GPS course (6 decimal places) | "0.000000" |
 
 ### Over-the-Air Updates (`ota`)
 ```
@@ -405,35 +341,29 @@ hgetall settings
 | cloud:key | string | Cloud key path | "/etc/keys/unu-cloud-production.pub" |
 | cloud:mqtt-url | string | MQTT server URL | "zeus-iot-v3.unumotors.com:8883" |
 
-#### Librescoot Additional Settings
+#### LibreScoot Additional Settings
 
-Librescoot adds persistent settings managed by the settings-service:
+LibreScoot adds persistent settings managed by the settings-service:
 
 | Field | Type | Description | Example |
 |-------|------|-------------|----------|
 | alarm.enabled | "true"/"false" | Alarm system enabled | "true" |
 | alarm.honk | "true"/"false" | Horn enabled during alarm | "false" |
-| alarm.duration | integer (sec) | Alarm duration in seconds | "30" |
+| alarm.duration | integer (sec) | Alarm duration in seconds | "60" |
 | alarm.seatbox-trigger | "true"/"false" | Trigger alarm on unauthorized seatbox opening | "true" |
-| alarm.trigger.motion | "true"/"false" | Motion is an alarm trigger source (default true) | "true" |
-| alarm.trigger.buttons | "true"/"false" | Brake, horn and seatbox button presses are an alarm trigger source (default true) | "true" |
-| alarm.trigger.handlebar | "true"/"false" | Handlebar lock sensor and position are an alarm trigger source (default false; muted for 90 s after arming) | "false" |
 | alarm.hairtrigger | "true"/"false" | Hair trigger mode (immediate short alarm on first motion) | "false" |
 | alarm.hairtrigger-duration | integer (sec) | Hair trigger alarm duration in seconds | "3" |
 | alarm.l1-cooldown | integer (sec) | Level 1 cooldown duration in seconds | "15" |
-| battery.ignore-seatbox | "true"/"false" | Ignore seatbox state for battery management | "false" |
+| scooter.battery-keep-active-on-seatbox-open | "true"/"false" | Keep a running battery active when the seatbox opens instead of deactivating it | "false" |
 | cellular.apn | string | Cellular APN | "internet.provider.com" |
-| hibernation-timer | integer (sec) | Hibernation timeout (0=disabled) | "259200" |
-| pm.hibernation-timer | integer (sec) | New name for hibernation-timer (idle-driven auto-hibernate; 0=disabled) | "259200" |
-| pm.default-state | string | Default target power state when idle (run / suspend) | "suspend" |
-| pm.suspend-when-online | "true"/"false" | With no main battery present, allow suspend even while online (default true; set false to keep an online scooter awake). A present/active main battery always blocks suspend regardless | "false" |
-| pm.scheduled-hibernate-enabled | "true"/"false" | Enable cron-driven scheduled hibernation | "true" |
-| pm.scheduled-hibernate-cron | string | 5-field cron expression for scheduled hibernation | "0 22 * * *" |
+| cellular.sim-pin | string | PIN for SIM unlock and lock-enable (4-8 digits, empty = leave SIM as-is) | "1234" |
+| pm.hibernation-timer | integer (sec) | Hibernation timeout (0=disabled) | "432000" |
+| pm.scheduled-hibernate-enabled | "true"/"false" | Enable cron-driven scheduled hibernation (schema-defined; pm-service does not act on it in v1.0.5) | "false" |
+| pm.scheduled-hibernate-cron | string | 5-field cron expression for scheduled hibernation (empty disables) | "0 22 * * *" |
 | pm.scheduled-hibernate-duration | duration | Wake-by duration applied at each cron fire | "8h" |
-| pm.wake-timer-max-seconds | integer (sec) | Safety cap on a single hibernate-for / scheduled wake-timer arm | "604800" |
-| pm.wake-timer-ack-timeout | duration | How long pm-service waits for the nRF52 wake-timer ACK before aborting hibernation | "10s" |
+| pm.wake-timer-max-seconds | integer (sec) | Safety cap on the wake-timer duration sent to the nRF52 | "604800" |
+| pm.wake-timer-ack-timeout | duration | How long pm-service waits for the nRF52 wake-timer ACK | "10s" |
 | scooter.auto-standby-seconds | integer (sec) | Auto-lock timeout when parked (0=disabled) | "0" |
-| scooter.lock-on-bluetooth-disconnect-seconds | integer (sec) | Lock (enter stand-by) this many seconds after the connected phone's Bluetooth disconnects while parked (0=disabled; floored at 5 when set) | "0" |
 | scooter.brake-hibernation | "enabled"/"disabled" | Enable brake lever hibernation | "enabled" |
 | updates.mdb.channel | string | MDB update channel | "nightly" |
 | updates.mdb.check-interval | duration | MDB update check interval ("never" to disable) | "6h" |
@@ -451,8 +381,8 @@ Librescoot adds persistent settings managed by the settings-service:
 | dashboard.show-clock | string | Clock visibility (always/never) | "always" |
 | dashboard.show-gps | string | GPS indicator visibility (always/active-or-error/error/never) | "error" |
 | dashboard.show-bluetooth | string | Bluetooth indicator visibility | "active-or-error" |
-| dashboard.show-cloud | string | Cloud indicator visibility (hidden unless `internet[unu-cloud]` is present) | "active-or-error" |
-| dashboard.show-internet | string | Internet indicator visibility (gated on `internet[connectivity]`) | "active-or-error" |
+| dashboard.show-cloud | string | Cloud indicator visibility | "error" |
+| dashboard.show-internet | string | Internet indicator visibility | "always" |
 | dashboard.battery-display-mode | string | Battery display mode (percentage/range) | "percentage" |
 | dashboard.map.type | string | Map tile source (online/offline) | "offline" |
 | dashboard.map.render-mode | string | Map rendering mode (vector/raster) | "raster" |
@@ -460,49 +390,9 @@ Librescoot adds persistent settings managed by the settings-service:
 | dashboard.mode | string | Default screen mode (speedometer/navigation) | "speedometer" |
 | dashboard.valhalla-url | string | Valhalla routing service endpoint | "http://localhost:8002/" |
 
-The full settings schema (types, defaults, ranges, labels) is served as a JSON document in the `settings:schema` key by settings-service:
-
-```bash
-redis-cli -h 192.168.7.1 GET settings:schema
-```
-
 See [settings-service documentation](../services/librescoot-settings.md) for details on persistent settings.
 
-#### Settings Overlay Commands (`settings:overlay`) - Librescoot Only
-
-Apply or clear a named settings overlay. Overlays override live `settings` values in memory without ever writing them to `/data/settings.toml`; clearing restores the user's base values.
-
-```bash
-# Enable Service mode
-redis-cli -h 192.168.7.1 LPUSH settings:overlay apply:service
-
-# Disable Service mode
-redis-cli -h 192.168.7.1 LPUSH settings:overlay clear:service
-```
-
-**Available commands**: `apply:service`, `clear:service`
-
-**Service mode overrides** (applied in memory only, not persisted):
-
-| Setting | Overlay value |
-|---------|---------------|
-| `scooter.auto-standby-seconds` | `0` |
-| `pm.hibernation-timer` | `0` |
-| `pm.default-state` | `run` |
-| `alarm.enabled` | `false` |
-| `scooter.usb0-policy` | `always-on` |
-| `dashboard.mode` | `debug` |
-| `scooter.handlebar-unlocked` | `true` |
-
-Service mode persists across reboots until cleared. The base values in `/data/settings.toml` are never modified.
-
-**Status field:** `settings` hash field `dashboard.service-mode-active` = `"true"`/`"false"` (read-only; written by settings-service).
-
-**New setting `scooter.handlebar-unlocked`** (bool, transient - only set via overlay): vehicle-service releases the handlebar latch and suppresses auto re-lock while `"true"`.
-
-**CLI:** `lsc service-mode on|off|status` (alias: `lsc servicemode`)
-
-### Alarm System (`alarm`) - Librescoot Only
+### Alarm System (`alarm`) - LibreScoot Only
 
 ```
 hgetall alarm
@@ -522,74 +412,52 @@ hgetall alarm
 
 See [alarm-service documentation](../services/librescoot-alarm.md) for details.
 
-### Motion / IMU (`motion`) - Librescoot Only
+### BMX055 Motion Sensor (`bmx`) - LibreScoot Only
 
 ```
-hgetall motion
+hgetall bmx
 ```
-
-motion-service owns the BMX055 9-axis IMU and publishes its state here. The legacy `bmx` hash and `scooter:bmx` command list are gone.
 
 | Field | Type | Description | Example |
 |-------|------|-------------|----------|
-| initialized | "true"/"false" | Sensors are up | "true" |
-| streaming | "enabled"/"disabled" | Telemetry streaming state | "enabled" |
-| polling-rate-hz | integer | Sensor poll rate | "10" |
-| current-profile | string | Chip profile (idle/armed-awake/armed-hibernation/level1/waiting) | "idle" |
-| interrupt / pin / mode / bandwidth / threshold / duration | string | Motion-engine config as programmed, written by the profile controller on every apply | "enabled" / "both" / "any-motion" / "0x0A" / "0x06" / "0x03" |
-| last-interrupt-timestamp | integer (unix-ms) | Last motion interrupt | "1777996408778" |
-| error-count / last-error | string | Diagnostic counters | "0" |
-| wake-cause | integer (unix-ms) | Written once at startup if the chip woke the system from hibernation; alarm-service reads + deletes it | "1777996408778" |
-| heading | integer (0-359°) | Magnetic heading | "192" |
-| heading-deg / heading-accuracy / heading-tilt / heading-tilt-comp | string | Smoothed heading, 1-σ accuracy, tilt, tilt-compensation flag | "192.50" |
+| initialized | "true"/"false" | BMX sensor initialization status | "true" |
+| interrupt | string | Interrupt status | "disabled" |
+| sensitivity | string | Current sensitivity level | "none" |
+| pin | string | Interrupt pin configuration | "none" |
 
-**Pub/sub channels:**
+alarm-service writes these four fields once at startup, with the fixed values
+shown above, and never updates them afterwards. They do not track the live
+BMX055 configuration, which the alarm state machine changes internally.
 
-- `motion:sensors` (10 Hz) - JSON sensor reading: `timestamp`, `accel`, `gyro`, optional `mag`, each axis as `{x, y, z, magnitude, unit}`
-- `motion:heading` (5 Hz) - JSON heading payload (`heading_deg`, `accuracy_deg`, `tilt_deg`, ...)
-- `motion:interrupt` - JSON motion event: `{"type": "edge"|"wake-hibernation", "timestamp": ..., "engine": "any-motion"|"slow-motion"}`
-- `motion:ready` - fired once at startup after the first profile-apply; payload is a unix-ms timestamp
+### Dashboard Backlight (`dashboard`) - LibreScoot Enhancement
 
-**RPC channel `motion:rpc`** (redis-ipc CallServer): methods `prepare-hibernation`, `get-calibration`, `clear-latch`, `soft-reset`, `set-polling`, `set-streaming`.
-
-`soft-reset` resets accel + gyro and then reprograms the current profile. It does not leave the chip at register defaults, since that would mean no motion detection on an armed scooter.
-
-The `sensitivity` field is gone. Sensitivity is a property of the applied profile, so `current-profile` plus `threshold` describe it. motion-service deletes the stale field at startup on units upgrading from an older build.
-
-Chip configuration is reactive: motion-service derives the profile from the `alarm` and `power-manager` hashes, consumers never write registers. The `bmx:interrupt` channel survives only as a relay: bluetooth-service publishes `wake-suspend` / `wake-hibernation` there when the nRF52 reports an accelerometer wake event.
-
-See [motion-service documentation](../services/librescoot-motion.md) for profiles, payload schemas, and the hibernation handshake.
-
-### Dashboard Backlight (`dashboard`) - Librescoot Enhancement
-
-Librescoot adds these fields to the dashboard hash:
+LibreScoot adds these fields to the dashboard hash:
 
 | Field | Type | Description | Example |
 |-------|------|-------------|----------|
-| brightness | float (lux) | Ambient light level from the OPT3001 | "42.00" |
-| backlight | integer | Current backlight brightness, 0 to 10240 | "9700" |
-| backlight-enabled | string | Override; "false" forces the backlight to 0 | "true" |
+| illumination | integer (lux) | Ambient light level | "42" |
+| backlight | integer | Current backlight brightness | "9700" |
+| brightness | integer (lux) | Alias for illumination | "42" |
 
-`dbc-backlight-service` on the DBC owns all three. It reads the OPT3001 through
-IIO itself, publishes the reading to `brightness`, maps it through a
-lux-to-brightness curve, and writes the level it applied to `backlight`. Each
-write is followed by a `PUBLISH dashboard <field>`.
+The `dbc-illumination-service` monitors the OPT3001 sensor and publishes to `illumination`.
+The `dbc-backlight-service` reads `illumination` and adjusts `backlight` automatically.
 
-`backlight` is an index into the interpolated step range the `pwm-backlight`
-device tree node exposes, not a raw duty cycle. `max_brightness` is 10240.
+### GPS State (`gps`) - LibreScoot Enhancement
 
-`backlight-enabled` is a hard override rather than a mode: false writes 0 and
-holds, true releases back to whatever the ambient level calls for. vehicle-service
-asserts it on entering parked and ready-to-drive, scootui-qt clears it for the
-hop-on lock overlay and the OTA and maintenance screens, and `lsc backlight on|off`
-drives it by hand. The mode itself lives in settings, as
-`dashboard.backlight-mode` (auto, low, medium, high).
+LibreScoot adds GPS state tracking:
 
-scootui-qt reads `brightness` for its automatic light/dark theme when
-`dashboard.theme` is `auto`, which is why the field keeps updating even while
-the backlight is overridden off or pinned to a fixed level.
+| Field | Type | Description | Example |
+|-------|------|-------------|----------|
+| state | string | GPS state | "fix-established" |
 
-### Modem Management (`modem`) - Librescoot Only
+**GPS states:**
+
+- `off` - GPS is disabled
+- `searching` - Actively searching for GPS signal
+- `fix-established` - Valid GPS fix obtained (2D or 3D)
+- `error` - GPS configuration or connection failed
+
+### Modem Management (`modem`) - LibreScoot Only
 
 ```
 hgetall modem
@@ -600,75 +468,19 @@ hgetall modem
 | power-state | string | Modem power state | "on" |
 | sim-state | string | SIM card state ("present"/"missing"/"locked"/"inactive") | "present" |
 | sim-lock | string | SIM lock status | "disabled" |
-| registration | string | Network registration state ("home"/"roaming"/"searching"/"denied"/"idle"/"unknown") | "home" |
 | operator-name | string | Network operator name | "T-Mobile" |
 | operator-code | string | Network operator code | "26201" |
 | is-roaming | "true"/"false" | Roaming status | "false" |
 | registration-fail | string | Registration failure reason | "" |
-| error-state | string | Consolidated error state ("ok"/"powered-off"/"sim-missing"/"sim-inactive"/"sim-locked"/"registration-denied"/"registration-failed"/"disconnected"/"no-modem"/"status-error") | "ok" |
-| pin-action | string | Outcome of the last SIM PIN reconcile ("unconfigured"/"ok"/"unlocked"/"lock-enabled"/"wrong-pin"/"low-retries-bail"/"puk-required"/"error") | "ok" |
-| apn-action | string | Outcome of the last APN reconcile ("no-sim"/"unconfigured"/"ok"/"applied"/"iccid-changed-cleared"/"error") | "ok" |
 
-### SMS (`sms` hash, `sms:received` / `sms:sent` streams) - Librescoot Only
+### Internet Connectivity (`internet`) - LibreScoot Enhancement
 
-Per-message SMS data lives on two Redis streams, each with a dedicated pub/sub
-channel of the same name; the `sms` hash only carries latest-value convenience
-state. Redis is not persistent on librescoot, so the streams are a live window
-(capped at 100 entries), not an archive.
-
-#### `sms` hash
-
-```
-hgetall sms
-```
-
-| Field | Type | Description | Example |
-|-------|------|-------------|----------|
-| state | string | Send state of the last outbound message ("idle"/"sending"/"error"), published as a `state` notification on the `sms` channel | "idle" |
-| last-sent-to | string | Recipient number of the last successfully sent SMS | "+4915112345678" |
-| last-sent-at | string | RFC 3339 timestamp the last send completed | "2026-07-15T09:30:00+02:00" |
-| last-received-from | string | Sender number of the last inbound SMS | "+4915112345678" |
-| last-received-text | string | Body of the last inbound SMS | "Hello" |
-| last-received-at | string | RFC 3339 timestamp the last inbound SMS arrived | "2026-07-15T09:30:00+02:00" |
-| unread-count | string | Inbound messages received since service start | "3" |
-
-The `last-received-*` fields are refreshed silently; the per-message
-notification is the dedicated `sms:received` channel below.
-
-#### `sms:received` stream + channel
-
-One stream entry per inbound message, fields `from`, `text`, `timestamp`
-(RFC 3339). Each entry is also PUBLISHed on the `sms:received` channel as
-JSON including its stream `id`:
-
-```
-SUBSCRIBE sms:received        # {"id":"1752...-0","from":"+4930...","text":"Hello","timestamp":"..."}
-XREAD STREAMS sms:received 0  # catch-up from the beginning of the window
-```
-
-A message is only deleted from modem storage after its XADD succeeds, so a
-Redis outage doesn't lose mail (the modem store buffers it and modem-service
-retries). Messages that arrived while the service was offline are drained on
-startup.
-
-#### `sms:sent` stream + channel
-
-One stream entry per terminal send outcome, fields `request-id` (the caller's
-`id` token from the `scooter:sms` payload, empty if none), `to`, `text`,
-`outcome` (`sent`/`error`), `error` (empty on success), `timestamp`. Each
-entry is also PUBLISHed on the `sms:sent` channel as JSON including its
-stream `id`.
-
-### Internet Connectivity (`internet`) - Librescoot Enhancement
-
-Librescoot adds modem health tracking:
+LibreScoot adds modem health tracking:
 
 | Field | Type | Description | Example |
 |-------|------|-------------|----------|
 | modem-health | string | Modem recovery state | "normal" |
 | sim-imsi | string | SIM IMSI | "262010123456789" |
-| reachability | string | Probe verdict: `ok`, `unreachable` (nothing answered but the local stack is healthy, the normal steady state on a restricted APN), `no-path` (local stack broken) | "ok" |
-| link-layer | string | Local stack assessment: `ok`, or `<failed-layer>` / `<failed-layer>: <reason>` | "ok" |
 
 **Modem health states:**
 
@@ -677,50 +489,9 @@ Librescoot adds modem health tracking:
 - `recovery-failed-waiting-reboot` - Recovery failed, waiting for reboot
 - `permanent-failure-needs-replacement` - Hardware failure
 
-**Connectivity classification (`connectivity`):**
+### OTA Updates (`ota`) - LibreScoot Enhancement
 
-modem-service folds modem state, SIM state, registration, the enable flag and
-health into a single debounced verdict. Consumers (e.g. the dashboard internet
-icon) use it to decide whether being offline is worth surfacing:
-
-- `connected` - modem connected, data path up
-- `disconnected` - enabled with a SIM present, but searching/registering/no signal (provisioned, currently down)
-- `disabled` - modem intentionally powered off by command
-- `no-sim` - SIM missing or inactive
-- `denied` - registration denied/failed, e.g. a carrier-deactivated SIM (debounced ~60s)
-- `failed` - modem broken/absent (health terminal)
-
-Hysteresis: `connected`->`disconnected` waits 3 min (ride out tunnels), `denied`
-waits 60 s before committing; `disabled`/`no-sim`/`failed` commit immediately.
-
-### Cellular Data Usage (`internet-usage`) - Librescoot Only
-
-Written by modem-service from the ModemManager bearer's byte counters. There is
-no channel notification: the totals move on every poll while data is flowing, so
-consumers poll the hash.
-
-| Field | Type | Description | Example |
-|-------|------|-------------|----------|
-| rx-bytes | integer | Bytes received over the cellular bearer since `since` | "1843729104" |
-| tx-bytes | integer | Bytes transmitted over the cellular bearer since `since` | "204118392" |
-| rx-bytes-roaming | integer | Part of `rx-bytes` that moved while roaming | "8110422" |
-| tx-bytes-roaming | integer | Part of `tx-bytes` that moved while roaming | "991200" |
-| since | string | RFC 3339 timestamp of when counting started | "2026-08-08T21:00:00Z" |
-| updated | string | RFC 3339 timestamp of the last write | "2026-08-09T07:31:04Z" |
-
-The totals are monotonic and survive both a bearer teardown and a reboot, so
-usage over a window is the difference between two readings; the vehicle does not
-model billing periods. The roaming fields are a subset of the totals rather than
-a separate pot, so home traffic is `rx-bytes - rx-bytes-roaming`.
-
-The counters are device-reported and not billing-grade, and are persisted at
-power transitions rather than on a timer, so a hard power cut can lose several
-hours of counted traffic. A `since` that has moved forward means the vehicle lost
-its stored total and restarted the baseline.
-
-### OTA Updates (`ota`) - Librescoot Enhancement
-
-Librescoot adds per-component update tracking:
+LibreScoot adds per-component update tracking:
 
 | Field | Type | Description | Example |
 |-------|------|-------------|----------|
@@ -738,71 +509,12 @@ Librescoot adds per-component update tracking:
 | error:dbc | string | DBC error type | "" |
 | error-message:mdb | string | MDB error message | "" |
 | error-message:dbc | string | DBC error message | "" |
-| download-abort-reason:{mdb,dbc} | string | Why a download was abandoned as too slow | "stalled" |
-| download-skip-checks:{mdb,dbc} | integer | Update checks still to be skipped before retrying | "4" |
-| heartbeat:{mdb,dbc} | integer (unix seconds) | Refreshed every 30s while an operation runs | "1786298400" |
-| preview-channel:{mdb,dbc} | string | Channel the last channel preview asked about | "stable" |
-| preview-status:{mdb,dbc} | string | Outcome of the last channel preview | "ready" |
-| preview-version:{mdb,dbc} | string | Release tag the preview resolved to (`ready` only) | "v1.4.2" |
-| preview-size:{mdb,dbc} | integer | Size of that release's full `.mender` artifact (`ready` only) | "401234432" |
-| status | string | Flat status, not namespaced, stock convention | "downloading-updates" |
-| update-type | string | Whether the flat status blocks use of the vehicle | "blocking" |
 
 **Update status values:** `idle`, `downloading`, `preparing`, `installing`, `pending-reboot`, `error`
 
-`status` and `update-type` are the non-namespaced pair from the stock convention,
-describing the vehicle rather than one board. Both components feed them and the least
-advanced one wins, so the pair only clears once neither board is busy. The MDB's
-update-service is the sole writer. They carry nothing the namespaced fields lack; read
-`status:{component}` instead. See
-[services/librescoot-update.md](../services/librescoot-update.md) for the full mapping.
-
-A download abandoned for being too slow returns the component to `idle`, not `error`,
-and records `download-abort-reason` plus `download-skip-checks`. `download-bytes` and
-`download-total` are preserved across such an abort so the partial's progress stays
-visible; the next attempt resumes from it.
-
-`heartbeat:{component}` proves an operation is still alive during stretches that write
-nothing else, such as the delta path's multi-minute waits between download attempts.
-A heartbeat that has stopped advancing while `status` is `downloading`, `preparing` or
-`installing` means the reporter is gone rather than merely quiet. `pending-reboot` is
-excluded: a DBC install ends there and the heartbeat legitimately stops until the next
-power cycle. An absent heartbeat is not a stale one either, since older images never
-wrote the field. See [services/librescoot-update.md](../services/librescoot-update.md)
-for the full caveats and for what vehicle-service actually does, which is not an age
-test.
-
-The `preview-*` fields answer a `preview-channel:<channel>` command and are unrelated
-to any update in flight: they say what a switch to that channel *would* fetch, and the
-update status fields are never touched by a preview. `preview-status` is `checking`,
-`ready`, `unavailable` (that channel carries nothing for this board's `variant_id`) or
-`error` (bad channel, or the release index could not be reached inside 20 seconds).
-`preview-channel` is echoed on every write so a reader can tell the answer it asked for
-from a stale one. All four are cleared at service start. Each component answers only for
-itself; a reader wanting the cost of a scooter-wide switch asks both and sums the sizes.
-The size is always the full artifact, because a channel switch has no delta base to
-patch against and so forces a full update regardless of
-`updates.{component}.method`.
-
 See [update-service documentation](../services/librescoot-update.md) for details.
 
-### BLE OTA Transfer Status (`ota:ble`) - Librescoot Only
-
-Written by bluetooth-service's OTA receiver while a phone pushes a firmware bundle over BLE (see [BLE OTA Firmware Transfer](../bluetooth/ota-transfer.md)):
-
-| Field | Type | Description | Example |
-|-------|------|-------------|----------|
-| state | string | Receiver state: `idle`, `receiving`, `installing` | "receiving" |
-| bundle-id | string | Bundle ID of the active session | "librescoot-nightly-20260701" |
-| component | string | Target board: `mdb`, `dbc` | "mdb" |
-| received-bytes | integer | In-order bytes received so far | "3145728" |
-| total-bytes | integer | Declared bundle size | "104857600" |
-| rate-bps | integer | Rolling transfer rate in bytes/second | "9200" |
-| updated-at | integer | Unix timestamp of last update | "1780000000" |
-
-Session fields (all but `state`/`updated-at`) are only present while a session is active.
-
-### Version Information - Librescoot Only
+### Version Information - LibreScoot Only
 
 #### MDB Version (`version:mdb`)
 
@@ -810,12 +522,7 @@ Session fields (all but `state`/`updated-at`) are only present while a session i
 hgetall version:mdb
 ```
 
-Contains all fields from `/etc/os-release` with lowercase keys (e.g., `version_id`, `build_id`), plus the board serial:
-
-| Field | Type | Description | Example |
-|-------|------|-------------|----------|
-| serial_number_real | string | Full i.MX6 OCOTP UID, `CFG1` concatenated with `CFG0`, lowercase hex | "3a1d59d4d1e145d2" |
-| serial_number | string | Decimal sum of `CFG0` and `CFG1`. Lossy, since the sum discards which fuse contributed what; prefer `serial_number_real` | "4496203686" |
+Contains all fields from `/etc/os-release` with lowercase keys (e.g., `version_id`, `build_id`).
 
 #### DBC Version (`version:dbc`)
 
@@ -823,104 +530,9 @@ Contains all fields from `/etc/os-release` with lowercase keys (e.g., `version_i
 hgetall version:dbc
 ```
 
-Contains all fields from `/etc/os-release` with lowercase keys, plus `serial_number_real` and `serial_number` as above.
+Contains all fields from `/etc/os-release` with lowercase keys.
 
-version-service populates these hashes on startup, as a oneshot unit per board
-(`version-service-mdb.service` passing `-hash version:mdb`,
-`version-service-dbc.service` passing `-hash version:dbc`; the MDB unit also
-orders itself after `valkey.service`, the DBC unit restarts on failure). The
-binary itself has no board-specific logic: the hash name is the only difference.
-It reads the serial from `/sys/bus/nvmem/devices/imx-ocotp0/nvmem`
-(offsets 4 and 8 for CFG0 and CFG1), falling back to `/sys/fsl_otp/HW_OCOTP_CFG*`
-where that exists. A missing serial source is logged and skipped; the OS release
-fields are still published.
-
-These are the authoritative board serials. Read them here.
-
-### Physical Inputs (`buttons`, `input-events`)
-
-vehicle-service exposes the handlebar controls on two pub/sub channels. Neither
-is a state store: read `vehicle` for the current level of `brake:left`,
-`brake:right`, `blinker:switch` and friends.
-
-#### `buttons` channel - raw edges
-
-One message per input edge, payload `<source>:<edge>` or
-`<source>:<position>:<edge>`:
-
-```
-SUBSCRIBE buttons
-horn:on
-horn:off
-seatbox:on
-seatbox:off
-brake:left:on
-brake:left:off
-brake:right:on
-brake:right:off
-blinker:left:on
-blinker:left:off
-blinker:right:on
-blinker:right:off
-```
-
-The payload always reflects the triggering input's own edge, independently of
-any combined state. Releasing one side of a hazard pair emits
-`blinker:right:off` even though the combined `blinker:switch` moves to `left`
-rather than `off`. Consumers that want the combined switch position read
-`vehicle[blinker:switch]`.
-
-Nothing on this channel carries a timestamp or duration. For press duration
-semantics use `input-events`; for the current level of an input read the
-`vehicle` hash (`horn:button`, `seatbox:button`, `brake:left`, `brake:right`,
-`blinker:switch`).
-
-There is no `buttons` hash. Between Librescoot 1.x (2025-12) and this release a
-`buttons` hash existed with fields `horn:on` / `horn:off` / `seatbox:on` /
-`seatbox:off` set to the literal `"1"` and never cleared; it had no readers and
-was removed. Over the same period `vehicle[horn:button]` and
-`vehicle[seatbox:button]` were not written and read back empty. Both are fixed:
-the level fields are in the `vehicle` hash again, and each edge is published on
-`buttons` exactly once.
-
-#### `input-events` channel - synthesized gestures
-
-vehicle-service runs a gesture detector over the same inputs and publishes
-higher-level events, payload `<source>:<gesture>`:
-
-```
-SUBSCRIBE input-events
-horn:press
-horn:release
-horn:tap
-brake:left:long-tap
-brake:right:hold
-seatbox:double-tap
-```
-
-| Source | Meaning |
-|--------|---------|
-| `horn` | Horn button |
-| `seatbox` | Seatbox button |
-| `brake:left` | Left brake lever |
-| `brake:right` | Right brake lever |
-
-| Gesture | Fires when |
-|---------|-----------|
-| `press` | Input goes active |
-| `release` | Input goes inactive |
-| `long-tap` | Still held after 800 ms |
-| `hold` | Still held after 3 s |
-| `tap` | Released before the long-tap threshold |
-| `double-tap` | Second `tap` within 800 ms of the previous one |
-
-`press` and `release` fire on every edge. `long-tap` and `hold` fire while the
-input is still down, so a 4-second press emits `press`, `long-tap`, `hold`,
-`release` in that order and no `tap`. A long-tap or hold clears the pending tap,
-so a long press between two taps does not glue them into a `double-tap`.
-
-Unlike `buttons`, each gesture is emitted exactly once, which makes this the
-channel to use for anything that counts or reacts to discrete user actions.
+The version-service populates these hashes on startup from the OS release information.
 
 ### Event Streams
 
@@ -957,7 +569,7 @@ redis-cli -h 192.168.7.1 LPUSH scooter:state unlock
 redis-cli -h 192.168.7.1 LPUSH scooter:state lock-hibernate
 ```
 
-**Available commands**: `lock`, `unlock`, `lock-hibernate`, `force-lock`
+**Available commands**: `lock`, `unlock`, `lock-hibernate`
 
 ### Seatbox Control (`scooter:seatbox`)
 
@@ -1004,20 +616,16 @@ redis-cli -h 192.168.7.1 LPUSH scooter:blinker off
 
 **Available commands**: `left`, `right`, `both`, `off`
 
-### Alarm Control (`scooter:alarm`) - Librescoot Only
+### Alarm Control (`scooter:alarm`) - LibreScoot Only
 
 Controls the motion-based alarm system.
 
 ```bash
-# Enable alarm system (persists settings.alarm.enabled=true)
+# Enable alarm system
 redis-cli -h 192.168.7.1 LPUSH scooter:alarm enable
 
-# Disable alarm system (persists settings.alarm.enabled=false)
+# Disable alarm system
 redis-cli -h 192.168.7.1 LPUSH scooter:alarm disable
-
-# Runtime arm/disarm (does not change settings.alarm.enabled)
-redis-cli -h 192.168.7.1 LPUSH scooter:alarm arm
-redis-cli -h 192.168.7.1 LPUSH scooter:alarm disarm
 
 # Manual alarm trigger (30 seconds)
 redis-cli -h 192.168.7.1 LPUSH scooter:alarm start:30
@@ -1028,17 +636,18 @@ redis-cli -h 192.168.7.1 LPUSH scooter:alarm stop
 
 **Available commands**: `enable`, `disable`, `arm`, `disarm`, `start:<seconds>`, `stop`
 
-### Motion Sensor Control - Librescoot Only
+### BMX Sensor Control - LibreScoot Only
 
-The `scooter:motion` command queue has been removed, as was `scooter:bmx` before it. Chip configuration is reactive: motion-service derives the profile from the `alarm` and `power-manager` hashes, so there is nothing to configure by hand.
+There is no `scooter:bmx` command list in this release. No service subscribes to
+it, so anything pushed there is simply never read.
 
-The manual `sensitivity`, `pin` and `interrupt` commands wrote registers that the profile controller overwrote on the next alarm or power-manager transition, which made them look like they worked and then silently revert. `reset` duplicated the `soft-reset` RPC.
+alarm-service owns the BMX055 outright and reconfigures the interrupt pin and
+motion thresholds from its own state machine as the alarm state changes. There
+is no external command surface for it.
 
-The remaining manual controls are RPC methods on `motion:rpc`. See [Motion / IMU (`motion`)](#motion--imu-motion---librescoot-only).
+### Power Control (`scooter:power`) - LibreScoot Enhanced
 
-### Power Control (`scooter:power`) - Librescoot Enhanced
-
-Librescoot adds more power control commands:
+LibreScoot adds more power control commands:
 
 ```bash
 # Request running state (highest priority)
@@ -1056,21 +665,15 @@ redis-cli -h 192.168.7.1 LPUSH scooter:power hibernate-manual
 # Timer-based hibernation
 redis-cli -h 192.168.7.1 LPUSH scooter:power hibernate-timer
 
-# Hibernate for a specific duration; nRF52 wakes the iMX6 after N seconds
-redis-cli -h 192.168.7.1 LPUSH scooter:power "hibernate-for:300"
-
-# Cancel a pending hibernate-for and disarm the wake timer
-redis-cli -h 192.168.7.1 LPUSH scooter:power hibernate-cancel
-
 # Reboot system
 redis-cli -h 192.168.7.1 LPUSH scooter:power reboot
 ```
 
-**Available commands**: `run`, `suspend`, `hibernate`, `hibernate-manual`, `hibernate-timer`, `hibernate-for:<seconds>`, `hibernate-cancel`, `reboot`
+**Available commands**: `run`, `suspend`, `hibernate`, `hibernate-manual`, `hibernate-timer`, `reboot`
 
-### Modem Control (`scooter:modem`) - Librescoot Only
+### Modem Control (`scooter:modem`) - LibreScoot Only
 
-Controls modem power state.
+Controls modem power state and GPS.
 
 ```bash
 # Enable modem
@@ -1078,81 +681,30 @@ redis-cli -h 192.168.7.1 LPUSH scooter:modem enable
 
 # Disable modem
 redis-cli -h 192.168.7.1 LPUSH scooter:modem disable
+
+# Enable GPS
+redis-cli -h 192.168.7.1 LPUSH scooter:modem gps:enable
+
+# Disable GPS
+redis-cli -h 192.168.7.1 LPUSH scooter:modem gps:disable
 ```
 
-**Available commands**: `enable`, `disable`
+**Available commands**: `enable`, `disable`, `gps:enable`, `gps:disable`
 
-There are no GPS commands; modem-service manages GPS automatically based on connectivity state. The `modem.gps` setting toggles GPS overall.
+### Update Control (`scooter:update:mdb`, `scooter:update:dbc`) - LibreScoot Only
 
-### SMS Send (`scooter:sms`) - Librescoot Only
-
-Sends an SMS through the modem. Unlike the other command queues (plain-string
-commands), the payload is JSON, because a send needs both a recipient and a
-body. The optional `id` token is echoed back as `request-id` on the `sms:sent`
-stream so concurrent senders can correlate outcomes:
+Controls the OTA update system. Each update-service instance consumes only its
+own component list.
 
 ```bash
-redis-cli -h 192.168.7.1 LPUSH scooter:sms '{"to":"+4915112345678","text":"Hello from the scooter"}'
-redis-cli -h 192.168.7.1 LPUSH scooter:sms '{"id":"trip-42","to":"+4915112345678","text":"Hello"}'
-```
-
-The terminal outcome lands on the `sms:sent` stream/channel; send progress is
-also reflected in the `sms` hash (`state` goes `sending`, then `idle` or
-`error`).
-
-### Update Control (`scooter:update`, `scooter:update:mdb`, `scooter:update:dbc`) - Librescoot Only
-
-Controls the OTA update system. Per-component lists target one updater instance.
-
-```bash
-# Force immediate update check on one component
+# Force immediate update check (one list per component)
 redis-cli -h 192.168.7.1 LPUSH scooter:update:mdb check-now
-
-# Install from a local file (optional checksum)
-redis-cli -h 192.168.7.1 LPUSH scooter:update:dbc "update-from-file:/data/ota/image.mender#sha256=<hex>"
-
-# Install from a URL
-redis-cli -h 192.168.7.1 LPUSH scooter:update:mdb "update-from-url:https://example.com/update.mender"
-
-# Ask what a switch to another channel would download (changes nothing)
-redis-cli -h 192.168.7.1 LPUSH scooter:update:mdb preview-channel:stable
-redis-cli -h 192.168.7.1 HMGET ota preview-status:mdb preview-version:mdb preview-size:mdb
+redis-cli -h 192.168.7.1 LPUSH scooter:update:dbc check-now
 ```
 
-**Per-component commands** (`scooter:update:mdb` / `scooter:update:dbc`): `check-now`, `preview-channel:<channel>`, `update-from-file:<path>[#sha256=<hex>]`, `update-from-url:<url>[#sha256=<hex>]`
+**Available commands on `scooter:update:{mdb,dbc}`**: `check-now`, `update-from-file:<path>[:sha256:<hex>]`, `update-from-url:<url>[:sha256:<hex>]`
 
-`preview-channel:<channel>` reports the latest release on `<channel>` for this
-component's `variant_id` and the size of its `.mender` artifact, into the `ota` hash's
-`preview-*` fields. It sets nothing and downloads nothing; the dashboard uses it to
-price a channel switch before asking the rider to confirm.
-
-The shared `scooter:update` list is consumed by **vehicle-service**, not the updaters: update-service pushes lifecycle commands (`start`, `complete`, `start-dbc`, `complete-dbc`) there to drive the vehicle's `updating` state.
-
-See [update-service documentation](../services/librescoot-update.md).
-
-### Settings Overlay Control (`settings:overlay`) - Librescoot Only
-
-Apply or clear a named settings overlay. See [Settings Overlay Commands](#settings-overlay-commands-settingsoverlay---librescoot-only) above for full details.
-
-```bash
-# Enable Service mode
-redis-cli -h 192.168.7.1 LPUSH settings:overlay apply:service
-
-# Disable Service mode
-redis-cli -h 192.168.7.1 LPUSH settings:overlay clear:service
-```
-
-**Available commands**: `apply:service`, `clear:service`
-
-### CPU Governor Control (`scooter:governor`) - Librescoot Only
-
-Consumed by pm-service; switches the CPU frequency governor. vehicle-service and update-service push `ondemand` here (when leaving stand-by, and at download start, respectively).
-
-```bash
-redis-cli -h 192.168.7.1 LPUSH scooter:governor performance
-```
-
-**Available commands**: `ondemand`, `powersave`, `performance`
+`scooter:update` itself is consumed by vehicle-service, not update-service, and accepts `start`, `complete`, `start-dbc`, `complete-dbc`. update-service LPUSHes `start-dbc`/`complete-dbc` there to hold dashboard power across a DBC update.
 
 ### Command Channel Notes
 
@@ -1160,4 +712,4 @@ redis-cli -h 192.168.7.1 LPUSH scooter:governor performance
 - Services subscribe to these channels using `BRPOP` and process commands sequentially
 - State changes resulting from commands are published to the corresponding hash fields and pub/sub channels
 - Command results can be monitored by subscribing to the relevant state hashes (e.g., `vehicle` hash for lock/unlock state)
-- Librescoot adds several new command channels for alarm, motion, modem, keycard, governor, and update control
+- LibreScoot adds several new command channels for alarm, BMX, modem, and update control
