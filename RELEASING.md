@@ -27,14 +27,24 @@ Touch a `docs/vX.Y.Z` branch only to correct an error specific to that shipped r
 
 `.github/workflows/deploy.yml` derives the mike version from the branch name:
 
-| Pushed branch  | Deploys as | Aliases               |
-|----------------|------------|-----------------------|
-| `main`         | `dev`      | none                  |
-| `docs/vX.Y.Z`  | `vX.Y.Z`   | `stable` + `latest` if it equals `LATEST_STABLE`, else none |
+| Pushed branch  | Deploys as | Aliases |
+|----------------|------------|---------|
+| `main`         | `dev`      | none    |
+| `docs/vX.Y.Z`  | `vX.Y.Z`   | none    |
 
-The branch whose version equals the workflow's `LATEST_STABLE` also becomes the
-default served at `/`. `LATEST_STABLE` is read from the deploy workflow *on the pushed
-branch*, so it has to be correct on the release branch itself.
+A push never touches `stable` or `latest`. Publishing a version and promoting it are
+separate acts on separate triggers, so re-pushing an old snapshot to correct an error
+cannot take the aliases off the current release.
+
+## Promoting a release to stable
+
+Actions -> Deploy versioned docs -> Run workflow, and put the version in the `promote`
+input (e.g. `v1.2.1`). That moves `stable` and `latest` onto it and makes it the
+default served at `/`. It refuses versions that are not deployed yet, and it only
+rewrites alias entries, so it never rebuilds or overwrites the version's own content.
+
+Running the workflow with `promote` empty just rebuilds and redeploys the ref you
+launched it from.
 
 ## Cutting a new stable release (say v1.0.6)
 
@@ -49,15 +59,14 @@ Do this once the v1.0.6 image is released and `main` already documents what it s
    (a feature merged after the v1.0.6 cutoff), trim it here so the snapshot describes
    only what shipped. Verify against the service revisions pinned in
    `librescoot/librescoot:stable.env` at the release tag.
-3. Set `LATEST_STABLE` to `"v1.0.6"` in this branch's `.github/workflows/deploy.yml`.
-   Also bump it on `main` (in a normal `main` commit) so the next release branch
-   inherits the right value.
-4. Push the release branch:
+3. Push the release branch:
    ```bash
    git push -u origin docs/v1.0.6
    ```
-   CI deploys `v1.0.6`, moves `stable`/`latest` onto it, and makes it the default.
-   v1.0.5 stays selectable as an older version.
+   CI deploys `v1.0.6` as a selectable version. It does not become stable yet.
+4. Promote it: Actions -> Deploy versioned docs -> Run workflow, `promote` = `v1.0.6`.
+   `stable` and `latest` move onto it and it becomes the default served at `/`. The
+   previous release stays selectable as an older version.
 
 ## Correcting an already-shipped version
 
@@ -66,8 +75,9 @@ git switch docs/v1.0.5
 # fix the error, commit
 git push
 ```
-The push redeploys only that version. If the fix also applies to newer versions, make
-it on `main` too (and on the other affected `docs/vX.Y.Z` branches).
+The push redeploys only that version and leaves the aliases alone, so correcting an
+old snapshot cannot disturb which release is current. If the fix also applies to newer
+versions, make it on `main` too (and on the other affected `docs/vX.Y.Z` branches).
 
 ## Caveat: push release branches one at a time
 

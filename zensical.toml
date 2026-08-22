@@ -30,10 +30,12 @@ nav = [
     { "Software" = [
         { "System States" = "states/README.md" },
         { "Services" = "services/README.md" },
+        { "Service Interactions" = "service-interactions.md" },
         { "alarm-service" = "services/librescoot-alarm.md" },
         { "battery-service" = "services/librescoot-battery.md" },
         { "bluetooth-service" = "services/librescoot-bluetooth.md" },
         { "ecu-service" = "services/librescoot-ecu.md" },
+        { "event-service" = "services/librescoot-events.md" },
         { "keycard-service" = "services/librescoot-keycard.md" },
         { "modem-service" = "services/librescoot-modem.md" },
         { "motion-service" = "services/librescoot-motion.md" },
@@ -100,6 +102,6 @@ link = "https://discord.gg/VrumFruSzJ"
 # version selector dropdown in the Material header reads versions.json
 # at the gh-pages root, where mike writes one entry per deployed version.
 # Default version (served at /) is whichever alias is set via
-# `mike set-default`. We use `latest` -> currently v1.0.3.
+# `mike set-default`. We use `latest` -> currently v1.2.1.
 [project.extra.version]
 provider = "mike"
