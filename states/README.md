@@ -122,7 +122,7 @@ The power manager (unu-pm) tracks system power states separately from vehicle st
 - **"hibernating-imminent"** - Hibernation about to occur
 - **"hibernating-manual"** - Manual hibernation requested
 - **"hibernating-manual-imminent"** - Manual hibernation about to occur
-- **"hibernating-timer"** - Timer-based hibernation (configurable, default 5 days)
+- **"hibernating-timer"** - Timer-based hibernation (configurable via `-hibernation-timer` or the `pm.hibernation-timer` setting, default 3 days)
 - **"hibernating-timer-imminent"** - Timer hibernation about to occur
 - **"reboot"** - System reboot
 - **"reboot-imminent"** - Reboot about to occur

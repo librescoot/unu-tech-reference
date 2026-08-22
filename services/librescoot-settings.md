@@ -6,7 +6,7 @@ The settings service is a LibreScoot-only service that provides bidirectional sy
 
 ## Version
 
-LibreScoot settings-service v1.0.0+
+LibreScoot settings-service v0.4.0-17-g62bf5b8
 
 ## Command-Line Options
 
@@ -139,7 +139,6 @@ apn = "internet.provider.com"
 [scooter]
 auto-standby-seconds = "0"
 brake-hibernation = "enabled"
-battery-ignores-seatbox = "false"
 
 [dashboard]
 theme = "dark"
@@ -342,8 +341,8 @@ rm /data/settings.toml
 # Restart settings service
 systemctl restart librescoot-settings
 
-# Redis settings hash is now empty
-# Services will use default values
+# Redis settings hash now holds only the schema defaults
+# Services will use those default values
 ```
 
 ## Building

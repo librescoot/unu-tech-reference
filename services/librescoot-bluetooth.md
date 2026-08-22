@@ -429,7 +429,7 @@ Extended commands arrive as string payloads via the EXTENDED_COMMAND BLE charact
 - `alarm:start:<N>` → `LPUSH scooter:alarm start:<N>`
 - `alarm:stop` → `LPUSH scooter:alarm stop`
 
-The alarm-service processes the command and the response (`alarm:ok`) is returned via EXTENDED_RESPONSE (0x0402).
+bluetooth-service replies `alarm:ok` via EXTENDED_RESPONSE (0x0402) as soon as the command is queued on `scooter:alarm`. The reply confirms the enqueue only; alarm-service processes the command asynchronously.
 
 **LTC4020 aux charger control:**
 

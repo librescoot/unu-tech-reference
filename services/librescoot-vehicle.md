@@ -91,7 +91,7 @@ The service implements the canonical vehicle state machine with these states:
 - `updating` - OTA firmware update in progress
 - `hibernation` - Manual hibernation super-state (entered via brake-lever hold from `parked`). FSM-internal id; `vehicle:state` reads `waiting-hibernation` here.
 - `hibernation-initial-hold` - 15-second initial brake hold phase. FSM-internal id; `vehicle:state` keeps reading `parked` throughout.
-- `hibernation-awaiting-confirm` - Confirmation phase (30s timeout after brakes released; continuous hold also auto-confirms). FSM-internal id; published as `waiting-hibernation`.
+- `hibernation-awaiting-confirm` - Confirmation phase. A 30s state timeout runs from entry regardless of brake state and falls back to `parked`; a separate 15s timer auto-confirms if both brakes are still held when it fires. FSM-internal id; published as `waiting-hibernation`.
 - `hibernation-seatbox` - Confirmation blocked by open seatbox; prompts user to close it. FSM-internal id; published as `waiting-hibernation-seatbox`.
 - `hibernation-confirm` - Final 3-second non-abortable hibernation confirmation. FSM-internal id; published as `waiting-hibernation-confirm`.
 - `at-rest` - Parent state grouping `parked`, `hop-on`, `hop-on-learning`. Owns the auto-standby timer; sibling transitions inside the group don't disturb it. Never the leaf, so `vehicle:state` never reads `at-rest`.
@@ -105,7 +105,7 @@ The manual hibernation sequence works as follows:
 1. **parked** → **hibernation-initial-hold** (15s): Both brakes pressed continuously
 2. **hibernation-initial-hold** → **hibernation-awaiting-confirm**: After 15s, enter confirmation phase
 3. **hibernation-awaiting-confirm**: User can release brakes or keep holding
-   - If brakes released: 30s timeout starts (can be reset by touching brakes)
+   - A 30s timeout runs from entry into this phase (not from brake release) and is not reset by further brake activity; on expiry the vehicle returns to `parked`
    - If brakes held continuously for 30s total: auto-confirm (skip seatbox check)
    - Re-pressing the brakes does not restart the force timer: it is armed once on entry to `hibernation-awaiting-confirm` and only samples the levers when it expires 15s later
 4. **Keycard tap** or **continuous hold timeout**: Check safety conditions (kickstand down, seatbox closed)
@@ -267,7 +267,7 @@ Will manually transition to `ready-to-drive` and blink the main light once for c
 3. **Confirmation Phase:**
    - User can release brakes or keep holding
    - If brakes released: 30-second timeout starts
-     - Timeout can be reset by touching brakes again
+     - The 30s timeout is armed on entry into the confirmation phase, not on brake release, and touching the brakes again does not reset it
      - If timeout expires: cancel hibernation, return to `parked`
    - If brakes held continuously for 30s total from start: auto-confirm (warehouse mode)
    - Re-pressing the brakes does not restart the force timer: it is armed once on entry to the confirmation phase and only samples the levers when it expires 15s later
@@ -278,7 +278,7 @@ Will manually transition to `ready-to-drive` and blink the main light once for c
    - If seatbox open: transition to `waiting-hibernation-seatbox` state to notify user
 5. **Final Confirmation:**
    - Transition to `waiting-hibernation-confirm` state
-   - 3-second non-abortable countdown
+   - 3-second countdown (abortable: the seatbox button cancels it back to `parked`, and an unlock command or raising the kickstand also leaves hibernation)
    - Then transition to `shutting-down` with hibernation flag
    - Send "hibernate-manual" command to power manager
 

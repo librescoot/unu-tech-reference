@@ -270,7 +270,7 @@ When GPS is enabled, the service performs multi-step configuration:
 4. **Connect to gpsd:**
    - Subscribe to SKY reports (for DOP values: HDOP, VDOP, PDOP)
    - Subscribe to TPV reports (for position data)
-   - Monitor fix mode: 0/1=none, 2=2D, 3=3D
+   - Monitor fix mode: 0=no value in this report (previous fix state preserved), 1=none, 2=2D, 3=3D
 
 **GPS Data Processing:**
 
@@ -364,7 +364,7 @@ This multi-strategy approach handles various failure modes:
 
 ## Log Output
 
-The service logs to journald with systemd-aware formatting (no prefix when INVOCATION_ID is set).
+The service logs to journald with systemd-aware formatting (no prefix or timestamps when `JOURNAL_STREAM` is set).
 
 **Common log patterns:**
 

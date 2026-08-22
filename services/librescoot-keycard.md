@@ -12,7 +12,7 @@ Handles NFC-based authentication for the scooter. Detects keycards via the PN715
   --redis string        Redis server address (default: localhost:6379)
   --log int             Log level 0-3 (0=error, 3=debug) (default: 2)
   --led-device string   I2C device for LP5562 LED (empty = script-based control)
-  --led-address string  I2C address for LP5562 LED (default: 0x30)
+  --led-address uint    I2C address for LP5562 LED (default: 0x30)
   --debug               Enable debug logging
 ```
 
@@ -118,7 +118,7 @@ Files are written atomically (write to `.tmp`, sync, rename).
 
 - **Unit:** `librescoot-keycard.service`
 - **Binary:** `/usr/bin/keycard-service`
-- **Requires:** `redis.service`, `librescoot-vehicle.service`
+- **Requires:** `redis.service` (also ordered `After=librescoot-vehicle.service`, but not a hard requirement)
 
 ## Building
 

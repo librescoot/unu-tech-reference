@@ -402,13 +402,13 @@ hgetall bmx
 | Field | Type | Description | Example |
 |-------|------|-------------|----------|
 | initialized | "true"/"false" | BMX sensor initialization status | "true" |
-| interrupt | string | Interrupt status | "active" |
-| sensitivity | string | Current sensitivity level | "MEDIUM" |
-| pin | string | Interrupt pin configuration | "INT2" |
+| interrupt | string | Interrupt status | "disabled" |
+| sensitivity | string | Current sensitivity level | "none" |
+| pin | string | Interrupt pin configuration | "none" |
 
-**Sensitivity levels:** `LOW`, `MEDIUM`, `HIGH`
-
-The alarm-service manages BMX055 configuration automatically based on alarm state.
+alarm-service writes these four fields once at startup, with the fixed values
+shown above, and never updates them afterwards. They do not track the live
+BMX055 configuration, which the alarm state machine changes internally.
 
 ### Dashboard Backlight (`dashboard`) - LibreScoot Enhancement
 
@@ -615,24 +615,16 @@ redis-cli -h 192.168.7.1 LPUSH scooter:alarm start:30
 redis-cli -h 192.168.7.1 LPUSH scooter:alarm stop
 ```
 
-**Available commands**: `enable`, `disable`, `start:<seconds>`, `stop`
+**Available commands**: `enable`, `disable`, `arm`, `disarm`, `start:<seconds>`, `stop`
 
-### BMX Sensor Control (`scooter:bmx`) - LibreScoot Only
+### BMX Sensor Control - LibreScoot Only
 
-Controls BMX055 accelerometer/gyroscope configuration. Typically used by alarm-service.
+There is no `scooter:bmx` command list in this release. No service subscribes to
+it, so anything pushed there is simply never read.
 
-```bash
-# Configure sensitivity
-redis-cli -h 192.168.7.1 LPUSH scooter:bmx sensitivity:MEDIUM
-
-# Configure interrupt pin
-redis-cli -h 192.168.7.1 LPUSH scooter:bmx pin:INT2
-
-# Enable interrupt
-redis-cli -h 192.168.7.1 LPUSH scooter:bmx interrupt:enable
-```
-
-**Available commands**: `sensitivity:<LOW|MEDIUM|HIGH>`, `pin:<NONE|INT1|INT2>`, `interrupt:<enable|disable>`
+alarm-service owns the BMX055 outright and reconfigures the interrupt pin and
+motion thresholds from its own state machine as the alarm state changes. There
+is no external command surface for it.
 
 ### Power Control (`scooter:power`) - LibreScoot Enhanced
 
