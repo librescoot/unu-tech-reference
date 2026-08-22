@@ -122,6 +122,7 @@
 ### Hardware Specifications
 All fasteners metric standard.
 Recommended torque values for critical components:
+
 - Handlebar to stem: 40±4 Nm
 - Motor axle: 118±5 Nm  
 - Front axle: 70±3 Nm

@@ -37,6 +37,7 @@ motion-service unbinds the kernel driver at startup and drives all three over `/
 ### Hash: `motion`
 
 **Fields written:**
+
 - `initialized` — `true` once sensors are up
 - `streaming` — `enabled`/`disabled`
 - `polling-rate-hz` — current sensor poll rate

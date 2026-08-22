@@ -22,6 +22,7 @@ The Bluetooth service provides the BLE (Bluetooth Low Energy) interface for the 
 ### Hash: `ble`
 
 **Fields written:**
+
 - `mac-address` - Bluetooth MAC address (received from nRF52)
 - `status` - BLE connection status string
 - `pin-code` - Temporary pairing PIN code (when pairing is active)
@@ -31,6 +32,7 @@ The Bluetooth service provides the BLE (Bluetooth Low Energy) interface for the 
 ### Hash: `cb-battery`
 
 **Fields written:**
+
 - `charge` - Charge level (0-100%)
 - `current` - Current in μA
 - `remaining-capacity` - Remaining capacity in μWh
@@ -52,6 +54,7 @@ The Bluetooth service provides the BLE (Bluetooth Low Energy) interface for the 
 ### Hash: `aux-battery`
 
 **Fields written:**
+
 - `voltage` - Voltage in mV
 - `charge` - Charge level in 25% steps (0, 25, 50, 75, 100)
 - `charge-status` - Charging status ("absorption-charge", "not-charging", "float-charge", "bulk-charge")
@@ -62,6 +65,7 @@ The Bluetooth service provides the BLE (Bluetooth Low Energy) interface for the 
 ### Hash: `power-manager`
 
 **Fields written:**
+
 - `nrf-reset-count` - Reset count from nRF52
 - `nrf-reset-reason` - Nordic RESETREAS register value (integer)
 - `wake-timer-armed` - "true"/"false". Echo of the nRF wake-timer ACK: non-zero seconds echoed back means the timer is armed ("true"), zero means disarmed ("false").
@@ -72,6 +76,7 @@ The Bluetooth service provides the BLE (Bluetooth Low Energy) interface for the 
 ### Hash: `power-mux`
 
 **Fields written:**
+
 - `selected-input` - Selected power input source ("cb", "aux")
 
 **Published channel:** `power-mux`
@@ -79,19 +84,23 @@ The Bluetooth service provides the BLE (Bluetooth Low Energy) interface for the 
 ### Hash: `system`
 
 **Fields written:**
+
 - `nrf-fw-version` - nRF52 firmware version string (received from nRF52 during initialization)
 
 **Fields read (not written by this service):**
+
 - `mdb-version` - MDB firmware version string (forwarded to nRF52 when it changes)
 
 ### Hash: `engine-ecu`
 
 **Fields written:**
+
 - `odometer` - Odometer/mileage value in meters (received from nRF52)
 
 ### Hash: `navigation`
 
 **Fields written:**
+
 - `latitude` - Navigation destination latitude (from extended command `nav:dest`)
 - `longitude` - Navigation destination longitude (from extended command `nav:dest`)
 - `destination` - Legacy combined coordinates "lat,lon" (from extended command `nav:dest` or BLE event `navi:start`)
@@ -104,6 +113,7 @@ The Bluetooth service provides the BLE (Bluetooth Low Energy) interface for the 
 ### Hash: `settings`
 
 **Fields written:**
+
 - `cellular.apn` - Cellular APN (from extended command `config:apn` or legacy BLE event `apn <value>`)
 - `hibernation-timer` - Hibernation timeout in seconds (from extended command `config:hibernate-timer`)
 - `updates.mdb.channel` - MDB OTA update channel (from extended command `config:update-channel`)
@@ -117,6 +127,7 @@ The Bluetooth service provides the BLE (Bluetooth Low Energy) interface for the 
 ### Hash: `usb`
 
 **Fields written:**
+
 - `mode` - USB mode ("ums" or "normal", from extended command `usb:ums`/`usb:normal` or legacy BLE events)
 
 **Published channel:** `usb` (when mode field changes)
@@ -124,6 +135,7 @@ The Bluetooth service provides the BLE (Bluetooth Low Energy) interface for the 
 ### Hash: `scooter` (written)
 
 **Fields written:**
+
 - `temperature` - External temperature in tenths of °C (from nRF vehicle state message)
 
 **Published channel:** `scooter`
@@ -131,6 +143,7 @@ The Bluetooth service provides the BLE (Bluetooth Low Energy) interface for the 
 ### Hash: `dashboard`
 
 **Fields read (not written):**
+
 - `maps-available` - Offline display maps installed (set by scootui-qt, queried via `status:maps-available`)
 - `navigation-available` - Routing engine available (set by scootui-qt, queried via `status:navigation-available`)
 
@@ -139,6 +152,7 @@ The Bluetooth service provides the BLE (Bluetooth Low Energy) interface for the 
 Transfer status of the BLE OTA receiver (see [BLE OTA Firmware Transfer](../bluetooth/ota-transfer.md) and the [field reference](../redis/README.md#ble-ota-transfer-status-otable---librescoot-only)):
 
 **Fields written:**
+
 - `state` - `idle`, `receiving`, or `installing`
 - `bundle-id`, `component`, `received-bytes`, `total-bytes`, `rate-bps` - Active session details
 - `updated-at` - Unix timestamp of the last update
@@ -146,11 +160,13 @@ Transfer status of the BLE OTA receiver (see [BLE OTA Firmware Transfer](../blue
 ### Hash: `power:inhibits`
 
 **Fields written:**
+
 - `ble-ota` - Block-type power inhibitor held during BLE OTA transfers and installs, so pm-service does not suspend mid-transfer. Removed when the OTA session ends (or after safety timeouts: 10 min transfer idle, 30 min without install feedback).
 
 ### Hashes read (not written)
 
 The service reads but does not write to these hashes:
+
 - `battery:0` - Reads battery state and charge
 - `battery:1` - Reads battery state and charge
 - `vehicle` - Reads vehicle state for nRF synchronization
@@ -160,9 +176,11 @@ The service reads but does not write to these hashes:
 ### Lists consumed (BRPOP)
 
 The service consumes commands from:
+
 - `scooter:bluetooth` - BLE management commands with indefinite blocking
 
 **Commands recognized:**
+
 - `advertising-start-with-whitelisting` - Start advertising with whitelist
 - `advertising-restart-no-whitelisting` - Restart advertising without whitelist
 - `advertising-stop` - Stop BLE advertising
@@ -179,6 +197,7 @@ The service consumes commands from:
 ### Lists produced (LPUSH)
 
 The service writes requests to:
+
 - `scooter:state` - State change requests ("lock", "unlock", "lock-hibernate")
 - `scooter:power` - Power requests ("hibernate", "hibernate-manual", "reboot", "hibernate-for:<seconds>", "hibernate-cancel")
 - `scooter:seatbox` - Seatbox commands ("open")
@@ -209,6 +228,7 @@ These are triggered by BLE characteristic writes received from the nRF52 (BLE ev
 The USOCK protocol is a frame-based protocol for reliable serial communication:
 
 **Frame Structure:**
+
 - Sync Byte 1: `0xF6`
 - Sync Byte 2: `0xD9`
 - Frame ID: 1 byte (lower byte of message type)
@@ -224,11 +244,13 @@ Messages are CBOR-encoded maps with structure:
 ```
 
 Where:
+
 - `messageType` is a 16-bit message category (e.g., 0xA000 for BLE version)
 - `absoluteSubtype` is `messageType + relativeSubtype`
 - `value` can be integer, string, or array
 
 **CRC Calculation:**
+
 - Algorithm: CRC-16/ARC (also known as CRC-16/IBM)
 - Polynomial: 0x8005
 - Initial value: 0x0000
@@ -239,6 +261,7 @@ See [nRF UART Protocol](../nrf/UART.md) for message types and protocol details.
 ### BLE Interface (via nRF52840)
 
 The service does not directly manage BLE - this is handled by the nRF52840 firmware. The bluetooth-service only communicates with the nRF52 via UART to:
+
 - Receive BLE connection events and characteristic writes
 - Send state updates to be exposed via BLE characteristics
 - Control advertising and bonding
@@ -299,6 +322,7 @@ other services → Redis (pub/sub) → bluetooth-service → UART/USOCK/CBOR →
 ```
 
 **Inbound (from BLE to system):**
+
 1. User interacts with BLE app
 2. nRF52 receives BLE characteristic write
 3. nRF52 sends USOCK frame with CBOR-encoded event string to bluetooth-service
@@ -306,6 +330,7 @@ other services → Redis (pub/sub) → bluetooth-service → UART/USOCK/CBOR →
 5. Other services consume from Redis lists and perform actions
 
 **Outbound (from system to BLE):**
+
 1. Services update Redis hash fields
 2. Redis publishes change notification on pub/sub channel
 3. bluetooth-service receives pub/sub message
@@ -319,6 +344,7 @@ other services → Redis (pub/sub) → bluetooth-service → UART/USOCK/CBOR →
 The service handles various USOCK message types from the nRF52. See [nRF UART Protocol](../nrf/UART.md) for complete list.
 
 **Key message types received:**
+
 - `0x0000` - Generic events (BLE characteristic writes as event strings)
 - `0x0020` - Vehicle state updates (acknowledgments)
 - `0x0040` - Auxiliary battery data
@@ -337,6 +363,7 @@ The service handles various USOCK message types from the nRF52. See [nRF UART Pr
 - `0xAA00` - BLE command acknowledgments
 
 **Key message types sent:**
+
 - `0x0020` - Vehicle state (locked/unlocked, seatbox, handlebar)
 - `0x0400` - Extended response (response string to phone app, up to 512 bytes)
 - `0x0800` - Power management state updates
@@ -353,25 +380,31 @@ The service handles various USOCK message types from the nRF52. See [nRF UART Pr
 Event strings received from nRF52 (message type 0x0000) are parsed and converted to Redis operations:
 
 **Vehicle control:**
+
 - `"scooter:state lock"` → `LPUSH scooter:state lock`
 - `"scooter:state unlock"` → `LPUSH scooter:state unlock`
 
 **Seatbox:**
+
 - `"scooter:seatbox open"` → `LPUSH scooter:seatbox open`
 
 **Blinker control:**
+
 - `"scooter:blinker left"` → `LPUSH scooter:blinker left`
 - `"scooter:blinker right"` → `LPUSH scooter:blinker right`
 - `"scooter:blinker both"` → `LPUSH scooter:blinker both`
 - `"scooter:blinker off"` → `LPUSH scooter:blinker off`
 
 **Navigation:**
+
 - `"navi:start <coords>"` → `HSET navigation destination <coords>` + publish
 
 **Settings:**
+
 - `"apn <value>"` → `HSET settings cellular.apn <value>` + publish
 
 **USB mode:**
+
 - `"usb:ums"` → `HSET usb mode ums` + publish
 - `"usb:normal"` → `HSET usb mode normal` + publish
 
@@ -380,6 +413,7 @@ Event strings received from nRF52 (message type 0x0000) are parsed and converted
 Extended commands arrive as string payloads via the EXTENDED_COMMAND BLE characteristic (0x0401). The bluetooth-service routes them by prefix:
 
 **Navigation:**
+
 - `nav:dest lat,lon[,name]` → sets `navigation` hash fields (latitude, longitude, destination, address)
 - `nav:clear` → deletes all `navigation` hash fields
 - `nav:fav:add lat,lon,name` → adds to `settings:dashboard.saved-locations.<id>.*`
@@ -388,22 +422,27 @@ Extended commands arrive as string payloads via the EXTENDED_COMMAND BLE charact
 - `nav:fav:list` → responds with count + one notification per saved location
 
 **USB mode:**
+
 - `usb:ums` → `HSET usb mode ums`
 - `usb:normal` → `HSET usb mode normal`
 
 **Keycard management:**
+
 - `keycard:list`, `keycard:count`, `keycard:add:<uid>`, `keycard:remove:<uid>` → forwarded to `scooter:keycard` Redis list; response returned asynchronously via `keycard` hash `command-result` field
 
 **Time:**
+
 - `time:set <unix_timestamp>` → sets system clock via `timedatectl set-time`
 
 **Configuration:**
+
 - `config:apn <value>` → `HSET settings cellular.apn <value>`
 - `config:hibernate-timer <seconds>` → `HSET settings hibernation-timer <value>`
 - `config:update-channel <stable|testing|nightly>` → sets `settings:updates.mdb.channel` and `settings:updates.dbc.channel`
 - `config:auto-standby-seconds <seconds>` → `HSET settings scooter.auto-standby-seconds <value>` (auto-lock idle timeout when parked, 0=disabled, 0-3600; last 60s shown as a cancellable countdown on the dashboard)
 
 **Alarm:**
+
 - `alarm:enable` → `LPUSH scooter:alarm enable`
 - `alarm:disable` → `LPUSH scooter:alarm disable`
 - `alarm:arm` → `LPUSH scooter:alarm arm`
@@ -415,10 +454,12 @@ Extended commands arrive as string payloads via the EXTENDED_COMMAND BLE charact
 The alarm-service processes the command and the response (`alarm:ok`) is returned via EXTENDED_RESPONSE (0x0402).
 
 **Power management:**
+
 - `pm:hibernate-for <duration>` -> arms a one-shot hibernation that wakes after the given duration. Duration uses Go `time.ParseDuration` syntax (e.g. "8h", "30m", "120s"); it is converted to whole seconds and forwarded as `LPUSH scooter:power hibernate-for:<seconds>`.
 - `pm:hibernate-cancel` -> cancels a pending wake timer and returns the system to run, forwarded as `LPUSH scooter:power hibernate-cancel`.
 
 Responses via EXTENDED_RESPONSE (0x0402):
+
 - `pm:ok` on success
 - `pm:error:invalid duration` if the duration cannot be parsed
 - `pm:error:duration must be positive` if the parsed duration is <= 0 seconds
@@ -426,6 +467,7 @@ Responses via EXTENDED_RESPONSE (0x0402):
 - `pm:error:unknown command` for any other `pm:` payload
 
 **LTC4020 aux charger control:**
+
 - `ltc:enable` — safe-enable LTC4020 charger (rejected if unsafe)
 - `ltc:disable` — disable LTC4020 charger
 - `ltc:force-enable` — force-enable LTC4020 charger (bypasses safety check)
@@ -435,6 +477,7 @@ Responses via EXTENDED_RESPONSE (0x0402):
 Response codes: `ltc:ok` (success), `ltc:error:unsafe` (rejected as unsafe), `ltc:error:invalid` (invalid state).
 
 **Status queries (read-only):**
+
 - `status:maps-available` → reads `dashboard:maps-available` (set by scootui-qt)
 - `status:navigation-available` → reads `dashboard:navigation-available` (set by scootui-qt)
 
@@ -464,25 +507,30 @@ The alarm-service subscribes to `bmx:interrupt` to trigger alarm escalation.
 The service handles hibernation requests from the nRF52:
 
 **Automatic hibernation:**
+
 - nRF sends hibernation request (type=automatic)
 - Service forwards: `LPUSH scooter:power hibernate`
 
 **Manual hibernation:**
+
 - nRF sends hibernation request (type=manual)
 - If vehicle state is "parked": `LPUSH scooter:state lock-hibernate`
 - Otherwise: `LPUSH scooter:power hibernate-manual`
 
 **Soft reboot:**
+
 - nRF receives "reboot" from the BLE power control characteristic
 - Service forwards: `LPUSH scooter:power reboot`
 - pm-service triggers a Linux-only reboot (same path as post-OTA reboots)
 
 **Hard reboot:**
+
 - nRF receives "hard-reboot" from the BLE power control characteristic
 - nRF notifies iMX that a power cycle is imminent, then controls the power rails directly
 - iMX reboots automatically when power is restored
 
 When power-manager enters hibernation state, the service:
+
 1. Disables data streaming to nRF52
 2. Sends hibernation level request (L1 or L2)
 3. Sends power management state update to nRF52
@@ -490,6 +538,7 @@ When power-manager enters hibernation state, the service:
 ## Log Output
 
 The service logs to journald. Common log patterns include:
+
 - UART frame parsing errors
 - CBOR decoding errors
 - Redis connection status
@@ -511,6 +560,7 @@ The service receives detailed battery information from the nRF52 (which reads fr
 ### CB Battery Alert Conditions (Status Register)
 
 Written to `cb-battery:alert` hash field `alert`:
+
 - Minimum Current Alert Threshold Exceeded
 - Maximum Current Alert Threshold Exceeded
 - Minimum Voltage Alert Threshold Exceeded
@@ -525,10 +575,12 @@ Written to `cb-battery:alert` hash field `alert`:
 Written to `cb-battery:fault` hash field `fault`:
 
 **From Protection Status Register:**
+
 - Discharging fault (ODCP, UVP, TOOHOTD, DIEHOT)
 - Charging fault (TOOCOLDC, OVP, OCCP, QOVFLW, TOOHOTC, FULL, DIEHOT)
 
 **From Battery Status Register:**
+
 - ChargeFET Failure-Short Detected
 - DischargeFET Failure-Short Detected
 - FET Failure open
@@ -551,6 +603,7 @@ The service subscribes to these Redis channels to monitor for state changes:
 - `keycard` - Monitors for `command-result` field → relays response to phone via extended response
 
 When a subscribed field changes, the service:
+
 1. Receives the field name via pub/sub
 2. Reads the updated value from the Redis hash
 3. Encodes and sends the update to nRF52 via USOCK

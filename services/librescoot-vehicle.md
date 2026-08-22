@@ -19,6 +19,7 @@ Usage of vehicle-service:
 ### Hash: `vehicle`
 
 **Fields written:**
+
 - `state` - Vehicle state (see States section below)
 - `brake:left` - Left brake state ("on", "off")
 - `brake:right` - Right brake state ("on", "off")
@@ -26,6 +27,7 @@ Usage of vehicle-service:
 - `blinker:start_nanos` - Monotonic start time of current blinker cycle (for UI sync)
 - `blinker:switch` - Blinker switch position ("left", "right", "both", "off")
 (`horn:button` and `seatbox:button` are **not** written to the `vehicle` hash in this release. Each horn/seatbox edge is latched into a separate `buttons` hash instead, as `horn:on` / `horn:off` / `seatbox:on` / `seatbox:off` set to the literal `"1"` and never cleared.)
+
 - `seatbox:lock` - Seatbox lock state ("open", "closed")
 - `kickstand` - Kickstand position ("up", "down")
 - `handlebar:position` - Handlebar position ("on-place", "off-place")
@@ -124,6 +126,7 @@ See [States Documentation](../states/README.md) for complete state machine.
 - **Input device:** `/dev/input/by-path/platform-gpio-keys-event`
 
 **Monitored inputs:**
+
 - `kickstand` - Kickstand position sensor (true = down, false = up)
 - `brake_left` - Left brake lever sensor (true = pressed)
 - `brake_right` - Right brake lever sensor (true = pressed)
@@ -139,6 +142,7 @@ See [States Documentation](../states/README.md) for complete state machine.
 ### GPIO Outputs (via gpiocdev)
 
 **Digital outputs:**
+
 - `seatbox_lock` - Seatbox lock solenoid (GPIO chip 2, line 10) - pulsed for 200ms
 - `horn` - Horn control (GPIO chip 2, line 9)
 - `engine_brake` - Motor brake control (GPIO chip 2, line 11)
@@ -154,16 +158,19 @@ The service controls 8 PWM LED channels via the `imx_pwm_led` kernel module:
 **LED device paths:** `/dev/pwm_led0` through `/dev/pwm_led7`
 
 **PWM Configuration:**
+
 - Period: 12000 ticks
 - Prescaler: 0 (default)
 - Invert: 0 (default)
 - Repeat: 3
 
 **LED patterns:**
+
 - Fades: `/usr/share/led-curves/fades/fade*` (up to 4096 samples per fade)
 - Cues: `/usr/share/led-curves/cues/cue*` (up to 16 cues)
 
 **Blinker timing:**
+
 - Blinker interval: 800ms
 
 ## Configuration
@@ -244,12 +251,14 @@ the next transition.
 #### Ready-to-Drive Conditions
 
 Vehicle enters `ready-to-drive` when ALL are true:
+
 - Dashboard ready (`dashboard` hash `ready` field = "true")
 - Kickstand up
 - Current state is `parked`
 
 **Manual Ready-to-Drive Activation:**
 In `parked` state, if dashboard is not ready, pressing the seatbox button while:
+
 - Kickstand is up
 - Both brakes are held
 
@@ -258,23 +267,27 @@ Will manually transition to `ready-to-drive` and blink the main light once for c
 #### Lock/Unlock Handling
 
 **Lock command** (`LPUSH scooter:state lock`):
+
 1. Must be in `parked` state
 2. Transitions to `shutting-down`
 3. After ~4 seconds, transitions to `stand-by`
 4. Power manager then suspends/hibernates
 
 **Unlock command** (`LPUSH scooter:state unlock`):
+
 1. Reads kickstand state
 2. If dashboard ready and kickstand up: transitions to `ready-to-drive`
 3. Otherwise: transitions to `parked` (if currently in `stand-by`)
 
 **Lock-Hibernate command** (`LPUSH scooter:state lock-hibernate`):
+
 1. Must be in `parked` state
 2. Sets hibernation request flag
 3. Transitions to `shutting-down`
 4. Sends "hibernate-manual" command to power manager via `scooter:power` list
 
 **Force-Lock command** (`LPUSH scooter:state force-lock`):
+
 1. Sets `forceStandbyNoLock` flag
 2. Immediately transitions to `stand-by` without handlebar locking
 3. Used for emergency shutdown or special cases (e.g., DBC update)
@@ -306,6 +319,7 @@ Will manually transition to `ready-to-drive` and blink the main light once for c
    - Send "hibernate-manual" command to power manager
 
 **Keycard force-standby:**
+
 - Tap keycard 3 times while holding brake lever
 - Immediately transitions to `stand-by` without handlebar lock
 - Useful for emergency situations or servicing
@@ -313,6 +327,7 @@ Will manually transition to `ready-to-drive` and blink the main light once for c
 #### Blinker Control
 
 The service implements automatic blinker logic:
+
 - Blink interval: 800ms
 - Physical blinker switches only work in active states (parked, ready-to-drive, waiting states)
 - In other states, blinker control comes from software commands only
@@ -351,10 +366,12 @@ transition behaves exactly as before.
 #### Seatbox Control
 
 **Open command** (`LPUSH scooter:seatbox open`):
+
 1. Pulses seatbox lock solenoid for 200ms
 2. Publishes seatbox opened event to `vehicle` channel (payload: "seatbox:opened")
 
 **Button press:**
+
 - In `parked` state: pressing seatbox button opens seatbox
 - In other states: button press is logged but no action taken
 - Button events published to `buttons` channel for UI feedback
@@ -363,6 +380,7 @@ transition behaves exactly as before.
 #### Brake Control
 
 **Brake state handling:**
+
 - Brake pressed: plays LED cue 4 (LED_BRAKE_OFF_TO_BRAKE_ON)
 - Brake released: plays LED cue 5 (LED_BRAKE_ON_TO_BRAKE_OFF)
 - Engine brake logic:
@@ -372,6 +390,7 @@ transition behaves exactly as before.
 - Button events published to `buttons` channel for immediate UI response
 
 **Park debounce:**
+
 - After entering `ready-to-drive`, kickstand down events are ignored for 1 second
 - Prevents accidental transition to parked during kickstand retraction
 
@@ -406,6 +425,7 @@ carries the raw edges; the `vehicle` hash carries the current level. See the
 ### Command Processing
 
 Commands are consumed via BRPOP with 5-second timeout:
+
 - `scooter:state` - State change commands
 - `scooter:seatbox` - Seatbox control
 - `scooter:horn` - Horn control
@@ -418,6 +438,7 @@ Commands are consumed via BRPOP with 5-second timeout:
 ### Fault Detection
 
 The service supports fault reporting via Redis:
+
 - Faults are added to the `vehicle:fault` set (using SADD)
 - Fault events are logged to the `events:faults` stream (using XADD)
 - Fault notifications published to `vehicle` channel (payload: "fault")
@@ -429,6 +450,7 @@ Current implementation does not actively monitor for faults, but the infrastruct
 ## Log Output
 
 The service logs to journald. Common log patterns:
+
 - State transitions (e.g., "Transitioning from PARKED to READY_TO_DRIVE")
 - Input events (e.g., "Input kickstand => true")
 - Command processing (e.g., "Received command from scooter:state: lock")
@@ -440,6 +462,7 @@ The service logs to journald. Common log patterns:
 - Settings updates
 
 **Log levels:**
+
 - 0 = NONE: No logging
 - 1 = ERROR: Fatal errors only
 - 2 = WARN: Warnings and errors
@@ -456,6 +479,7 @@ journalctl -u librescoot-vehicle.service --since "10 minutes ago"
 ## Dependencies
 
 **Required:**
+
 - **Redis server** - Must be running at 127.0.0.1:6379
 - **GPIO input device** - `/dev/input/by-path/platform-gpio-keys-event`
 - **GPIO chip devices** - For digital outputs (gpiochip1, gpiochip2, gpiochip4)
@@ -464,6 +488,7 @@ journalctl -u librescoot-vehicle.service --since "10 minutes ago"
 - **LED curve files** - `/usr/share/led-curves/fades/` and `/usr/share/led-curves/cues/`
 
 **Optional:**
+
 - **dashboard** - Service waits for `dashboard ready` = "true" before allowing ready-to-drive
 - **keycard** - Authentication via keycard events
 - **settings-service** - For persistent settings like brake-hibernation
@@ -523,6 +548,7 @@ See [i.MX PWM LED kernel module documentation](https://github.com/librescoot/ker
 
 **DBC Update Support:**
 During DBC (Dashboard Controller) firmware updates:
+
 - Dashboard power is kept on regardless of vehicle state
 - Power state changes are deferred until update completes
 - Dashboard power can be cycled remotely via `scooter:update` command
@@ -530,12 +556,14 @@ During DBC (Dashboard Controller) firmware updates:
 
 **Force Standby:**
 Three keycard taps while holding brake lever triggers immediate transition to standby without handlebar lock. Useful for:
+
 - Emergency situations
 - Service/warehouse operations
 - Forcing standby when handlebar lock is non-functional
 
 **Settings Integration:**
 The service responds to settings changes via PUBSUB:
+
 - `scooter.brake-hibernation`: "enabled" or "disabled"
 - Changes take effect immediately
 - Active hibernation sequences are cancelled when disabled
@@ -543,6 +571,7 @@ The service responds to settings changes via PUBSUB:
 ### Architecture
 
 **Package structure:**
+
 - `cmd/vehicle-service/` - Main entry point
 - `internal/core/` - Core system logic and state machine
 - `internal/hardware/` - Hardware I/O abstraction (GPIO, LED)
@@ -551,6 +580,7 @@ The service responds to settings changes via PUBSUB:
 - `internal/logger/` - Leveled logging implementation
 
 **Concurrency model:**
+
 - Main goroutine handles system coordination
 - Separate goroutines for:
   - Redis PUBSUB listener
@@ -560,6 +590,7 @@ The service responds to settings changes via PUBSUB:
 - Thread-safe state access via sync.RWMutex
 
 **Error handling:**
+
 - Hardware errors are logged but don't crash the service
 - Redis disconnection causes service exit (systemd will restart)
 - Invalid commands are logged and rejected
@@ -580,6 +611,7 @@ make build-amd64
 ### Compatibility
 
 Librescoot vehicle-service maintains Redis protocol compatibility:
+
 - Same hash fields and structure as original implementation
 - Same command interface (LPUSH to command lists)
 - Same PUBSUB channel usage
@@ -589,6 +621,7 @@ Librescoot vehicle-service maintains Redis protocol compatibility:
 ### Integration Points
 
 Librescoot vehicle-service integrates with:
+
 - **Redis** - Central message bus (required)
 - **Dashboard service** - Waits for ready signal before allowing drive
 - **Settings service** - Reads persistent behavior settings

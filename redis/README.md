@@ -3,6 +3,7 @@
 ## Connection Details
 
 The scooter runs the datastore on the MDB accessible at:
+
 - Host: 192.168.7.1  
 - Port: 6379
 
@@ -244,6 +245,7 @@ redis-cli -h 192.168.7.1 LPUSH scooter:bluetooth "command-name"
 ```
 
 Available commands:
+
 - `advertising-start-with-whitelisting` - Start BLE advertising with whitelist filtering (only paired devices can connect)
 - `advertising-restart-no-whitelisting` - Restart advertising without whitelist restrictions (any device can connect)
 - `advertising-stop` - Stop BLE advertising completely
@@ -261,11 +263,13 @@ Available commands:
 The Bluetooth service subscribes to several Redis channels and automatically updates the nRF52 module when values change:
 
 **Vehicle State Updates:**
+
 - `vehicle:state` - Vehicle operating state changes
 - `vehicle:seatbox:lock` - Seatbox lock status changes
 - `vehicle:handlebar:lock-sensor` - Handlebar lock status changes
 
 **Battery Status Updates:**
+
 - `battery:0:state` - Main battery 0 state changes
 - `battery:0:present` - Main battery 0 presence detection
 - `battery:0:charge` - Main battery 0 charge level
@@ -274,6 +278,7 @@ The Bluetooth service subscribes to several Redis channels and automatically upd
 - `battery:1:charge` - Main battery 1 charge level
 
 **Power Management Updates:**
+
 - `power-manager:state` - Power state changes trigger automatic data stream management
 
 #### Bluetooth-Triggered Redis Requests
@@ -281,11 +286,13 @@ The Bluetooth service subscribes to several Redis channels and automatically upd
 The Bluetooth service can write requests to Redis when receiving commands via BLE:
 
 **Scooter Control:**
+
 - `scooter:state` → `unlock` / `lock` / `lock-hibernate`
 - `scooter:seatbox` → `open`
 - `scooter:blinker` → `right` / `left` / `both` / `off`
 
 **Power Management:**
+
 - `scooter:power` → `hibernate` / `hibernate-manual`
 
 ### Keycard Authentication (`keycard`)
@@ -492,6 +499,7 @@ hgetall alarm
 | status | string | Current alarm status | "armed" |
 
 **Possible status values:**
+
 - `disabled` - Alarm system is disabled
 - `disarmed` - Alarm enabled but not armed (vehicle not in stand-by)
 - `armed` - Alarm is armed and monitoring for motion
@@ -521,6 +529,7 @@ motion-service owns the BMX055 9-axis IMU and publishes its state here. The lega
 | heading-deg / heading-accuracy / heading-tilt / heading-tilt-comp | string | Smoothed heading, 1-σ accuracy, tilt, tilt-compensation flag | "192.50" |
 
 **Pub/sub channels:**
+
 - `motion:sensors` (10 Hz) - JSON sensor reading: `timestamp`, `accel`, `gyro`, optional `mag`, each axis as `{x, y, z, magnitude, unit}`
 - `motion:heading` (5 Hz) - JSON heading payload (`heading_deg`, `accuracy_deg`, `tilt_deg`, ...)
 - `motion:interrupt` - JSON motion event: `{"type": "edge"|"wake-hibernation", "timestamp": ..., "engine": "any-motion"|"slow-motion"}`
@@ -647,6 +656,7 @@ Librescoot adds modem health tracking:
 | link-layer | string | Local stack assessment: `ok`, or `<failed-layer>` / `<failed-layer>: <reason>` | "ok" |
 
 **Modem health states:**
+
 - `normal` - Modem operating normally
 - `recovering` - Attempting recovery
 - `recovery-failed-waiting-reboot` - Recovery failed, waiting for reboot
@@ -870,6 +880,7 @@ XREAD STREAMS events:faults 0
 ```
 
 Each entry contains:
+
 - `group` - Component group (e.g., "cb-battery", "modem")
 - `code` - Fault code
 - `description` - Human-readable fault description
