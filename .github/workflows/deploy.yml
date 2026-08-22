@@ -153,6 +153,10 @@ jobs:
 
       - name: Check the version is already deployed
         run: |
+          # mike validates the project config before touching gh-pages, and
+          # that config points at docs/. Promotion never builds, so make the
+          # directory exist or every mike call here fails.
+          mkdir -p docs
           git fetch origin gh-pages
           if ! mike list | grep -qE "(^|[[:space:],])${{ inputs.promote }}([[:space:],]|$)"; then
             echo "::error::${{ inputs.promote }} is not deployed. Push its docs/${{ inputs.promote }} branch first."
