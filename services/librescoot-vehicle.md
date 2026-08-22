@@ -25,8 +25,8 @@ Usage of vehicle-service:
 - `blinker:state` - Blinker active state ("on", "off")
 - `blinker:start_nanos` - Monotonic start time of current blinker cycle (for UI sync)
 - `blinker:switch` - Blinker switch position ("left", "right", "both", "off")
-- `horn:button` - Horn button state ("on", "off")
-- `seatbox:button` - Seatbox button state ("on", "off")
+- `main-power` - Commanded main power rail state ("on", "off")
+- `engine-power` - Commanded `engine_power` GPIO state ("on", "off"), read by ecu-service
 - `seatbox:lock` - Seatbox lock state ("open", "closed")
 - `kickstand` - Kickstand position ("up", "down")
 - `handlebar:position` - Handlebar position ("on-place", "off-place")
@@ -51,7 +51,7 @@ Usage of vehicle-service:
   - `release` - Exit either hop-on sub-state back to `parked`
 - `scooter:led:cue` - LED cue playback commands (integer cue index)
 - `scooter:led:fade` - LED fade playback commands ("channel:fadeIndex")
-- `scooter:update` - Update commands ("start", "complete", "start-dbc", "complete-dbc", "cycle-dashboard-power")
+- `scooter:update` - Update commands ("start", "complete", "start-dbc", "complete-dbc")
 - `scooter:hardware` - Hardware control commands ("dashboard:on", "dashboard:off", "engine:on", "engine:off", "handlebar:lock", "handlebar:unlock")
 
 ### Hashes read
@@ -66,7 +66,6 @@ Usage of vehicle-service:
 - `keycard` - Keycard authentication events (payload: "authentication")
 - `ota` - OTA update notifications
 - `power-manager` - Power manager events
-- `vehicle` - Vehicle state change notifications
 - `settings` - Settings update notifications (payload: setting key that changed)
 
 ### Channels published
@@ -80,18 +79,17 @@ Usage of vehicle-service:
 
 ## Vehicle States
 
-The service implements the canonical vehicle state machine with these states:
+The service's internal FSM (`internal/fsm/states.go`) uses the state IDs below. Several are renamed on the way out: the `vehicle` hash `state` field publishes `hibernation-initial-hold` as `parked`, both `hibernation` and `hibernation-awaiting-confirm` as `waiting-hibernation`, `hibernation-seatbox` as `waiting-hibernation-seatbox`, and `hibernation-confirm` as `waiting-hibernation-confirm`. The other states publish under their own name.
 
-- `init` - Initial/uninitialized state
-- `stand-by` - Powered but motor disabled
+- `stand-by` - Powered but motor disabled. Also the FSM's initial state; there is no separate `init` state.
 - `parked` - Unlocked with kickstand down
 - `ready-to-drive` - All conditions met, motor enabled
 - `waiting-seatbox` - Waiting for seatbox to close
-- `shutting-down` - Transitioning to power down (~4s)
+- `shutting-down` - Transitioning to power down (~5s)
 - `updating` - OTA firmware update in progress
 - `hibernation` - Manual hibernation super-state (entered via brake-lever hold from `parked`)
 - `hibernation-initial-hold` - 15-second initial brake hold phase
-- `hibernation-awaiting-confirm` - Confirmation phase (30s timeout after brakes released; continuous hold also auto-confirms)
+- `hibernation-awaiting-confirm` - Confirmation phase. A 30s state timeout runs from entry regardless of brake state and falls back to `parked`; a separate 15s timer auto-confirms if both brakes are still held when it fires
 - `hibernation-seatbox` - Confirmation blocked by open seatbox; prompts user to close it
 - `hibernation-confirm` - Final 3-second non-abortable hibernation confirmation
 - `at-rest` - Parent state grouping `parked`, `hop-on`, `hop-on-learning`. Owns the auto-standby timer; sibling transitions inside the group don't disturb it. Never the leaf, so `vehicle:state` never reads `at-rest`.
@@ -105,9 +103,9 @@ The manual hibernation sequence works as follows:
 1. **parked** → **hibernation-initial-hold** (15s): Both brakes pressed continuously
 2. **hibernation-initial-hold** → **hibernation-awaiting-confirm**: After 15s, enter confirmation phase
 3. **hibernation-awaiting-confirm**: User can release brakes or keep holding
-   - If brakes released: 30s timeout starts (can be reset by touching brakes)
-   - If brakes held continuously for 30s total: auto-confirm (skip seatbox check)
-   - If brakes re-pressed after release: hold for 15s to auto-confirm
+   - A 30s state timeout runs from entry into the phase, whatever the brakes do; it cannot be reset, and on expiry the vehicle returns to `parked`
+   - A separate 15s timer fires once and re-reads both brake levers: if both are still held it auto-confirms (30s total from the initial press, seatbox check skipped)
+   - Releasing and re-pressing the brakes does not restart that timer
 4. **Keycard tap** or **continuous hold timeout**: Check safety conditions (kickstand down, seatbox closed)
    - If seatbox open: transition to `hibernation-seatbox` and wait for user to close it
 5. **hibernation-confirm**: 3-second final countdown before hibernation
@@ -201,7 +199,7 @@ The service controls 8 PWM LED channels via the `imx_pwm_led` kernel module:
 12. Marks system as initialized
 13. Handles initial dashboard ready state (if dashboard was already ready)
 14. Publishes initial vehicle state to Redis
-15. Transitions from `init` to `stand-by` if still in init state
+15. Builds and starts the FSM in its initial `stand-by` state, then restores the state saved in Redis if one was persisted
 16. Starts Redis listeners (PUBSUB and BRPOP)
 
 ### State Machine Behavior
@@ -211,6 +209,7 @@ The service controls 8 PWM LED channels via the `imx_pwm_led` kernel module:
 Vehicle enters `ready-to-drive` when ALL are true:
 - Dashboard ready (`dashboard` hash `ready` field = "true")
 - Kickstand up
+- Handlebar unlocked
 - Current state is `parked`
 
 **Manual Ready-to-Drive Activation:**
@@ -225,7 +224,7 @@ Will manually transition to `ready-to-drive` and blink the main light once for c
 **Lock command** (`LPUSH scooter:state lock`):
 1. Must be in `parked` state
 2. Transitions to `shutting-down`
-3. After ~4 seconds, transitions to `stand-by`
+3. After ~5 seconds, transitions to `stand-by`
 4. Power manager then suspends/hibernates
 
 **Unlock command** (`LPUSH scooter:state unlock`):
@@ -254,11 +253,11 @@ Will manually transition to `ready-to-drive` and blink the main light once for c
    - After 15s: transition to `waiting-hibernation` state
 3. **Confirmation Phase:**
    - User can release brakes or keep holding
-   - If brakes released: 30-second timeout starts
-     - Timeout can be reset by touching brakes again
-     - If timeout expires: cancel hibernation, return to `parked`
-   - If brakes held continuously for 30s total from start: auto-confirm (warehouse mode)
-   - If brakes re-pressed after release: hold for 15s to auto-confirm
+   - A 30-second timeout is armed on entry into the confirmation phase, regardless of brake state
+     - It cannot be reset by touching the brakes again
+     - If it expires: cancel hibernation, return to `parked`
+   - A separate 15-second timer fires once and re-reads both brakes; if both are still held it auto-confirms (warehouse mode, 30s total from the initial press)
+   - Releasing and re-pressing the brakes does not restart that 15-second timer
    - **Keycard tap during confirmation:** triggers immediate safety check and confirmation
 4. **Safety Checks:**
    - Kickstand must be down (always required)
@@ -467,7 +466,7 @@ The service responds to settings changes via PUBSUB:
 - Main goroutine handles system coordination
 - Separate goroutines for:
   - Redis PUBSUB listener
-  - 8 Redis BRPOP command listeners (one per list)
+  - 9 Redis BRPOP command listeners (one per list)
   - Blinker timer (when active)
   - Various hardware timers (hibernation, shutdown, handlebar lock)
 - Thread-safe state access via sync.RWMutex
@@ -484,10 +483,10 @@ The service responds to settings changes via PUBSUB:
 # Build for ARM Cortex-A7 (default target)
 make build
 
-# Build for AMD64 (development/testing)
-make build-amd64
+# Build for the host platform (development/testing)
+make build-host
 
-# Output: bin/vehicle-service
+# Output: bin/vehicle-service (ARM), bin/vehicle-service-host (host)
 ```
 
 ### Compatibility

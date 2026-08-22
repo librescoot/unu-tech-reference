@@ -48,7 +48,6 @@ Settings are organized by section. Examples:
 - `alarm.l1-cooldown` - Level 1 cooldown duration in seconds
 
 - `scooter.max-voltage-delta` - Maximum voltage difference between batteries in mV before dual battery activation is refused (default: 1000; 0 to disable)
-- `scooter.battery-ignores-seatbox` - Runtime override of `--dangerously-ignore-seatbox` (default: false)
 - `scooter.battery-keep-active-on-seatbox-open` - Keep active battery on across seatbox opens (default: false)
 - `scooter.dual-battery` - Enable dual battery mode (default: false)
 - `scooter.dbc-blinker-led` - Blink DBC boot LED with blinkers ("enabled"/"disabled"; default: "disabled")
@@ -59,7 +58,7 @@ Settings are organized by section. Examples:
 - `cellular.sim-pin` - PIN for SIM unlock and lock-enable (4-8 digits, empty = leave SIM as-is)
 
 **Power management settings:**
-- `hibernation-timer` - Hibernation timeout in seconds (0=disabled)
+- `pm.hibernation-timer` - Hibernation timeout in seconds (0=disabled; default 259200)
 - `pm.scheduled-hibernate-enabled` - Enable cron-driven scheduled hibernation ("true"/"false", default false)
 - `pm.scheduled-hibernate-cron` - 5-field cron expression (minute hour day-of-month month day-of-week); empty disables
 - `pm.scheduled-hibernate-duration` - How long the scheduled hibernation lasts; the system wakes at fire-time plus this duration (Go duration, e.g. "8h")
@@ -69,7 +68,7 @@ Settings are organized by section. Examples:
 These keys are present in the v1.0.5 settings schema, but pm-service in this release does not yet act on them (scheduled hibernation and the wake-timer handshake land in a later release).
 
 **Scooter settings:**
-- `scooter.auto-standby-seconds` - Auto-lock timeout when parked in seconds (default: 0 = disabled; max 3600). The last 60 s are shown as a cancellable countdown on the dashboard; any user input (brake, kickstand, seatbox button) resets the timer.
+- `scooter.auto-standby-seconds` - Auto-lock timeout when parked in seconds (default: 900; 0 = disabled; no upper clamp). The last 60 s are shown as a cancellable countdown on the dashboard; any user input (brake, kickstand, seatbox button) resets the timer.
 - `scooter.brake-hibernation` - Enable brake lever hibernation ("enabled"/"disabled")
 
 **Update settings:**
@@ -105,7 +104,7 @@ These keys are present in the v1.0.5 settings schema, but pm-service in this rel
 - `dashboard.power-display-mode` - Power display unit (kw/amps; default: "kw")
 - `dashboard.battery-display-mode` - Battery display mode (percentage/range)
 - `dashboard.hop-on-combo` - Custom hop-on unlock combo, pipe-delimited tokens (empty = no combo)
-- `dashboard.maps.check-for-updates` - Auto-check for map updates weekly when online (default: true)
+- `dashboard.maps.check-for-updates` - Auto-check for map updates weekly when online (default: false)
 - `dashboard.maps.auto-download` - Auto-download map updates (default: false)
 - `dashboard.maps-available` - Offline map tiles available (system-managed; default: false)
 - `dashboard.navigation-available` - Full navigation available (system-managed; default: false)
@@ -138,7 +137,7 @@ apn = "internet.provider.com"
 [scooter]
 auto-standby-seconds = "0"
 brake-hibernation = "enabled"
-battery-ignores-seatbox = "false"
+dual-battery = "false"
 
 [dashboard]
 theme = "dark"
@@ -182,14 +181,14 @@ This ensures clean WireGuard state on boot and allows easy VPN configuration via
 
 1. Connects to Redis
 2. Checks if `/data/settings.toml` exists
-3. If exists and non-empty:
-   - Flushes existing Redis `settings` hash
-   - Reads TOML file
-   - Populates Redis with all settings
-   - Publishes each setting to `settings` channel
-4. If doesn't exist or empty `[scooter]` section:
-   - Flushes Redis `settings` hash
-   - Creates empty TOML file
+3. If it exists:
+   - Starts from the schema defaults, then overlays every key found in the TOML (user value wins)
+   - Writes the merged set to Redis in one MULTI/EXEC transaction
+   - Publishes each setting to the `settings` channel
+   - Clears every schema-declared transient key (`updates.mdb.channel`, `updates.dbc.channel`) afterwards
+4. If it doesn't exist:
+   - Populates Redis with the schema defaults only, logging "No /data/settings.toml found, using schema defaults only"
+   - No TOML file is created; one is written the first time a setting changes
 5. Deletes existing WireGuard connections from NetworkManager
 6. Waits for internet connectivity (event-driven; max 120s timeout)
 7. Imports all WireGuard configs from `/data/wireguard/`
@@ -244,10 +243,10 @@ When `cellular.apn` is updated:
 
 #### Empty Config Handling
 
-If the TOML file is empty or has an empty `[scooter]` section:
-- Redis `settings` hash is flushed
-- Service treats this as "factory reset" of settings
-- Services using settings will fall back to their defaults
+If the TOML file is missing or empty:
+- The Redis `settings` hash is populated from the schema defaults alone
+- There is no special-case handling for an empty `[scooter]` section
+- Services see the schema defaults, not an empty hash
 
 ### WireGuard Management
 
@@ -343,8 +342,8 @@ rm /data/settings.toml
 # Restart settings service
 systemctl restart librescoot-settings
 
-# Redis settings hash is now empty
-# Services will use default values
+# Redis settings hash now holds only the schema defaults
+# Services will use those default values
 ```
 
 ## Building
@@ -353,27 +352,31 @@ systemctl restart librescoot-settings
 # Build for ARM target
 make build
 
-# Build for AMD64 (development)
-make build-amd64
+# Build for the host platform (development)
+make build-host
 ```
 
 ## Installation
 
 The service is typically installed via systemd:
 
-**Unit file:** `/etc/systemd/system/librescoot-settings.service`
+**Unit file:** `/usr/lib/systemd/system/librescoot-settings.service`
 
 ```ini
 [Unit]
 Description=LibreScoot Settings Service
-After=redis.service
 Requires=redis.service
+After=redis.service
+Before=librescoot-vehicle.service
 
 [Service]
 Type=simple
+User=root
+Group=root
 ExecStart=/usr/bin/settings-service
 Restart=always
-Environment="REDIS_ADDR=localhost:6379"
+RestartSec=10
+KillMode=mixed
 
 [Install]
 WantedBy=multi-user.target

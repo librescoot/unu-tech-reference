@@ -9,11 +9,11 @@ The power manager (pm-service) controls system power states including suspend, h
 ```
 Usage of pm-service:
   -default-state string
-        Default power state (run, suspend, hibernate, hibernate-manual, hibernate-timer, reboot) (default "suspend")
+        Fallback power state if pm.default-state setting is not configured (run, suspend, hibernate, hibernate-manual, hibernate-timer, reboot) (default "suspend")
   -dry-run
         Dry run state (don't actually issue power state changes)
   -hibernation-timer duration
-        Duration of the hibernation timer (default 120h0m0s) [5 days]
+        Duration of the hibernation timer (default 72h0m0s) [3 days]
   -inhibitor-duration duration
         Duration the system is held active after suspend is issued (default 500ms)
   -pre-suspend-delay duration
@@ -28,7 +28,7 @@ Usage of pm-service:
         Duration for which low-power-state-imminent state is held (default 5s)
 ```
 
-**Note:** The hibernation timer default is 120 hours (5 days). The systemd unit file typically overrides the default state to `run` to prevent automatic suspends during development.
+**Note:** The hibernation timer default is 72 hours (3 days). The shipped `librescoot-pm.service` starts the binary with `-default-state run`, and the `pm.default-state` Redis setting (schema default `run`) overrides the CLI flag at startup and on live changes.
 
 ## Redis Operations
 
@@ -70,10 +70,12 @@ pm-service subscribes to the `power:inhibits` channel and syncs entries into its
 ### Hash: `settings`
 
 **Fields read:**
-- `hibernation-timer` - Hibernation timer duration in seconds
+- `pm.hibernation-timer` - Hibernation timer duration in seconds (0 disables the timer; negative values ignored)
+- `pm.default-state` - Default power target state; overrides `-default-state` whenever it holds a valid value
 
 **Subscribed channel:** `settings`
-- `hibernation-timer` - Notification when hibernation timer setting changes
+- `pm.hibernation-timer` - Notification when the hibernation timer setting changes
+- `pm.default-state` - Notification when the default power state setting changes
 
 ### Hash: `system`
 
@@ -185,7 +187,7 @@ These delays allow services to complete operations before power down.
 
 ### Default Power State
 
-The `-default-state` option sets the target power state at startup:
+The `-default-state` option sets the target power state at startup, but only as a fallback: if `settings pm.default-state` holds a valid value it wins, and a later change to that setting updates the default at runtime.
 - `run` - No automatic power transitions
 - `suspend` - Allow suspend when vehicle is in stand-by (default)
 - `hibernate` - Target hibernation when conditions met
@@ -195,8 +197,8 @@ The `-default-state` option sets the target power state at startup:
 
 ### Hibernation Timer
 
-- **Configuration:** Via `-hibernation-timer` option (duration) or `settings hibernation-timer` Redis field (seconds)
-- **Default:** 5 days (120 hours)
+- **Configuration:** Via `-hibernation-timer` option (duration) or the `settings` hash field `pm.hibernation-timer` (seconds)
+- **Default:** 3 days (72 hours)
 - **Purpose:** Auto-hibernate after extended inactivity
 - **Activation:** Timer starts when vehicle leaves `ready-to-drive`; stops when vehicle re-enters `ready-to-drive`
 - **Dynamic updates:** Can be changed at runtime via Redis settings; set to 0 to disable
@@ -238,7 +240,7 @@ Explicit `suspend` commands (LPUSH scooter:power suspend) skip the pre-suspend d
 - Skips pre-suspend delay; FSM goes directly to `hibernate-imminent`
 
 **Hibernation timer:**
-- After timer expires (default 5 days outside `ready-to-drive`)
+- After timer expires (default 3 days outside `ready-to-drive`)
 - FSM goes to `hibernate-imminent` with timer target
 
 #### Inhibitor System
@@ -335,7 +337,7 @@ Use `journalctl -u librescoot-pm.service` to view logs.
 ## Dependencies
 
 - **systemd** - For power state commands (suspend, poweroff, reboot)
-- **D-Bus** - For systemd communication
+- **systemctl** - Power commands are issued by exec'ing `systemctl suspend` / `systemctl poweroff` / `systemctl reboot`; pm-service makes no D-Bus calls of its own
 - **Redis server** - For state coordination and service communication
 - **vehicle-service** - Monitors `vehicle state` for power transition triggers
 - **battery-service** - Monitors `battery:0` and `battery:1` state
@@ -362,7 +364,7 @@ Use `journalctl -u librescoot-pm.service` to view logs.
 
 **Hibernation Timer (`internal/hibernation/timer.go`)**
 - Tracks whether vehicle is in an idle state (not `ready-to-drive`)
-- Configurable timer duration (default 5 days); set to 0 to disable
+- Configurable timer duration (default 3 days); set to 0 to disable
 - Fires `EvHibernationTimerExpired` into the FSM on expiry
 
 **Service Coordinator (`internal/service/service.go`)**
@@ -412,10 +414,7 @@ After wakeup, reads IRQ from `/sys/power/pm_wakeup_irq` and publishes to Redis.
 make build
 
 # Build for local architecture
-make build-local
-
-# Install to /usr/bin
-sudo make install
+make build-host
 
 # Run with dry-run mode (no actual power transitions)
 ./pm-service -dry-run
@@ -448,7 +447,8 @@ redis-cli LPUSH scooter:governor powersave
 - Waits for modem to clear its blocking inhibitor
 
 **With settings-service:**
-- Reads `settings hibernation-timer` for timer duration in seconds
+- Reads `settings pm.hibernation-timer` for timer duration in seconds
+- Reads `settings pm.default-state` for the default power target state
 - Subscribes to settings changes for dynamic updates
 
 **With update-service:**

@@ -105,7 +105,7 @@ The service supports two ECU types, selectable via the `-ecu_type` flag:
 **Speed Calibration:**
 - Applies calibration factor: 1.03
 - Applies tolerance factor: 1.155556
-- Formula: `speed = raw_speed * 1.03 * 1.155556`
+- Formula: `speed = moving_average(raw_speed, 3 samples) * 1.03 * 1.155556` (the buffer resets to 0 whenever raw speed is 0)
 
 **Odometer Calibration:**
 - Odometer values multiplied by 1.07 and converted from 0.1km to meters
@@ -138,7 +138,7 @@ The service supports two ECU types, selectable via the `-ecu_type` flag:
 
 ### Systemd Unit
 
-- **Unit file:** `/usr/lib/systemd/system/ecu-service.service`
+- **Unit file:** `/usr/lib/systemd/system/librescoot-ecu.service`
 - **Started by:** systemd at boot
 - **Restart policy:** Always
 
@@ -146,8 +146,8 @@ The service supports two ECU types, selectable via the `-ecu_type` flag:
 
 The CAN interface must be configured before the service starts:
 ```bash
-ip link set can0 type can bitrate 250000
-ip link set can0 up
+ip link set can0 type can bitrate 125000 restart-ms 100
+ifconfig can0 up
 ```
 
 This is typically done by a systemd service or udev rule.
@@ -211,7 +211,8 @@ The service manages KERS based on battery temperature and vehicle state:
 - **Battery Temperature Monitoring:**
   - Monitors both battery slots (battery:0 and battery:1)
   - Uses temperature state of whichever battery is marked "active"
-  - If no battery is active or both are active, KERS state is not updated
+  - If both batteries are active, the more restrictive of the two temperature states is used (order: unknown < cold < hot < ideal)
+  - Only when neither battery is active does the temperature state stay `unknown`, and KERS is then not updated
 
 - **State Machine:**
   - Subscribes to `vehicle` channel for state changes
@@ -263,7 +264,7 @@ The service calculates and tracks power consumption and recovery:
 - **Energy Integration:** Power integrated over time to calculate energy in mWh
 - **Consumed Energy:** Tracked when power is positive (motor driving)
 - **Recovered Energy:** Tracked when power is negative (regenerative braking)
-- **Maximum Delta:** 5 second maximum between updates (prevents large accumulation when ECU is off)
+- **Maximum Delta:** 2 second maximum between updates (prevents large accumulation when ECU is off)
 
 ## Log Output
 
@@ -289,7 +290,7 @@ The service logs to journald (or stdout when not running under systemd). Common 
   - KERS update decisions
   - Power metrics calculations
 
-Use `journalctl -u ecu-service` to view logs.
+Use `journalctl -u librescoot-ecu` to view logs.
 
 ## Dependencies
 

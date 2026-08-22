@@ -17,8 +17,8 @@ These are the exact string values that appear in Redis and BLE:
 - **"waiting-seatbox"** - Transitional state waiting for seatbox to close
 - **"shutting-down"** - Transitional state before powering down (~5s)
 - **"updating"** - OTA firmware update in progress
-- **"waiting-hibernation"** - Manual hibernation sequence initiated (60s timeout)
-- **"waiting-hibernation-advanced"** - Advanced hibernation wait (brakes held for 10s+)
+- **"waiting-hibernation"** - Manual hibernation sequence initiated (30s timeout back to `parked`; 15s of continuously held brakes auto-confirms instead)
+- **"waiting-hibernation-advanced"** - Legacy value. vehicle-service never publishes it in this release: the advanced/confirmation phase is published as `waiting-hibernation`. The string is still accepted when restoring a persisted state.
 - **"waiting-hibernation-seatbox"** - Hibernation wait with seatbox open notification
 - **"waiting-hibernation-confirm"** - Hibernation confirmation screen (3s)
 
@@ -44,7 +44,7 @@ stateDiagram-v2
     unknown --> updating: init complete (updating)
     unknown --> ready-to-drive: init complete (default)
 
-    stand-by --> ready-to-drive: keycard auth / unlock request
+    stand-by --> parked: keycard auth / unlock request
 
     ready-to-drive --> parked: kickstand down (after 1s timer)
     ready-to-drive --> ready-to-drive: conditions still met
@@ -95,10 +95,7 @@ stateDiagram-v2
 Vehicle can enter "ready-to-drive" when ALL conditions are met:
 - Dashboard ready
 - Kickstand up
-- Seatbox lock closed
-- Not activating
 - Handlebar unlocked
-- Battery on
 
 #### Hibernation Sequence
 Manual hibernation requires:
@@ -106,7 +103,7 @@ Manual hibernation requires:
 2. Dashboard ready
 3. Not activating
 
-Flow: parked (15s) → waiting-hibernation (brakes held 10s) → waiting-hibernation-advanced → waiting-hibernation-confirm (keycard) → shutting-down (3s) → stand-by (with hibernation flag)
+Flow: parked (both brakes held 15s, still published as `parked`) -> waiting-hibernation -> waiting-hibernation-confirm (keycard tap, or 15s more of held brakes) -> shutting-down (5s) -> stand-by (with hibernation flag)
 
 #### Park Protection
 1-second timer prevents rapid drive → park → drive oscillations

@@ -349,13 +349,13 @@ LibreScoot adds persistent settings managed by the settings-service:
 | updates.mdb.check-interval | duration | MDB update check interval ("never" to disable) | "6h" |
 | updates.mdb.dry-run | "true"/"false" | MDB update dry-run mode | "false" |
 | updates.mdb.method | string | MDB update method | "full" or "delta" |
-| updates.mdb.github-releases-url | string | GitHub Releases API endpoint for MDB | "https://api.github.com/repos/librescoot/librescoot/releases" |
+| updates.mdb.releases-url | string | Release index base URL for MDB | "https://downloads.librescoot.org/releases" |
 | updates.mdb.last-check-time | string (ISO8601) | Last MDB update check timestamp | "2025-01-15T10:30:00Z" |
 | updates.dbc.channel | string | DBC update channel | "stable" |
 | updates.dbc.check-interval | duration | DBC update check interval ("never" to disable) | "6h" |
 | updates.dbc.dry-run | "true"/"false" | DBC update dry-run mode | "false" |
 | updates.dbc.method | string | DBC update method | "full" or "delta" |
-| updates.dbc.github-releases-url | string | GitHub Releases API endpoint for DBC | "https://api.github.com/repos/librescoot/librescoot/releases" |
+| updates.dbc.releases-url | string | Release index base URL for DBC | "https://downloads.librescoot.org/releases" |
 | updates.dbc.last-check-time | string (ISO8601) | Last DBC update check timestamp | "2025-01-15T10:30:00Z" |
 | dashboard.show-raw-speed | "true"/"false" | Show raw uncorrected speed from ECU | "false" |
 | dashboard.show-clock | string | Clock visibility (always/never) | "always" |
@@ -680,11 +680,14 @@ redis-cli -h 192.168.7.1 LPUSH scooter:modem gps:disable
 Controls OTA update system.
 
 ```bash
-# Force immediate update check (both MDB and DBC)
-redis-cli -h 192.168.7.1 LPUSH scooter:update check-now
+# Force immediate update check (one list per component)
+redis-cli -h 192.168.7.1 LPUSH scooter:update:mdb check-now
+redis-cli -h 192.168.7.1 LPUSH scooter:update:dbc check-now
 ```
 
-**Available commands**: `check-now`
+**Available commands on `scooter:update:{mdb,dbc}`**: `check-now`, `update-from-file:<path>[:sha256:<hex>]`, `update-from-url:<url>[:sha256:<hex>]`
+
+`scooter:update` itself is consumed by vehicle-service, not update-service, and accepts `start`, `complete`, `start-dbc`, `complete-dbc`. update-service LPUSHes `start-dbc`/`complete-dbc` there to hold dashboard power across a DBC update.
 
 ### Command Channel Notes
 
