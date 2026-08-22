@@ -142,6 +142,19 @@ hgetall cb-battery
 | serial-number | string | Serial number | "T-CBB 2107245036" |
 | unique-id | string | Unique identifier | "420000508ff2c826" |
 
+### Scooter (`scooter`)
+
+Ambient temperature measured by the onboard thermistor, relayed from the nRF52
+by bluetooth-service. Also published on the `scooter` channel.
+
+```
+hgetall scooter
+```
+
+| Field | Type | Description | Example |
+|-------|------|-------------|----------|
+| temperature | float (°C) | Ambient temperature, one decimal place | "18.1" |
+
 ### System Information (`system`)
 ```
 hgetall system

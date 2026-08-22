@@ -134,7 +134,7 @@ The Bluetooth service provides the BLE (Bluetooth Low Energy) interface for the 
 
 **Fields written:**
 
-- `temperature` - External temperature in tenths of °C (from nRF vehicle state message)
+- `temperature` - Ambient temperature in °C to one decimal place (the nRF sends tenths; bluetooth-service divides before writing)
 
 **Published channel:** `scooter`
 
