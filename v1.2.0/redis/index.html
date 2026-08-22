@@ -2931,9 +2931,11 @@
 
 <h1 id="redis-interface-documentation">Redis Interface Documentation<a class="headerlink" href="#redis-interface-documentation" title="Permanent link">&para;</a></h1>
 <h2 id="connection-details">Connection Details<a class="headerlink" href="#connection-details" title="Permanent link">&para;</a></h2>
-<p>The scooter runs the datastore on the MDB accessible at:
-- Host: 192.168.7.1<br />
-- Port: 6379</p>
+<p>The scooter runs the datastore on the MDB accessible at:</p>
+<ul>
+<li>Host: 192.168.7.1  </li>
+<li>Port: 6379</li>
+</ul>
 <p>Local connection command:
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>redis-cli<span class="w"> </span>-h<span class="w"> </span><span class="m">192</span>.168.7.1<span class="w"> </span>-p<span class="w"> </span><span class="m">6379</span>
 </span></code></pre></div></p>
@@ -3733,41 +3735,53 @@ will not find it on 1.2 or later.</p>
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-13-1"><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a><span class="c1"># Send a command to the Bluetooth service</span>
 </span><span id="__span-13-2"><a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a>redis-cli<span class="w"> </span>-h<span class="w"> </span><span class="m">192</span>.168.7.1<span class="w"> </span>LPUSH<span class="w"> </span>scooter:bluetooth<span class="w"> </span><span class="s2">"command-name"</span>
 </span></code></pre></div>
-<p>Available commands:
-- <code>advertising-start-with-whitelisting</code> - Start BLE advertising with whitelist filtering (only paired devices can connect)
-- <code>advertising-restart-no-whitelisting</code> - Restart advertising without whitelist restrictions (any device can connect)
-- <code>advertising-stop</code> - Stop BLE advertising completely
-- <code>delete-bond</code> - Remove a single paired/bonded device
-- <code>delete-all-bonds</code> - Remove all paired/bonded devices from the system
-- <code>remove</code> - Remove the currently connected device
-- <code>ltc-enable</code> / <code>ltc-disable</code> - Enable/disable the LTC4020 aux charger
-- <code>ltc-force-enable</code> / <code>ltc-force-disable</code> - Force the LTC4020 aux charger on/off (bypass safety gating)
-- <code>ltc-status</code> - Query the LTC4020 aux charger state
-- <code>data-stream-sync</code> - Re-push the current data-stream state to the nRF52
-- <code>firmware-update</code> - Trigger an nRF52 firmware update from <code>/usr/share/nrf-fw/</code></p>
+<p>Available commands:</p>
+<ul>
+<li><code>advertising-start-with-whitelisting</code> - Start BLE advertising with whitelist filtering (only paired devices can connect)</li>
+<li><code>advertising-restart-no-whitelisting</code> - Restart advertising without whitelist restrictions (any device can connect)</li>
+<li><code>advertising-stop</code> - Stop BLE advertising completely</li>
+<li><code>delete-bond</code> - Remove a single paired/bonded device</li>
+<li><code>delete-all-bonds</code> - Remove all paired/bonded devices from the system</li>
+<li><code>remove</code> - Remove the currently connected device</li>
+<li><code>ltc-enable</code> / <code>ltc-disable</code> - Enable/disable the LTC4020 aux charger</li>
+<li><code>ltc-force-enable</code> / <code>ltc-force-disable</code> - Force the LTC4020 aux charger on/off (bypass safety gating)</li>
+<li><code>ltc-status</code> - Query the LTC4020 aux charger state</li>
+<li><code>data-stream-sync</code> - Re-push the current data-stream state to the nRF52</li>
+<li><code>firmware-update</code> - Trigger an nRF52 firmware update from <code>/usr/share/nrf-fw/</code></li>
+</ul>
 <h4 id="bluetooth-event-subscriptions">Bluetooth Event Subscriptions<a class="headerlink" href="#bluetooth-event-subscriptions" title="Permanent link">&para;</a></h4>
 <p>The Bluetooth service subscribes to several Redis channels and automatically updates the nRF52 module when values change:</p>
-<p><strong>Vehicle State Updates:</strong>
-- <code>vehicle:state</code> - Vehicle operating state changes
-- <code>vehicle:seatbox:lock</code> - Seatbox lock status changes
-- <code>vehicle:handlebar:lock-sensor</code> - Handlebar lock status changes</p>
-<p><strong>Battery Status Updates:</strong>
-- <code>battery:0:state</code> - Main battery 0 state changes
-- <code>battery:0:present</code> - Main battery 0 presence detection
-- <code>battery:0:charge</code> - Main battery 0 charge level
-- <code>battery:1:state</code> - Main battery 1 state changes
-- <code>battery:1:present</code> - Main battery 1 presence detection
-- <code>battery:1:charge</code> - Main battery 1 charge level</p>
-<p><strong>Power Management Updates:</strong>
-- <code>power-manager:state</code> - Power state changes trigger automatic data stream management</p>
+<p><strong>Vehicle State Updates:</strong></p>
+<ul>
+<li><code>vehicle:state</code> - Vehicle operating state changes</li>
+<li><code>vehicle:seatbox:lock</code> - Seatbox lock status changes</li>
+<li><code>vehicle:handlebar:lock-sensor</code> - Handlebar lock status changes</li>
+</ul>
+<p><strong>Battery Status Updates:</strong></p>
+<ul>
+<li><code>battery:0:state</code> - Main battery 0 state changes</li>
+<li><code>battery:0:present</code> - Main battery 0 presence detection</li>
+<li><code>battery:0:charge</code> - Main battery 0 charge level</li>
+<li><code>battery:1:state</code> - Main battery 1 state changes</li>
+<li><code>battery:1:present</code> - Main battery 1 presence detection</li>
+<li><code>battery:1:charge</code> - Main battery 1 charge level</li>
+</ul>
+<p><strong>Power Management Updates:</strong></p>
+<ul>
+<li><code>power-manager:state</code> - Power state changes trigger automatic data stream management</li>
+</ul>
 <h4 id="bluetooth-triggered-redis-requests">Bluetooth-Triggered Redis Requests<a class="headerlink" href="#bluetooth-triggered-redis-requests" title="Permanent link">&para;</a></h4>
 <p>The Bluetooth service can write requests to Redis when receiving commands via BLE:</p>
-<p><strong>Scooter Control:</strong>
-- <code>scooter:state</code> → <code>unlock</code> / <code>lock</code> / <code>lock-hibernate</code>
-- <code>scooter:seatbox</code> → <code>open</code>
-- <code>scooter:blinker</code> → <code>right</code> / <code>left</code> / <code>both</code> / <code>off</code></p>
-<p><strong>Power Management:</strong>
-- <code>scooter:power</code> → <code>hibernate</code> / <code>hibernate-manual</code></p>
+<p><strong>Scooter Control:</strong></p>
+<ul>
+<li><code>scooter:state</code> → <code>unlock</code> / <code>lock</code> / <code>lock-hibernate</code></li>
+<li><code>scooter:seatbox</code> → <code>open</code></li>
+<li><code>scooter:blinker</code> → <code>right</code> / <code>left</code> / <code>both</code> / <code>off</code></li>
+</ul>
+<p><strong>Power Management:</strong></p>
+<ul>
+<li><code>scooter:power</code> → <code>hibernate</code> / <code>hibernate-manual</code></li>
+</ul>
 <h3 id="keycard-authentication-keycard">Keycard Authentication (<code>keycard</code>)<a class="headerlink" href="#keycard-authentication-keycard" title="Permanent link">&para;</a></h3>
 <div class="language-text highlight"><pre><span></span><code><span id="__span-14-1"><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a>hgetall keycard
 </span></code></pre></div>
@@ -4437,12 +4451,14 @@ will not find it on 1.2 or later.</p>
 </tr>
 </tbody>
 </table>
-<p><strong>Possible status values:</strong>
-- <code>disabled</code> - Alarm system is disabled
-- <code>disarmed</code> - Alarm enabled but not armed (vehicle not in stand-by)
-- <code>armed</code> - Alarm is armed and monitoring for motion
-- <code>level-1-triggered</code> - Level 1 alarm (notification only)
-- <code>level-2-triggered</code> - Level 2 alarm (horn + hazards)</p>
+<p><strong>Possible status values:</strong></p>
+<ul>
+<li><code>disabled</code> - Alarm system is disabled</li>
+<li><code>disarmed</code> - Alarm enabled but not armed (vehicle not in stand-by)</li>
+<li><code>armed</code> - Alarm is armed and monitoring for motion</li>
+<li><code>level-1-triggered</code> - Level 1 alarm (notification only)</li>
+<li><code>level-2-triggered</code> - Level 2 alarm (horn + hazards)</li>
+</ul>
 <p>See <a href="../services/librescoot-alarm/">alarm-service documentation</a> for details.</p>
 <h3 id="motion-imu-motion-librescoot-only">Motion / IMU (<code>motion</code>) - Librescoot Only<a class="headerlink" href="#motion-imu-motion-librescoot-only" title="Permanent link">&para;</a></h3>
 <div class="language-text highlight"><pre><span></span><code><span id="__span-23-1"><a id="__codelineno-23-1" name="__codelineno-23-1" href="#__codelineno-23-1"></a>hgetall motion
@@ -4514,11 +4530,13 @@ will not find it on 1.2 or later.</p>
 </tr>
 </tbody>
 </table>
-<p><strong>Pub/sub channels:</strong>
-- <code>motion:sensors</code> (10 Hz) - JSON sensor reading: <code>timestamp</code>, <code>accel</code>, <code>gyro</code>, optional <code>mag</code>, each axis as <code>{x, y, z, magnitude, unit}</code>
-- <code>motion:heading</code> (5 Hz) - JSON heading payload (<code>heading_deg</code>, <code>accuracy_deg</code>, <code>tilt_deg</code>, ...)
-- <code>motion:interrupt</code> - JSON motion event: <code>{"type": "edge"|"wake-hibernation", "timestamp": ..., "engine": "any-motion"|"slow-motion"}</code>
-- <code>motion:ready</code> - fired once at startup after the first profile-apply; payload is a unix-ms timestamp</p>
+<p><strong>Pub/sub channels:</strong></p>
+<ul>
+<li><code>motion:sensors</code> (10 Hz) - JSON sensor reading: <code>timestamp</code>, <code>accel</code>, <code>gyro</code>, optional <code>mag</code>, each axis as <code>{x, y, z, magnitude, unit}</code></li>
+<li><code>motion:heading</code> (5 Hz) - JSON heading payload (<code>heading_deg</code>, <code>accuracy_deg</code>, <code>tilt_deg</code>, ...)</li>
+<li><code>motion:interrupt</code> - JSON motion event: <code>{"type": "edge"|"wake-hibernation", "timestamp": ..., "engine": "any-motion"|"slow-motion"}</code></li>
+<li><code>motion:ready</code> - fired once at startup after the first profile-apply; payload is a unix-ms timestamp</li>
+</ul>
 <p><strong>RPC channel <code>motion:rpc</code></strong> (redis-ipc CallServer): methods <code>prepare-hibernation</code>, <code>get-calibration</code>, <code>clear-latch</code>, <code>soft-reset</code>.</p>
 <p><code>soft-reset</code> resets accel + gyro and then reprograms the current profile. It does not leave the chip at register defaults, since that would mean no motion detection on an armed scooter.</p>
 <p>The <code>motion</code> hash still carries a <code>sensitivity</code> field. motion-service seeds it to <code>"none"</code> at startup and rewrites it whenever a <code>sensitivity:&lt;level&gt;</code> command arrives on <code>scooter:motion</code>. It is advisory: the profile controller reprograms threshold and duration on the next <code>alarm</code> or <code>power-manager</code> transition regardless of it.</p>
@@ -4771,11 +4789,13 @@ stream <code>id</code>.</p>
 </tr>
 </tbody>
 </table>
-<p><strong>Modem health states:</strong>
-- <code>normal</code> - Modem operating normally
-- <code>recovering</code> - Attempting recovery
-- <code>recovery-failed-waiting-reboot</code> - Recovery failed, waiting for reboot
-- <code>permanent-failure-needs-replacement</code> - Hardware failure</p>
+<p><strong>Modem health states:</strong></p>
+<ul>
+<li><code>normal</code> - Modem operating normally</li>
+<li><code>recovering</code> - Attempting recovery</li>
+<li><code>recovery-failed-waiting-reboot</code> - Recovery failed, waiting for reboot</li>
+<li><code>permanent-failure-needs-replacement</code> - Hardware failure</li>
+</ul>
 <p><strong>Connectivity classification (<code>connectivity</code>):</strong></p>
 <p>modem-service folds modem state, SIM state, registration, the enable flag and
 health into a single debounced verdict. Consumers (e.g. the dashboard internet
@@ -5147,10 +5167,12 @@ channel to use for anything that counts or reacts to discrete user actions.</p>
 <p>Stream of system fault events using XADD:</p>
 <div class="language-text highlight"><pre><span></span><code><span id="__span-31-1"><a id="__codelineno-31-1" name="__codelineno-31-1" href="#__codelineno-31-1"></a>XREAD STREAMS events:faults 0
 </span></code></pre></div>
-<p>Each entry contains:
-- <code>group</code> - Component group (e.g., "cb-battery", "modem")
-- <code>code</code> - Fault code
-- <code>description</code> - Human-readable fault description</p>
+<p>Each entry contains:</p>
+<ul>
+<li><code>group</code> - Component group (e.g., "cb-battery", "modem")</li>
+<li><code>code</code> - Fault code</li>
+<li><code>description</code> - Human-readable fault description</li>
+</ul>
 <h2 id="command-channels">Command Channels<a class="headerlink" href="#command-channels" title="Permanent link">&para;</a></h2>
 <p>The scooter accepts control commands via Redis list-based channels using <code>LPUSH</code>. Commands are queued and processed by the vehicle service.</p>
 <h3 id="scooter-state-control-scooterstate">Scooter State Control (<code>scooter:state</code>)<a class="headerlink" href="#scooter-state-control-scooterstate" title="Permanent link">&para;</a></h3>

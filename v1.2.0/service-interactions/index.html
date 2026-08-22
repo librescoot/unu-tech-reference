@@ -2488,30 +2488,36 @@
 | <code>buttons</code> | <code>horn:on</code>, <code>horn:off</code>, <code>seatbox:on</code>, <code>seatbox:off</code> | <code>buttons</code> |
 | <code>vehicle:fault</code> | fault codes (Redis Set) | <code>vehicle</code> (payload: "fault") |
 | <code>events:faults</code> | fault events (Redis Stream) | — |</p>
-<p><strong>Reads:</strong>
-- <code>vehicle/state</code> (self-reads for restart recovery)
-- <code>vehicle/dbc-updating</code>, <code>vehicle/dashboard:power</code> (self-reads)
-- <code>dashboard/ready</code> (from scootui)
-- <code>keycard/authentication</code> (from keycard-service)
-- <code>settings/*</code> (any field, for scooter.*, alarm settings via watch)
-- <code>ota/status:mdb</code>, <code>ota/status:dbc</code> (checks OTA status on update commands)
-- <code>ota/standby-timer-start</code> (indirectly via update-service)</p>
-<p><strong>Consumes queues (BRPOP):</strong>
-- <code>scooter:state</code> → "unlock", "lock", "lock-hibernate", "force-lock"
-- <code>scooter:seatbox</code> → "open"
-- <code>scooter:horn</code> → "on", "off"
-- <code>scooter:blinker</code> → "off", "left", "right", "both"
-- <code>scooter:led:cue</code> → integer cue index
-- <code>scooter:led:fade</code> → "channel:index" string
-- <code>scooter:update</code> → "start", "complete", "start-dbc", "complete-dbc"
-- <code>scooter:hardware</code> → "dashboard:on", "dashboard:off", "engine:on", "engine:off", "handlebar:lock", "handlebar:unlock" (and :force variants)</p>
+<p><strong>Reads:</strong></p>
+<ul>
+<li><code>vehicle/state</code> (self-reads for restart recovery)</li>
+<li><code>vehicle/dbc-updating</code>, <code>vehicle/dashboard:power</code> (self-reads)</li>
+<li><code>dashboard/ready</code> (from scootui)</li>
+<li><code>keycard/authentication</code> (from keycard-service)</li>
+<li><code>settings/*</code> (any field, for scooter.*, alarm settings via watch)</li>
+<li><code>ota/status:mdb</code>, <code>ota/status:dbc</code> (checks OTA status on update commands)</li>
+<li><code>ota/standby-timer-start</code> (indirectly via update-service)</li>
+</ul>
+<p><strong>Consumes queues (BRPOP):</strong></p>
+<ul>
+<li><code>scooter:state</code> → "unlock", "lock", "lock-hibernate", "force-lock"</li>
+<li><code>scooter:seatbox</code> → "open"</li>
+<li><code>scooter:horn</code> → "on", "off"</li>
+<li><code>scooter:blinker</code> → "off", "left", "right", "both"</li>
+<li><code>scooter:led:cue</code> → integer cue index</li>
+<li><code>scooter:led:fade</code> → "channel:index" string</li>
+<li><code>scooter:update</code> → "start", "complete", "start-dbc", "complete-dbc"</li>
+<li><code>scooter:hardware</code> → "dashboard:on", "dashboard:off", "engine:on", "engine:off", "handlebar:lock", "handlebar:unlock" (and :force variants)</li>
+</ul>
 <p><strong>DBC update power hold.</strong> <code>start-dbc</code> makes vehicle-service keep dashboard power up and
 defer the power cut that entering stand-by would normally perform, until <code>complete-dbc</code>
 arrives. A single watchdog bounds that hold: it expires 15 minutes after the last change to any
 <code>ota</code> hash field ending in <code>:dbc</code>, and then clears the stuck state. There is no
 heartbeat-driven short timeout in this release.</p>
-<p><strong>Produces queues (LPUSH):</strong>
-- <code>scooter:governor</code> → "ondemand"/"powersave" (send to pm-service via intermediate; actually uses its own queue handler — see note)</p>
+<p><strong>Produces queues (LPUSH):</strong></p>
+<ul>
+<li><code>scooter:governor</code> → "ondemand"/"powersave" (send to pm-service via intermediate; actually uses its own queue handler — see note)</li>
+</ul>
 <p><strong>Hardware access:</strong> GPIO via <code>/dev/gpiochip*</code>, PWM LED via kernel driver</p>
 <hr />
 <h3 id="battery-service">battery-service<a class="headerlink" href="#battery-service" title="Permanent link">&para;</a></h3>
@@ -2521,14 +2527,18 @@ heartbeat-driven short timeout in this release.</p>
 | <code>battery:0</code> | <code>present</code>, <code>state</code>, <code>voltage</code>, <code>current</code>, <code>charge</code>, <code>temperature:0</code>–<code>3</code>, <code>temperature-state</code>, <code>cycle-count</code>, <code>state-of-health</code>, <code>serial-number</code>, <code>manufacturing-date</code>, <code>fw-version</code> | <code>battery:0</code> (on change: <code>present</code>, <code>state</code>, <code>charge</code>, <code>temperature-state</code>, <code>fault</code>) |
 | <code>battery:1</code> | same fields | <code>battery:1</code> |
 | <code>battery:N:fault</code> | fault codes (Redis Set) | <code>battery:N</code> (payload: "fault") |</p>
-<p><strong>Reads:</strong>
-- <code>vehicle/state</code> (vehicle state for active/standby mode)
-- <code>vehicle/seatbox:lock</code> (seatbox state for enabling battery readers)
-- <code>settings/scooter.battery-keep-active-on-seatbox-open</code>
-- <code>settings/scooter.dual-battery</code></p>
-<p><strong>Subscribes to:</strong>
-- <code>vehicle</code> channel (payload: "state", "seatbox:lock")
-- <code>settings</code> channel (payload: "scooter.battery-keep-active-on-seatbox-open", "scooter.dual-battery")</p>
+<p><strong>Reads:</strong></p>
+<ul>
+<li><code>vehicle/state</code> (vehicle state for active/standby mode)</li>
+<li><code>vehicle/seatbox:lock</code> (seatbox state for enabling battery readers)</li>
+<li><code>settings/scooter.battery-keep-active-on-seatbox-open</code></li>
+<li><code>settings/scooter.dual-battery</code></li>
+</ul>
+<p><strong>Subscribes to:</strong></p>
+<ul>
+<li><code>vehicle</code> channel (payload: "state", "seatbox:lock")</li>
+<li><code>settings</code> channel (payload: "scooter.battery-keep-active-on-seatbox-open", "scooter.dual-battery")</li>
+</ul>
 <p><strong>Hardware access:</strong> NFC via <code>/dev/i2c-*</code>, PN7150 controller</p>
 <hr />
 <h3 id="ecu-service">ecu-service<a class="headerlink" href="#ecu-service" title="Permanent link">&para;</a></h3>
@@ -2541,15 +2551,19 @@ heartbeat-driven short timeout in this release.</p>
 | <code>engine-ecu</code> | <code>kers</code>, <code>boost</code> | (broken: see gaps) |
 | <code>engine-ecu</code> | <code>kers-reason-off</code> | (broken: see gaps) |
 | <code>engine-ecu</code> | <code>gear</code>, <code>fw-version</code> | (no publish) |</p>
-<p><strong>Reads:</strong>
-- <code>vehicle/state</code> (for engine ready state)
-- <code>battery:0/state</code>, <code>battery:0/temperature-state</code>
-- <code>battery:1/state</code>, <code>battery:1/temperature-state</code>
-- <code>settings/engine-ecu.boost</code></p>
-<p><strong>Subscribes to:</strong>
-- <code>vehicle</code> channel (payload: "state")
-- <code>battery:0</code>, <code>battery:1</code> channels (all fields → HGETALL)
-- <code>settings</code> channel (payload: "engine-ecu.boost")</p>
+<p><strong>Reads:</strong></p>
+<ul>
+<li><code>vehicle/state</code> (for engine ready state)</li>
+<li><code>battery:0/state</code>, <code>battery:0/temperature-state</code></li>
+<li><code>battery:1/state</code>, <code>battery:1/temperature-state</code></li>
+<li><code>settings/engine-ecu.boost</code></li>
+</ul>
+<p><strong>Subscribes to:</strong></p>
+<ul>
+<li><code>vehicle</code> channel (payload: "state")</li>
+<li><code>battery:0</code>, <code>battery:1</code> channels (all fields → HGETALL)</li>
+<li><code>settings</code> channel (payload: "engine-ecu.boost")</li>
+</ul>
 <p><strong>Hardware access:</strong> CAN bus via <code>/dev/can*</code></p>
 <hr />
 <h3 id="keycard-service">keycard-service<a class="headerlink" href="#keycard-service" title="Permanent link">&para;</a></h3>
@@ -2569,18 +2583,24 @@ heartbeat-driven short timeout in this release.</p>
 | <code>engine-ecu</code> | <code>odometer</code> (from nRF) | <code>engine-ecu</code> |
 | <code>ble</code> | status fields, <code>pin-code</code>, <code>firmware-update-status</code> | <code>ble</code> |
 | <code>ble:fault</code> | fault codes (Redis Set) | <code>ble</code> (payload: "fault") |</p>
-<p><strong>Reads:</strong>
-- <code>vehicle/state</code>, <code>vehicle/seatbox:lock</code>, <code>vehicle/handlebar:lock-sensor</code>
-- <code>battery:0/state</code>, <code>battery:0/present</code>, <code>battery:0/charge</code>, <code>battery:0/cycle-count</code>
-- <code>battery:1/state</code>, <code>battery:1/present</code>, <code>battery:1/charge</code>, <code>battery:1/cycle-count</code>
-- <code>power-manager/state</code>
-- <code>engine-ecu/odometer</code>
-- <code>system/mdb-version</code>
-- <code>ble/pin-code</code></p>
-<p><strong>Subscribes to:</strong>
-- <code>vehicle</code>, <code>battery:0</code>, <code>battery:1</code>, <code>power-manager</code>, <code>engine-ecu</code>, <code>system</code>, <code>ble</code> channels</p>
-<p><strong>Consumes queues:</strong>
-- <code>scooter:bluetooth</code> → BLE commands ("advertising-start-with-whitelisting", "advertising-restart-no-whitelisting", "advertising-stop", "delete-bond", "delete-all-bonds", "remove", "firmware-update")</p>
+<p><strong>Reads:</strong></p>
+<ul>
+<li><code>vehicle/state</code>, <code>vehicle/seatbox:lock</code>, <code>vehicle/handlebar:lock-sensor</code></li>
+<li><code>battery:0/state</code>, <code>battery:0/present</code>, <code>battery:0/charge</code>, <code>battery:0/cycle-count</code></li>
+<li><code>battery:1/state</code>, <code>battery:1/present</code>, <code>battery:1/charge</code>, <code>battery:1/cycle-count</code></li>
+<li><code>power-manager/state</code></li>
+<li><code>engine-ecu/odometer</code></li>
+<li><code>system/mdb-version</code></li>
+<li><code>ble/pin-code</code></li>
+</ul>
+<p><strong>Subscribes to:</strong></p>
+<ul>
+<li><code>vehicle</code>, <code>battery:0</code>, <code>battery:1</code>, <code>power-manager</code>, <code>engine-ecu</code>, <code>system</code>, <code>ble</code> channels</li>
+</ul>
+<p><strong>Consumes queues:</strong></p>
+<ul>
+<li><code>scooter:bluetooth</code> → BLE commands ("advertising-start-with-whitelisting", "advertising-restart-no-whitelisting", "advertising-stop", "delete-bond", "delete-all-bonds", "remove", "firmware-update")</li>
+</ul>
 <p><strong>Hardware access:</strong> UART via usock to nRF52 at <code>/var/run/bluetooth-service.sock</code> or similar</p>
 <hr />
 <h3 id="pm-service">pm-service<a class="headerlink" href="#pm-service" title="Permanent link">&para;</a></h3>
@@ -2590,20 +2610,28 @@ heartbeat-driven short timeout in this release.</p>
 | <code>power-manager</code> | <code>state</code> ("running", "suspending", "hibernating", etc.), <code>wakeup-source</code> | <code>power-manager</code> |
 | <code>power-manager:busy-services</code> | inhibitor entries (field = "who why what", value = type) | <code>power-manager:busy-services</code> (payload: "replaced"/"cleared") |
 | <code>system</code> | <code>cpu:governor</code> | <code>system</code> |</p>
-<p><strong>Reads:</strong>
-- <code>vehicle/state</code> (watches for standby/parked/ready-to-drive transitions)
-- <code>battery:0/state</code> (watches for active/inactive)
-- <code>settings/hibernation-timer</code></p>
-<p><strong>Subscribes to:</strong>
-- <code>vehicle</code> channel via HashWatcher
-- <code>battery:0</code> channel via HashWatcher
-- <code>settings</code> channel (for hibernation-timer)
-- <code>power:inhibits</code> hash (inhibitor redis listener)</p>
-<p><strong>Consumes queues:</strong>
-- <code>scooter:power</code> → "run", "suspend", "hibernate", "hibernate-manual", "hibernate-timer", "reboot"
-- <code>scooter:governor</code> → "ondemand", "powersave", "performance"</p>
-<p><strong>Produces queues:</strong>
-- <code>scooter:modem</code> → "disable" (to disable modem before power state change)</p>
+<p><strong>Reads:</strong></p>
+<ul>
+<li><code>vehicle/state</code> (watches for standby/parked/ready-to-drive transitions)</li>
+<li><code>battery:0/state</code> (watches for active/inactive)</li>
+<li><code>settings/hibernation-timer</code></li>
+</ul>
+<p><strong>Subscribes to:</strong></p>
+<ul>
+<li><code>vehicle</code> channel via HashWatcher</li>
+<li><code>battery:0</code> channel via HashWatcher</li>
+<li><code>settings</code> channel (for hibernation-timer)</li>
+<li><code>power:inhibits</code> hash (inhibitor redis listener)</li>
+</ul>
+<p><strong>Consumes queues:</strong></p>
+<ul>
+<li><code>scooter:power</code> → "run", "suspend", "hibernate", "hibernate-manual", "hibernate-timer", "reboot"</li>
+<li><code>scooter:governor</code> → "ondemand", "powersave", "performance"</li>
+</ul>
+<p><strong>Produces queues:</strong></p>
+<ul>
+<li><code>scooter:modem</code> → "disable" (to disable modem before power state change)</li>
+</ul>
 <p><strong>Hardware access:</strong> <code>/sys/power/pm_wakeup_irq</code>, <code>/sys/class/tty/*/power/wakeup</code>, systemd D-Bus</p>
 <hr />
 <h3 id="update-service">update-service<a class="headerlink" href="#update-service" title="Permanent link">&para;</a></h3>
@@ -2612,24 +2640,32 @@ heartbeat-driven short timeout in this release.</p>
 |------|--------|---------|
 | <code>ota</code> | <code>status:&lt;component&gt;</code>, <code>update-version:&lt;component&gt;</code>, <code>download-progress:&lt;component&gt;</code>, <code>download-bytes:&lt;component&gt;</code>, <code>download-total:&lt;component&gt;</code>, <code>install-progress:&lt;component&gt;</code>, <code>error:&lt;component&gt;</code>, <code>error-message:&lt;component&gt;</code>, <code>update-method:&lt;component&gt;</code> | <code>ota</code> |
 | <code>settings</code> | <code>updates.&lt;component&gt;.last-check-time</code> | <code>settings</code> |</p>
-<p><strong>Reads:</strong>
-- <code>vehicle/state</code> (watches; state-based update triggering)
-- <code>vehicle/state:timestamp</code> (for standby duration check)
-- <code>ota/standby-timer-start</code> (from vehicle-service, for timing)
-- <code>ota/status:&lt;component&gt;</code> (self-read)
-- <code>ota/update-version:&lt;component&gt;</code>, <code>ota/update-method:&lt;component&gt;</code>
-- <code>version:&lt;component&gt;/version_id</code>, <code>version:&lt;component&gt;/variant_id</code>
-- <code>settings/updates.&lt;component&gt;.method</code>
-- <code>settings/updates.&lt;component&gt;.last-check-time</code></p>
-<p><strong>Subscribes to:</strong>
-- <code>vehicle</code> channel (via HashWatcher)
-- <code>ota</code> channel (via HashWatcher)
-- <code>settings</code> channel (via HashWatcher)</p>
-<p><strong>Consumes queues:</strong>
-- <code>scooter:update:&lt;component&gt;</code> → "check-now"</p>
-<p><strong>Produces queues:</strong>
-- <code>scooter:update</code> → "start-dbc", "complete-dbc" (to vehicle-service)
-- <code>scooter:power</code> → "reboot" (after MDB update)</p>
+<p><strong>Reads:</strong></p>
+<ul>
+<li><code>vehicle/state</code> (watches; state-based update triggering)</li>
+<li><code>vehicle/state:timestamp</code> (for standby duration check)</li>
+<li><code>ota/standby-timer-start</code> (from vehicle-service, for timing)</li>
+<li><code>ota/status:&lt;component&gt;</code> (self-read)</li>
+<li><code>ota/update-version:&lt;component&gt;</code>, <code>ota/update-method:&lt;component&gt;</code></li>
+<li><code>version:&lt;component&gt;/version_id</code>, <code>version:&lt;component&gt;/variant_id</code></li>
+<li><code>settings/updates.&lt;component&gt;.method</code></li>
+<li><code>settings/updates.&lt;component&gt;.last-check-time</code></li>
+</ul>
+<p><strong>Subscribes to:</strong></p>
+<ul>
+<li><code>vehicle</code> channel (via HashWatcher)</li>
+<li><code>ota</code> channel (via HashWatcher)</li>
+<li><code>settings</code> channel (via HashWatcher)</li>
+</ul>
+<p><strong>Consumes queues:</strong></p>
+<ul>
+<li><code>scooter:update:&lt;component&gt;</code> → "check-now"</li>
+</ul>
+<p><strong>Produces queues:</strong></p>
+<ul>
+<li><code>scooter:update</code> → "start-dbc", "complete-dbc" (to vehicle-service)</li>
+<li><code>scooter:power</code> → "reboot" (after MDB update)</li>
+</ul>
 <p><strong>External:</strong> GitHub Releases API, Mender</p>
 <hr />
 <h3 id="modem-service">modem-service<a class="headerlink" href="#modem-service" title="Permanent link">&para;</a></h3>
@@ -2641,10 +2677,14 @@ heartbeat-driven short timeout in this release.</p>
 | <code>gps</code> | location data (<code>lat</code>, <code>lon</code>, <code>accuracy</code>, <code>speed</code>, <code>heading</code>, <code>altitude</code>, <code>updated</code>, <code>timestamp</code>) | <code>gps</code> (payload: "timestamp" on recovery, no publish on regular update) |
 | <code>internet:fault</code> | fault codes (Redis Set) | <code>internet</code> (payload: "fault") |
 | <code>events:faults</code> | modem fault events (Redis Stream) | — |</p>
-<p><strong>Reads:</strong>
-- <code>vehicle/state</code> (via HashWatcher, for hibernation behavior)</p>
-<p><strong>Consumes queues:</strong>
-- <code>scooter:modem</code> → "disable", "enable"</p>
+<p><strong>Reads:</strong></p>
+<ul>
+<li><code>vehicle/state</code> (via HashWatcher, for hibernation behavior)</li>
+</ul>
+<p><strong>Consumes queues:</strong></p>
+<ul>
+<li><code>scooter:modem</code> → "disable", "enable"</li>
+</ul>
 <p><strong>Hardware access:</strong> ModemManager via D-Bus, GPIO modem power, USB</p>
 <hr />
 <h3 id="version-service">version-service<a class="headerlink" href="#version-service" title="Permanent link">&para;</a></h3>
@@ -2660,13 +2700,19 @@ heartbeat-driven short timeout in this release.</p>
 | Hash | Fields | Channel |
 |------|--------|---------|
 | <code>settings</code> | All TOML fields: <code>scooter.*</code>, <code>cellular.*</code>, <code>updates.*</code>, <code>dashboard.*</code>, <code>alarm.*</code>; overlay-injected values (in-memory only, not persisted); <code>dashboard.service-mode-active</code> status field | NONE (critical gap — see gaps section) |</p>
-<p><strong>Reads:</strong>
-- <code>settings/*</code> (all fields, to save back to TOML)</p>
-<p><strong>Subscribes to:</strong>
-- <code>settings</code> channel (to detect changes and flush to TOML)
-- <code>internet</code> channel (for WireGuard manager)</p>
-<p><strong>Consumes queues (BRPOP):</strong>
-- <code>settings:overlay</code> → <code>apply:service</code>, <code>clear:service</code> — owns the overlay command list; the <code>service</code> overlay fans out to pm-service, vehicle-service, alarm-service, and scootui purely via existing <code>settings</code>-channel reactions</p>
+<p><strong>Reads:</strong></p>
+<ul>
+<li><code>settings/*</code> (all fields, to save back to TOML)</li>
+</ul>
+<p><strong>Subscribes to:</strong></p>
+<ul>
+<li><code>settings</code> channel (to detect changes and flush to TOML)</li>
+<li><code>internet</code> channel (for WireGuard manager)</li>
+</ul>
+<p><strong>Consumes queues (BRPOP):</strong></p>
+<ul>
+<li><code>settings:overlay</code> → <code>apply:service</code>, <code>clear:service</code> — owns the overlay command list; the <code>service</code> overlay fans out to pm-service, vehicle-service, alarm-service, and scootui purely via existing <code>settings</code>-channel reactions</li>
+</ul>
 <p><strong>Hardware access:</strong> <code>/data/settings.toml</code>, NetworkManager D-Bus</p>
 <hr />
 <h3 id="alarm-service">alarm-service<a class="headerlink" href="#alarm-service" title="Permanent link">&para;</a></h3>
@@ -2674,27 +2720,39 @@ heartbeat-driven short timeout in this release.</p>
 | Hash | Fields | Channel |
 |------|--------|---------|
 | <code>alarm</code> | <code>status</code> ("disabled", "disarmed", "armed", "level-1-triggered", "level-2-triggered") | <code>alarm</code> |</p>
-<p><strong>Produces queues (LPUSH):</strong>
-- <code>scooter:horn</code> → "on", "off"
-- <code>scooter:blinker</code> → "both", "off"</p>
-<p><strong>Publishes:</strong>
-- <code>alarm</code> hash <code>status</code> field — motion-service watches this and reactively re-derives the BMX055 chip profile</p>
-<p><strong>Calls (synchronous RPC via redis-ipc CallMethod):</strong>
-- <code>motion:rpc/prepare-hibernation</code> — gates pm-service's hibernation entry on motion-service confirming the chip is in armed-hibernation profile</p>
-<p><strong>Reads:</strong>
-- <code>vehicle/state</code> (via HashWatcher)
-- <code>vehicle/seatbox:lock</code> (via HashWatcher)
-- <code>settings/alarm.enabled</code>, <code>settings/alarm.honk</code>, <code>settings/alarm.duration</code>
-- <code>settings/alarm.seatbox-trigger</code>, <code>settings/alarm.hairtrigger</code>, <code>settings/alarm.hairtrigger-duration</code>
-- <code>settings/alarm.l1-cooldown</code>
-- <code>motion/wake-cause</code> (once on startup — durable backstop for wake-from-hibernation indicator)</p>
-<p><strong>Subscribes to:</strong>
-- <code>vehicle</code> channel (state, seatbox:opened event, seatbox:lock)
-- <code>settings</code> channel
-- <code>power-manager</code> channel (state field — drives hibernation handshake)
-- <code>motion:interrupt</code> channel (JSON envelope <code>{type, timestamp, engine}</code>)</p>
-<p><strong>Consumes queues:</strong>
-- <code>scooter:alarm</code> → "enable", "disable", "start:N", "stop"</p>
+<p><strong>Produces queues (LPUSH):</strong></p>
+<ul>
+<li><code>scooter:horn</code> → "on", "off"</li>
+<li><code>scooter:blinker</code> → "both", "off"</li>
+</ul>
+<p><strong>Publishes:</strong></p>
+<ul>
+<li><code>alarm</code> hash <code>status</code> field — motion-service watches this and reactively re-derives the BMX055 chip profile</li>
+</ul>
+<p><strong>Calls (synchronous RPC via redis-ipc CallMethod):</strong></p>
+<ul>
+<li><code>motion:rpc/prepare-hibernation</code> — gates pm-service's hibernation entry on motion-service confirming the chip is in armed-hibernation profile</li>
+</ul>
+<p><strong>Reads:</strong></p>
+<ul>
+<li><code>vehicle/state</code> (via HashWatcher)</li>
+<li><code>vehicle/seatbox:lock</code> (via HashWatcher)</li>
+<li><code>settings/alarm.enabled</code>, <code>settings/alarm.honk</code>, <code>settings/alarm.duration</code></li>
+<li><code>settings/alarm.seatbox-trigger</code>, <code>settings/alarm.hairtrigger</code>, <code>settings/alarm.hairtrigger-duration</code></li>
+<li><code>settings/alarm.l1-cooldown</code></li>
+<li><code>motion/wake-cause</code> (once on startup — durable backstop for wake-from-hibernation indicator)</li>
+</ul>
+<p><strong>Subscribes to:</strong></p>
+<ul>
+<li><code>vehicle</code> channel (state, seatbox:opened event, seatbox:lock)</li>
+<li><code>settings</code> channel</li>
+<li><code>power-manager</code> channel (state field — drives hibernation handshake)</li>
+<li><code>motion:interrupt</code> channel (JSON envelope <code>{type, timestamp, engine}</code>)</li>
+</ul>
+<p><strong>Consumes queues:</strong></p>
+<ul>
+<li><code>scooter:alarm</code> → "enable", "disable", "start:N", "stop"</li>
+</ul>
 <p><strong>Hardware access:</strong> I2C BMX055 accelerometer/gyroscope at <code>/dev/i2c-3</code></p>
 <hr />
 <h3 id="dbc-backlight-service">dbc-backlight-service<a class="headerlink" href="#dbc-backlight-service" title="Permanent link">&para;</a></h3>
@@ -2702,9 +2760,11 @@ heartbeat-driven short timeout in this release.</p>
 | Hash | Fields | Channel |
 |------|--------|---------|
 | <code>dashboard</code> | <code>backlight</code> (int 0-10240), <code>brightness</code> (float lux) | <code>dashboard</code> |</p>
-<p><strong>Reads:</strong>
-- <code>dashboard/backlight-enabled</code> (override; absent means enabled)
-- <code>settings/dashboard.backlight-mode</code> (auto, low, medium, high; absent means auto)</p>
+<p><strong>Reads:</strong></p>
+<ul>
+<li><code>dashboard/backlight-enabled</code> (override; absent means enabled)</li>
+<li><code>settings/dashboard.backlight-mode</code> (auto, low, medium, high; absent means auto)</li>
+</ul>
 <p><strong>Subscribes:</strong> <code>dashboard</code> (payload <code>backlight-enabled</code>), <code>settings</code> (payload <code>dashboard.backlight-mode</code>)</p>
 <p><strong>Hardware access:</strong> OPT3001 ambient light sensor via IIO, and <code>/sys/class/backlight/backlight/brightness</code></p>
 <p>The service reads the sensor itself; there is no separate illumination service on
@@ -2717,44 +2777,60 @@ overridden off or pinned to a fixed level.</p>
 | Hash | Fields | Channel |
 |------|--------|---------|
 | <code>dashboard</code> | <code>ready</code> ("true"), <code>serial-number</code> | <code>dashboard</code> |</p>
-<p><strong>Reads (HGETALL / HGET):</strong>
-- <code>vehicle</code>, <code>battery:0</code>, <code>battery:1</code>, <code>engine-ecu</code>, <code>power-manager</code>, <code>internet</code>, <code>modem</code>, <code>gps</code>, <code>keycard</code>, <code>ble</code>, <code>dashboard</code>, <code>system</code></p>
-<p><strong>Subscribes to (pub/sub):</strong>
-- Multiple channels for real-time updates (subscription details in app UI layers)</p>
-<p><strong>Produces queues (LPUSH):</strong>
-- <code>scooter:state</code> → "lock", "unlock", "lock-hibernate"
-- <code>scooter:seatbox</code> → "open"
-- <code>scooter:horn</code> → "on", "off"
-- <code>scooter:hardware</code> → various
-- (via <code>push()</code> method)</p>
-<p><strong>Publishes:</strong>
-- <code>buttons</code> channel (button events)</p>
+<p><strong>Reads (HGETALL / HGET):</strong></p>
+<ul>
+<li><code>vehicle</code>, <code>battery:0</code>, <code>battery:1</code>, <code>engine-ecu</code>, <code>power-manager</code>, <code>internet</code>, <code>modem</code>, <code>gps</code>, <code>keycard</code>, <code>ble</code>, <code>dashboard</code>, <code>system</code></li>
+</ul>
+<p><strong>Subscribes to (pub/sub):</strong></p>
+<ul>
+<li>Multiple channels for real-time updates (subscription details in app UI layers)</li>
+</ul>
+<p><strong>Produces queues (LPUSH):</strong></p>
+<ul>
+<li><code>scooter:state</code> → "lock", "unlock", "lock-hibernate"</li>
+<li><code>scooter:seatbox</code> → "open"</li>
+<li><code>scooter:horn</code> → "on", "off"</li>
+<li><code>scooter:hardware</code> → various</li>
+<li>(via <code>push()</code> method)</li>
+</ul>
+<p><strong>Publishes:</strong></p>
+<ul>
+<li><code>buttons</code> channel (button events)</li>
+</ul>
 <p><strong>Hardware access:</strong> Display via Flutter framebuffer/DRM backend</p>
 <hr />
 <h3 id="uplink-service">uplink-service<a class="headerlink" href="#uplink-service" title="Permanent link">&para;</a></h3>
-<p><strong>Reads (telemetry, HGETALL):</strong>
-- <code>vehicle</code>, <code>battery:0</code>, <code>battery:1</code>, <code>aux-battery</code>, <code>cb-battery</code>, <code>engine-ecu</code>, <code>power-manager</code>, <code>internet</code>, <code>modem</code>, <code>gps</code>, <code>keycard</code>, <code>ble</code>, <code>dashboard</code>, <code>system</code></p>
-<p><strong>Produces queues (LPUSH) — from remote server commands:</strong>
-- <code>scooter:state</code> → "unlock", "lock", "lock-hibernate", "force-lock"
-- <code>scooter:seatbox</code> → "open"
-- <code>scooter:horn</code> → "on", "off"
-- <code>scooter:blinker</code> → "left", "right", "both", "off"
-- <code>scooter:hardware</code> → "dashboard:on/off", "engine:on/off", "handlebar:lock/unlock"
-- <code>scooter:power</code> → "reboot", "hibernate", "hibernate-manual"</p>
+<p><strong>Reads (telemetry, HGETALL):</strong></p>
+<ul>
+<li><code>vehicle</code>, <code>battery:0</code>, <code>battery:1</code>, <code>aux-battery</code>, <code>cb-battery</code>, <code>engine-ecu</code>, <code>power-manager</code>, <code>internet</code>, <code>modem</code>, <code>gps</code>, <code>keycard</code>, <code>ble</code>, <code>dashboard</code>, <code>system</code></li>
+</ul>
+<p><strong>Produces queues (LPUSH) — from remote server commands:</strong></p>
+<ul>
+<li><code>scooter:state</code> → "unlock", "lock", "lock-hibernate", "force-lock"</li>
+<li><code>scooter:seatbox</code> → "open"</li>
+<li><code>scooter:horn</code> → "on", "off"</li>
+<li><code>scooter:blinker</code> → "left", "right", "both", "off"</li>
+<li><code>scooter:hardware</code> → "dashboard:on/off", "engine:on/off", "handlebar:lock/unlock"</li>
+<li><code>scooter:power</code> → "reboot", "hibernate", "hibernate-manual"</li>
+</ul>
 <hr />
 <h3 id="ums-service">ums-service<a class="headerlink" href="#ums-service" title="Permanent link">&para;</a></h3>
 <p><strong>Writes:</strong>
 | Hash | Fields | Channel |
 |------|--------|---------|
 | <code>usb</code> | <code>mode</code> ("normal", "ums", "ums-by-dbc") | <code>usb</code> |</p>
-<p><strong>Reads:</strong>
-- <code>usb/mode</code> (via HashWatcher, to trigger mode changes)</p>
+<p><strong>Reads:</strong></p>
+<ul>
+<li><code>usb/mode</code> (via HashWatcher, to trigger mode changes)</li>
+</ul>
 <p><strong>Hardware access:</strong> USB gadget via configfs, <code>/data/dbc/</code></p>
 <hr />
 <h3 id="lsc-cli-tool">lsc (CLI tool)<a class="headerlink" href="#lsc-cli-tool" title="Permanent link">&para;</a></h3>
 <p><strong>Reads (HGETALL / HGET):</strong> All state hashes for display</p>
-<p><strong>Produces queues (LPUSH):</strong>
-- <code>scooter:state</code>, <code>scooter:seatbox</code>, <code>scooter:horn</code>, <code>scooter:blinker</code>, <code>scooter:hardware</code>, <code>scooter:power</code>, <code>scooter:alarm</code>, <code>scooter:led:cue</code>, <code>scooter:led:fade</code>, <code>settings:overlay</code> (<code>apply:service</code>, <code>clear:service</code> via <code>lsc service-mode on|off</code>)</p>
+<p><strong>Produces queues (LPUSH):</strong></p>
+<ul>
+<li><code>scooter:state</code>, <code>scooter:seatbox</code>, <code>scooter:horn</code>, <code>scooter:blinker</code>, <code>scooter:hardware</code>, <code>scooter:power</code>, <code>scooter:alarm</code>, <code>scooter:led:cue</code>, <code>scooter:led:fade</code>, <code>settings:overlay</code> (<code>apply:service</code>, <code>clear:service</code> via <code>lsc service-mode on|off</code>)</li>
+</ul>
 <hr />
 <h2 id="complete-redis-key-inventory">Complete Redis Key Inventory<a class="headerlink" href="#complete-redis-key-inventory" title="Permanent link">&para;</a></h2>
 <h3 id="hash-keys">Hash Keys<a class="headerlink" href="#hash-keys" title="Permanent link">&para;</a></h3>

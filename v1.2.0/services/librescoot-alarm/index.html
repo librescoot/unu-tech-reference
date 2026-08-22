@@ -2276,21 +2276,25 @@
 <p>These flags only take effect when explicitly passed; each one then writes its value to the <code>settings</code> hash on startup. The production unit passes none of them, so the settings-service schema defaults apply (notably <code>alarm.duration</code> defaults to <strong>30</strong>, not the compiled-in flag default of 10).</p>
 <h2 id="redis-operations">Redis Operations<a class="headerlink" href="#redis-operations" title="Permanent link">&para;</a></h2>
 <h3 id="hash-alarm">Hash: <code>alarm</code><a class="headerlink" href="#hash-alarm" title="Permanent link">&para;</a></h3>
-<p><strong>Fields written:</strong>
-- <code>status</code> — current alarm status:
-  - <code>disabled</code> — alarm system is disabled
-  - <code>disarmed</code> — alarm enabled but not armed (vehicle not in stand-by)
-  - <code>delay-armed</code> — 5 s arming delay
-  - <code>armed</code> — armed and monitoring
-  - <code>level-1-triggered</code> — Level 1 (cooldown + verification window)
-  - <code>level-2-triggered</code> — Level 2 (horn + hazards)
-  - <code>seatbox-access</code> — temporarily disabled while authorized seatbox opening is active</p>
+<p><strong>Fields written:</strong></p>
+<ul>
+<li><code>status</code> — current alarm status:</li>
+<li><code>disabled</code> — alarm system is disabled</li>
+<li><code>disarmed</code> — alarm enabled but not armed (vehicle not in stand-by)</li>
+<li><code>delay-armed</code> — 5 s arming delay</li>
+<li><code>armed</code> — armed and monitoring</li>
+<li><code>level-1-triggered</code> — Level 1 (cooldown + verification window)</li>
+<li><code>level-2-triggered</code> — Level 2 (horn + hazards)</li>
+<li><code>seatbox-access</code> — temporarily disabled while authorized seatbox opening is active</li>
+</ul>
 <p><strong>Published channel:</strong> <code>alarm</code></p>
 <p><strong>motion-service watches this hash.</strong> A change on <code>alarm.status</code> triggers a profile re-derivation in motion-service via <code>(alarm.status, power-manager.state)</code>. See <a href="../librescoot-motion/#chip-profile-derivation">librescoot-motion</a> for the full mapping table.</p>
 <h3 id="hash-settings">Hash: <code>settings</code><a class="headerlink" href="#hash-settings" title="Permanent link">&para;</a></h3>
-<p><strong>Fields read:</strong>
-- <code>alarm.enabled</code>, <code>alarm.honk</code>, <code>alarm.duration</code>, <code>alarm.seatbox-trigger</code>
-- <code>alarm.hairtrigger</code>, <code>alarm.hairtrigger-duration</code>, <code>alarm.l1-cooldown</code></p>
+<p><strong>Fields read:</strong></p>
+<ul>
+<li><code>alarm.enabled</code>, <code>alarm.honk</code>, <code>alarm.duration</code>, <code>alarm.seatbox-trigger</code></li>
+<li><code>alarm.hairtrigger</code>, <code>alarm.hairtrigger-duration</code>, <code>alarm.l1-cooldown</code></li>
+</ul>
 <p><strong>Fields written (if CLI flags set):</strong> same fields, overrides Redis values on startup.</p>
 <p><strong>Subscribed channels:</strong> <code>settings</code></p>
 <h3 id="hash-power-manager">Hash: <code>power-manager</code><a class="headerlink" href="#hash-power-manager" title="Permanent link">&para;</a></h3>
@@ -2299,11 +2303,13 @@
 <h3 id="hash-motion">Hash: <code>motion</code><a class="headerlink" href="#hash-motion" title="Permanent link">&para;</a></h3>
 <p><strong>Fields read on startup:</strong> <code>wake-cause</code> (HGET + HDEL, <code>MotionClient.ConsumeWakeCause</code>). Nothing writes this field in this release — motion-service only publishes the live <code>motion:interrupt {type: "wake-hibernation"}</code> event — so the read always misses and the startup-ordering race is not actually covered.</p>
 <h3 id="pubsub-channels">Pub/Sub Channels<a class="headerlink" href="#pubsub-channels" title="Permanent link">&para;</a></h3>
-<p><strong>Subscribes to:</strong>
-- <code>vehicle</code> — state, seatbox:opened event, seatbox:lock
-- <code>settings</code> — alarm.* changes
-- <code>power-manager</code> — state field
-- <code>motion:interrupt</code> — JSON envelope <code>{type, timestamp, engine}</code> from motion-service. <code>type</code> becomes <code>BMXInterruptEvent.Data</code> (the FSM discriminates <code>wake-hibernation</code> from regular edges).</p>
+<p><strong>Subscribes to:</strong></p>
+<ul>
+<li><code>vehicle</code> — state, seatbox:opened event, seatbox:lock</li>
+<li><code>settings</code> — alarm.* changes</li>
+<li><code>power-manager</code> — state field</li>
+<li><code>motion:interrupt</code> — JSON envelope <code>{type, timestamp, engine}</code> from motion-service. <code>type</code> becomes <code>BMXInterruptEvent.Data</code> (the FSM discriminates <code>wake-hibernation</code> from regular edges).</li>
+</ul>
 <h3 id="rpc-calls-synchronous-via-redis-ipc-callmethod">RPC Calls (synchronous, via redis-ipc CallMethod)<a class="headerlink" href="#rpc-calls-synchronous-via-redis-ipc-callmethod" title="Permanent link">&para;</a></h3>
 <ul>
 <li><strong><code>motion:rpc/prepare-hibernation</code></strong> — called when <code>power-manager.state</code> flips to <code>hibernating-imminent</code> while in <code>StateArmed</code>, OR on entry to <code>StateArmed</code> if <code>hibernationImminent</code> is already true. Blocks until motion-service confirms the chip is in <code>armed-hibernation</code> profile. ~180 ms round-trip. On failure: alarm-service holds the suspend inhibitor and pm-service stays blocked rather than hibernating with an unverified chip profile.</li>
@@ -2381,10 +2387,12 @@
 <p>This is the only synchronous call alarm-service makes. All other chip-config flows reactively through the <code>alarm</code> hash that motion-service watches.</p>
 <h2 id="wake-from-hibernation-detection">Wake-from-Hibernation Detection<a class="headerlink" href="#wake-from-hibernation-detection" title="Permanent link">&para;</a></h2>
 <p>When motion-service starts up after a hibernation wake AND finds <code>INT_STATUS_0</code> already latched, it publishes a one-shot <code>motion:interrupt {type: "wake-hibernation", ...}</code>. There is no durable hash backstop in this release: motion-service does not write <code>motion.wake-cause</code>, so a consumer that starts after the publish misses the signal.</p>
-<p>alarm-service on startup:
-1. Calls <code>MotionClient.ConsumeWakeCause(ctx)</code> — HGET + HDEL on <code>motion.wake-cause</code>. If the timestamp is within 30 s of now, returns true.
-2. If true: sends <code>BMXInterruptEvent{Data:"wake-hibernation"}</code> to the FSM at <code>StateInit</code>. Sets <code>wakeFromHibernation=true</code>.
-3. FSM init checks the flag at <code>InitCompleteEvent</code>: if alarm-enabled + standby + wakeFromHibernation, transitions directly to <code>StateTriggerLevel1Wait</code> (treats the wake-edge as the L1 trigger). Hair trigger is skipped on this entry — the wake-edge isn't a tampering event by itself.</p>
+<p>alarm-service on startup:</p>
+<ol>
+<li>Calls <code>MotionClient.ConsumeWakeCause(ctx)</code> — HGET + HDEL on <code>motion.wake-cause</code>. If the timestamp is within 30 s of now, returns true.</li>
+<li>If true: sends <code>BMXInterruptEvent{Data:"wake-hibernation"}</code> to the FSM at <code>StateInit</code>. Sets <code>wakeFromHibernation=true</code>.</li>
+<li>FSM init checks the flag at <code>InitCompleteEvent</code>: if alarm-enabled + standby + wakeFromHibernation, transitions directly to <code>StateTriggerLevel1Wait</code> (treats the wake-edge as the L1 trigger). Hair trigger is skipped on this entry — the wake-edge isn't a tampering event by itself.</li>
+</ol>
 <h2 id="suspend-inhibitor-management">Suspend Inhibitor Management<a class="headerlink" href="#suspend-inhibitor-management" title="Permanent link">&para;</a></h2>
 <p>A <code>block</code> inhibitor in pm-service's <code>power:inhibits</code> hash (id <code>alarm-active</code>, who <code>librescoot-alarm</code>, what <code>power-state-change</code>) keeps pm-service from suspending or hibernating the MDB while the alarm is delaying or triggered. pm-service's suspend gate reads its own registry (<code>power:inhibits</code> + the <code>/tmp/suspend_inhibitor</code> socket). The <code>who</code> is deliberately not <code>librescoot-modem</code>, so pm-service's <code>hasOnlyModemBlockingInhibitors</code> does not let it suspend through. alarm-service clears any stale <code>alarm-active</code> entry on startup so a crash mid-alarm can't wedge power management.</p>
 <p>Held in:</p>

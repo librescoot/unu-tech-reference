@@ -2335,43 +2335,49 @@
 </span></code></pre></div>
 <h2 id="redis-operations">Redis Operations<a class="headerlink" href="#redis-operations" title="Permanent link">&para;</a></h2>
 <h3 id="hash-engine-ecu">Hash: <code>engine-ecu</code><a class="headerlink" href="#hash-engine-ecu" title="Permanent link">&para;</a></h3>
-<p><strong>Fields written:</strong>
-- <code>motor:voltage</code> - Motor voltage in mV
-- <code>motor:current</code> - Motor current in mA (signed, negative during regenerative braking)
-- <code>rpm</code> - Motor RPM
-- <code>speed</code> - Vehicle speed in km/h (calibrated)
-- <code>raw-speed</code> - Raw speed before calibration
-- <code>throttle</code> - Throttle state ("on", "off")
-- <code>brake</code> - Brake state ("on", "off")
-- <code>temperature</code> - ECU temperature in °C
-- <code>fault:code</code> - Current fault code (32-bit, 0 when no fault)
-- <code>fault:description</code> - Active fault description (empty string when no fault)
-- <code>odometer</code> - Total distance traveled in meters
-- <code>kers</code> - KERS (regenerative braking) state ("on", "off")
-- <code>boost</code> - Boost mode state ("on", "off")
-- <code>gear</code> - Current gear (Bosch: 1-3, 0 if unknown; Votol reports 0)
-- <code>power</code> - Instantaneous power in mW
-- <code>energy:consumed</code> - Cumulative energy consumed in mWh
-- <code>energy:recovered</code> - Cumulative energy recovered via regenerative braking in mWh
-- <code>kers-reason-off</code> - Reason KERS is disabled ("none", "cold", "hot")
-- <code>kers-accepted-voltage</code> - EBS regen voltage cap the ECU accepted, in mV (Bosch only; 0 otherwise). The ECU echoes this after clamping the EBS Set command; it is the stored config, not a live measurement. Distinct from the commanded <code>engine-ecu.kers-voltage</code> setpoint.
-- <code>kers-accepted-current</code> - EBS regen current limit the ECU accepted, in mA (Bosch only; 0 otherwise). Distinct from the commanded <code>engine-ecu.kers-power</code> setpoint.
-- <code>regen-available</code> - Derived ("on"/"off"): whether regen can happen right now.
-- <code>regen-reason</code> - Derived: why regen is unavailable ("none"/"cold"/"hot"/"off"/"full"). "full" means the pack is at its voltage cap. Empirically derived envelope; non-Bosch controllers report gating only.
-- <code>regen-expected</code> - Derived: expected regen current envelope in mA (0 on non-Bosch controllers). <code>motor:current</code> remains the real-measurement source for actual regen.</p>
-<p><strong>Published channels:</strong>
-- <code>engine-ecu throttle</code> - Published when throttle state changes
-- <code>engine-ecu kers</code> - Published when KERS state changes
-- <code>engine-ecu odometer</code> - Published when odometer updates
-- <code>engine-ecu kers-reason-off</code> - Published when KERS disable reason changes
-- <code>engine-ecu regen-available</code> - Published when derived regen availability or reason changes</p>
+<p><strong>Fields written:</strong></p>
+<ul>
+<li><code>motor:voltage</code> - Motor voltage in mV</li>
+<li><code>motor:current</code> - Motor current in mA (signed, negative during regenerative braking)</li>
+<li><code>rpm</code> - Motor RPM</li>
+<li><code>speed</code> - Vehicle speed in km/h (calibrated)</li>
+<li><code>raw-speed</code> - Raw speed before calibration</li>
+<li><code>throttle</code> - Throttle state ("on", "off")</li>
+<li><code>brake</code> - Brake state ("on", "off")</li>
+<li><code>temperature</code> - ECU temperature in °C</li>
+<li><code>fault:code</code> - Current fault code (32-bit, 0 when no fault)</li>
+<li><code>fault:description</code> - Active fault description (empty string when no fault)</li>
+<li><code>odometer</code> - Total distance traveled in meters</li>
+<li><code>kers</code> - KERS (regenerative braking) state ("on", "off")</li>
+<li><code>boost</code> - Boost mode state ("on", "off")</li>
+<li><code>gear</code> - Current gear (Bosch: 1-3, 0 if unknown; Votol reports 0)</li>
+<li><code>power</code> - Instantaneous power in mW</li>
+<li><code>energy:consumed</code> - Cumulative energy consumed in mWh</li>
+<li><code>energy:recovered</code> - Cumulative energy recovered via regenerative braking in mWh</li>
+<li><code>kers-reason-off</code> - Reason KERS is disabled ("none", "cold", "hot")</li>
+<li><code>kers-accepted-voltage</code> - EBS regen voltage cap the ECU accepted, in mV (Bosch only; 0 otherwise). The ECU echoes this after clamping the EBS Set command; it is the stored config, not a live measurement. Distinct from the commanded <code>engine-ecu.kers-voltage</code> setpoint.</li>
+<li><code>kers-accepted-current</code> - EBS regen current limit the ECU accepted, in mA (Bosch only; 0 otherwise). Distinct from the commanded <code>engine-ecu.kers-power</code> setpoint.</li>
+<li><code>regen-available</code> - Derived ("on"/"off"): whether regen can happen right now.</li>
+<li><code>regen-reason</code> - Derived: why regen is unavailable ("none"/"cold"/"hot"/"off"/"full"). "full" means the pack is at its voltage cap. Empirically derived envelope; non-Bosch controllers report gating only.</li>
+<li><code>regen-expected</code> - Derived: expected regen current envelope in mA (0 on non-Bosch controllers). <code>motor:current</code> remains the real-measurement source for actual regen.</li>
+</ul>
+<p><strong>Published channels:</strong></p>
+<ul>
+<li><code>engine-ecu throttle</code> - Published when throttle state changes</li>
+<li><code>engine-ecu kers</code> - Published when KERS state changes</li>
+<li><code>engine-ecu odometer</code> - Published when odometer updates</li>
+<li><code>engine-ecu kers-reason-off</code> - Published when KERS disable reason changes</li>
+<li><code>engine-ecu regen-available</code> - Published when derived regen availability or reason changes</li>
+</ul>
 <h3 id="hash-settings">Hash: <code>settings</code><a class="headerlink" href="#hash-settings" title="Permanent link">&para;</a></h3>
-<p><strong>Fields read:</strong>
-- <code>engine-ecu.kers</code> - KERS enable/disable ("enabled"/"disabled"; default: enabled)
-- <code>engine-ecu.kers-power</code> - KERS regenerative braking current in mA for single-battery operation (default: 10000)
-- <code>engine-ecu.kers-power-dual</code> - KERS regenerative braking current in mA when both batteries are active (optional; when unset, <code>kers-power</code> is used for both cases)
-- <code>engine-ecu.kers-voltage</code> - KERS target voltage in mV (Bosch only; default: 56000, valid range 42000-58000)
-- <code>engine-ecu.boost</code> - Boost mode enable/disable ("true" enables, any other value disables)</p>
+<p><strong>Fields read:</strong></p>
+<ul>
+<li><code>engine-ecu.kers</code> - KERS enable/disable ("enabled"/"disabled"; default: enabled)</li>
+<li><code>engine-ecu.kers-power</code> - KERS regenerative braking current in mA for single-battery operation (default: 10000)</li>
+<li><code>engine-ecu.kers-power-dual</code> - KERS regenerative braking current in mA when both batteries are active (optional; when unset, <code>kers-power</code> is used for both cases)</li>
+<li><code>engine-ecu.kers-voltage</code> - KERS target voltage in mV (Bosch only; default: 56000, valid range 42000-58000)</li>
+<li><code>engine-ecu.boost</code> - Boost mode enable/disable ("true" enables, any other value disables)</li>
+</ul>
 <p>Loaded on startup; updated live via <code>settings</code> pub/sub.</p>
 <h3 id="pubsub-subscriptions">Pub/Sub Subscriptions<a class="headerlink" href="#pubsub-subscriptions" title="Permanent link">&para;</a></h3>
 <p>The service subscribes to the following channels to monitor system state:</p>
@@ -2382,11 +2388,15 @@
 <li><code>settings</code> - Listens for KERS setting changes</li>
 </ul>
 <h3 id="redis-operations-for-fault-management">Redis Operations for Fault Management<a class="headerlink" href="#redis-operations-for-fault-management" title="Permanent link">&para;</a></h3>
-<p><strong>Set:</strong> <code>engine-ecu:fault</code>
-- Contains active fault codes (SADD when fault occurs, SREM when cleared)</p>
-<p><strong>Stream:</strong> <code>events:faults</code>
-- Publishes fault events with group="engine-ecu", code (positive when set, negative when cleared), and description
-- Limited to 1000 entries (MAXLEN)</p>
+<p><strong>Set:</strong> <code>engine-ecu:fault</code></p>
+<ul>
+<li>Contains active fault codes (SADD when fault occurs, SREM when cleared)</li>
+</ul>
+<p><strong>Stream:</strong> <code>events:faults</code></p>
+<ul>
+<li>Publishes fault events with group="engine-ecu", code (positive when set, negative when cleared), and description</li>
+<li>Limited to 1000 entries (MAXLEN)</li>
+</ul>
 <p><strong>Published channel for faults:</strong> <code>engine-ecu</code> with payload "fault"</p>
 <h2 id="hardware-interfaces">Hardware Interfaces<a class="headerlink" href="#hardware-interfaces" title="Permanent link">&para;</a></h2>
 <h3 id="can-bus">CAN Bus<a class="headerlink" href="#can-bus" title="Permanent link">&para;</a></h3>
@@ -2399,37 +2409,53 @@
 <h3 id="ecu-communication">ECU Communication<a class="headerlink" href="#ecu-communication" title="Permanent link">&para;</a></h3>
 <p>The service supports two ECU types, selectable via the <code>-ecu_type</code> flag:</p>
 <h4 id="bosch-ecu">Bosch ECU<a class="headerlink" href="#bosch-ecu" title="Permanent link">&para;</a></h4>
-<p><strong>CAN Message IDs:</strong>
-- <code>0x7E0</code> - Status1: Voltage, current, RPM, speed, throttle state
-- <code>0x7E1</code> - Status2: Temperature, fault codes
-- <code>0x7E2</code> - Status3: Odometer
-- <code>0x7E3</code> - Status4: KERS enabled status
-- <code>0x4E0</code> - Control message (sent to ECU for KERS control)
-- <code>0x4E2</code> - EBS settings (sent to ECU for KERS voltage/current)</p>
-<p><strong>Speed Calibration:</strong>
-- Applies calibration factor: 1.03
-- Applies tolerance factor: 1.155556
-- Formula: <code>speed = raw_speed * 1.03 * 1.155556</code></p>
-<p><strong>Odometer Calibration:</strong>
-- Odometer values multiplied by 1.07 and converted from 0.1km to meters</p>
-<p><strong>KERS Control:</strong>
-- Sends voltage/current settings (56V, 10A) via CAN ID 0x4E2
-- Sends enable/disable commands via CAN ID 0x4E0
-- Supports gear mode and boost mode flags</p>
+<p><strong>CAN Message IDs:</strong></p>
+<ul>
+<li><code>0x7E0</code> - Status1: Voltage, current, RPM, speed, throttle state</li>
+<li><code>0x7E1</code> - Status2: Temperature, fault codes</li>
+<li><code>0x7E2</code> - Status3: Odometer</li>
+<li><code>0x7E3</code> - Status4: KERS enabled status</li>
+<li><code>0x4E0</code> - Control message (sent to ECU for KERS control)</li>
+<li><code>0x4E2</code> - EBS settings (sent to ECU for KERS voltage/current)</li>
+</ul>
+<p><strong>Speed Calibration:</strong></p>
+<ul>
+<li>Applies calibration factor: 1.03</li>
+<li>Applies tolerance factor: 1.155556</li>
+<li>Formula: <code>speed = raw_speed * 1.03 * 1.155556</code></li>
+</ul>
+<p><strong>Odometer Calibration:</strong></p>
+<ul>
+<li>Odometer values multiplied by 1.07 and converted from 0.1km to meters</li>
+</ul>
+<p><strong>KERS Control:</strong></p>
+<ul>
+<li>Sends voltage/current settings (56V, 10A) via CAN ID 0x4E2</li>
+<li>Sends enable/disable commands via CAN ID 0x4E0</li>
+<li>Supports gear mode and boost mode flags</li>
+</ul>
 <h4 id="votol-ecu">Votol ECU<a class="headerlink" href="#votol-ecu" title="Permanent link">&para;</a></h4>
-<p><strong>CAN Message IDs:</strong>
-- <code>0x9026105A</code> - Display to controller (speed, odometer)
-- <code>0x90261022</code> - Controller to display (RPM, voltage, current)
-- <code>0x90261023</code> - Controller status (temperature, fault codes)</p>
-<p><strong>Speed Calculation:</strong>
-- Speed calculated from RPM: <code>speed = rpm * 0.0783744</code>
-- No separate speed calibration applied</p>
-<p><strong>KERS Control:</strong>
-- KERS control not yet implemented for Votol (TODO in code)
-- State tracking only, no active control</p>
-<p><strong>Throttle State:</strong>
-- Votol ECU does not report throttle state in current implementation
-- Throttle field always reports "off"</p>
+<p><strong>CAN Message IDs:</strong></p>
+<ul>
+<li><code>0x9026105A</code> - Display to controller (speed, odometer)</li>
+<li><code>0x90261022</code> - Controller to display (RPM, voltage, current)</li>
+<li><code>0x90261023</code> - Controller status (temperature, fault codes)</li>
+</ul>
+<p><strong>Speed Calculation:</strong></p>
+<ul>
+<li>Speed calculated from RPM: <code>speed = rpm * 0.0783744</code></li>
+<li>No separate speed calibration applied</li>
+</ul>
+<p><strong>KERS Control:</strong></p>
+<ul>
+<li>KERS control not yet implemented for Votol (TODO in code)</li>
+<li>State tracking only, no active control</li>
+</ul>
+<p><strong>Throttle State:</strong></p>
+<ul>
+<li>Votol ECU does not report throttle state in current implementation</li>
+<li>Throttle field always reports "off"</li>
+</ul>
 <h2 id="configuration">Configuration<a class="headerlink" href="#configuration" title="Permanent link">&para;</a></h2>
 <h3 id="systemd-unit">Systemd Unit<a class="headerlink" href="#systemd-unit" title="Permanent link">&para;</a></h3>
 <ul>
@@ -2524,28 +2550,36 @@
 </ul>
 <h4 id="fault-detection">Fault Detection<a class="headerlink" href="#fault-detection" title="Permanent link">&para;</a></h4>
 <p>The service monitors ECU fault codes and manages them through Redis. Faults are specific to each ECU type:</p>
-<p><strong>Common Faults (Both ECU Types):</strong>
-- Battery over-voltage / under-voltage
-- Motor stalled
-- Hall sensor abnormal
-- Throttle abnormal
-- Power-on self-check error
-- Over-temperature
-- Internal 15V abnormal</p>
-<p><strong>Bosch-Specific Faults:</strong>
-- Motor short-circuit
-- Motor open-circuit
-- MOSFET check error
-- Motor temperature protection
-- Throttle active at power-up</p>
-<p><strong>Votol-Specific Fault Mapping:</strong>
-- Fault codes are bit-mapped (0x01, 0x02, 0x04, etc.)
-- Subset of common faults supported</p>
-<p><strong>Fault Handling:</strong>
-- Active faults added to <code>engine-ecu:fault</code> set
-- Fault events published to <code>events:faults</code> stream
-- Notification published to <code>engine-ecu</code> channel with "fault" payload
-- When fault clears, code is removed from set and negative code logged to stream</p>
+<p><strong>Common Faults (Both ECU Types):</strong></p>
+<ul>
+<li>Battery over-voltage / under-voltage</li>
+<li>Motor stalled</li>
+<li>Hall sensor abnormal</li>
+<li>Throttle abnormal</li>
+<li>Power-on self-check error</li>
+<li>Over-temperature</li>
+<li>Internal 15V abnormal</li>
+</ul>
+<p><strong>Bosch-Specific Faults:</strong></p>
+<ul>
+<li>Motor short-circuit</li>
+<li>Motor open-circuit</li>
+<li>MOSFET check error</li>
+<li>Motor temperature protection</li>
+<li>Throttle active at power-up</li>
+</ul>
+<p><strong>Votol-Specific Fault Mapping:</strong></p>
+<ul>
+<li>Fault codes are bit-mapped (0x01, 0x02, 0x04, etc.)</li>
+<li>Subset of common faults supported</li>
+</ul>
+<p><strong>Fault Handling:</strong></p>
+<ul>
+<li>Active faults added to <code>engine-ecu:fault</code> set</li>
+<li>Fault events published to <code>events:faults</code> stream</li>
+<li>Notification published to <code>engine-ecu</code> channel with "fault" payload</li>
+<li>When fault clears, code is removed from set and negative code logged to stream</li>
+</ul>
 <h4 id="power-metrics">Power Metrics<a class="headerlink" href="#power-metrics" title="Permanent link">&para;</a></h4>
 <p>The service calculates and tracks power consumption and recovery:</p>
 <ul>

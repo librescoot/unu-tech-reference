@@ -1970,16 +1970,22 @@
 </span></code></pre></div>
 <h2 id="redis-operations">Redis Operations<a class="headerlink" href="#redis-operations" title="Permanent link">&para;</a></h2>
 <h3 id="hash-usb">Hash: <code>usb</code><a class="headerlink" href="#hash-usb" title="Permanent link">&para;</a></h3>
-<p><strong>Fields read/written:</strong>
-- <code>mode</code> - Current USB mode (<code>normal</code>, <code>ums</code>, <code>ums-by-dbc</code>)</p>
-<p><strong>Fields written:</strong>
-- <code>status</code> - Service status (<code>idle</code>, <code>preparing</code>, <code>active</code>, <code>processing</code>, <code>awaiting-reboot</code>)
-  - <code>awaiting-reboot</code> is set while a UMS-initiated update install runs and the service waits for the post-install reboot (see UMS exit flow). It transitions back to <code>idle</code> once the reboot is triggered, the wait fails/times out, or a new UMS session cancels the pending reboot.
-- <code>step</code> - Current processing step (<code>settings</code>, <code>wireguard</code>, <code>radio-gaga</code>, <code>uplink-service</code>, <code>onboot</code>, <code>updates</code>, <code>maps</code>, or empty). The RPM and script stages run without setting <code>step</code>.
-- <code>progress</code> - Upload progress percentage (0–100) during file transfers
-- <code>detail</code> - Human-readable transfer sub-step (e.g. <code>map.mbtiles (120/380 MB)</code>)</p>
-<p><strong>Subscribed channel:</strong> <code>usb</code>
-- <code>mode</code> - Triggers mode switch when published</p>
+<p><strong>Fields read/written:</strong></p>
+<ul>
+<li><code>mode</code> - Current USB mode (<code>normal</code>, <code>ums</code>, <code>ums-by-dbc</code>)</li>
+</ul>
+<p><strong>Fields written:</strong></p>
+<ul>
+<li><code>status</code> - Service status (<code>idle</code>, <code>preparing</code>, <code>active</code>, <code>processing</code>, <code>awaiting-reboot</code>)</li>
+<li><code>awaiting-reboot</code> is set while a UMS-initiated update install runs and the service waits for the post-install reboot (see UMS exit flow). It transitions back to <code>idle</code> once the reboot is triggered, the wait fails/times out, or a new UMS session cancels the pending reboot.</li>
+<li><code>step</code> - Current processing step (<code>settings</code>, <code>wireguard</code>, <code>radio-gaga</code>, <code>uplink-service</code>, <code>onboot</code>, <code>updates</code>, <code>maps</code>, or empty). The RPM and script stages run without setting <code>step</code>.</li>
+<li><code>progress</code> - Upload progress percentage (0–100) during file transfers</li>
+<li><code>detail</code> - Human-readable transfer sub-step (e.g. <code>map.mbtiles (120/380 MB)</code>)</li>
+</ul>
+<p><strong>Subscribed channel:</strong> <code>usb</code></p>
+<ul>
+<li><code>mode</code> - Triggers mode switch when published</li>
+</ul>
 <h3 id="list-usblog">List: <code>usb:log</code><a class="headerlink" href="#list-usblog" title="Permanent link">&para;</a></h3>
 <p>Processing events are pushed here in real-time during UMS exit processing. Capped at 100 entries. Also written to <code>ums_log.txt</code> on the drive at the end of processing.</p>
 <h3 id="led-feedback">LED feedback<a class="headerlink" href="#led-feedback" title="Permanent link">&para;</a></h3>
@@ -2019,10 +2025,12 @@
 </span><span id="__span-1-10"><a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a>redis-cli<span class="w"> </span>HSET<span class="w"> </span>usb<span class="w"> </span>mode<span class="w"> </span>normal
 </span><span id="__span-1-11"><a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a>redis-cli<span class="w"> </span>PUBLISH<span class="w"> </span>usb<span class="w"> </span>mode
 </span></code></pre></div>
-<p><strong>Mode behavior:</strong>
-- <strong>ums</strong> — returns to normal after first USB disconnect
-- <strong>ums-by-dbc</strong> — stays in UMS after first disconnect, switches to normal after second disconnect (for DBC updates, which may disconnect and reconnect mid-process)
-- <strong>normal</strong> — standard g_ether USB network mode</p>
+<p><strong>Mode behavior:</strong></p>
+<ul>
+<li><strong>ums</strong> — returns to normal after first USB disconnect</li>
+<li><strong>ums-by-dbc</strong> — stays in UMS after first disconnect, switches to normal after second disconnect (for DBC updates, which may disconnect and reconnect mid-process)</li>
+<li><strong>normal</strong> — standard g_ether USB network mode</li>
+</ul>
 <h3 id="brake-exit">Brake exit<a class="headerlink" href="#brake-exit" title="Permanent link">&para;</a></h3>
 <p>The service subscribes to the <code>input-events</code> channel and acts on exactly one
 event, <code>brake:left:hold</code> (vehicle-service emits it after a 3 s hold). Other
