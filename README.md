@@ -2,6 +2,15 @@
 
 Reverse-engineered technical documentation of the unu Scooter Pro.
 
+## What changed in v1.2.1
+
+Hotfix for a first-installation problem. It ships service revisions identical to
+v1.2.0; the only difference is in the Yocto layer, where dropbear keeps SHA-1
+`ssh-rsa` enabled and gains legacy `ssh-dss` support so cross-version ssh keeps
+working during installation.
+
+[Release notes](https://github.com/librescoot/librescoot/releases/tag/v1.2.1)
+
 ## System Architecture
 
 The unu Scooter Pro uses a distributed architecture with several key systems:
