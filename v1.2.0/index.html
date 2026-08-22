@@ -301,6 +301,17 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#what-changed-in-v120" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        What changed in v1.2.0
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#system-architecture" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
@@ -1589,6 +1600,17 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#what-changed-in-v120" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        What changed in v1.2.0
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#system-architecture" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
@@ -1760,6 +1782,22 @@
 
 <h1 id="unu-scooter-pro-technical-documentation">unu Scooter Pro - Technical Documentation<a class="headerlink" href="#unu-scooter-pro-technical-documentation" title="Permanent link">&para;</a></h1>
 <p>Reverse-engineered technical documentation of the unu Scooter Pro.</p>
+<h2 id="what-changed-in-v120">What changed in v1.2.0<a class="headerlink" href="#what-changed-in-v120" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Software updates over Bluetooth: bundles can be pushed from the companion
+  mobile app, staged through update-service and installed</li>
+<li>Operating system moved to the Yocto wrynose base with Linux 6.12</li>
+<li>SMS send and receive support</li>
+<li>Support for mechanical hazard switches, detected as a simultaneous left and
+  right blinker press</li>
+<li>The datastore moved from Redis to Valkey; service units now order against
+  <code>valkey.service</code></li>
+<li>Stale GPS positions no longer jump the system clock, and the modem is no
+  longer restarted when an internet endpoint is merely unreachable</li>
+<li>Blinkers are shown on the waiting-for-GPS screen</li>
+<li>Update Mode entry can be cancelled with a left brake hold</li>
+</ul>
+<p><a href="https://github.com/librescoot/librescoot/releases/tag/v1.2.0">Release notes</a></p>
 <h2 id="system-architecture">System Architecture<a class="headerlink" href="#system-architecture" title="Permanent link">&para;</a></h2>
 <p>The unu Scooter Pro uses a distributed architecture with several key systems:</p>
 <h3 id="core-electronics">Core Electronics<a class="headerlink" href="#core-electronics" title="Permanent link">&para;</a></h3>
