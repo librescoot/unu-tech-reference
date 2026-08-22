@@ -26,8 +26,8 @@ Usage of vehicle-service:
 - `blinker:state` - Blinker active state ("on", "off")
 - `blinker:start_nanos` - Monotonic start time of current blinker cycle (for UI sync)
 - `blinker:switch` - Blinker switch position ("left", "right", "both", "off")
-- `horn:button` - Horn button state ("on", "off")
-- `seatbox:button` - Seatbox button state ("on", "off")
+(`horn:button` and `seatbox:button` are **not** written to the `vehicle` hash in this release. Each horn/seatbox edge is latched into a separate `buttons` hash instead, as `horn:on` / `horn:off` / `seatbox:on` / `seatbox:off` set to the literal `"1"` and never cleared.)
+
 - `seatbox:lock` - Seatbox lock state ("open", "closed")
 - `kickstand` - Kickstand position ("up", "down")
 - `handlebar:position` - Handlebar position ("on-place", "off-place")
@@ -183,7 +183,7 @@ The service controls 8 PWM LED channels via the `imx_pwm_led` kernel module:
 - **Restart policy:** Always
 - **Priority:** Nice value -10
 - **User:** root
-- **Type:** simple
+- **Type:** idle
 
 ## Observable Behavior
 
@@ -204,7 +204,7 @@ The service controls 8 PWM LED channels via the `imx_pwm_led` kernel module:
    - Plays initial LED cue (cue 0)
    - Opens GPIO input device
    - Opens GPIO output lines
-8. Resolves the usb0 gate (see below) and applies it, or starts waiting for the keycard counts
+8. Reads `settings[scooter.usb0-policy]` and brings `usb0` up unless the `auto` policy is already effective (see below)
 9. Checks initial handlebar lock sensor state
 10. Registers input callbacks for all monitored inputs
 11. Publishes initial sensor states to Redis
@@ -218,8 +218,9 @@ The service controls 8 PWM LED channels via the `imx_pwm_led` kernel module:
 ### usb0 Link Gating
 
 vehicle-service owns whether `usb0` (the USB gadget link to the DBC, 192.168.7.1)
-is administratively up. `10-usb0.network` sets `ActivationPolicy=manual`, so
-networkd configures the address but never raises the link.
+is administratively up. `10-usb0.network` carries no `ActivationPolicy`, so
+networkd configures the address and raises the link; vehicle-service takes it
+down again once it applies the policy.
 
 The `scooter.usb0-policy` setting picks the intent:
 
@@ -234,17 +235,10 @@ only once `(master >= 1 AND authorized >= 1) OR authorized >= 2`, read from
 `system[keycard-master-count]` and `system[keycard-authorized-count]`. Below
 that threshold the link is held up as if the policy were `always-on`.
 
-The counts are absent, not zero, for the first seconds of a boot: Redis does
-not persist across a reboot and keycard-service publishes them at startup. An
-absent count resolves the gate to *unknown*, and an unknown gate leaves the
-link down while a background resolver waits up to 30s for the counts to
-appear. If they never do, the gate opens.
-
-The resolved decision is published to `system[usb0-gate]` as `open` or
-`closed`. It is never published while the gate is unknown, which is what lets
-`librescoot-usb0-failsafe.timer` tell "vehicle-service decided to keep the link
-down" from "vehicle-service never got far enough to decide". That timer raises
-`usb0` itself at 120s into the boot if the field is still absent.
+An absent count reads as zero rather than as "not yet known", so during the
+first seconds of a boot the gate resolves as if no cards were paired and the
+link is simply held up. There is no waiting resolver, no `system[usb0-gate]`
+field and no boot failsafe timer in this release.
 
 The gate is re-read at each existing decision point (startup, a
 `dashboard:power` change, and a `scooter.usb0-policy` change) rather than
@@ -608,8 +602,8 @@ The service responds to settings changes via PUBSUB:
 # Build for ARM Cortex-A7 (default target)
 make build
 
-# Build for the host platform (development/testing)
-make build-host
+# Build for AMD64 (development/testing)
+make build-amd64
 
 # Output: bin/vehicle-service
 ```

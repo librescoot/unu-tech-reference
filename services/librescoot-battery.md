@@ -62,7 +62,11 @@ Usage of battery-service:
 
 **Published channels and messages:**
 
-- `battery:0`, `battery:1` - the name of any field in the corresponding hash whose value changed, published once per changed field on every status update (`present`, `state`, `charge`, `voltage`, `current`, `temperature:0`-`temperature:3`, `temperature-state`, `cycle-count`, `state-of-health`, `serial-number`, `manufacturing-date`, `fw-version`)
+- `battery:0`, `battery:1` - Battery state change notifications
+  - `present` - Battery presence changed
+  - `state` - Battery state changed
+  - `charge` - Charge level changed
+  - `temperature-state` - Temperature state changed
   - `fault` - Fault status changed
 
 ### Hash: `settings`
@@ -158,7 +162,7 @@ The service uses NFC Type 4 Tag operations to communicate with battery NFC tags:
 
 ### Systemd Unit
 
-- **Unit file:** `/usr/lib/systemd/system/librescoot-battery.service`
+- **Unit file:** `/usr/lib/systemd/system/battery-service.service`
 - **Started by:** systemd at boot
 - **Restart policy:** Always
 
@@ -184,8 +188,9 @@ The service uses NFC Type 4 Tag operations to communicate with battery NFC tags:
 
 #### Polling Intervals
 
-- **Active-role reader:** 40 seconds between status updates (configurable via `--heartbeat-timeout`)
-- **Inactive-role reader:** 30 minutes between status updates (configurable via `--off-update-time`)
+- **Active mode (non-standby):** 10 seconds between status updates
+- **Active mode (standby):** 40 seconds between status updates (configurable via `--heartbeat-timeout`)
+- **Inactive mode:** 30 minutes between status updates (configurable via `--off-update-time`)
 - **Tag discovery (seatbox open):** 100ms polling interval for fast detection
 - **Tag discovery (seatbox closed):** 2500ms polling interval for power efficiency
 
@@ -289,9 +294,10 @@ The service implements multiple recovery mechanisms:
    - Resume normal operation
 
 4. **Zero Data Recovery:**
-   - Detect when battery returns empty or all-zero data
-   - Increment the zero-data counter; a good read resets it to 0
-   - Any non-zero count raises the critical `BMSZeroData` fault, which makes the slot report as not present
+   - Detect when battery returns all-zero data
+   - Increment recovery counter
+   - Retry up to 10 times with heartbeat
+   - After threshold, enter passive discovery (long polling intervals)
 
 5. **Heartbeat Timeout Recovery:**
    - Monitor battery state compliance
@@ -353,8 +359,8 @@ The service logs to journald with leveled logging:
 **Configuration:**
 
 - `--log` - Service-wide log level (default: 3)
-- `--log0` - Battery 0 reader log level (default: 3, independent of `--log`)
-- `--log1` - Battery 1 reader log level (default: 3, independent of `--log`)
+- `--log0` - Battery 0 reader log level (defaults to `--log`)
+- `--log1` - Battery 1 reader log level (defaults to `--log`)
 - `--debug` - Enable detailed NCI/DATA messages from NFC HAL
 
 **Common log messages:**
@@ -368,8 +374,8 @@ The service logs to journald with leveled logging:
 
 **Viewing logs:**
 ```bash
-journalctl -u librescoot-battery -f           # Follow logs
-journalctl -u librescoot-battery --since today # Today's logs
+journalctl -u battery-service -f           # Follow logs
+journalctl -u battery-service --since today # Today's logs
 ```
 
 ## Dependencies
@@ -384,8 +390,7 @@ journalctl -u librescoot-battery --since today # Today's logs
 **Go Dependencies:**
 
 - `github.com/redis/go-redis/v9` - Redis client
-- `github.com/librescoot/pn7150` - PN7150 NFC controller driver (I2C)
-- `github.com/librescoot/librefsm` - state machine library backing the reader FSM
+- `golang.org/x/sys` - System calls for I2C and systemd integration
 
 ## Librescoot Implementation
 
@@ -395,7 +400,7 @@ The Librescoot **battery-service** is a complete Go reimplementation with archit
 
 - **Per-battery log levels:** Separate `--log0` and `--log1` flags for independent log control
 - **Service-wide log level:** Global `--log` flag with per-battery override capability
-- **Build-time information:** Version string from `git describe` embedded in the binary (`--version`)
+- **Build-time information:** Git revision and build time embedded in binary (`--version`)
 - **Enhanced NFC error handling:** Robust recovery from I2C errors and NFC reader failures
 - **Temperature state management:** Four-state temperature monitoring (unknown/cold/hot/ideal)
 - **Debounced fault management:** Prevents fault flapping with configurable debounce times
@@ -420,8 +425,8 @@ The Librescoot **battery-service** is a complete Go reimplementation with archit
 # Build for ARM target (ARMv7)
 make build                  # Output: bin/battery-service
 
-# Build for the host platform (development/testing)
-make build-host             # Output: bin/battery-service-host
+# Build for AMD64 (development/testing)
+make build-amd64           # Output: bin/battery-service-amd64
 
 # Build for current platform
 make build-native
@@ -437,7 +442,7 @@ make clean
 
 - Static linking (`-extldflags '-static'`)
 - Version information embedded via linker flags
-- Cross-compilation support for ARM (ARMv7)
+- Cross-compilation support for ARM and AMD64
 - Minimal dependencies (CGO_ENABLED=0)
 
 ### Compatibility

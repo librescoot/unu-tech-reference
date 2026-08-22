@@ -10,11 +10,11 @@ The Bluetooth service provides the BLE (Bluetooth Low Energy) interface for the 
 --serial string        Serial device path (default "/dev/ttymxc1")
 --baud int            Serial baud rate (default 115200)
 --redis-addr string   Redis server address (default "localhost:6379")
+--redis-pass string   Redis password (default "")
+--redis-db int        Redis database number (default 0)
 --log-level int       Log level (0=none, 1=error, 2=warning, 3=info, 4=debug) (default 3)
---version             Print version and exit
 --firmware-dir string  Directory containing nRF firmware files (default "/usr/share/nrf-fw")
 --auto-update          Automatically update nRF firmware on startup if newer version available (default true)
---ota-staging-dir string  Staging directory for BLE OTA bundle transfers (default "/data/ota")
 ```
 
 ## Redis Operations
@@ -87,7 +87,9 @@ The Bluetooth service provides the BLE (Bluetooth Low Energy) interface for the 
 
 - `nrf-fw-version` - nRF52 firmware version string (received from nRF52 during initialization)
 
-- `mdb-version` - MDB firmware version string. Read and forwarded to the nRF52 when it changes, and re-written when the nRF52 echoes it back in a Scooter Info (0xA040) message.
+**Fields read (not written by this service):**
+
+- `mdb-version` - MDB firmware version string (forwarded to nRF52 when it changes)
 
 ### Hash: `engine-ecu`
 
@@ -113,7 +115,7 @@ The Bluetooth service provides the BLE (Bluetooth Low Energy) interface for the 
 **Fields written:**
 
 - `cellular.apn` - Cellular APN (from extended command `config:apn` or legacy BLE event `apn <value>`)
-- `pm.hibernation-timer` - Hibernation timeout in seconds (from extended command `config:hibernate-timer`)
+- `hibernation-timer` - Hibernation timeout in seconds (from extended command `config:hibernate-timer`)
 - `updates.mdb.channel` - MDB OTA update channel (from extended command `config:update-channel`)
 - `updates.dbc.channel` - DBC OTA update channel (from extended command `config:update-channel`)
 - `dashboard.saved-locations.<id>.latitude` - Saved location lat (from `nav:fav:add`)
@@ -270,8 +272,8 @@ BLE services and characteristics are defined in the nRF52 firmware.
 
 ### Systemd Unit
 
-- **Unit file:** `/usr/lib/systemd/system/librescoot-bluetooth.service`
-- **Type:** simple
+- **Unit file:** `/etc/systemd/system/bluetooth-service.service` (or `/usr/lib/systemd/system/bluetooth-service.service`)
+- **Type:** idle (delayed until other services have started)
 - **Requires:** `valkey.service` (`redis.service` before Librescoot 1.2)
 - **After:** `valkey.service`
 - **Started by:** systemd at boot
@@ -413,7 +415,7 @@ Extended commands arrive as string payloads via the EXTENDED_COMMAND BLE charact
 **Navigation:**
 
 - `nav:dest lat,lon[,name]` → sets `navigation` hash fields (latitude, longitude, destination, address)
-- `nav:clear` → sets all `navigation` hash fields (latitude, longitude, destination, address, timestamp) to empty strings (does not HDEL)
+- `nav:clear` → deletes all `navigation` hash fields
 - `nav:fav:add lat,lon,name` → adds to `settings:dashboard.saved-locations.<id>.*`
 - `nav:fav:delete <id>` → removes saved location
 - `nav:fav:navigate <id>` → sets navigation destination from saved location
@@ -435,7 +437,7 @@ Extended commands arrive as string payloads via the EXTENDED_COMMAND BLE charact
 **Configuration:**
 
 - `config:apn <value>` → `HSET settings cellular.apn <value>`
-- `config:hibernate-timer <seconds>` → `HSET settings pm.hibernation-timer <value>`
+- `config:hibernate-timer <seconds>` → `HSET settings hibernation-timer <value>`
 - `config:update-channel <stable|testing|nightly>` → sets `settings:updates.mdb.channel` and `settings:updates.dbc.channel`
 - `config:auto-standby-seconds <seconds>` → `HSET settings scooter.auto-standby-seconds <value>` (auto-lock idle timeout when parked, 0=disabled, 0-3600; last 60s shown as a cancellable countdown on the dashboard)
 
@@ -542,7 +544,7 @@ The service logs to journald. Common log patterns include:
 - Redis connection status
 - BLE command processing
 
-Use `journalctl -u librescoot-bluetooth` to view logs.
+Use `journalctl -u bluetooth-service` to view logs.
 
 ## Dependencies
 
