@@ -79,8 +79,8 @@ The Bluetooth service provides the BLE (Bluetooth Low Energy) interface for the 
 **Fields written:**
 - `nrf-fw-version` - nRF52 firmware version string (received from nRF52 during initialization)
 
-**Fields read (not written by this service):**
-- `mdb-version` - MDB firmware version string (forwarded to nRF52 when it changes)
+**Fields read:**
+- `mdb-version` - MDB firmware version string (forwarded to nRF52 when it changes). Also written back by this service when the nRF reports a software version on Scooter Info subtype 0xA041.
 
 ### Hash: `engine-ecu`
 
@@ -103,7 +103,7 @@ The Bluetooth service provides the BLE (Bluetooth Low Energy) interface for the 
 
 **Fields written:**
 - `cellular.apn` - Cellular APN (from extended command `config:apn` or legacy BLE event `apn <value>`)
-- `hibernation-timer` - Hibernation timeout in seconds (from extended command `config:hibernate-timer`)
+- `pm.hibernation-timer` - Hibernation timeout in seconds (from extended command `config:hibernate-timer`)
 - `updates.mdb.channel` - MDB OTA update channel (from extended command `config:update-channel`)
 - `updates.dbc.channel` - DBC OTA update channel (from extended command `config:update-channel`)
 - `dashboard.saved-locations.<id>.latitude` - Saved location lat (from `nav:fav:add`)
@@ -122,7 +122,7 @@ The Bluetooth service provides the BLE (Bluetooth Low Energy) interface for the 
 ### Hash: `scooter` (written)
 
 **Fields written:**
-- `temperature` - External temperature in tenths of °C (from nRF vehicle state message)
+- `temperature` - External temperature in °C, one decimal place (the nRF sends tenths of °C on vehicle-state subtype 0x0024; the service divides by 10 before writing)
 
 **Published channel:** `scooter`
 
@@ -132,13 +132,13 @@ The Bluetooth service provides the BLE (Bluetooth Low Energy) interface for the 
 - `maps-available` - Offline display maps installed (set by scootui-qt, queried via `status:maps-available`)
 - `navigation-available` - Routing engine available (set by scootui-qt, queried via `status:navigation-available`)
 
-### Hashes read (not written)
+### Hashes read
 
-The service reads but does not write to these hashes:
+The service reads these hashes:
 - `battery:0` - Reads battery state and charge
 - `battery:1` - Reads battery state and charge
 - `vehicle` - Reads vehicle state for nRF synchronization
-- `power-manager` - Reads power state
+- `power-manager` - Reads power state (it also writes `nrf-reset-count` and `nrf-reset-reason`, see above)
 
 ### Lists consumed (BRPOP)
 
@@ -229,7 +229,7 @@ BLE services and characteristics are defined in the nRF52 firmware.
 
 ### Systemd Unit
 
-- **Unit file:** `/etc/systemd/system/bluetooth-service.service` (or `/usr/lib/systemd/system/bluetooth-service.service`)
+- **Unit file:** `/usr/lib/systemd/system/librescoot-bluetooth.service`
 - **Type:** idle (delayed until other services have started)
 - **Requires:** redis.service
 - **After:** redis.service, librescoot-vehicle.service, librescoot-alarm.service
@@ -361,7 +361,7 @@ Extended commands arrive as string payloads via the EXTENDED_COMMAND BLE charact
 
 **Navigation:**
 - `nav:dest lat,lon[,name]` → sets `navigation` hash fields (latitude, longitude, destination, address)
-- `nav:clear` → deletes all `navigation` hash fields
+- `nav:clear` → sets all `navigation` hash fields (latitude, longitude, destination, address, timestamp) to empty strings; it does not HDEL them
 - `nav:fav:add lat,lon,name` → adds to `settings:dashboard.saved-locations.<id>.*`
 - `nav:fav:delete <id>` → removes saved location
 - `nav:fav:navigate <id>` → sets navigation destination from saved location
@@ -379,7 +379,7 @@ Extended commands arrive as string payloads via the EXTENDED_COMMAND BLE charact
 
 **Configuration:**
 - `config:apn <value>` → `HSET settings cellular.apn <value>`
-- `config:hibernate-timer <seconds>` → `HSET settings hibernation-timer <value>`
+- `config:hibernate-timer <seconds>` → `HSET settings pm.hibernation-timer <value>`
 - `config:update-channel <stable|testing|nightly>` → sets `settings:updates.mdb.channel` and `settings:updates.dbc.channel`
 - `config:auto-standby-seconds <seconds>` → `HSET settings scooter.auto-standby-seconds <value>` (auto-lock idle timeout when parked, 0=disabled, 0-3600; last 60s shown as a cancellable countdown on the dashboard)
 
@@ -392,7 +392,7 @@ Extended commands arrive as string payloads via the EXTENDED_COMMAND BLE charact
 - `alarm:start:<N>` → `LPUSH scooter:alarm start:<N>`
 - `alarm:stop` → `LPUSH scooter:alarm stop`
 
-The alarm-service processes the command and the response (`alarm:ok`) is returned via EXTENDED_RESPONSE (0x0402).
+bluetooth-service replies `alarm:ok` via EXTENDED_RESPONSE (0x0402) as soon as the command is queued on `scooter:alarm`. The reply confirms the enqueue, not that alarm-service acted on it.
 
 **LTC4020 aux charger control:**
 - `ltc:enable` — safe-enable LTC4020 charger (rejected if unsafe)
@@ -454,7 +454,7 @@ The service logs to journald. Common log patterns include:
 - Redis connection status
 - BLE command processing
 
-Use `journalctl -u bluetooth-service` to view logs.
+Use `journalctl -u librescoot-bluetooth` to view logs.
 
 ## Dependencies
 

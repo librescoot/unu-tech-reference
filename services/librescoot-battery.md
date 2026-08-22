@@ -10,8 +10,6 @@ The battery service monitors the two main battery slots (battery:0 and battery:1
 Usage of battery-service:
   -battery1-active
         Enable battery 1 as active in addition to battery 0 (default: inactive)
-  -dangerously-ignore-seatbox
-        Keep active batteries active when seatbox opens, suppress all seatbox events (DANGEROUS, legacy)
   -keep-active-on-seatbox-open
         Keep a running battery active across seatbox open, but let seatbox events flow normally so asleep batteries go through the wake-up cycle and newly inserted batteries are detected without delay
   -debug
@@ -62,17 +60,17 @@ Usage of battery-service:
 - `fw-version` - Firmware version
 
 **Published channels and messages:**
-- `battery:0`, `battery:1` - Battery state change notifications
-  - `present` - Battery presence changed
-  - `state` - Battery state changed
-  - `charge` - Charge level changed
-  - `temperature-state` - Temperature state changed
-  - `fault` - Fault status changed
+- `battery:0`, `battery:1` - The name of every hash field whose value changed in an update is published as its own message. That covers all fifteen fields listed above: `present`, `state`, `voltage`, `current`, `charge`, `temperature:0` through `temperature:3`, `temperature-state`, `cycle-count`, `state-of-health`, `serial-number`, `manufacturing-date`, `fw-version`
+  - `fault` - Published separately on the same channel whenever a fault is set or cleared
 
 ### Hash: `settings`
 
 **Fields read:**
+- `scooter.dual-battery` - "true"/"false"; when true, battery 1 is promoted to the active role (subject to the voltage-delta check). Read at startup and on `settings` pub/sub.
+- `scooter.battery-keep-active-on-seatbox-open` - "true"/"false"; keeps a running active battery powered across a seatbox open. Read at startup and on `settings` pub/sub; a change restarts the active readers.
 - `scooter.max-voltage-delta` - Max voltage difference between batteries in mV before battery 1 activation is refused (default: 1000; 0 to disable). Updated live via `settings` pub/sub.
+- `scooter.dual-battery` - "true" promotes battery 1 to the active role, subject to the voltage-delta check. Read at startup and on `settings` pub/sub.
+- `scooter.battery-keep-active-on-seatbox-open` - "true"/"false", same effect as `--keep-active-on-seatbox-open`. Read at startup and hot-reloaded via `settings` pub/sub; a reload restarts the active readers.
 
 ### Hash: `vehicle`
 
@@ -138,7 +136,7 @@ The service uses NFC Type 4 Tag operations to communicate with battery NFC tags:
 
 ### Systemd Unit
 
-- **Unit file:** `/usr/lib/systemd/system/battery-service.service`
+- **Unit file:** `/usr/lib/systemd/system/librescoot-battery.service`
 - **Started by:** systemd at boot
 - **Restart policy:** Always
 
@@ -164,9 +162,8 @@ The service uses NFC Type 4 Tag operations to communicate with battery NFC tags:
 
 #### Polling Intervals
 
-- **Active mode (non-standby):** 10 seconds between status updates
-- **Active mode (standby):** 40 seconds between status updates (configurable via `--heartbeat-timeout`)
-- **Inactive mode:** 30 minutes between status updates (configurable via `--off-update-time`)
+- **Active-role slot:** 40 seconds between status updates (configurable via `--heartbeat-timeout`), regardless of vehicle state
+- **Inactive-role slot:** 30 minutes between status updates (configurable via `--off-update-time`)
 - **Tag discovery (seatbox open):** 100ms polling interval for fast detection
 - **Tag discovery (seatbox closed):** 2500ms polling interval for power efficiency
 
@@ -190,14 +187,14 @@ Battery behavior is controlled by:
 
 1. **Battery Role:**
    - `active` - Can provide power (battery 0 is always active)
-   - `inactive` - Cannot provide power (battery 1 by default, use `--battery1-active` to make active)
+   - `inactive` - Cannot provide power (battery 1 by default; `--battery1-active` at startup, or `settings scooter.dual-battery=true` at runtime, promotes it to active)
 
    **Voltage delta protection:** Battery 1 activation is refused if the voltage difference between both batteries exceeds `scooter.max-voltage-delta` (default: 1000 mV). Checked on startup, on setting change, and on battery swap; clears when a compatible battery is inserted.
 
 2. **Enabled State (for active batteries):**
    - Automatically controlled based on seatbox lock state
    - When seatbox closed: battery enabled
-   - When seatbox open: battery disabled (unless `--dangerously-ignore-seatbox` is set)
+   - When seatbox open: battery disabled (unless `--keep-active-on-seatbox-open`, or the `scooter.battery-keep-active-on-seatbox-open` setting, is on)
 
 3. **Battery State Machine:**
    - Service sends appropriate commands (on/off) based on enabled state
@@ -264,11 +261,10 @@ The service implements multiple recovery mechanisms:
    - Full reinitialization with power cycle
    - Resume normal operation
 
-4. **Zero Data Recovery:**
-   - Detect when battery returns all-zero data
-   - Increment recovery counter
-   - Retry up to 10 times with heartbeat
-   - After threshold, enter passive discovery (long polling intervals)
+4. **Zero Data Handling:**
+   - Detect when a battery returns empty or all-zero status blocks
+   - Raise the critical `BMSZeroData` fault immediately, which reports the battery as not present
+   - Clear the fault and reset the counter on the next non-zero read
 
 5. **Heartbeat Timeout Recovery:**
    - Monitor battery state compliance
@@ -301,10 +297,10 @@ The service monitors for battery faults using a debounced fault management syste
 14. `ShortCircuitProt` - Short circuit detected
 
 **Software Faults (detected by service):**
-- `BMSNotFollowingCmd` (32) - Battery not responding to commands (5s set debounce, 10s reset debounce)
+- `BMSNotFollowingCmd` (32) - Battery not responding to commands (5s set debounce, 10s reset debounce). Defined but never raised in this release.
 - `BMSZeroData` (33) - Battery data unavailable (critical, immediate)
 - `BMSCommsError` (34) - Battery communication failed (critical, 5s set debounce, 10s reset debounce)
-- `NFCReaderError` (35) - NFC reader malfunction (critical, 30s set debounce)
+- `NFCReaderError` (35) - NFC reader malfunction (critical, 30s set debounce). Defined but never raised in this release; NFC failures surface as `BMSCommsError` after 3 consecutive failures.
 
 **Fault Reporting:**
 - Faults stored in Redis sets: `battery:N:fault`
@@ -325,8 +321,8 @@ The service logs to journald with leveled logging:
 
 **Configuration:**
 - `--log` - Service-wide log level (default: 3)
-- `--log0` - Battery 0 reader log level (defaults to `--log`)
-- `--log1` - Battery 1 reader log level (defaults to `--log`)
+- `--log0` - Battery 0 reader log level (default 3, independent of `--log`)
+- `--log1` - Battery 1 reader log level (default 3, independent of `--log`)
 - `--debug` - Enable detailed NCI/DATA messages from NFC HAL
 
 **Common log messages:**
@@ -339,8 +335,8 @@ The service logs to journald with leveled logging:
 
 **Viewing logs:**
 ```bash
-journalctl -u battery-service -f           # Follow logs
-journalctl -u battery-service --since today # Today's logs
+journalctl -u librescoot-battery -f           # Follow logs
+journalctl -u librescoot-battery --since today # Today's logs
 ```
 
 ## Dependencies
@@ -352,9 +348,11 @@ journalctl -u battery-service --since today # Today's logs
 - **systemd** - For suspend inhibitor functionality during NFC transactions
 - **Linux kernel** - I2C support and device nodes
 
-**Go Dependencies:**
+**Go Dependencies (direct):**
 - `github.com/redis/go-redis/v9` - Redis client
-- `golang.org/x/sys` - System calls for I2C and systemd integration
+- `github.com/librescoot/pn7150` - PN7150 NFC hardware abstraction layer
+- `github.com/librescoot/librefsm` - Hierarchical state machine
+- `github.com/godbus/dbus/v5` - systemd-logind suspend inhibitor
 
 ## LibreScoot Implementation
 
@@ -389,8 +387,8 @@ The LibreScoot **battery-service** is a complete Go reimplementation with archit
 # Build for ARM target (ARMv7)
 make build                  # Output: bin/battery-service
 
-# Build for AMD64 (development/testing)
-make build-amd64           # Output: bin/battery-service-amd64
+# Build for the local architecture with a -host suffix
+make build-host            # Output: bin/battery-service-host
 
 # Build for current platform
 make build-native
@@ -405,7 +403,7 @@ make clean
 **Build system:**
 - Static linking (`-extldflags '-static'`)
 - Version information embedded via linker flags
-- Cross-compilation support for ARM and AMD64
+- Cross-compilation to ARMv7 (GOARCH=arm GOARM=7) from any host
 - Minimal dependencies (CGO_ENABLED=0)
 
 ### Compatibility

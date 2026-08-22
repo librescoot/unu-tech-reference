@@ -28,7 +28,7 @@ ScootUI is the primary user interface for LibreScoot. It runs on the DBC (Dashbo
 
 ### Navigation
 - Offline vector map support (MBTiles via QMapLibre)
-- Online map tiles (CartoDB) as alternative
+- Online map tiles (VersaTiles vector tiles) as alternative
 - Valhalla routing (on-device or remote)
 - Speed limit indicators from vector tiles
 - Auto-rotating map with heading tracking
@@ -95,9 +95,10 @@ make clean    # Remove build directory
 |---------|-------|--------------|
 | `engine-ecu` | EngineStore | 200 ms |
 | `vehicle` | VehicleStore, AutoStandbyStore | 500–1000 ms |
-| `buttons` | VehicleStore, ShortcutMenuStore | event-driven |
+| `buttons` | VehicleStore | event-driven |
+| `input-events` | ShortcutMenuStore, InputHandler | event-driven |
 | `battery:0`, `battery:1` | BatteryStore | 30 s |
-| `gps` | GpsStore | 1 s |
+| `gps` | GpsStore | 5 s (plus `gps:tpv` pub/sub pushes at 1 Hz) |
 | `ble` | BluetoothStore | 5 s |
 | `internet` | InternetStore | 5 s |
 | `navigation` | NavigationStore | 5 s |
@@ -119,7 +120,7 @@ Additionally polled (no subscription): `system`, `version:mdb`, `version:dbc` (3
 | `dashboard` | `serial-number` | Hardware serial | Startup (if readable) |
 | `dashboard` | `backlight-enabled` | `true`/`false` | On backlight control |
 | `navigation` | `destination` | `lat,lon` | When destination is set |
-| `settings` | `dashboard.*` | user values | On settings changes via menu |
+| `settings` | `dashboard.*`, `scooter.*`, `alarm.*` | user values | On settings changes via menu |
 | `usb` | `mode` | `normal`/`ums-by-dbc` | On USB mode change |
 
 ### LPUSH Commands
@@ -129,9 +130,9 @@ Additionally polled (no subscription): `system`, `version:mdb`, `version:dbc` (3
 | `scooter:blinker` | `left`, `right`, `both`, `off` | Blinker/hazard controls |
 | `scooter:hop-on` | `engage`, `engage-learning`, `release` | HopOnStore |
 
-### HDEL
+### Destination clear
 
-- `navigation destination`, `latitude`, `longitude`, `address`, `timestamp` — on destination clear
+- `navigation destination`, `latitude`, `longitude`, `address`, `timestamp` are set to empty strings (deliberately not HDEL, which publishes no notification), then `PUBLISH navigation cleared`
 
 ### LRANGE
 
@@ -146,9 +147,9 @@ Settings are stored in the `settings` Redis hash. Managed by settings-service.
 | `dashboard.show-raw-speed` | `true`/`false` | `false` | Raw ECU speed vs wheel-corrected |
 | `dashboard.show-gps` | `always`/`active-or-error`/`error`/`never` | `error` | GPS icon visibility |
 | `dashboard.show-bluetooth` | `always`/`active-or-error`/`error`/`never` | `active-or-error` | Bluetooth icon |
-| `dashboard.show-cloud` | `always`/`active-or-error`/`error`/`never` | `error` | Cloud connection icon |
-| `dashboard.show-internet` | `always`/`active-or-error`/`error`/`never` | `always` | Cellular icon |
-| `dashboard.show-clock` | `true`/`false` | `true` | Clock visibility |
+| `dashboard.show-cloud` | `always`/`active-or-error`/`error`/`never` | `never` | Cloud connection icon |
+| `dashboard.show-internet` | `always`/`active-or-error`/`error`/`never` | `never` | Cellular icon |
+| `dashboard.show-clock` | `always`/`never` | `always` | Clock visibility |
 | `dashboard.theme` | `light`/`dark`/`auto` | `auto` | UI theme |
 | `dashboard.blinker-style` | `icon`/`overlay` | `icon` | Blinker indicator style |
 | `dashboard.language` | `en`, `de`, … | `en` | UI language |
@@ -156,10 +157,10 @@ Settings are stored in the `settings` Redis hash. Managed by settings-service.
 | `dashboard.power-display-mode` | `kw`/`amps` | `kw` | Power unit |
 | `dashboard.mode` | `speedometer`/`navigation` | `speedometer` | Default screen |
 | `dashboard.map.type` | `online`/`offline` | `offline` | Map source |
-| `dashboard.map.render-mode` | `vector`/`raster` | `raster` | Offline map rendering |
+| `dashboard.map.render-mode` | `vector`/`raster` | `vector` | Offline map rendering |
 | `dashboard.map.traffic-overlay` | `true`/`false` | `false` | Traffic overlay (online only) |
 | `dashboard.valhalla-url` | URL | `http://127.0.0.1:8002/` | Valhalla routing endpoint |
-| `dashboard.maps.check-for-updates` | `true`/`false` | `true` | Auto-check for map updates |
+| `dashboard.maps.check-for-updates` | `true`/`false` | `false` | Auto-check for map updates |
 | `dashboard.maps.auto-download` | `true`/`false` | `false` | Auto-download map updates |
 | `dashboard.hop-on-combo` | pipe-delimited tokens | _(empty)_ | Custom hop-on unlock combo |
 
@@ -179,7 +180,7 @@ On Linux startup:
 
 ### Shutdown
 
-On SIGTERM or `vehicle state` → `shutting-down`: `ShutdownStore::forceBlackout()` blacks out the display.
+On SIGTERM: `ShutdownStore::forceBlackout()` blacks out the display immediately. A `vehicle state` of `shutting-down` instead runs `ShutdownStore::beginShutdown()`, which plays the shutdown overlay without forcing the blackout.
 
 ## Map Tiles
 
@@ -202,7 +203,6 @@ qml/
   widgets/        Reusable UI components
   overlays/       Modal overlays (menu, toast, ...)
   simulator/      Simulator panel (desktop mode only)
-  theme/          Theme definitions
 ```
 
 ## Dependencies

@@ -36,7 +36,7 @@ with a baud rate of 115200, no parity, and hardware flow control disabled.
    - Frame ID (1 byte)
    - Payload Length (2 bytes)
    - Header CRC (2 bytes)
-   - Payload (variable length, max 512 bytes)
+   - Payload (variable length, max 1024 bytes)
    - Payload CRC (2 bytes)
 
 ## CBOR Payload Encoding
@@ -99,9 +99,9 @@ Each message type contains sub-types as CBOR map keys:
 
 **CB Battery (0x0060):**
 - 0x0061: Charge (%)
-- 0x0062: Current (mA)
+- 0x0062: Current (µA)
 - 0x0063: Remaining Capacity (mAh)
-- 0x0065: Cell Voltage (mV)
+- 0x0065: Cell Voltage (µV)
 - 0x0066: Temperature (°C)
 - 0x0072: Charge Status
 
@@ -118,7 +118,7 @@ Each message type contains sub-types as CBOR map keys:
 - 0x00E9/0x00F5: Battery 0/1 remaining charge (%)
 
 **Power Management (0x0800):**
-- 0x0801: PM State (1=running, 2=suspending, 3=hibernating, etc.)
+- 0x0801: PM State (0=suspending, 1=running, 2=hibernating, 3=suspending-imminent, 4=hibernating-imminent, 5=reboot)
 - 0x0802: Power Request (hibernation level: 0=L1, 1=L2)
 - 0x0803: Hibernation Request (0=automatic, 1=manual)
 
@@ -169,6 +169,6 @@ Observable startup sequence from iMX6 to nRF:
 - **Bidirectional**: Both directions use same frame format
 - **Asynchronous**: nRF sends unsolicited status updates
 - **Little-Endian**: Multi-byte values in frame header
-- **Max Payload**: 2048 bytes
+- **Max Payload**: 1024 bytes (MDB-side limit; longer frames are refused on send and dropped on receive)
 - **Sync Pattern**: 0xF6 0xD9 for frame start
 - **End Character**: 0xF6 terminates communication sequences

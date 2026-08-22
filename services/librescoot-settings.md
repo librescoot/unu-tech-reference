@@ -6,7 +6,7 @@ The settings service is a LibreScoot-only service that provides bidirectional sy
 
 ## Version
 
-LibreScoot settings-service v1.0.0+
+LibreScoot settings-service v0.5.1
 
 ## Command-Line Options
 
@@ -48,7 +48,6 @@ Settings are organized by section. Examples:
 - `alarm.l1-cooldown` - Level 1 cooldown duration in seconds
 
 - `scooter.max-voltage-delta` - Maximum voltage difference between batteries in mV before dual battery activation is refused (default: 1000; 0 to disable)
-- `scooter.battery-ignores-seatbox` - Runtime override of `--dangerously-ignore-seatbox` (default: false)
 - `scooter.battery-keep-active-on-seatbox-open` - Keep active battery on across seatbox opens (default: false)
 - `scooter.dual-battery` - Enable dual battery mode (default: false)
 - `scooter.dbc-blinker-led` - Blink DBC boot LED with blinkers ("enabled"/"disabled"; default: "disabled")
@@ -59,10 +58,10 @@ Settings are organized by section. Examples:
 - `cellular.sim-pin` - PIN for SIM unlock and lock-enable (4-8 digits, empty = leave SIM as-is)
 
 **Power management settings:**
-- `hibernation-timer` - Hibernation timeout in seconds (0=disabled)
+- `pm.hibernation-timer` - Hibernation timeout in seconds (0=disabled; default: 259200)
 
 **Scooter settings:**
-- `scooter.auto-standby-seconds` - Auto-lock timeout when parked in seconds (default: 0 = disabled; max 3600). The last 60 s are shown as a cancellable countdown on the dashboard; any user input (brake, kickstand, seatbox button) resets the timer.
+- `scooter.auto-standby-seconds` - Auto-lock timeout when parked in seconds (default: 900; set 0 to disable, no upper bound). The last 60 s are shown as a cancellable countdown on the dashboard; any user input (brake, kickstand, seatbox button) resets the timer.
 - `scooter.brake-hibernation` - Enable brake lever hibernation ("enabled"/"disabled")
 
 **Update settings:**
@@ -98,7 +97,7 @@ Settings are organized by section. Examples:
 - `dashboard.power-display-mode` - Power display unit (kw/amps; default: "kw")
 - `dashboard.battery-display-mode` - Battery display mode (percentage/range)
 - `dashboard.hop-on-combo` - Custom hop-on unlock combo, pipe-delimited tokens (empty = no combo)
-- `dashboard.maps.check-for-updates` - Auto-check for map updates weekly when online (default: true)
+- `dashboard.maps.check-for-updates` - Auto-check for map updates weekly when online (default: false)
 - `dashboard.maps.auto-download` - Auto-download map updates (default: false)
 - `dashboard.maps-available` - Offline map tiles available (system-managed; default: false)
 - `dashboard.navigation-available` - Full navigation available (system-managed; default: false)
@@ -131,7 +130,6 @@ apn = "internet.provider.com"
 [scooter]
 auto-standby-seconds = "0"
 brake-hibernation = "enabled"
-battery-ignores-seatbox = "false"
 
 [dashboard]
 theme = "dark"
@@ -209,12 +207,11 @@ The service:
 
 #### TOML to Redis Sync (Startup Only)
 
-On startup, if `/data/settings.toml` exists:
-1. Entire file is read
-2. All sections and keys are converted to Redis format
-3. Redis `settings` hash is flushed
-4. All settings written to Redis
-5. Each setting published to `settings` channel
+On startup:
+1. Schema defaults are read from the schema JSON (`-schema`, default `/usr/share/settings-service/settings.schema.json`)
+2. `/data/settings.toml` is read if present; its sections and keys are converted to Redis format and override the defaults
+3. Redis `settings` hash is replaced atomically (DEL + HSET in a single pipeline)
+4. A single `reload` message is published on the `settings` channel
 
 This ensures Redis reflects the persistent configuration.
 
@@ -237,10 +234,10 @@ When `cellular.apn` is updated:
 
 #### Empty Config Handling
 
-If the TOML file is empty or has an empty `[scooter]` section:
-- Redis `settings` hash is flushed
-- Service treats this as "factory reset" of settings
-- Services using settings will fall back to their defaults
+If the TOML file is missing or empty:
+- Redis `settings` hash is replaced with the schema defaults alone
+- Every key that carries a schema default is present in Redis with that value
+- Services fall back to their own built-in defaults only for keys the schema doesn't cover
 
 ### WireGuard Management
 
@@ -346,15 +343,15 @@ systemctl restart librescoot-settings
 # Build for ARM target
 make build
 
-# Build for AMD64 (development)
-make build-amd64
+# Build for the host platform (development)
+make build-host
 ```
 
 ## Installation
 
 The service is typically installed via systemd:
 
-**Unit file:** `/etc/systemd/system/librescoot-settings.service`
+**Unit file:** `/usr/lib/systemd/system/librescoot-settings.service`
 
 ```ini
 [Unit]

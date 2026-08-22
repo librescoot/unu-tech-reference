@@ -334,23 +334,23 @@ LibreScoot adds persistent settings managed by the settings-service:
 | alarm.hairtrigger | "true"/"false" | Hair trigger mode (immediate short alarm on first motion) | "false" |
 | alarm.hairtrigger-duration | integer (sec) | Hair trigger alarm duration in seconds | "3" |
 | alarm.l1-cooldown | integer (sec) | Level 1 cooldown duration in seconds | "15" |
-| battery.ignore-seatbox | "true"/"false" | Ignore seatbox state for battery management | "false" |
+| scooter.battery-keep-active-on-seatbox-open | "true"/"false" | Keep the batteries active while the seatbox is open | "false" |
 | cellular.apn | string | Cellular APN | "internet.provider.com" |
 | cellular.sim-pin | string | PIN for SIM unlock and lock-enable (4-8 digits, empty = leave SIM as-is) | "1234" |
-| hibernation-timer | integer (sec) | Hibernation timeout (0=disabled) | "432000" |
+| pm.hibernation-timer | integer (sec) | Hibernation timeout (0=disabled) | "259200" |
 | scooter.auto-standby-seconds | integer (sec) | Auto-lock timeout when parked (0=disabled) | "0" |
 | scooter.brake-hibernation | "enabled"/"disabled" | Enable brake lever hibernation | "enabled" |
 | updates.mdb.channel | string | MDB update channel | "nightly" |
 | updates.mdb.check-interval | duration | MDB update check interval ("never" to disable) | "6h" |
 | updates.mdb.dry-run | "true"/"false" | MDB update dry-run mode | "false" |
 | updates.mdb.method | string | MDB update method | "full" or "delta" |
-| updates.mdb.github-releases-url | string | GitHub Releases API endpoint for MDB | "https://api.github.com/repos/librescoot/librescoot/releases" |
+| updates.mdb.releases-url | string | Release index base URL for MDB | "https://downloads.librescoot.org/releases" |
 | updates.mdb.last-check-time | string (ISO8601) | Last MDB update check timestamp | "2025-01-15T10:30:00Z" |
 | updates.dbc.channel | string | DBC update channel | "stable" |
 | updates.dbc.check-interval | duration | DBC update check interval ("never" to disable) | "6h" |
 | updates.dbc.dry-run | "true"/"false" | DBC update dry-run mode | "false" |
 | updates.dbc.method | string | DBC update method | "full" or "delta" |
-| updates.dbc.github-releases-url | string | GitHub Releases API endpoint for DBC | "https://api.github.com/repos/librescoot/librescoot/releases" |
+| updates.dbc.releases-url | string | Release index base URL for DBC | "https://downloads.librescoot.org/releases" |
 | updates.dbc.last-check-time | string (ISO8601) | Last DBC update check timestamp | "2025-01-15T10:30:00Z" |
 | dashboard.show-raw-speed | "true"/"false" | Show raw uncorrected speed from ECU | "false" |
 | dashboard.show-clock | string | Clock visibility (always/never) | "always" |
@@ -395,13 +395,13 @@ hgetall bmx
 | Field | Type | Description | Example |
 |-------|------|-------------|----------|
 | initialized | "true"/"false" | BMX sensor initialization status | "true" |
-| interrupt | string | Interrupt status | "active" |
-| sensitivity | string | Current sensitivity level | "MEDIUM" |
-| pin | string | Interrupt pin configuration | "INT2" |
+| interrupt | string | Interrupt status | "disabled" |
+| sensitivity | string | Current sensitivity level | "none" |
+| pin | string | Interrupt pin configuration | "none" |
 
-**Sensitivity levels:** `LOW`, `MEDIUM`, `HIGH`
-
-The alarm-service manages BMX055 configuration automatically based on alarm state.
+alarm-service writes these four fields once at startup, with the fixed values
+shown above, and never updates them afterwards. They do not track the live
+BMX055 configuration, which the alarm state machine changes internally.
 
 ### Dashboard Backlight (`dashboard`) - LibreScoot Enhancement
 
@@ -605,24 +605,16 @@ redis-cli -h 192.168.7.1 LPUSH scooter:alarm start:30
 redis-cli -h 192.168.7.1 LPUSH scooter:alarm stop
 ```
 
-**Available commands**: `enable`, `disable`, `start:<seconds>`, `stop`
+**Available commands**: `enable`, `disable`, `arm`, `disarm`, `start:<seconds>`, `stop`
 
-### BMX Sensor Control (`scooter:bmx`) - LibreScoot Only
+### BMX Sensor Control - LibreScoot Only
 
-Controls BMX055 accelerometer/gyroscope configuration. Typically used by alarm-service.
+There is no `scooter:bmx` command list in this release. No service subscribes to
+it, so anything pushed there is simply never read.
 
-```bash
-# Configure sensitivity
-redis-cli -h 192.168.7.1 LPUSH scooter:bmx sensitivity:MEDIUM
-
-# Configure interrupt pin
-redis-cli -h 192.168.7.1 LPUSH scooter:bmx pin:INT2
-
-# Enable interrupt
-redis-cli -h 192.168.7.1 LPUSH scooter:bmx interrupt:enable
-```
-
-**Available commands**: `sensitivity:<LOW|MEDIUM|HIGH>`, `pin:<NONE|INT1|INT2>`, `interrupt:<enable|disable>`
+alarm-service owns the BMX055 outright and reconfigures the interrupt pin and
+motion thresholds from its own state machine as the alarm state changes. There
+is no external command surface for it.
 
 ### Power Control (`scooter:power`) - LibreScoot Enhanced
 
@@ -670,16 +662,24 @@ redis-cli -h 192.168.7.1 LPUSH scooter:modem gps:disable
 
 **Available commands**: `enable`, `disable`, `gps:enable`, `gps:disable`
 
-### Update Control (`scooter:update`) - LibreScoot Only
+### Update Control (`scooter:update:mdb`, `scooter:update:dbc`) - LibreScoot Only
 
-Controls OTA update system.
+Controls the OTA update system. Each update-service instance consumes only its
+own component list. The shared `scooter:update` list is consumed by
+vehicle-service and accepts only `start`, `complete`, `start-dbc` and
+`complete-dbc`.
 
 ```bash
-# Force immediate update check (both MDB and DBC)
-redis-cli -h 192.168.7.1 LPUSH scooter:update check-now
+# Force immediate update check
+redis-cli -h 192.168.7.1 LPUSH scooter:update:mdb check-now
+redis-cli -h 192.168.7.1 LPUSH scooter:update:dbc check-now
+
+# Install a specific artifact
+redis-cli -h 192.168.7.1 LPUSH scooter:update:dbc "update-from-file:/data/ota/dbc/image.mender"
+redis-cli -h 192.168.7.1 LPUSH scooter:update:mdb "update-from-url:https://example.com/image.mender"
 ```
 
-**Available commands**: `check-now`
+**Available commands**: `check-now`, `update-from-file:<path>[:sha256:<hex>]`, `update-from-url:<url>[:sha256:<hex>]`
 
 ### Command Channel Notes
 

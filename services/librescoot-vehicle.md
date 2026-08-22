@@ -51,7 +51,7 @@ Usage of vehicle-service:
   - `release` - Exit either hop-on sub-state back to `parked`
 - `scooter:led:cue` - LED cue playback commands (integer cue index)
 - `scooter:led:fade` - LED fade playback commands ("channel:fadeIndex")
-- `scooter:update` - Update commands ("start", "complete", "start-dbc", "complete-dbc", "cycle-dashboard-power")
+- `scooter:update` - Update commands ("start", "complete", "start-dbc", "complete-dbc"). The internal handler also has a `cycle-dashboard-power` branch, but the queue handler validates the value first and rejects anything outside those four, so it cannot be triggered over Redis.
 - `scooter:hardware` - Hardware control commands ("dashboard:on", "dashboard:off", "engine:on", "engine:off", "handlebar:lock", "handlebar:unlock")
 
 ### Hashes read
@@ -82,18 +82,17 @@ Usage of vehicle-service:
 
 The service implements the canonical vehicle state machine with these states:
 
-- `init` - Initial/uninitialized state
-- `stand-by` - Powered but motor disabled
+- `stand-by` - Powered but motor disabled. This is the FSM's initial state; there is no separate `init` state. On a cold boot with no persisted `vehicle:state`, the machine simply starts (and publishes) `stand-by`.
 - `parked` - Unlocked with kickstand down
 - `ready-to-drive` - All conditions met, motor enabled
 - `waiting-seatbox` - Waiting for seatbox to close
-- `shutting-down` - Transitioning to power down (~4s)
+- `shutting-down` - Transitioning to power down (~5s)
 - `updating` - OTA firmware update in progress
-- `hibernation` - Manual hibernation super-state (entered via brake-lever hold from `parked`)
-- `hibernation-initial-hold` - 15-second initial brake hold phase
-- `hibernation-awaiting-confirm` - Confirmation phase (30s timeout after brakes released; continuous hold also auto-confirms)
-- `hibernation-seatbox` - Confirmation blocked by open seatbox; prompts user to close it
-- `hibernation-confirm` - Final 3-second non-abortable hibernation confirmation
+- `hibernation` - Manual hibernation super-state (entered via brake-lever hold from `parked`). Internal FSM name only; published to `vehicle:state` as `waiting-hibernation`.
+- `hibernation-initial-hold` - 15-second initial brake hold phase. Internal FSM name only; published as `parked`, so the silent hold is invisible to Redis consumers.
+- `hibernation-awaiting-confirm` - Confirmation phase (30s state timeout back to `parked`; a further 15s of continuous brake hold auto-confirms). Internal FSM name only; published as `waiting-hibernation`.
+- `hibernation-seatbox` - Confirmation blocked by open seatbox; prompts user to close it. Internal FSM name only; published as `waiting-hibernation-seatbox`.
+- `hibernation-confirm` - Final 3-second hibernation confirmation; the seatbox button still cancels it. Internal FSM name only; published as `waiting-hibernation-confirm`.
 - `at-rest` - Parent state grouping `parked`, `hop-on`, `hop-on-learning`. Owns the auto-standby timer; sibling transitions inside the group don't disturb it. Never the leaf, so `vehicle:state` never reads `at-rest`.
 - `hop-on` - Hop-on/hop-off mode (rider briefly off, motor disabled, optional steering lock, lock screen rendered by dashboard). Physical inputs are gated declaratively via `BlockedEvents` on the FSM state.
 - `hop-on-learning` - Combo-learning sibling of `hop-on`: same input gating (no horn / blinker / brake LED / seatbox open / hibernation hold) but no LED cue, no steering-lock attempt, no lock screen. The dashboard renders its own learn overlay.
@@ -105,7 +104,7 @@ The manual hibernation sequence works as follows:
 1. **parked** → **hibernation-initial-hold** (15s): Both brakes pressed continuously
 2. **hibernation-initial-hold** → **hibernation-awaiting-confirm**: After 15s, enter confirmation phase
 3. **hibernation-awaiting-confirm**: User can release brakes or keep holding
-   - If brakes released: 30s timeout starts (can be reset by touching brakes)
+   - A 30s timeout runs from entry into this phase (not from brake release) and is not reset by further brake activity; on expiry the vehicle returns to `parked`
    - If brakes held continuously for 30s total: auto-confirm (skip seatbox check)
    - If brakes re-pressed after release: hold for 15s to auto-confirm
 4. **Keycard tap** or **continuous hold timeout**: Check safety conditions (kickstand down, seatbox closed)
@@ -201,7 +200,7 @@ The service controls 8 PWM LED channels via the `imx_pwm_led` kernel module:
 12. Marks system as initialized
 13. Handles initial dashboard ready state (if dashboard was already ready)
 14. Publishes initial vehicle state to Redis
-15. Transitions from `init` to `stand-by` if still in init state
+15. Restores the persisted `vehicle:state` onto the FSM, or leaves it in its initial `stand-by` state when Redis held none
 16. Starts Redis listeners (PUBSUB and BRPOP)
 
 ### State Machine Behavior
@@ -211,6 +210,7 @@ The service controls 8 PWM LED channels via the `imx_pwm_led` kernel module:
 Vehicle enters `ready-to-drive` when ALL are true:
 - Dashboard ready (`dashboard` hash `ready` field = "true")
 - Kickstand up
+- Handlebar unlocked
 - Current state is `parked`
 
 **Manual Ready-to-Drive Activation:**
@@ -223,9 +223,9 @@ Will manually transition to `ready-to-drive` and blink the main light once for c
 #### Lock/Unlock Handling
 
 **Lock command** (`LPUSH scooter:state lock`):
-1. Must be in `parked` state
+1. Must be in `parked` or `ready-to-drive` state (any other state is rejected with "vehicle must be parked or ready-to-drive to lock")
 2. Transitions to `shutting-down`
-3. After ~4 seconds, transitions to `stand-by`
+3. After ~5 seconds, transitions to `stand-by`
 4. Power manager then suspends/hibernates
 
 **Unlock command** (`LPUSH scooter:state unlock`):
@@ -255,7 +255,7 @@ Will manually transition to `ready-to-drive` and blink the main light once for c
 3. **Confirmation Phase:**
    - User can release brakes or keep holding
    - If brakes released: 30-second timeout starts
-     - Timeout can be reset by touching brakes again
+     - The timeout is armed on entry into the phase and is not reset by touching the brakes again
      - If timeout expires: cancel hibernation, return to `parked`
    - If brakes held continuously for 30s total from start: auto-confirm (warehouse mode)
    - If brakes re-pressed after release: hold for 15s to auto-confirm
@@ -266,7 +266,7 @@ Will manually transition to `ready-to-drive` and blink the main light once for c
    - If seatbox open: transition to `waiting-hibernation-seatbox` state to notify user
 5. **Final Confirmation:**
    - Transition to `waiting-hibernation-confirm` state
-   - 3-second non-abortable countdown
+   - 3-second countdown (the seatbox button still cancels it back to `parked`)
    - Then transition to `shutting-down` with hibernation flag
    - Send "hibernate-manual" command to power manager
 
@@ -438,7 +438,7 @@ See [i.MX PWM LED kernel module documentation](https://github.com/unumotors/kern
 During DBC (Dashboard Controller) firmware updates:
 - Dashboard power is kept on regardless of vehicle state
 - Power state changes are deferred until update completes
-- Dashboard power can be cycled remotely via `scooter:update` command
+- A dashboard power-cycle branch exists in the update handler, but `cycle-dashboard-power` is rejected by the `scooter:update` value validator, so it cannot be reached over Redis
 - Service tracks update status via `ota` hash `status:dbc` field
 
 **Force Standby:**
@@ -484,8 +484,8 @@ The service responds to settings changes via PUBSUB:
 # Build for ARM Cortex-A7 (default target)
 make build
 
-# Build for AMD64 (development/testing)
-make build-amd64
+# Build for the host platform (development/testing), emits bin/vehicle-service-host
+make build-host
 
 # Output: bin/vehicle-service
 ```

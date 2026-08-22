@@ -6,7 +6,7 @@ The alarm service is a **new LibreScoot feature** that provides motion-based sec
 
 ## Version
 
-LibreScoot alarm-service v1.0.0+
+LibreScoot alarm-service v0.10.0 (v1.0.5 pinned SRCREV a20b0c5)
 
 ## Command-Line Options
 
@@ -14,13 +14,17 @@ LibreScoot alarm-service v1.0.0+
 --i2c-bus=/dev/i2c-3           I2C bus device path for BMX055
 --redis=localhost:6379         Redis address
 --log-level=info               Log level (debug, info, warn, error)
---alarm-enabled=false          Enable alarm system (writes to Redis on startup)
+--alarm-enabled=true           Enable alarm system (writes to Redis on startup)
 --alarm-duration=10            Alarm duration in seconds
 --horn-enabled=false           Enable horn during alarm (overrides Redis setting)
 --seatbox-trigger=true         Trigger alarm on unauthorized seatbox opening
 --hair-trigger=false           Enable hair trigger mode (immediate short alarm on first motion)
 --hair-trigger-duration=3      Hair trigger alarm duration in seconds
 --l1-cooldown=5                Level 1 cooldown duration in seconds
+--evdev-device=/dev/input/by-path/platform-gpio-keys-event
+                               Input device for the BMX055 INT1 gpio-keys edge (empty to disable and use poller only)
+--evdev-keycode=0x2b           Keycode from gpio-keys device that corresponds to BMX055 INT1
+--poller-interval-ms=1000      Interval in ms between I2C status polls (watchdog when the evdev path is active, primary source when evdev is disabled)
 --version                      Print version and exit
 ```
 
@@ -32,9 +36,12 @@ LibreScoot alarm-service v1.0.0+
 - `status` - Current alarm status:
   - `disabled` - Alarm system is disabled
   - `disarmed` - Alarm enabled but not armed (vehicle not in stand-by)
+  - `delay-armed` - Arming delay in progress (5 seconds)
   - `armed` - Alarm is armed and monitoring for motion
   - `level-1-triggered` - Level 1 alarm (notification only)
   - `level-2-triggered` - Level 2 alarm (horn + hazards)
+  - `seatbox-access` - Authorized seatbox opening; monitoring suspended until the seatbox closes
+- `alarm-active` - "true" while the horn/hazard output is running, "false" once it stops
 
 **Published channel:** `alarm`
 
@@ -62,11 +69,13 @@ LibreScoot alarm-service v1.0.0+
 
 ### Hash: `bmx`
 
-**Fields written (BMX055 control):**
-- `initialized` - BMX sensor initialization status
-- `interrupt` - Interrupt status
-- `sensitivity` - Current sensitivity level (LOW/MEDIUM/HIGH)
-- `pin` - Interrupt pin configuration
+**Fields written once at startup (informational; never updated afterwards):**
+- `initialized` - always "true"
+- `interrupt` - always "disabled"
+- `sensitivity` - always "none"
+- `pin` - always "none"
+
+The live BMX configuration is not mirrored into Redis; it is applied over I2C directly.
 
 ### Lists consumed (BRPOP)
 
@@ -75,24 +84,25 @@ LibreScoot alarm-service v1.0.0+
   - `disable` - Disable alarm system (writes to `settings alarm.enabled`)
   - `arm` - Force immediate arming (transitions to `StateDelayArmed` without changing `alarm.enabled`)
   - `disarm` - Force disarm from any armed/triggered state (without changing `alarm.enabled`; alarm re-arms automatically on next standby)
-  - `start:<seconds>` - Manual alarm trigger (e.g., `start:30`)
-  - `stop` - Stop alarm immediately
+  - `start:<seconds>` - Runs the horn/hazard output directly for N seconds (e.g., `start:30`); the FSM state and `alarm status` are not changed
+  - `stop` - Stops the horn/hazard output immediately; the FSM state is not changed
 
 ### Lists produced (LPUSH)
 
-- `scooter:bmx` - BMX055 configuration commands
 - `scooter:horn` - Horn control (`on`, `off`)
 - `scooter:blinker` - Blinker control (`both`, `off`)
+- `scooter:power` - `hibernate-manual`, sent to pm-service to re-hibernate after a motion wake
 
 ### Subscribed Channels
 
-- `vehicle` - Monitors vehicle state changes (payload: "state")
+- `vehicle` - Monitors vehicle state changes (payload: "state", "seatbox:lock", "seatbox:opened")
 - `settings` - Monitors settings changes for alarm configuration
+- `power-manager` - Watches `state`; a hibernating/hibernating-imminent value switches the armed BMX profile to the stricter hibernation threshold
 - `bmx:interrupt` - Receives motion detection events from BMX055
 
 ## Alarm State Machine
 
-The alarm service implements an 8-state finite state machine:
+The alarm service implements a 10-state finite state machine:
 
 ```
 init → waiting_enabled → disarmed → delay_armed (5s) → armed
@@ -101,7 +111,7 @@ init → waiting_enabled → disarmed → delay_armed (5s) → armed
                                          |                ↓
                                          |        trigger_level_1 (5s check)
                                          |                ↓ major movement
-                                         |        trigger_level_2 (50s, max 4 cycles)
+                                         |        trigger_level_2 (50s, max 6 cycles)
                                          |________________|
 ```
 
@@ -129,9 +139,9 @@ The alarm triggers when:
 - Level 2: Major movement detected or Level 1 continues
 
 The alarm disarms when:
-- Vehicle leaves `stand-by` state
+- Vehicle enters `parked`, `ready-to-drive` or `waiting-seatbox`. Other states, including `updating` and the hibernation-wait states, keep the alarm armed
 - User disables alarm (`LPUSH scooter:alarm disable`)
-- Alarm stopped manually (`LPUSH scooter:alarm stop`)
+- Runtime disarm (`LPUSH scooter:alarm disarm`). `stop` only silences the horn and hazards; it does not change FSM state
 
 ## Hardware Interfaces
 
@@ -140,22 +150,28 @@ The alarm disarms when:
 The alarm service **directly controls** the BMX055 sensor via I2C (no separate bmx-service required):
 
 - **Accelerometer (0x18):** Slow/no-motion interrupt detection
-- **Gyroscope (0x68):** Rotation detection for interrupt validation
+- **Gyroscope (0x68):** Opened and soft-reset alongside the accelerometer; not used for motion detection or interrupt validation
 - **I2C Bus:** Default `/dev/i2c-3` (configurable via `--i2c-bus`)
-- **Interrupt Polling:** 100ms polling loop monitoring accelerometer interrupt status
+- **Interrupt sources:** primary path is evdev key events from the gpio-keys node wired to BMX055 INT1 (`--evdev-device`, `--evdev-keycode=0x2b`); an I2C status poll every 1000 ms acts as a watchdog (`--poller-interval-ms`), and is the only source when the evdev device is unavailable
 
 ### BMX055 Configuration
 
 The service automatically configures BMX sensitivity based on alarm state:
 
-| State | Wake Lock | Sensitivity | INT Pin |
-|-------|-----------|-------------|---------|
-| armed | No | MEDIUM | BOTH (INT1 for polling, INT2 for nRF wake) |
-| delay_armed | Yes | LOW | INT2 |
-| trigger_level_1 | Yes | MEDIUM | BOTH (INT1 for polling, INT2 for nRF wake) |
-| trigger_level_2 | Yes | HIGH | NONE |
+| State | Wake Lock | Engine | Bandwidth | Threshold | Duration | INT Pin |
+|-------|-----------|--------|-----------|-----------|----------|---------|
+| init | No | slow-motion | 0x08 (7.81 Hz) | 0x14 | 0x02 | INT2 |
+| waiting_enabled | No | slow-motion | 0x08 (7.81 Hz) | 0x14 | 0x02 | INT2 |
+| disarmed | No | slow-motion | 0x08 (7.81 Hz) | 0x14 | 0x02 | NONE |
+| delay_armed | Yes | slow-motion | 0x08 (7.81 Hz) | 0x14 | 0x02 | INT2 |
+| armed | No | any-motion | 0x0A (31.25 Hz) | 0x06, or 0x08 when hibernation is imminent | 0x03 | BOTH (INT1 for the evdev/poll path, INT2 for nRF wake) |
+| trigger_level_1_wait | Yes | unchanged (soft reset only) | - | - | - | unchanged |
+| trigger_level_1 | Yes | slow-motion | 0x09 (15.63 Hz) | 0x08 | 0x03 | BOTH |
+| trigger_level_2 | Yes | unchanged (soft reset only) | - | - | - | unchanged |
+| waiting_movement | Yes (held from trigger_level_2) | slow-motion | 0x08 (7.81 Hz) | 0x06 | 0x03 | NONE, programmed 47s into the 50s window |
+| seatbox_access | Yes | slow-motion | 0x08 (7.81 Hz) | 0x14 | 0x02 | NONE |
 
-**Note:** BMX055 accelerometer bandwidth is explicitly set to 7.81 Hz in all alarm states.
+**Note:** threshold is 1 LSB = 3.91 mg in the 2 g range, and duration N means N+1 consecutive samples above threshold. Bandwidth is not uniform: the armed profile runs at 31.25 Hz and the Level 1 profile at 15.63 Hz; only the idle and waiting profiles sit at 7.81 Hz.
 
 ### Alarm Outputs
 
@@ -218,7 +234,7 @@ alarm-service
 2. Connects to Redis
 3. Initializes BMX055 accelerometer and gyroscope
 4. Reads alarm settings from Redis
-5. Starts interrupt polling loop (100ms interval)
+5. Starts the I2C interrupt poller (1000ms interval by default) and opens the evdev interrupt watcher if the gpio-keys device is present
 6. Enters `init` state, then `waiting_enabled` or `disarmed`
 
 ### Arming Sequence
@@ -227,23 +243,23 @@ When vehicle enters `stand-by` with alarm enabled:
 
 1. State: `disarmed` → `delay_armed`
 2. 5-second countdown begins
-3. BMX055 configured with LOW sensitivity
+3. BMX055 configured with the idle slow-motion profile (7.81 Hz, threshold 0x14), INT2 only
 4. After 5 seconds: `delay_armed` → `armed`
-5. BMX055 reconfigured with MEDIUM sensitivity
+5. BMX055 reconfigured with the armed any-motion profile (31.25 Hz, threshold 0x06), both INT pins mapped
 6. Alarm now monitoring for motion
 
-**Startup fast-track:** On startup with alarm enabled and vehicle already in `stand-by`, the 5-second delay is skipped and the alarm goes directly to `armed`. INT2 only fires when the slow/no-motion interrupt is configured (i.e. in armed states), so an INT2 wakeup from hibernation is self-proving — no file-based persistence required.
+**Startup fast-track:** On startup with alarm enabled and vehicle already in `stand-by`, the 5-second delay is skipped and the alarm goes directly to `armed`. INT2 only carries an interrupt while a motion engine is mapped to it (the any-motion engine in the armed states), so an INT2 wakeup from hibernation is self-proving — no file-based persistence required.
 
 ### Level 1 Trigger (Notification)
 
 1. BMX055 detects motion
 2. State: `armed` → `trigger_level_1_wait`
-3. Hazard lights blink once
+3. Hazard lights blink three times (600ms on, 400ms off)
 4. If hair trigger enabled: immediate short alarm (horn + hazards) for configured duration
-5. 15-second cooldown period
+5. Cooldown period (default 5 seconds, `alarm.l1-cooldown` / `--l1-cooldown`)
 6. If motion continues: `trigger_level_1_wait` → `trigger_level_1`
 7. 5-second verification period
-8. If no major movement: returns to `armed`
+8. If no major movement: returns to `delay_armed`, and to `armed` 5 seconds later
 9. If major movement detected: escalates to Level 2
 
 ### Level 2 Trigger (Full Alarm)
@@ -252,24 +268,25 @@ When vehicle enters `stand-by` with alarm enabled:
 2. State: `trigger_level_1` → `trigger_level_2`
 3. Horn activated (400ms on/off pattern) if enabled
 4. Hazard lights activated (continuous)
-5. Alarm duration: 50 seconds
-6. Maximum 4 cycles before returning to `armed`
-7. State: `trigger_level_2` → `armed`
+5. Alarm duration: 50 seconds per cycle, alternating `trigger_level_2` and `waiting_movement`
+6. Maximum 6 cycles (roughly 10 minutes) before the FSM gives up
+7. On give-up the FSM drops to `disarmed`, which starts a 5-minute post-alarm cooldown before re-arming. With no further motion, `waiting_movement` instead falls through to `delay_armed` and back to `armed`
 
 ### Disarming
 
 Alarm disarms when:
-- Vehicle leaves `stand-by` (user unlocks)
+- Vehicle enters `parked`, `ready-to-drive` or `waiting-seatbox` (user unlocks)
 - Alarm disabled via `LPUSH scooter:alarm disable`
-- Manual stop via `LPUSH scooter:alarm stop`
+- Runtime disarm via `LPUSH scooter:alarm disarm` (`stop` only silences horn and hazards)
 
 ## Suspend Inhibitor Management
 
 The alarm service uses wake locks to prevent system suspend during critical states:
 
 - **delay_armed**: Wake lock held during 5-second arming delay
-- **trigger_level_1**: Wake lock held during Level 1 check
-- **trigger_level_2**: Wake lock held during full alarm
+- **trigger_level_1_wait** and **trigger_level_1**: Wake lock acquired at the start of the Level 1 cooldown and held across the Level 1 check
+- **trigger_level_2** and **waiting_movement**: Wake lock held for the whole Level 2 cycle
+- **seatbox_access**: Wake lock held while an authorized seatbox opening is in progress
 
 This ensures the alarm can complete its sequence even if the power manager tries to suspend.
 
@@ -320,7 +337,7 @@ redis-cli LPUSH scooter:alarm disable
 ### Runtime Arm/Disarm (Without Changing Settings)
 
 ```bash
-# Force arm immediately (no 5-second delay, doesn't change alarm.enabled)
+# Force arming now via delay_armed (the 5-second delay still applies, doesn't change alarm.enabled)
 redis-cli LPUSH scooter:alarm arm
 
 # Force disarm without disabling (alarm will re-arm on next standby)
@@ -338,7 +355,7 @@ The alarm service logs to stdout/stderr (captured by systemd). Common log patter
 - Horn and hazard commands
 - Configuration changes
 
-Use `journalctl -u alarm-service` (or your systemd unit name) to view logs.
+Use `journalctl -u librescoot-alarm` to view logs.
 
 ## Dependencies
 

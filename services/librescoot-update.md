@@ -2,14 +2,14 @@
 
 ## Description
 
-Manages over-the-air (OTA) updates for MDB and DBC components. Runs as two separate instances (one per component), each checking a release index for available updates, downloading them via Mender, and orchestrating installation with safe reboot scheduling. Uses a power inhibitor client to prevent updates during critical vehicle operations.
+Manages over-the-air (OTA) updates for MDB and DBC components. Runs as two separate instances (one per component), each checking a release index for available updates, downloading them via Mender, and orchestrating installation with safe reboot scheduling. Uses a power inhibitor client the other way round: while downloading, preparing or installing it registers a delay inhibit in `power:inhibits` so pm-service does not suspend or hibernate mid-update.
 
 ## Command-Line Options
 
 ```
   --component string         Component to update: mdb or dbc (required)
   --redis-addr string        Redis server address (default: localhost:6379)
-  --channel string           Update channel: stable, testing, nightly (default: nightly; auto-detected from installed version)
+  --channel string           Update channel: stable, testing, nightly (no default; inferred from the installed version, then from Redis settings. The service exits if no valid channel can be determined)
   --releases-url string      Release index base URL (default: https://downloads.librescoot.org/releases)
   --check-interval duration  Interval between update checks; 0 to disable (default: 6h)
   --download-dir string      OTA file download directory (default: /data/ota/{component})
@@ -27,8 +27,13 @@ CLI flags override Redis settings. `--component` and `--redis-addr` are CLI-only
 
 | Unit | Component |
 |------|-----------|
-| `librescoot-update-mdb.service` | MDB |
-| `librescoot-update-dbc.service` | DBC |
+| `librescoot-update.service` (MDB image) | MDB |
+| `librescoot-update.service` (DBC image) | DBC |
+
+The repo carries two unit files, `librescoot-update-mdb.service` and
+`librescoot-update-dbc.service`, but the Yocto recipe installs the one matching
+`MACHINE` as `librescoot-update.service`. Each board therefore runs a single
+instance under that one unit name.
 
 Binary: `/usr/bin/update-service`
 
@@ -47,7 +52,7 @@ All fields are namespaced by component (`mdb` or `dbc`):
 | `download-bytes:{component}` | Bytes downloaded | Integer or empty |
 | `download-total:{component}` | Total download size in bytes | Integer or empty |
 | `install-progress:{component}` | Install/delta application progress (0–100) | Integer or empty |
-| `error:{component}` | Error type when status is `error` | `invalid-release-tag`, `download-failed`, `install-failed`, `reboot-failed` |
+| `error:{component}` | Error type when status is `error` | `download-failed`, `install-failed`, `delta-failed`, `reboot-failed`, `file-not-found`, `invalid-file` |
 | `error-message:{component}` | Human-readable error details | String or empty |
 
 **Published channel:** `ota`
@@ -83,13 +88,13 @@ All fields are namespaced by component (`mdb` or `dbc`):
   - `update-from-url:https://...` — install from URL
   - `update-from-url:https://...:sha256:<hex>` — with checksum
 
-- `scooter:update` — shared lifecycle commands (both instances listen):
-  - `start-dbc` — signal DBC update is starting
-  - `complete-dbc` — signal DBC update completed
-
 ### Lists published (LPUSH)
 
 - `scooter:power` → `reboot` — triggers system reboot after MDB update installs
+- `scooter:update` - lifecycle commands written for vehicle-service to consume.
+  update-service never reads this list.
+  - `start-dbc` - signal DBC update is starting
+  - `complete-dbc` - signal DBC update completed
 
 ### Hash: `power:inhibits` (written via inhibitor client)
 
@@ -118,11 +123,9 @@ redis-cli PUBLISH settings updates.dbc.dry-run
 ## Commands
 
 ```bash
-# Force immediate check (both instances)
-redis-cli LPUSH scooter:update check-now
-
-# Force check on one component only
+# Force immediate check (per component; there is no shared check-now list)
 redis-cli LPUSH scooter:update:mdb check-now
+redis-cli LPUSH scooter:update:dbc check-now
 
 # Install from local file
 redis-cli LPUSH scooter:update:dbc "update-from-file:/data/ota/librescoot-dbc-nightly-20251212T024719.mender"
@@ -155,10 +158,10 @@ Configured via `updates.{component}.method` in Redis settings. Default is `delta
 ## Building
 
 ```bash
-make dist          # ARM dist binary → update-service-arm-dist
-make host          # Host binary for development
-make install       # Install to /usr/bin/update-service
-make tidy fmt test # Lint and test
+make build         # ARM binary → bin/update-service (make dist is an alias for build)
+make build-host    # Host binary for development
+make fmt test lint # Format, test, lint
+make deps          # go mod download && go mod tidy
 ```
 
 ## Related Documentation

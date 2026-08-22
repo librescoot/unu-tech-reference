@@ -17,8 +17,8 @@ These are the exact string values that appear in Redis and BLE:
 - **"waiting-seatbox"** - Transitional state waiting for seatbox to close
 - **"shutting-down"** - Transitional state before powering down (~5s)
 - **"updating"** - OTA firmware update in progress
-- **"waiting-hibernation"** - Manual hibernation sequence initiated (60s timeout)
-- **"waiting-hibernation-advanced"** - Advanced hibernation wait (brakes held for 10s+)
+- **"waiting-hibernation"** - Manual hibernation sequence initiated (30s timeout back to `parked`)
+- **"waiting-hibernation-advanced"** - Legacy value. vehicle-service never publishes it: continuous brake hold auto-confirms after a further 15s while `vehicle:state` stays `waiting-hibernation`. Consumers should still tolerate the string.
 - **"waiting-hibernation-seatbox"** - Hibernation wait with seatbox open notification
 - **"waiting-hibernation-confirm"** - Hibernation confirmation screen (3s)
 
@@ -91,22 +91,19 @@ stateDiagram-v2
 
 ### Key Transition Conditions
 
-#### is_ready_to_drive()
+#### CanEnterReadyToDrive()
 Vehicle can enter "ready-to-drive" when ALL conditions are met:
 - Dashboard ready
 - Kickstand up
-- Seatbox lock closed
-- Not activating
 - Handlebar unlocked
-- Battery on
 
 #### Hibernation Sequence
 Manual hibernation requires:
 1. Both brakes pressed
-2. Dashboard ready
-3. Not activating
+2. Vehicle in `parked`
+3. `settings` hash `scooter.brake-hibernation` not set to "disabled"
 
-Flow: parked (15s) → waiting-hibernation (brakes held 10s) → waiting-hibernation-advanced → waiting-hibernation-confirm (keycard) → shutting-down (3s) → stand-by (with hibernation flag)
+Flow: parked (both brakes held 15s; state stays `parked`) -> waiting-hibernation -> waiting-hibernation-confirm (keycard tap, or a further 15s of continuous brake hold) -> shutting-down (3s in confirm, then ~5s in shutting-down) -> stand-by (with hibernation flag)
 
 #### Park Protection
 1-second timer prevents rapid drive → park → drive oscillations
@@ -127,7 +124,7 @@ The power manager (unu-pm) tracks system power states separately from vehicle st
 - **"hibernating-imminent"** - Hibernation about to occur
 - **"hibernating-manual"** - Manual hibernation requested
 - **"hibernating-manual-imminent"** - Manual hibernation about to occur
-- **"hibernating-timer"** - Timer-based hibernation (configurable, default 5 days)
+- **"hibernating-timer"** - Timer-based hibernation (configurable via `-hibernation-timer` or the `pm.hibernation-timer` setting, default 3 days)
 - **"hibernating-timer-imminent"** - Timer hibernation about to occur
 - **"reboot"** - System reboot
 - **"reboot-imminent"** - Reboot about to occur
