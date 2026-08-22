@@ -62,29 +62,18 @@ Usage of battery-service:
 
 **Published channels and messages:**
 
-- `battery:0`, `battery:1` - the name of any field in the corresponding hash whose value changed, published once per changed field on every status update (`present`, `state`, `charge`, `voltage`, `current`, `temperature:0`-`temperature:3`, `temperature-state`, `cycle-count`, `state-of-health`, `serial-number`, `manufacturing-date`, `fw-version`)
-  - `fault` - Fault status changed
+- `battery:0`, `battery:1` - Battery state change notifications. The payload is the name of the field that changed, so any of the hash fields above can appear (`present`, `state`, `voltage`, `current`, `charge`, `temperature:0`..`temperature:3`, `temperature-state`, `cycle-count`, `state-of-health`, `serial-number`, `manufacturing-date`, `fw-version`), plus:
+  - `fault` - Fault set changed
 
 ### Hash: `settings`
 
 **Fields read:**
 
-- `scooter.battery-keep-active-on-seatbox-open` - Bool (`true`/`false`); runtime equivalent of the `-keep-active-on-seatbox-open` CLI flag. Keeps a running battery active across a seatbox open while still letting seatbox events flow. Hot-reloaded via `settings` pub/sub; a change restarts any mid-cycle active reader so the new value takes effect at once.
-- `scooter.dual-battery` - Bool (`true`/`false`); controls whether battery slot 1 is treated as active/present. `true` sets reader 1 to the active role (subject to the `scooter.max-voltage-delta` check); `false` sets it inactive (disabled). Read on startup and hot-reloaded via `settings` pub/sub; only takes effect when a slot 1 reader exists.
+- `scooter.dual-battery` - "true"/"false"; when true, battery 1 is promoted to the active role (subject to the voltage-delta check). Read at startup and on `settings` pub/sub.
+- `scooter.battery-keep-active-on-seatbox-open` - "true"/"false"; keeps a running active battery powered across a seatbox open. Read at startup and on `settings` pub/sub; a change restarts the active readers.
 - `scooter.max-voltage-delta` - Max voltage difference between batteries in mV before battery 1 activation is refused (default: 1000; 0 to disable). Updated live via `settings` pub/sub.
-- `scooter.battery-aux-low-keep-active-enter-mv` - Aux battery voltage in mV below which the keep-active-on-seatbox-open override engages automatically (default: 11500). Hot-reloaded via `settings` pub/sub.
-- `scooter.battery-aux-low-keep-active-exit-mv` - Aux battery voltage in mV at or above which the aux-low keep-active override disengages (default: 12000). Must be greater than the enter threshold. Hot-reloaded via `settings` pub/sub.
-
-### Hash: `aux-battery`
-
-**Fields read:**
-
-- `voltage` - Auxiliary (12 V) battery voltage in mV; consumed to drive the aux-low keep-active override.
-
-**Subscribed channels:**
-
-- `aux-battery` - Aux battery field change notifications
-  - `voltage` - Recomputes the keep-active-on-seatbox-open override using Schmitt-trigger hysteresis (engages when below the enter threshold, disengages when at or above the exit threshold). On a transition, active readers are restarted so the FSM walks through the wake-up sequence.
+- `scooter.dual-battery` - "true" promotes battery 1 to the active role, subject to the voltage-delta check. Read at startup and on `settings` pub/sub.
+- `scooter.battery-keep-active-on-seatbox-open` - "true"/"false", same effect as `--keep-active-on-seatbox-open`. Read at startup and hot-reloaded via `settings` pub/sub; a reload restarts the active readers.
 
 ### Hash: `vehicle`
 
@@ -184,8 +173,11 @@ The service uses NFC Type 4 Tag operations to communicate with battery NFC tags:
 
 #### Polling Intervals
 
-- **Active-role reader:** 40 seconds between status updates (configurable via `--heartbeat-timeout`)
-- **Inactive-role reader:** 30 minutes between status updates (configurable via `--off-update-time`)
+- **Active-role slot:** 40 seconds between heartbeats/status updates (configurable via `-heartbeat-timeout`)
+- **Inactive-role slot:** 30 minutes between status updates (configurable via `-off-update-time`)
+
+The interval depends on the reader's role, not on the vehicle state; there is no separate faster interval while driving.
+
 - **Tag discovery (seatbox open):** 100ms polling interval for fast detection
 - **Tag discovery (seatbox closed):** 2500ms polling interval for power efficiency
 
@@ -210,14 +202,14 @@ Battery behavior is controlled by:
 
 1. **Battery Role:**
    - `active` - Can provide power (battery 0 is always active)
-   - `inactive` - Cannot provide power (battery 1 by default, use `--battery1-active` to make active)
+   - `inactive` - Cannot provide power (battery 1 by default; `--battery1-active` at startup, or `settings scooter.dual-battery=true` at runtime, promotes it to active)
 
    **Voltage delta protection:** Battery 1 activation is refused if the voltage difference between both batteries exceeds `scooter.max-voltage-delta` (default: 1000 mV). Checked on startup, on setting change, and on battery swap; clears when a compatible battery is inserted.
 
 2. **Enabled State (for active batteries):**
    - Automatically controlled based on seatbox lock state
    - When seatbox closed: battery enabled
-   - When seatbox open: battery disabled (unless `-keep-active-on-seatbox-open` is set, or it auto-engages when the aux battery is low)
+   - When seatbox open: battery disabled (unless `-keep-active-on-seatbox-open`, or the `scooter.battery-keep-active-on-seatbox-open` setting, keeps a running battery active)
 
 3. **Battery State Machine:**
    - Service sends appropriate commands (on/off) based on enabled state
@@ -288,10 +280,10 @@ The service implements multiple recovery mechanisms:
    - Full reinitialization with power cycle
    - Resume normal operation
 
-4. **Zero Data Recovery:**
-   - Detect when battery returns empty or all-zero data
-   - Increment the zero-data counter; a good read resets it to 0
-   - Any non-zero count raises the critical `BMSZeroData` fault, which makes the slot report as not present
+4. **Zero Data Handling:**
+   - Detect when a battery returns empty or all-zero status blocks
+   - Raise the critical `BMSZeroData` fault immediately, which reports the battery as not present
+   - Clear the fault and reset the counter on the next non-zero read
 
 5. **Heartbeat Timeout Recovery:**
    - Monitor battery state compliance
@@ -326,10 +318,10 @@ The service monitors for battery faults using a debounced fault management syste
 
 **Software Faults (detected by service):**
 
-- `BMSNotFollowingCmd` (32) - Battery not responding to commands (5s set debounce, 10s reset debounce)
+- `BMSNotFollowingCmd` (32) - Battery not responding to commands (5s set debounce, 10s reset debounce). Defined but never raised in this release.
 - `BMSZeroData` (33) - Battery data unavailable (critical, immediate)
 - `BMSCommsError` (34) - Battery communication failed (critical, 5s set debounce, 10s reset debounce)
-- `NFCReaderError` (35) - NFC reader malfunction (critical, 30s set debounce)
+- `NFCReaderError` (35) - NFC reader malfunction (critical, 30s set debounce). Defined but never raised in this release; NFC failures surface as `BMSCommsError` after 3 consecutive failures.
 
 **Fault Reporting:**
 
@@ -353,8 +345,8 @@ The service logs to journald with leveled logging:
 **Configuration:**
 
 - `--log` - Service-wide log level (default: 3)
-- `--log0` - Battery 0 reader log level (default: 3, independent of `--log`)
-- `--log1` - Battery 1 reader log level (default: 3, independent of `--log`)
+- `--log0` - Battery 0 reader log level (independent default: 3)
+- `--log1` - Battery 1 reader log level (independent default: 3)
 - `--debug` - Enable detailed NCI/DATA messages from NFC HAL
 
 **Common log messages:**
@@ -378,24 +370,25 @@ journalctl -u librescoot-battery --since today # Today's logs
 - **PN7150 NFC readers** - Must be accessible via I2C at `/dev/pn5xx_i2c0` and `/dev/pn5xx_i2c1`
 - **Redis server** - Must be running at specified host:port (default: 127.0.0.1:6379)
 - **Battery NFC tags** - Batteries must have functional NFC Type 4 tags
-- **pm-service** - Holds a block inhibitor via pm-service's `/tmp/suspend_inhibitor` socket during NFC transactions, so the MDB does not suspend/hibernate mid-write.
+- **systemd** - For suspend inhibitor functionality during NFC transactions
 - **Linux kernel** - I2C support and device nodes
 
-**Go Dependencies:**
+**Go Dependencies (direct):**
 
 - `github.com/redis/go-redis/v9` - Redis client
-- `github.com/librescoot/pn7150` - PN7150 NFC controller driver (I2C)
-- `github.com/librescoot/librefsm` - state machine library backing the reader FSM
+- `github.com/librescoot/pn7150` - PN7150 NFC HAL
+- `github.com/librescoot/librefsm` - hierarchical state machine used by each reader
+- `github.com/godbus/dbus/v5` - logind suspend inhibitor
 
-## Librescoot Implementation
+## LibreScoot Implementation
 
-The Librescoot **battery-service** is a complete Go reimplementation with architectural improvements:
+The LibreScoot **battery-service** is a complete Go reimplementation with architectural improvements:
 
 ### Key Features
 
 - **Per-battery log levels:** Separate `--log0` and `--log1` flags for independent log control
 - **Service-wide log level:** Global `--log` flag with per-battery override capability
-- **Build-time information:** Version string from `git describe` embedded in the binary (`--version`)
+- **Build-time information:** Git revision and build time embedded in binary (`--version`)
 - **Enhanced NFC error handling:** Robust recovery from I2C errors and NFC reader failures
 - **Temperature state management:** Four-state temperature monitoring (unknown/cold/hot/ideal)
 - **Debounced fault management:** Prevents fault flapping with configurable debounce times
@@ -420,8 +413,8 @@ The Librescoot **battery-service** is a complete Go reimplementation with archit
 # Build for ARM target (ARMv7)
 make build                  # Output: bin/battery-service
 
-# Build for the host platform (development/testing)
-make build-host             # Output: bin/battery-service-host
+# Build for the local architecture (development)
+make build-host            # Output: bin/battery-service-host
 
 # Build for current platform
 make build-native
@@ -437,12 +430,12 @@ make clean
 
 - Static linking (`-extldflags '-static'`)
 - Version information embedded via linker flags
-- Cross-compilation support for ARM (ARMv7)
+- Cross-compilation to ARMv7 (GOARCH=arm GOARM=7) from any host
 - Minimal dependencies (CGO_ENABLED=0)
 
 ### Compatibility
 
-Librescoot battery-service maintains full Redis compatibility with original firmware:
+LibreScoot battery-service maintains full Redis compatibility with original firmware:
 
 **Compatible interfaces:**
 
@@ -468,4 +461,4 @@ Librescoot battery-service maintains full Redis compatibility with original firm
 - [Electronic Components](../electronic/README.md) - PN7150 NFC reader details
 - [Redis Operations](../redis/README.md) - Battery hash fields
 - [States](../states/README.md) - Battery state definitions
-- [Librescoot Services](README.md) - Service overview
+- [LibreScoot Services](README.md) - Service overview

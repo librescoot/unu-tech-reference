@@ -1,10 +1,10 @@
-# lsc - Librescoot Control CLI
+# lsc - LibreScoot Control CLI
 
-`lsc` is a command-line interface for controlling and monitoring Librescoot electric scooters via Redis. It provides a convenient, user-friendly interface to all Librescoot services and features.
+`lsc` is a command-line interface for controlling and monitoring LibreScoot electric scooters via Redis. It provides a convenient, user-friendly interface to all LibreScoot services and features.
 
 ## Overview
 
-The `lsc` tool acts as a bridge between human operators and the Librescoot Redis-based communication system. Instead of manually crafting Redis commands, you can use intuitive commands to:
+The `lsc` tool acts as a bridge between human operators and the LibreScoot Redis-based communication system. Instead of manually crafting Redis commands, you can use intuitive commands to:
 
 - Control vehicle state (lock/unlock, hibernate)
 - Monitor system status and diagnostics
@@ -15,7 +15,7 @@ The `lsc` tool acts as a bridge between human operators and the Librescoot Redis
 
 ## Installation
 
-The `lsc` binary is typically installed to `/usr/bin/lsc` on Librescoot systems.
+The `lsc` binary is typically installed to `/usr/bin/lsc` on LibreScoot systems.
 
 **Manual installation:**
 ```bash
@@ -33,7 +33,10 @@ All commands support these global flags:
 
 - `--json` - Output in JSON format for automation and scripting
 - `--redis-addr <host:port>` - Redis server address (default: `192.168.7.1:6379`)
-- `--no-block` - Don't wait for state change confirmation (vehicle commands only)
+- `-v`, `--verbose` - Enable verbose logging
+
+`--no-block` is **not** a global flag. It is registered as a persistent flag on `lsc vehicle` and on
+`lsc alarm`, and separately on the `lock`, `unlock` and `open` shortcuts.
 
 ## Commands
 
@@ -81,24 +84,8 @@ lsc power suspend
 # Set power state to hibernate (power off)
 lsc power hibernate
 
-# Hibernate for a specific duration; nRF52 wakes the iMX6 afterwards
-lsc hibernate-for 8h
-lsc power hibernate-for 30m       # equivalent
-
-# Cancel a pending hibernate-for and disarm the wake timer
-lsc hibernate-cancel
-lsc power hibernate-cancel        # equivalent
-
 # Reboot the system
 lsc power reboot
-```
-
-Schedule a recurring hibernation via the settings interface:
-
-```bash
-lsc settings set pm.scheduled-hibernate-cron "0 22 * * *"
-lsc settings set pm.scheduled-hibernate-duration 8h
-lsc settings set pm.scheduled-hibernate-enabled true
 ```
 
 **Redis operations:**
@@ -133,8 +120,7 @@ lsc svc logs battery --follow        # Follow in real-time (-f)
 lsc svc logs redis --lines 100       # Show 100 lines (-n 100)
 ```
 
-**Service name shortcuts** (from `serviceNameMap` in `cmd/lsc/service/service.go`;
-a name with no entry is passed through with `.service` appended):
+**Service name shortcuts** (every mapped name resolves to a `librescoot-*` unit):
 
 - `vehicle` → `librescoot-vehicle.service`
 - `battery` → `librescoot-battery.service`
@@ -153,17 +139,9 @@ a name with no entry is passed through with `.service` appended):
 - `update` → `librescoot-update.service`
 - `version` → `librescoot-version.service`
 - `netconfig` → `librescoot-netconfig.service`
-- `redis`, `valkey` → resolved at runtime, see below
 
-The datastore alias is special-cased: lsc asks systemd whether
-`valkey.service` is loaded and uses it if so, falling back to `redis.service`.
-Both shorthands hit whichever unit the image actually ships, so a script
-written against either name works on both sides of the Librescoot 1.2 switch.
-`lsc service list` shows the resolved name in its first row.
-
-Older lsc builds (up to and including v0.6.6) had no such resolution: `redis`
-resolved literally, so the datastore row read `inactive` / `not-found` on 1.2
-images and `status`, `restart` and `logs` failed for it.
+Any name not in the map is passed through unchanged with `.service` appended, so `lsc svc logs redis`
+resolves to `redis.service`.
 
 **System integration:**
 
@@ -175,11 +153,11 @@ images and `status`, `restart` and `logs` failed for it.
 Control LED cues and fade animations.
 
 ```bash
-# Trigger LED cue by index
-lsc led cue <index>
+# Trigger LED cue by index or name
+lsc led cue <index|name>
 
-# Trigger LED fade animation
-lsc led fade <channel> <index>
+# Trigger LED fade animation by index or name
+lsc led fade <channel> <index|name>
 ```
 
 **Redis operations:**
@@ -206,7 +184,7 @@ lsc battery --json
 
 **Redis operations:**
 
-- Reads from `battery:0` and `battery:1` hashes
+- Reads from the `battery:0`, `battery:1`, `aux-battery` and `cb-battery` hashes, plus the `battery:<id>:faults` sets
 
 ### GPS Tracking
 
@@ -226,7 +204,7 @@ lsc gps status --json
 **Redis operations:**
 
 - Reads from `gps` hash
-- Subscribes to `gps` channel for real-time updates
+- `lsc gps watch` re-reads the `gps` hash on a 1 s ticker (it does not subscribe to any channel)
 
 ### Alarm System
 
@@ -242,16 +220,20 @@ lsc alarm arm
 # Disable the alarm
 lsc alarm disarm
 
-# Manually trigger the alarm
+# Manually trigger the alarm (duration in seconds; falls back to alarm.duration)
 lsc alarm trigger
+lsc alarm trigger 30
+
+# Temporarily silence a sounding alarm without changing alarm.enabled
+lsc alarm silence
 ```
 
 **Redis operations:**
 
-- `arm`/`disarm` set `settings[alarm.enabled]` and publish `alarm.enabled` on the `settings` channel
-- `trigger` pushes `start:<seconds>` and `silence` pushes `disarm` to the `scooter:alarm` list
-- Reads from `alarm` hash
-- Reads from `settings` hash (alarm.enabled, alarm.honk)
+- `arm` / `disarm` HSET `alarm.enabled` in the `settings` hash and PUBLISH `settings` — they do not touch `scooter:alarm`
+- `trigger [duration]` sends `start:<seconds>` to the `scooter:alarm` list; `silence` sends `disarm`
+- Reads from `alarm` hash (`status`)
+- Reads from `settings` hash (alarm.enabled, alarm.honk, alarm.duration, alarm.seatbox-trigger, alarm.hairtrigger, alarm.hairtrigger-duration)
 
 ### Settings Management
 
@@ -263,11 +245,11 @@ lsc settings
 
 # Get a specific setting (also via: lsc get)
 lsc settings get alarm.enabled
-lsc get scooter.auto-standby-seconds
+lsc get updates.mdb.channel
 
 # Set a setting (also via: lsc set)
 lsc settings set alarm.honk true
-lsc set scooter.enable-horn true
+lsc set updates.mdb.channel stable
 
 # Delete a setting (also via: lsc del)
 lsc settings del custom.field
@@ -282,8 +264,8 @@ lsc del custom.field
 - `alarm.seatbox-trigger` - Trigger alarm on unauthorized seatbox opening (true/false)
 - `alarm.hairtrigger` - Enable hair trigger mode (true/false)
 - `alarm.hairtrigger-duration` - Hair trigger alarm duration in seconds
-- `scooter.auto-standby-seconds` - Auto-lock timeout when parked, in seconds (0 disables)
-- `scooter.enable-horn` - Horn enable mode (true/false/in-drive)
+- `pm.hibernation-timer` - Hibernation timeout in seconds
+- `scooter.auto-standby-seconds` - Auto-lock timeout when parked (0 = disabled)
 - `cellular.apn` - Cellular APN configuration
 - `updates.mdb.channel` - MDB update channel (stable/testing/nightly)
 - `updates.dbc.channel` - DBC update channel
@@ -301,6 +283,17 @@ Manage over-the-air updates.
 # View OTA update status
 lsc ota status
 
+# Follow update progress live
+lsc ota watch
+
+# Trigger an immediate update check (both components, or one)
+lsc ota check
+lsc ota check mdb
+
+# Show or set the release channel for both components
+lsc ota channel
+lsc ota channel stable
+
 # Install update from local file
 lsc ota install /path/to/update.mender
 
@@ -313,8 +306,8 @@ lsc ota status --json
 
 **Redis operations:**
 
-- Reads from `ota` hash (status:mdb, status:dbc, download-progress, etc.)
-- Sends commands to the `scooter:update:{mdb,dbc}` lists (check-now)
+- Reads from the `ota` hash (status:mdb, status:dbc, download-progress, etc.), plus `settings`, `vehicle`, and `version_id` from `version:mdb` / `version:dbc`
+- `lsc ota check [mdb|dbc]` sends `check-now` to `scooter:update:mdb` and/or `scooter:update:dbc`
 
 ### Diagnostics
 
@@ -361,10 +354,10 @@ lsc diag handlebar unlock
 
 **Redis operations:**
 
-- Reads from `version:mdb` and `version:dbc` hashes
-- Reads from `vehicle:fault`, `engine-ecu:fault`, `battery:0:fault` and `battery:1:fault` sets
+- `diag version` reads the `system`, `engine-ecu`, `battery:0`, `battery:1` and `ota` hashes
+- `diag faults` reads the `vehicle:fault`, `battery:0:faults` and `battery:1:faults` sets
 - Reads from `events:faults` stream using XREAD
-- Sends commands to the `scooter:blinker` and `scooter:horn` lists, and `handlebar:lock` / `handlebar:unlock` to `scooter:hardware`
+- Sends commands to the `scooter:blinker` and `scooter:horn` lists; `diag handlebar lock|unlock` goes to `scooter:hardware` as `handlebar:lock` / `handlebar:unlock`
 
 ### Hardware Control
 
@@ -400,102 +393,30 @@ lsc status --json
 
 Shows summary of:
 
-- Vehicle state
-- Motor status (speed, odometer, temperature)
-- Battery status for all batteries
-- Power manager state
-- GPS status
-- Internet connectivity
-- Active faults
+- Vehicle state (state, kickstand, brakes, blinker switch, seatbox, ambient temperature)
+- Motor status (speed, RPM, throttle, odometer, voltage, current, temperature, KERS)
+- Main batteries 0 and 1, plus the AUX and CB batteries
+
+It reads `vehicle`, `engine-ecu`, `battery:0`, `battery:1`, `aux-battery`, `cb-battery` and `scooter`. Power-manager state, GPS and internet are not part of `lsc status` - use `lsc power status` and `lsc gps status`.
 
 ### Real-time Monitoring
 
 Monitor Redis pub/sub channels and record metrics.
 
 ```bash
-# Watch Redis pub/sub channels
-lsc watch
+# Watch Redis pub/sub channels (at least one channel name is required)
+lsc watch vehicle
+lsc watch vehicle alarm battery:0
 
-# Record metrics over time
-lsc monitor
+# Record metrics over time (at least one subsystem is required)
+lsc monitor gps --duration 1h
+lsc monitor all --duration 30m
 ```
 
 **Redis operations:**
 
-- Subscribes to all channels and displays real-time updates
+- Subscribes to the channels named on the command line and displays real-time updates
 - Samples and logs metrics at intervals
-
-### Log Extraction
-
-Collect service journals, dmesg and a Redis snapshot into one archive.
-
-```bash
-# All services, last 24h, into /data/log-bundles
-lsc logs
-
-# One service, shorter window
-lsc logs vehicle --since 1h
-
-# Several services, explicit window and destination
-lsc logs battery ecu --since 24h --output /data/debug
-
-# Errors only
-lsc logs all --priority err
-```
-
-**Flags:**
-
-- `--since <time>` - Start of the journal window, default `24h`. Bare durations (`30m`, `1h`, `1d`, `2w`) are rewritten to journalctl's "N units ago"; anything containing a space, `-` or `:` is passed through as an absolute timestamp
-- `--until <time>` - End of the window, default now
-- `--priority <level>` - journalctl priority filter (`err`, `warning`, `info`, `debug`)
-- `--output <dir>` - Where the archive is written, default `/data/log-bundles`
-
-**Service names** (from `serviceMap` in `cmd/lsc/logs/logs.go`; unknown names are
-skipped with a warning): `vehicle`, `battery`, `ecu`/`motor`, `modem`,
-`pm`/`power`, `update`, `settings`, `keycard`, `bluetooth`/`ble`, `ums`,
-`radio-gaga`/`uplink`, `all` (the default).
-
-One `logs-<timestamp>.tar.gz` lands in the output directory. The tree is staged
-in a `.staging-<timestamp>` sibling and removed once the archive is written:
-
-```
-logs-2025-10-25-13-54/
-  metadata.json               bundle format 2: collected_at, since, until, hosts, tool, services, priority
-  mdb/
-    metadata.json             hostname, boot_timestamp, uptime_seconds, kernel_release, os_release_*, byte counts, fault_events
-    dmesg.log
-    librescoot-vehicle.log    one journalctl dump per requested service, short-monotonic format
-    librescoot-battery.log
-    redis/
-      vehicle.json            one HGETALL snapshot per hash, ':' becomes '-' in the filename
-      battery-0.json
-      version-mdb.json
-      events-faults.log
-```
-
-**Redis operations:**
-
-- HGETALL over `settings`, `vehicle`, `gps`, `battery:0`, `battery:1`, `aux-battery`, `cb-battery`, `engine-ecu`, `power-manager`, `modem`, `internet`, `alarm`, `ble`, `system`, `dashboard`, `ota`, `power-mux`, `version:mdb`, `version:dbc`. A hash that is missing or empty writes no file
-- XREVRANGE over the `events:faults` stream, capped at 1000 entries to match the writers' `MAXLEN ~ 1000`
-
-`redis/events-faults.log` is the fault history, oldest entry first:
-
-```
-# events:faults (Redis stream, oldest first)
-# stream-id  time-utc  event  group  code  description
-1761400443123-0  2025-10-25T13:54:03.123Z  RAISE  vehicle  3  CAN bus timeout
-1761400500456-0  2025-10-25T13:55:00.456Z  CLEAR  vehicle  3
-```
-
-The time comes from the millisecond component of the entry ID, the only clock
-the stream carries. A clear is stored as the raised code with a leading minus
-and renders as `CLEAR` against the code it refers to. Missing fields print `-`.
-
-The file is always written. A scooter that raised no faults this boot has no
-`events:faults` key at all, and that case gets the two header lines plus
-`# no fault events recorded`, so an empty history stays distinguishable from a
-capture that failed. The entry count also lands in `mdb/metadata.json` as
-`fault_events`.
 
 ### Saved Locations
 
@@ -513,16 +434,16 @@ All commands support `--json` flag for automation:
 ```bash
 # Get structured output
 lsc status --json | jq '.vehicle.state'
-lsc battery --json | jq '.[0].charge'
+lsc battery --json | jq '.batteries[0].charge'
 lsc settings --json | jq '.["alarm.enabled"]'
 
 # Check if alarm is enabled
-if [ "$(lsc get alarm.enabled --json | jq -r .value)" = "true" ]; then
+if [ "$(lsc get alarm.enabled --json | jq -r '."alarm.enabled"')" = "true" ]; then
   echo "Alarm is enabled"
 fi
 
 # Get battery charge percentage
-CHARGE=$(lsc bat 0 --json | jq '.charge')
+CHARGE=$(lsc bat 0 --json | jq '.batteries[0].charge')
 echo "Battery charge: $CHARGE%"
 ```
 
@@ -627,12 +548,12 @@ lsc gps status
 lsc gps watch
 
 # Get coordinates in JSON
-lsc gps status --json | jq '.latitude, .longitude'
+lsc gps status --json | jq '.position.latitude, .position.longitude'
 ```
 
 ## Architecture
 
-`lsc` communicates with Librescoot services via Redis:
+`lsc` communicates with LibreScoot services via Redis:
 
 ### Command Pattern
 Commands are sent using LPUSH to command lists:
@@ -675,11 +596,11 @@ XREAD STREAMS events:faults 0
 
 ## Development
 
-Source: [`github.com/librescoot/lsc`](https://github.com/librescoot/lsc)
+Source code: `/home/teal/src/librescoot/lsc/`
 
 ```bash
 # Build for development
-cd lsc
+cd /home/teal/src/librescoot/lsc
 go build -o lsc .
 
 # Build for target (ARM)
@@ -695,6 +616,6 @@ sudo cp lsc /usr/bin/
 ## Related Documentation
 
 - [Redis Interface](../redis/README.md) - Redis hashes, lists, and channels
-- [Librescoot Services](../services/README.md) - Service architecture
+- [LibreScoot Services](../services/README.md) - Service architecture
 - [Settings Service](../services/librescoot-settings.md) - Configuration management
 - [OTA Updates](../services/librescoot-update.md) - Update system
