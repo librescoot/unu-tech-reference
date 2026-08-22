@@ -2,6 +2,20 @@
 
 Reverse-engineered technical documentation of the unu Scooter Pro.
 
+## What changed in v1.0.5
+
+- `scooter.usb0-policy` defaults to auto
+- Schema keys for scheduled hibernation and the wake timer
+  (`pm.scheduled-hibernate-*`, `pm.wake-timer-*`); the behaviour itself arrives
+  in v1.1.0
+- Transient settings: settings can be marked transient, the update channels are,
+  and stale transient keys are cleared from Redis on load
+- The address database loads from prebuilt place sidecar tables when present
+- Navigation is cleared at the destination when entering hop-on
+- Only a force-lock can leave ready-to-drive
+
+[Release notes](https://github.com/librescoot/librescoot/releases/tag/v1.0.5)
+
 ## System Architecture
 
 The unu Scooter Pro uses a distributed architecture with several key systems:
