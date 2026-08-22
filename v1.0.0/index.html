@@ -309,6 +309,23 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="What changed in v1.0.0">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#nrf-firmware" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        nRF firmware
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -1521,6 +1538,23 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="What changed in v1.0.0">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#nrf-firmware" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        nRF firmware
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -1712,6 +1746,25 @@ three change in the very next release:</p>
 <p><code>carplay-service</code> is pinned in the release manifest but is installed by neither
 image recipe, so it does not ship.</p>
 <p><a href="https://github.com/librescoot/librescoot/releases/tag/v1.0.0">Release notes</a></p>
+<h3 id="nrf-firmware">nRF firmware<a class="headerlink" href="#nrf-firmware" title="Permanent link">&para;</a></h3>
+<p>Ships nRF firmware <strong>v2.3.0-ls</strong>. Over the stock firmware it provides:</p>
+<ul>
+<li>An extended command and response interface over BLE, in place of the stock
+  per-feature services. See <a href="services/librescoot-bluetooth/">bluetooth-service</a>.</li>
+<li>Scooter information over BLE: mileage and software version.</li>
+<li>Navigation destinations can be sent to the scooter over BLE.</li>
+<li>Update Mode can be toggled and its status read over BLE.</li>
+<li>Wake from suspend and hibernation on accelerometer motion, reported to the
+  main board so the rest of the system can act on it.</li>
+<li>Auxiliary charger control: the LTC4020 aux charger can be enabled, disabled or
+  force-toggled past its safety gating, and its state queried.</li>
+<li>Ambient temperature from the onboard thermistor, published as
+  <code>scooter[temperature]</code>.</li>
+<li>Reboot and hard-reboot requests over BLE.</li>
+<li>Connectivity battery charge read from the fuel gauge's voltage-based
+  state-of-charge output rather than its default one, which settles more
+  sensibly after the pack has rested.</li>
+</ul>
 <h2 id="system-architecture">System Architecture<a class="headerlink" href="#system-architecture" title="Permanent link">&para;</a></h2>
 <p>The unu Scooter Pro uses a distributed architecture with several key systems:</p>
 <h3 id="core-electronics">Core Electronics<a class="headerlink" href="#core-electronics" title="Permanent link">&para;</a></h3>
