@@ -2,6 +2,22 @@
 
 Reverse-engineered technical documentation of the unu Scooter Pro.
 
+## What changed in v1.0.3
+
+Hotfix for v1.0.2 with corrected version pinning. It ships the same service
+revisions as v1.0.2, which should be skipped. Everything below landed in v1.0.2
+and is documented here because v1.0.3 is the release you should be running.
+
+- BLE accepts the legacy version-string subtype key, fixing pairing with
+  scooters still on older firmware
+- Keycard learning gained `learn:master` and `reset` commands, with events
+  published on tap
+- Dual-battery display fixes: the turtle icon triggers when either active pack
+  is low, and the low-charge colour follows whichever pack is active
+- update-service matches real stable filenames when picking a Mender artifact
+
+[Release notes](https://github.com/librescoot/librescoot/releases/tag/v1.0.3)
+
 ## System Architecture
 
 The unu Scooter Pro uses a distributed architecture with several key systems:
