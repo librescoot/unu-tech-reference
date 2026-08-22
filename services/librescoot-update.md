@@ -56,9 +56,6 @@ All fields are namespaced by component (`mdb` or `dbc`):
 | `install-progress:{component}` | Install/delta application progress (0–100) | Integer or empty |
 | `error:{component}` | Error type when status is `error` | See [Error types](#error-types) |
 | `error-message:{component}` | Human-readable error details | String or empty |
-| `download-abort-reason:{component}` | Why a download was abandoned for being too slow | `stalled`, `budget-exceeded`, or empty |
-| `download-skip-checks:{component}` | Update checks still to be skipped before another download is attempted | Integer, or empty when no backoff applies |
-| `heartbeat:{component}` | Unix seconds, refreshed while an update operation is running | Integer or empty |
 
 Two fields on the same hash are **not** namespaced, and describe the vehicle rather
 than one board:
@@ -98,7 +95,7 @@ and recomputes on either change, including once at startup, so a service restart
 the middle of an update cannot leave a stale `blocking` behind. The DBC never writes
 these fields; a second writer would race the first on the same two keys.
 
-An `error` on either component maps to the empty pair, not to a distinct flat value.
+An `error` maps to the empty pair, not to a distinct flat value.
 A consumer that needs to distinguish a failed update from no update has to read
 `error:{component}`.
 
@@ -112,7 +109,6 @@ Values `error:{component}` takes, with `error-message:{component}` carrying the 
 | `checksum-mismatch` | A downloaded or staged file did not match its expected checksum |
 | `file-not-found` | A path given to `update-from-file:` does not exist |
 | `invalid-file` | A path given to `update-from-file:` is neither a `.mender` nor a `.delta` |
-| `image-too-large` | The artifact's rootfs payload is larger than the rootfs slot it would be written to. Checked before installation starts, so nothing is written |
 | `install-failed` | `mender-update install` failed |
 | `no-base-image` | A delta arrived with no local `.mender` for the running version to apply it against |
 | `delta-rejected` | A delta does not apply to the installed version (wrong channel, or not newer) |
@@ -190,9 +186,6 @@ silence, not 90 seconds of heartbeat age.
 - `updates.{component}.check-interval` — check interval (e.g. `6h`, `30m`)
 - `updates.{component}.releases-url` — release index base URL
 - `updates.{component}.dry-run` — dry-run mode (`true`/`false`)
-- `updates.{component}.download-max-duration` - wall-clock cap on a single download attempt (default `60m`, `0` disables)
-- `updates.{component}.download-stall-window` - rolling window the download throughput floor is measured over (default `2m`, `0` disables)
-- `updates.{component}.download-stall-min-bytes` - bytes that must arrive within each stall window (default `65536`)
 - `updates.{component}.method` — update method (`full` or `delta`)
 - `updates.mdb.orchestrate-dbc` — MDB-only: whether MDB orchestrates DBC updates
 
@@ -211,7 +204,6 @@ silence, not 90 seconds of heartbeat age.
 
 - `scooter:update:{component}` — component-specific commands:
   - `check-now` — trigger immediate update check
-  - `preview-channel:<channel>` — report what a switch to `<channel>` would fetch, without changing anything
   - `update-from-file:/path/to/file.mender` — install from local file
   - `update-from-file:/path/to/file.mender#sha256=<hex>` - with checksum
   - `update-from-url:https://...` — install from URL

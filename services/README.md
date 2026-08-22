@@ -10,7 +10,7 @@ Librescoot provides the open-source services that run on the scooter. All servic
 |---------|---------|----------------------|------------------|
 | [librescoot-bluetooth](librescoot-bluetooth.md) | BLE interface and nRF communication | `ble`, `cb-battery`, `aux-battery`, `power-manager`, `power-mux`, `system` | nRF52840 (UART), Redis |
 | [librescoot-battery](librescoot-battery.md) | Main battery monitoring via NFC | `battery:0`, `battery:1` | PN7150 NFC readers (I2C), Redis |
-| [librescoot-vehicle](librescoot-vehicle.md) | Vehicle state machine coordinator | `vehicle` | GPIO inputs, PWM outputs, Redis |
+| [librescoot-vehicle](librescoot-vehicle.md) | Vehicle state machine coordinator | `vehicle`, `buttons` | GPIO inputs, PWM outputs, Redis |
 | [librescoot-ecu](librescoot-ecu.md) | Motor controller interface | `engine-ecu` | ECU (CAN bus), Redis |
 | [librescoot-keycard](librescoot-keycard.md) | NFC keycard authentication | `keycard` | PN7150 (I2C), LP5562 LED (I2C), Redis |
 | [librescoot-modem](librescoot-modem.md) | Cellular and GPS | `internet`, `gps`, `modem` | ModemManager, gpsd, Redis |
