@@ -74,24 +74,12 @@ The dashboard subscribes to these channels to receive real-time updates:
 - `debug` - Debug keys (RedisSortedSet via ZRANGE)
 
 ### Engine ECU (`engine-ecu`)
-- `speed` - Vehicle speed, calibrated (km/h)
-- `raw-speed` - Raw speed before calibration (km/h)
-- `rpm` - Motor RPM
+- `state` - ECU power state
+- `speed` - Vehicle speed (km/h)
 - `throttle` - Throttle state (on/off)
-- `motor:voltage` - Motor voltage (mV)
-- `motor:current` - Motor current, signed; negative during regen (mA)
-- `temperature` - ECU temperature (°C)
 - `kers` - KERS state (on/off)
 - `kers-reason-off` - Reason KERS is disabled
-- `kers-accepted-voltage` - EBS regen voltage cap the ECU accepted (mV)
-- `kers-accepted-current` - EBS regen current limit the ECU accepted (mA)
-- `regen-available` - Derived: can regen happen right now (on/off)
-- `regen-reason` - Derived: none/cold/hot/off/full
-- `regen-expected` - Derived: expected regen current envelope (mA)
 - `odometer` - Total distance (m)
-- `fw-version` - ECU firmware version (hex)
-- `fault:code` - Current fault code (0 when no fault)
-- `fault:description` - Active fault description
 - `fault` - Fault codes (RedisSet)
 
 ### GPS (`gps`)
@@ -126,7 +114,7 @@ The dashboard subscribes to these channels to receive real-time updates:
 - `customer:type` - Customer type (D2C, etc.)
 - `scooter.auto-standby-seconds` - Auto-lock timeout when parked in seconds (0=disabled)
 - `dashboard.show-raw-speed` - Show raw uncorrected speed ("true"/"false")
-- `dashboard.show-clock` - Clock format and visibility (always/date-time/alternate/never)
+- `dashboard.show-clock` - Clock visibility (always/never)
 - `dashboard.show-gps` - GPS indicator visibility (always/active-or-error/error/never)
 - `dashboard.show-bluetooth` - Bluetooth indicator visibility
 - `dashboard.show-cloud` - Cloud indicator visibility
@@ -271,4 +259,4 @@ Common log messages output by the dashboard UI:
 - `"Could not find enum for [value]"` - Redis value doesn't match expected enum
 
 ### Application Info
-- **Application name**: ScootUI
+- **Application name**: unu-dashboard-ui

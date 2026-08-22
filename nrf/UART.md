@@ -19,7 +19,7 @@ The scooter configures a UART interface on pins
 - rts_pin = GPIO 0 Pin 30
 - cts_pin = GPIO 0 Pin 29
 
-with a boot baud rate of 115200, no parity, and hardware flow control disabled. Both sides come up at 115200; the MDB then probes the nRF with message type 0xA0A0 (LINK) and, if the firmware reports the capability, switches the link to 1000000 baud. The link drops back to 115200 before an nRF firmware update, when the i.MX6 suspends, and when the keepalive is lost.
+with a baud rate of 115200, no parity, and hardware flow control disabled.
 
 ## Frame Structure
 
@@ -36,7 +36,7 @@ with a boot baud rate of 115200, no parity, and hardware flow control disabled. 
    - Frame ID (1 byte)
    - Payload Length (2 bytes)
    - Header CRC (2 bytes)
-   - Payload (variable length, max 512 bytes)
+   - Payload (variable length, max 1024 bytes)
    - Payload CRC (2 bytes)
 
 ## CBOR Payload Encoding
@@ -95,16 +95,6 @@ Messages use 16-bit type identifiers organized hierarchically:
 - **0xA040** - Scooter Info (mileage, software version, navigation active, UMS status)
 - **0xAA00** - BLE Commands (advertising, bonding)
 
-### Raw Frames (BLE OTA Tunnel)
-
-Three frame IDs carry **raw, non-CBOR payloads** for the BLE OTA firmware transfer — the nRF forwards OTA characteristic writes verbatim and relays status back without touching the content:
-
-- **0xB0** (nRF → iMX6) - OTA data chunk (verbatim OTA_DATA characteristic write)
-- **0xB1** (nRF → iMX6) - OTA control message (verbatim OTA_CONTROL characteristic write)
-- **0xB2** (iMX6 → nRF) - OTA status message, notified verbatim on OTA_STATUS
-
-See [BLE OTA Firmware Transfer](../bluetooth/ota-transfer.md).
-
 ### Sub-Types Examples
 
 Each message type contains sub-types as CBOR map keys:
@@ -112,9 +102,9 @@ Each message type contains sub-types as CBOR map keys:
 **CB Battery (0x0060):**
 
 - 0x0061: Charge (%)
-- 0x0062: Current (mA)
+- 0x0062: Current (µA)
 - 0x0063: Remaining Capacity (mAh)
-- 0x0065: Cell Voltage (mV)
+- 0x0065: Cell Voltage (µV)
 - 0x0066: Temperature (°C)
 - 0x0072: Charge Status
 
@@ -134,13 +124,9 @@ Each message type contains sub-types as CBOR map keys:
 
 **Power Management (0x0800):**
 
-- 0x0801: PM State. Observed values: `0` suspending, `1` running,
-  `2` hibernating, `3` suspending-imminent, `4` hibernating-imminent,
-  `5` reboot.
+- 0x0801: PM State (0=suspending, 1=running, 2=hibernating, 3=suspending-imminent, 4=hibernating-imminent, 5=reboot)
 - 0x0802: Power Request (hibernation level: 0=L1, 1=L2)
 - 0x0803: Hibernation Request (0=automatic, 1=manual)
-- 0x0804: Reboot Request (nRF → iMX6)
-- 0x0805: Wake Timer Set (iMX6 → nRF, uint32 seconds). Arms a single-shot `app_timer` on the nRF52 that wakes the iMX6 after the given duration; `0` disarms any pending timer. Long durations are chunked at 500 s (under the 24-bit hardware compare at the default 32.768 kHz RTC prescaler) and re-armed internally. Any unrelated wake source (brake, accelerometer, manual BLE) calls `power_management_stop_all_timers()` and disarms a pending wake. The nRF echoes the same subtype back as an ACK with the value it stored; bluetooth-service publishes `power-manager:wake-timer-armed` based on the echo.
 
 **Power Mux (0x0100):**
 
@@ -195,6 +181,6 @@ Observable startup sequence from iMX6 to nRF:
 - **Bidirectional**: Both directions use same frame format
 - **Asynchronous**: nRF sends unsolicited status updates
 - **Little-Endian**: Multi-byte values in frame header
-- **Max Payload**: 1024 bytes on the MDB side (the nRF frame buffer holds 512 bytes)
+- **Max Payload**: 1024 bytes (MDB-side limit; longer frames are refused on send and dropped on receive)
 - **Sync Pattern**: 0xF6 0xD9 for frame start
 - **End Character**: 0xF6 terminates communication sequences

@@ -2,7 +2,7 @@
 
 This directory contains documentation for each system service running on the scooter. Each service is documented individually with its Redis operations, external interfaces, and behavior patterns.
 
-Librescoot provides the open-source services that run on the scooter. All services communicate via Redis and follow a consistent architecture pattern.
+LibreScoot provides the open-source services that run on the scooter. All services communicate via Redis and follow a consistent architecture pattern.
 
 ## Service Overview
 
@@ -12,13 +12,11 @@ Librescoot provides the open-source services that run on the scooter. All servic
 | [librescoot-battery](librescoot-battery.md) | Main battery monitoring via NFC | `battery:0`, `battery:1` | PN7150 NFC readers (I2C), Redis |
 | [librescoot-vehicle](librescoot-vehicle.md) | Vehicle state machine coordinator | `vehicle` | GPIO inputs, PWM outputs, Redis |
 | [librescoot-ecu](librescoot-ecu.md) | Motor controller interface | `engine-ecu` | ECU (CAN bus), Redis |
-| [librescoot-events](librescoot-events.md) | Normalised event bus over existing Redis traffic; rule-driven | `ev:*` | Redis |
 | [librescoot-keycard](librescoot-keycard.md) | NFC keycard authentication | `keycard` | PN7150 (I2C), LP5562 LED (I2C), Redis |
 | [librescoot-modem](librescoot-modem.md) | Cellular and GPS | `internet`, `gps`, `modem` | ModemManager, gpsd, Redis |
 | [librescoot-pm](librescoot-pm.md) | System power management | `power-manager` | systemd-logind (D-Bus), Redis |
 | [scootui-qt](librescoot-scootui.md) | Dashboard UI (Qt/QML) | `dashboard` | All services (via Redis) |
-| [librescoot-motion](librescoot-motion.md) | BMX055 IMU owner — sensor telemetry, magnetic heading, motion-engine events; reactively re-derives chip profile from `alarm` + `power-manager` state; hosts `motion:rpc` for synchronous handshakes | `motion` | BMX055 (I2C), Redis |
-| [librescoot-alarm](librescoot-alarm.md) | Motion-based alarm FSM (consumer of motion-service) | `alarm` | motion-service, Redis |
+| [librescoot-alarm](librescoot-alarm.md) | Motion-based alarm system | `alarm`, `bmx` | BMX055 (I2C), Redis |
 | [librescoot-settings](librescoot-settings.md) | Persistent settings sync | `settings` | NetworkManager, Redis |
 | [librescoot-ums](librescoot-ums.md) | USB Mass Storage / file transfer | `usb` | USB gadget (g_ether/g_mass_storage), Redis |
 | [librescoot-update](librescoot-update.md) | OTA update management (MDB + DBC) | `ota` | Mender, Redis, release index |
@@ -37,8 +35,7 @@ graph TB
     KC["keycard-service<br/>NFC Auth"]
     BAT["battery-service<br/>Battery Monitor"]
     MDM["modem-service<br/>Cellular + GPS"]
-    MOT["motion-service<br/>BMX055 IMU + Heading"]
-    ALM["alarm-service<br/>Motion Alarm FSM"]
+    ALM["alarm-service<br/>Motion Alarm"]
     SET["settings-service<br/>Config Sync"]
     UMS["ums-service<br/>USB Mass Storage"]
     UPD["update-service<br/>OTA Updates"]
@@ -50,7 +47,7 @@ graph TB
     NFC1["PN7150 + LP5562<br/>NFC + LED via I2C"]
     NFC2["PN7150 x2<br/>Battery NFC via I2C"]
     MODEM["ModemManager<br/>mmcli + gpsd"]
-    BMX["BMX055<br/>9-axis IMU via I2C"]
+    BMX["BMX055<br/>Accelerometer/Gyro via I2C"]
     TOML["settings.toml<br/>Persistent Config"]
     USB["USB Gadget<br/>g_ether / g_mass_storage"]
 
@@ -62,7 +59,6 @@ graph TB
     KC <--> Redis
     BAT <--> Redis
     MDM <--> Redis
-    MOT <--> Redis
     ALM <--> Redis
     SET <--> Redis
     UMS <--> Redis
@@ -75,7 +71,7 @@ graph TB
     KC <--> NFC1
     BAT <--> NFC2
     MDM <--> MODEM
-    MOT <--> BMX
+    ALM <--> BMX
     SET <--> TOML
     UMS <--> USB
 ```
@@ -108,7 +104,7 @@ Services store state in Redis hashes:
 - **bluetooth-service** reads from `battery:*` and `vehicle` but doesn't write to them
 - **vehicle-service** reads from `battery:*`, `dashboard`, `keycard` but doesn't write to them
 - **Power management** fields in `power-manager` are written by both `pm-service` and `bluetooth-service` (nRF-related fields)
-- **alarm-service** monitors `vehicle` state, publishes `alarm[status]` which motion-service reacts to, calls `prepare-hibernation` on `motion:rpc`, and sends commands to `scooter:horn` and `scooter:blinker`
+- **alarm-service** monitors `vehicle` state and controls `bmx` sensor, sends commands to `scooter:horn` and `scooter:blinker`
 - **settings-service** syncs Redis `settings` hash with `/data/settings.toml` and manages NetworkManager connections
 
 ## Service Lifecycle
@@ -150,7 +146,7 @@ Services store state in Redis hashes:
 
 All services are managed by systemd:
 
-- Service files in `/etc/systemd/system/`
+- Service files in `/usr/lib/systemd/system/` (with `usrmerge` enabled, `/lib/systemd/system/` is the same directory); `/etc/systemd/system/` holds only enable and alias symlinks, drop-in overrides, and masks
 - Started via `systemctl start <service>`
 - Logs via `journalctl -u <service>`
 
