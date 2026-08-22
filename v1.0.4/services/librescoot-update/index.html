@@ -6,7 +6,7 @@
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width,initial-scale=1">
       
-        <meta name="description" content="Hardware and software reference for the LibreScoot electric scooter platform">
+        <meta name="description" content="Hardware and software reference for the Librescoot electric scooter platform">
       
       
       
@@ -27,7 +27,7 @@
     
     
       
-        <title>librescoot-update (update-service) - LibreScoot Tech Reference</title>
+        <title>librescoot-update (update-service) - Librescoot Tech Reference</title>
       
     
     
@@ -105,7 +105,7 @@
 
 <header class="md-header md-header--shadow" data-md-component="header">
   <nav class="md-header__inner md-grid" aria-label="Header">
-    <a href="../.." title="LibreScoot Tech Reference" class="md-header__button md-logo" aria-label="LibreScoot Tech Reference" data-md-component="logo">
+    <a href="../.." title="Librescoot Tech Reference" class="md-header__button md-logo" aria-label="Librescoot Tech Reference" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-book-open" viewBox="0 0 24 24"><path d="M12 5v16M20.001 19A2 2 0 0 0 22 17V5a2 2 0 0 0-1.999-2L16 3.002A5 5 0 0 0 12 5a5 5 0 0 0-4-2H4a2 2 0 0 0-2 2v12a2 2 0 0 0 1.999 2H8a5 5 0 0 1 4 2 5 5 0 0 1 4-2z"/></svg>
@@ -119,7 +119,7 @@
       <div class="md-header__ellipsis">
         <div class="md-header__topic">
           <span class="md-ellipsis">
-            LibreScoot Tech Reference
+            Librescoot Tech Reference
           </span>
         </div>
         <div class="md-header__topic" data-md-component="header-topic">
@@ -214,13 +214,13 @@
 
 <nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
-    <a href="../.." title="LibreScoot Tech Reference" class="md-nav__button md-logo" aria-label="LibreScoot Tech Reference" data-md-component="logo">
+    <a href="../.." title="Librescoot Tech Reference" class="md-nav__button md-logo" aria-label="Librescoot Tech Reference" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-book-open" viewBox="0 0 24 24"><path d="M12 5v16M20.001 19A2 2 0 0 0 22 17V5a2 2 0 0 0-1.999-2L16 3.002A5 5 0 0 0 12 5a5 5 0 0 0-4-2H4a2 2 0 0 0-2 2v12a2 2 0 0 0 1.999 2H8a5 5 0 0 1 4 2 5 5 0 0 1 4-2z"/></svg>
 
     </a>
-    LibreScoot Tech Reference
+    Librescoot Tech Reference
   </label>
   
     <div class="md-nav__source">
@@ -1965,20 +1965,28 @@ instance under that one unit name.</p>
 </tr>
 </tbody>
 </table>
-<p><strong>Published channel:</strong> <code>ota</code>
-- All field updates are published atomically on state transitions</p>
+<p><strong>Published channel:</strong> <code>ota</code></p>
+<ul>
+<li>All field updates are published atomically on state transitions</li>
+</ul>
 <h3 id="hash-settings-readwritten">Hash: <code>settings</code> (read/written)<a class="headerlink" href="#hash-settings-readwritten" title="Permanent link">&para;</a></h3>
-<p><strong>Fields read:</strong>
-- <code>updates.{component}.channel</code> — update channel (<code>stable</code>, <code>testing</code>, <code>nightly</code>)
-- <code>updates.{component}.check-interval</code> — check interval (e.g. <code>6h</code>, <code>30m</code>)
-- <code>updates.{component}.releases-url</code> — release index base URL
-- <code>updates.{component}.dry-run</code> — dry-run mode (<code>true</code>/<code>false</code>)
-- <code>updates.{component}.method</code> — update method (<code>full</code> or <code>delta</code>)
-- <code>updates.mdb.orchestrate-dbc</code> — MDB-only: whether MDB orchestrates DBC updates</p>
-<p><strong>Fields written:</strong>
-- <code>updates.{component}.last-check-time</code> — RFC3339 timestamp of last update check</p>
-<p><strong>Subscribed channel:</strong> <code>settings</code>
-- All <code>updates.{component}.*</code> field changes are applied at runtime</p>
+<p><strong>Fields read:</strong></p>
+<ul>
+<li><code>updates.{component}.channel</code> — update channel (<code>stable</code>, <code>testing</code>, <code>nightly</code>)</li>
+<li><code>updates.{component}.check-interval</code> — check interval (e.g. <code>6h</code>, <code>30m</code>)</li>
+<li><code>updates.{component}.releases-url</code> — release index base URL</li>
+<li><code>updates.{component}.dry-run</code> — dry-run mode (<code>true</code>/<code>false</code>)</li>
+<li><code>updates.{component}.method</code> — update method (<code>full</code> or <code>delta</code>)</li>
+<li><code>updates.mdb.orchestrate-dbc</code> — MDB-only: whether MDB orchestrates DBC updates</li>
+</ul>
+<p><strong>Fields written:</strong></p>
+<ul>
+<li><code>updates.{component}.last-check-time</code> — RFC3339 timestamp of last update check</li>
+</ul>
+<p><strong>Subscribed channel:</strong> <code>settings</code></p>
+<ul>
+<li>All <code>updates.{component}.*</code> field changes are applied at runtime</li>
+</ul>
 <h3 id="hash-versioncomponent-read">Hash: <code>version:{component}</code> (read)<a class="headerlink" href="#hash-versioncomponent-read" title="Permanent link">&para;</a></h3>
 <ul>
 <li><code>version_id</code> — installed version string (used to detect channel and for delta base)</li>
@@ -2155,7 +2163,7 @@ instance under that one unit name.</p>
       <div class="md-copyright">
   
     <div class="md-copyright__highlight">
-      Copyright &copy; 2025-2026 LibreScoot contributors
+      Copyright &copy; 2025-2026 Librescoot contributors
     </div>
   
   

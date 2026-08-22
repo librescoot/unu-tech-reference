@@ -6,7 +6,7 @@
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width,initial-scale=1">
       
-        <meta name="description" content="Hardware and software reference for the LibreScoot electric scooter platform">
+        <meta name="description" content="Hardware and software reference for the Librescoot electric scooter platform">
       
       
       
@@ -27,7 +27,7 @@
     
     
       
-        <title>Wiring Documentation - LibreScoot Tech Reference</title>
+        <title>Wiring Documentation - Librescoot Tech Reference</title>
       
     
     
@@ -105,7 +105,7 @@
 
 <header class="md-header md-header--shadow" data-md-component="header">
   <nav class="md-header__inner md-grid" aria-label="Header">
-    <a href="./.." title="LibreScoot Tech Reference" class="md-header__button md-logo" aria-label="LibreScoot Tech Reference" data-md-component="logo">
+    <a href="./.." title="Librescoot Tech Reference" class="md-header__button md-logo" aria-label="Librescoot Tech Reference" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-book-open" viewBox="0 0 24 24"><path d="M12 5v16M20.001 19A2 2 0 0 0 22 17V5a2 2 0 0 0-1.999-2L16 3.002A5 5 0 0 0 12 5a5 5 0 0 0-4-2H4a2 2 0 0 0-2 2v12a2 2 0 0 0 1.999 2H8a5 5 0 0 1 4 2 5 5 0 0 1 4-2z"/></svg>
@@ -119,7 +119,7 @@
       <div class="md-header__ellipsis">
         <div class="md-header__topic">
           <span class="md-ellipsis">
-            LibreScoot Tech Reference
+            Librescoot Tech Reference
           </span>
         </div>
         <div class="md-header__topic" data-md-component="header-topic">
@@ -214,13 +214,13 @@
 
 <nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
-    <a href="./.." title="LibreScoot Tech Reference" class="md-nav__button md-logo" aria-label="LibreScoot Tech Reference" data-md-component="logo">
+    <a href="./.." title="Librescoot Tech Reference" class="md-nav__button md-logo" aria-label="Librescoot Tech Reference" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-book-open" viewBox="0 0 24 24"><path d="M12 5v16M20.001 19A2 2 0 0 0 22 17V5a2 2 0 0 0-1.999-2L16 3.002A5 5 0 0 0 12 5a5 5 0 0 0-4-2H4a2 2 0 0 0-2 2v12a2 2 0 0 0 1.999 2H8a5 5 0 0 1 4 2 5 5 0 0 1 4-2z"/></svg>
 
     </a>
-    LibreScoot Tech Reference
+    Librescoot Tech Reference
   </label>
   
     <div class="md-nav__source">
@@ -1913,60 +1913,70 @@
 <h3 id="mdb-connectors">MDB Connectors<a class="headerlink" href="#mdb-connectors" title="Permanent link">&para;</a></h3>
 <p>Four 30-pin connectors (CM1, CM3, CM9, CM10) interface with the Middle Driver Board. All use female connectors on the harness side.</p>
 <h4 id="cm10-connector-primary-power">CM10 Connector (Primary Power)<a class="headerlink" href="#cm10-connector-primary-power" title="Permanent link">&para;</a></h4>
-<p>Key signals:
-- +48V ECU/MDB connection 
-- Battery supply lines
-- CAN bus (H/L)
-- CBB interface (SDA/SCL)
-- Left/right rear blinker control
-- Front blinker control
-- NFC reader power (+3.3V)
-- Ground connections</p>
+<p>Key signals:</p>
+<ul>
+<li>+48V ECU/MDB connection </li>
+<li>Battery supply lines</li>
+<li>CAN bus (H/L)</li>
+<li>CBB interface (SDA/SCL)</li>
+<li>Left/right rear blinker control</li>
+<li>Front blinker control</li>
+<li>NFC reader power (+3.3V)</li>
+<li>Ground connections</li>
+</ul>
 <h4 id="cm9-connector-system-control">CM9 Connector (System Control)<a class="headerlink" href="#cm9-connector-system-control" title="Permanent link">&para;</a></h4>
-<p>Key signals:
-- Seat box sensor
-- Steering lock state
-- Handlebar position
-- Side stand sensor
-- Turn signal switches
-- Brake switches
-- Horn control
-- LED indicators
-- Battery state monitoring
-- Ground connections</p>
+<p>Key signals:</p>
+<ul>
+<li>Seat box sensor</li>
+<li>Steering lock state</li>
+<li>Handlebar position</li>
+<li>Side stand sensor</li>
+<li>Turn signal switches</li>
+<li>Brake switches</li>
+<li>Horn control</li>
+<li>LED indicators</li>
+<li>Battery state monitoring</li>
+<li>Ground connections</li>
+</ul>
 <h4 id="cm3-connector-motor-control">CM3 Connector (Motor Control)<a class="headerlink" href="#cm3-connector-motor-control" title="Permanent link">&para;</a></h4>
-<p>Key signals:
-- Motor phase connections (U/V/W)
-- Hall sensor interface
-  - Power (+5V)
-  - Ground
-  - Hall U/V/W signals
-- Motor temperature monitoring
-- Current sensing
-- Protection circuits</p>
+<p>Key signals:</p>
+<ul>
+<li>Motor phase connections (U/V/W)</li>
+<li>Hall sensor interface</li>
+<li>Power (+5V)</li>
+<li>Ground</li>
+<li>Hall U/V/W signals</li>
+<li>Motor temperature monitoring</li>
+<li>Current sensing</li>
+<li>Protection circuits</li>
+</ul>
 <h4 id="cm1-connector-auxiliary-systems">CM1 Connector (Auxiliary Systems)<a class="headerlink" href="#cm1-connector-auxiliary-systems" title="Permanent link">&para;</a></h4>
-<p>Key signals:
-- LCD Display interface
-- Keypad/button inputs
-- Status LED outputs
-- Speaker control
-- External charging
-- NFC communication
-- UART interfaces
-- Ground connections</p>
+<p>Key signals:</p>
+<ul>
+<li>LCD Display interface</li>
+<li>Keypad/button inputs</li>
+<li>Status LED outputs</li>
+<li>Speaker control</li>
+<li>External charging</li>
+<li>NFC communication</li>
+<li>UART interfaces</li>
+<li>Ground connections</li>
+</ul>
 <h3 id="ecu-connections">ECU Connections<a class="headerlink" href="#ecu-connections" title="Permanent link">&para;</a></h3>
-<p>Main connector:
-- Motor phase connections (U/V/W)
-- Hall sensor interface:
-  - +5V supply
-  - U/V/W hall signals
-  - Ground
-- Throttle input
-- Brake signals (left/right)
-- Side stand input
-- CAN bus (H/L)
-- Temperature sensor
-- Power input (48V)</p>
+<p>Main connector:</p>
+<ul>
+<li>Motor phase connections (U/V/W)</li>
+<li>Hall sensor interface:</li>
+<li>+5V supply</li>
+<li>U/V/W hall signals</li>
+<li>Ground</li>
+<li>Throttle input</li>
+<li>Brake signals (left/right)</li>
+<li>Side stand input</li>
+<li>CAN bus (H/L)</li>
+<li>Temperature sensor</li>
+<li>Power input (48V)</li>
+</ul>
 <h3 id="battery-systems">Battery Systems<a class="headerlink" href="#battery-systems" title="Permanent link">&para;</a></h3>
 <h4 id="main-battery-interface">Main Battery Interface<a class="headerlink" href="#main-battery-interface" title="Permanent link">&para;</a></h4>
 <ul>
@@ -2021,15 +2031,19 @@
 </ul>
 <h2 id="control-interfaces">Control Interfaces<a class="headerlink" href="#control-interfaces" title="Permanent link">&para;</a></h2>
 <h3 id="handlebar-controls">Handlebar Controls<a class="headerlink" href="#handlebar-controls" title="Permanent link">&para;</a></h3>
-<p>Left side:
-- Seat box release button
-- Turn signal switch (3-position)
-- Horn button
-- Brake switch</p>
-<p>Right side:
-- Throttle position sensor
-- Brake switch
-- Ground connections</p>
+<p>Left side:</p>
+<ul>
+<li>Seat box release button</li>
+<li>Turn signal switch (3-position)</li>
+<li>Horn button</li>
+<li>Brake switch</li>
+</ul>
+<p>Right side:</p>
+<ul>
+<li>Throttle position sensor</li>
+<li>Brake switch</li>
+<li>Ground connections</li>
+</ul>
 <h3 id="security-systems">Security Systems<a class="headerlink" href="#security-systems" title="Permanent link">&para;</a></h3>
 <ul>
 <li>Steering lock actuator:</li>
@@ -2123,7 +2137,7 @@
       <div class="md-copyright">
   
     <div class="md-copyright__highlight">
-      Copyright &copy; 2025-2026 LibreScoot contributors
+      Copyright &copy; 2025-2026 Librescoot contributors
     </div>
   
   

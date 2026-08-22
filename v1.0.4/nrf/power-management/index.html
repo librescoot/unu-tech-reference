@@ -6,7 +6,7 @@
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width,initial-scale=1">
       
-        <meta name="description" content="Hardware and software reference for the LibreScoot electric scooter platform">
+        <meta name="description" content="Hardware and software reference for the Librescoot electric scooter platform">
       
       
       
@@ -27,7 +27,7 @@
     
     
       
-        <title>nRF52840 Power Management Functionality - LibreScoot Tech Reference</title>
+        <title>nRF52840 Power Management Functionality - Librescoot Tech Reference</title>
       
     
     
@@ -105,7 +105,7 @@
 
 <header class="md-header md-header--shadow" data-md-component="header">
   <nav class="md-header__inner md-grid" aria-label="Header">
-    <a href="../.." title="LibreScoot Tech Reference" class="md-header__button md-logo" aria-label="LibreScoot Tech Reference" data-md-component="logo">
+    <a href="../.." title="Librescoot Tech Reference" class="md-header__button md-logo" aria-label="Librescoot Tech Reference" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-book-open" viewBox="0 0 24 24"><path d="M12 5v16M20.001 19A2 2 0 0 0 22 17V5a2 2 0 0 0-1.999-2L16 3.002A5 5 0 0 0 12 5a5 5 0 0 0-4-2H4a2 2 0 0 0-2 2v12a2 2 0 0 0 1.999 2H8a5 5 0 0 1 4 2 5 5 0 0 1 4-2z"/></svg>
@@ -119,7 +119,7 @@
       <div class="md-header__ellipsis">
         <div class="md-header__topic">
           <span class="md-ellipsis">
-            LibreScoot Tech Reference
+            Librescoot Tech Reference
           </span>
         </div>
         <div class="md-header__topic" data-md-component="header-topic">
@@ -214,13 +214,13 @@
 
 <nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
-    <a href="../.." title="LibreScoot Tech Reference" class="md-nav__button md-logo" aria-label="LibreScoot Tech Reference" data-md-component="logo">
+    <a href="../.." title="Librescoot Tech Reference" class="md-nav__button md-logo" aria-label="Librescoot Tech Reference" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-book-open" viewBox="0 0 24 24"><path d="M12 5v16M20.001 19A2 2 0 0 0 22 17V5a2 2 0 0 0-1.999-2L16 3.002A5 5 0 0 0 12 5a5 5 0 0 0-4-2H4a2 2 0 0 0-2 2v12a2 2 0 0 0 1.999 2H8a5 5 0 0 1 4 2 5 5 0 0 1 4-2z"/></svg>
 
     </a>
-    LibreScoot Tech Reference
+    Librescoot Tech Reference
   </label>
   
     <div class="md-nav__source">
@@ -2271,9 +2271,11 @@
 </ol>
 <p>The system can dynamically select between the CB Battery and AUX Battery for powering the control electronics using a power multiplexer. The main driving battery powers the vehicle's drive systems separately from this muxing system.</p>
 <h3 id="main-battery-detection">Main Battery Detection<a class="headerlink" href="#main-battery-detection" title="Permanent link">&para;</a></h3>
-<p>The main driving battery's active state is detected using the DC/DC pin as a proxy:
-- When this pin is HIGH: DC converter is on; Main battery is considered ACTIVE
-- When this pin is LOW: DC converter is off; Main battery is considered NOT ACTIVE</p>
+<p>The main driving battery's active state is detected using the DC/DC pin as a proxy:</p>
+<ul>
+<li>When this pin is HIGH: DC converter is on; Main battery is considered ACTIVE</li>
+<li>When this pin is LOW: DC converter is off; Main battery is considered NOT ACTIVE</li>
+</ul>
 <h3 id="power-flow-between-batteries">Power Flow Between Batteries<a class="headerlink" href="#power-flow-between-batteries" title="Permanent link">&para;</a></h3>
 <p>The power flow between batteries works as follows:</p>
 <ol>
@@ -2296,13 +2298,15 @@
 <li>System switches to AUX battery in deep hibernation mode</li>
 </ol>
 <h3 id="power-source-selection-details">Power Source Selection Details<a class="headerlink" href="#power-source-selection-details" title="Permanent link">&para;</a></h3>
-<p>The power source selection logic has additional nuances:
-- Power source switching between AUX and CB batteries only occurs when the vehicle is in the OFF state
-- When the main battery status changes (becomes active or inactive):
-  - If the vehicle is ON (any state other than OFF): No power source switching occurs
-  - If the vehicle is OFF and main battery becomes ACTIVE: System switches to AUX battery
-  - If the vehicle is OFF and main battery becomes NOT ACTIVE: System switches to CB battery
-- Before selecting the CB Battery, the system verifies it reports a valid state of charge</p>
+<p>The power source selection logic has additional nuances:</p>
+<ul>
+<li>Power source switching between AUX and CB batteries only occurs when the vehicle is in the OFF state</li>
+<li>When the main battery status changes (becomes active or inactive):</li>
+<li>If the vehicle is ON (any state other than OFF): No power source switching occurs</li>
+<li>If the vehicle is OFF and main battery becomes ACTIVE: System switches to AUX battery</li>
+<li>If the vehicle is OFF and main battery becomes NOT ACTIVE: System switches to CB battery</li>
+<li>Before selecting the CB Battery, the system verifies it reports a valid state of charge</li>
+</ul>
 <h2 id="power-states">Power States<a class="headerlink" href="#power-states" title="Permanent link">&para;</a></h2>
 <p>The power management system implements several states to optimize power consumption:</p>
 <h3 id="normal-operation-states">Normal Operation States<a class="headerlink" href="#normal-operation-states" title="Permanent link">&para;</a></h3>
@@ -2412,14 +2416,18 @@ This 3.3V power also supplies the combined accelerometer/gyroscope/magnetometer 
 <li><strong>Wake-up Threshold</strong>: System wakes up once when CB battery is below 10% SoC to send a low battery warning</li>
 </ul>
 <h3 id="auto-hibernation-conditions">Auto-Hibernation Conditions<a class="headerlink" href="#auto-hibernation-conditions" title="Permanent link">&para;</a></h3>
-<p>The system automatically enters hibernation when:
-1. The iMX6 processor is in suspended state
-2. The CB battery SoC is at or below 25%
-3. The main driving battery is not active</p>
+<p>The system automatically enters hibernation when:</p>
+<ol>
+<li>The iMX6 processor is in suspended state</li>
+<li>The CB battery SoC is at or below 25%</li>
+<li>The main driving battery is not active</li>
+</ol>
 <h3 id="auto-hibernation-timer">Auto-Hibernation Timer<a class="headerlink" href="#auto-hibernation-timer" title="Permanent link">&para;</a></h3>
 <p>When auto-hibernation conditions are met, the system starts a 5-minute timer before entering hibernation. This gives the system time to complete any pending operations and allows the user to intervene if needed.</p>
-<p>The timer is logged by unu-bluetooth:
-- "auto-hibernation: starting 5 minutes hibernation timer"</p>
+<p>The timer is logged by unu-bluetooth:</p>
+<ul>
+<li>"auto-hibernation: starting 5 minutes hibernation timer"</li>
+</ul>
 <h3 id="timers">Timers<a class="headerlink" href="#timers" title="Permanent link">&para;</a></h3>
 <ul>
 <li><strong>Hibernation timeout</strong>: 5 minutes</li>
@@ -2444,23 +2452,27 @@ This 3.3V power also supplies the combined accelerometer/gyroscope/magnetometer 
 <li>Discharging is detected when current is negative</li>
 </ul>
 <h3 id="aux-battery-charging">AUX Battery Charging<a class="headerlink" href="#aux-battery-charging" title="Permanent link">&para;</a></h3>
-<p>The AUX battery charging is controlled by hardware with software monitoring:
-- The AUX battery charger is enabled by default
-- Charging occurs primarily when the main driving battery is active
-- The charging process follows a standard three-stage profile controlled by hardware:
-  - Bulk charging: Maximum current for depleted batteries
-  - Absorption charging: Constant voltage as battery approaches full charge
-  - Float charging: Maintenance mode for fully charged batteries
-- The system monitors charging status but doesn't directly control the charging parameters
-- Charging can occur regardless of vehicle power mode (even when the vehicle is off)</p>
+<p>The AUX battery charging is controlled by hardware with software monitoring:</p>
+<ul>
+<li>The AUX battery charger is enabled by default</li>
+<li>Charging occurs primarily when the main driving battery is active</li>
+<li>The charging process follows a standard three-stage profile controlled by hardware:</li>
+<li>Bulk charging: Maximum current for depleted batteries</li>
+<li>Absorption charging: Constant voltage as battery approaches full charge</li>
+<li>Float charging: Maintenance mode for fully charged batteries</li>
+<li>The system monitors charging status but doesn't directly control the charging parameters</li>
+<li>Charging can occur regardless of vehicle power mode (even when the vehicle is off)</li>
+</ul>
 <h4 id="charging-circuit-control">Charging Circuit Control<a class="headerlink" href="#charging-circuit-control" title="Permanent link">&para;</a></h4>
-<p>The AUX battery charging circuit has dedicated control and monitoring:
-- Charger Enable/Disable: Controlled via a dedicated pin (active high)
-  - LOW (default): Charger enabled
-  - HIGH: Charger disabled
-- Charging Status: Monitored via dedicated status pins
-  - These pins provide hardware feedback on the current charging state
-  - The software uses this information for power management decisions but doesn't control the charging profile</p>
+<p>The AUX battery charging circuit has dedicated control and monitoring:</p>
+<ul>
+<li>Charger Enable/Disable: Controlled via a dedicated pin (active high)</li>
+<li>LOW (default): Charger enabled</li>
+<li>HIGH: Charger disabled</li>
+<li>Charging Status: Monitored via dedicated status pins</li>
+<li>These pins provide hardware feedback on the current charging state</li>
+<li>The software uses this information for power management decisions but doesn't control the charging profile</li>
+</ul>
 <h2 id="battery-voltage-monitoring">Battery Voltage Monitoring<a class="headerlink" href="#battery-voltage-monitoring" title="Permanent link">&para;</a></h2>
 <h3 id="aux-battery">AUX Battery<a class="headerlink" href="#aux-battery" title="Permanent link">&para;</a></h3>
 <ul>
@@ -2507,9 +2519,11 @@ This 3.3V power also supplies the combined accelerometer/gyroscope/magnetometer 
 <h3 id="low-battery-wakeup-behavior">Low Battery Wakeup Behavior<a class="headerlink" href="#low-battery-wakeup-behavior" title="Permanent link">&para;</a></h3>
 <p>When in hibernation Level 1 (L1), if the CB battery state of charge drops to 10% or below, the system will wake up once to send a low battery warning. This ensures the user is notified before the battery is completely depleted.</p>
 <p><strong>Exception</strong>: If the CB battery is already at or below the wakeup threshold (10%) at the time of entering hibernation, the wakeup is skipped to avoid unnecessary power consumption.</p>
-<p>Logged as:
-- "CBB SoC %d%%&lt;=%d%% in hibernation L1 -&gt; wake up iMX for low-CBB-SoC event"
-- "CBB SoC is low at the time of hibernation -&gt; skipping low-CBB-SoC wakeup"</p>
+<p>Logged as:</p>
+<ul>
+<li>"CBB SoC %d%%&lt;=%d%% in hibernation L1 -&gt; wake up iMX for low-CBB-SoC event"</li>
+<li>"CBB SoC is low at the time of hibernation -&gt; skipping low-CBB-SoC wakeup"</li>
+</ul>
 <h3 id="power-source-selection-logic">Power Source Selection Logic<a class="headerlink" href="#power-source-selection-logic" title="Permanent link">&para;</a></h3>
 <ol>
 <li><strong>When Main Driving Battery is Active and Vehicle is OFF</strong>:</li>
@@ -2617,7 +2631,7 @@ This 3.3V power also supplies the combined accelerometer/gyroscope/magnetometer 
       <div class="md-copyright">
   
     <div class="md-copyright__highlight">
-      Copyright &copy; 2025-2026 LibreScoot contributors
+      Copyright &copy; 2025-2026 Librescoot contributors
     </div>
   
   
