@@ -2480,11 +2480,12 @@
 <li><code>state</code> - Vehicle state (see States section below)</li>
 <li><code>brake:left</code> - Left brake state ("on", "off")</li>
 <li><code>brake:right</code> - Right brake state ("on", "off")</li>
-<li><code>blinker:state</code> - Blinker active state ("on", "off")</li>
+<li><code>blinker:state</code> - Blinker active state ("off", "left", "right", "both")</li>
 <li><code>blinker:start_nanos</code> - Monotonic start time of current blinker cycle (for UI sync)</li>
 <li><code>blinker:switch</code> - Blinker switch position ("left", "right", "both", "off")</li>
-<li><code>horn:button</code> - Horn button state ("on", "off")</li>
-<li><code>seatbox:button</code> - Seatbox button state ("on", "off")</li>
+<li><code>main-power</code> - Commanded main power rail state ("on", "off"), read by ecu-service</li>
+<li><code>engine-power</code> - Commanded <code>engine_power</code> GPIO state ("on", "off"), read by ecu-service</li>
+<li>(no <code>horn:button</code> / <code>seatbox:button</code> fields: horn and seatbox button presses are written to the <code>buttons</code> hash as <code>horn:on</code> / <code>horn:off</code> / <code>seatbox:on</code> / <code>seatbox:off</code>, value "1")</li>
 <li><code>seatbox:lock</code> - Seatbox lock state ("open", "closed")</li>
 <li><code>kickstand</code> - Kickstand position ("up", "down")</li>
 <li><code>handlebar:position</code> - Handlebar position ("on-place", "off-place")</li>
@@ -2523,7 +2524,6 @@
 <li><code>keycard</code> - Keycard authentication events (payload: "authentication")</li>
 <li><code>ota</code> - OTA update notifications</li>
 <li><code>power-manager</code> - Power manager events</li>
-<li><code>vehicle</code> - Vehicle state change notifications</li>
 <li><code>settings</code> - Settings update notifications (payload: setting key that changed)</li>
 </ul>
 <h3 id="channels-published">Channels published<a class="headerlink" href="#channels-published" title="Permanent link">&para;</a></h3>
@@ -2561,7 +2561,7 @@
 <li><strong>hibernation-awaiting-confirm</strong>: User can release brakes or keep holding</li>
 <li>A 30s timeout runs from entry into this phase (not from brake release) and is not reset by further brake activity; on expiry the vehicle returns to <code>parked</code></li>
 <li>If brakes held continuously for 30s total: auto-confirm (skip seatbox check)</li>
-<li>If brakes re-pressed after release: hold for 15s to auto-confirm</li>
+<li>Re-pressing the brakes does not restart the force timer: it is armed once on entry to <code>hibernation-awaiting-confirm</code> and only samples the levers when it expires 15s later</li>
 <li><strong>Keycard tap</strong> or <strong>continuous hold timeout</strong>: Check safety conditions (kickstand down, seatbox closed)</li>
 <li>If seatbox open: transition to <code>hibernation-seatbox</code> and wait for user to close it</li>
 <li><strong>hibernation-confirm</strong>: 3-second final countdown before hibernation</li>
@@ -2713,7 +2713,7 @@ In <code>parked</code> state, if dashboard is not ready, pressing the seatbox bu
 </ul>
 </li>
 <li>If brakes held continuously for 30s total from start: auto-confirm (warehouse mode)</li>
-<li>If brakes re-pressed after release: hold for 15s to auto-confirm</li>
+<li>Re-pressing the brakes does not restart the force timer: it is armed once on entry to the confirmation phase and only samples the levers when it expires 15s later</li>
 <li><strong>Keycard tap during confirmation:</strong> triggers immediate safety check and confirmation</li>
 <li><strong>Safety Checks:</strong></li>
 <li>Kickstand must be down (always required)</li>
@@ -2973,7 +2973,7 @@ The service responds to settings changes via PUBSUB:</p>
 <li>Main goroutine handles system coordination</li>
 <li>Separate goroutines for:</li>
 <li>Redis PUBSUB listener</li>
-<li>8 Redis BRPOP command listeners (one per list)</li>
+<li>9 Redis BRPOP command listeners (one per list, including <code>scooter:hop-on</code>)</li>
 <li>Blinker timer (when active)</li>
 <li>Various hardware timers (hibernation, shutdown, handlebar lock)</li>
 <li>Thread-safe state access via sync.RWMutex</li>

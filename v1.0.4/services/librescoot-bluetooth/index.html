@@ -2493,7 +2493,7 @@
 <li><code>present</code> - Battery presence ("true", "false")</li>
 <li><code>charge-status</code> - Charging status ("not-charging", "charging")</li>
 </ul>
-<p><strong>Published channel:</strong> None (fields are written but not published by this service)</p>
+<p><strong>Published channel:</strong> <code>cb-battery</code> (every field write is an HSET plus a PUBLISH of the field name)</p>
 <h3 id="hash-aux-battery">Hash: <code>aux-battery</code><a class="headerlink" href="#hash-aux-battery" title="Permanent link">&para;</a></h3>
 <p><strong>Fields written:</strong></p>
 <ul>
@@ -2502,7 +2502,7 @@
 <li><code>charge-status</code> - Charging status ("absorption-charge", "not-charging", "float-charge", "bulk-charge")</li>
 <li><code>data-stream-enable</code> - Data streaming enable flag ("0", "1")</li>
 </ul>
-<p><strong>Published channel:</strong> None (fields are written but not published by this service)</p>
+<p><strong>Published channel:</strong> <code>aux-battery</code> (every field write is an HSET plus a PUBLISH of the field name)</p>
 <h3 id="hash-power-manager">Hash: <code>power-manager</code><a class="headerlink" href="#hash-power-manager" title="Permanent link">&para;</a></h3>
 <p><strong>Fields written:</strong></p>
 <ul>

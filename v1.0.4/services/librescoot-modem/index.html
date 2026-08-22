@@ -2168,7 +2168,7 @@
 
 <h1 id="librescoot-modem-modem-service">librescoot-modem (modem-service)<a class="headerlink" href="#librescoot-modem-modem-service" title="Permanent link">&para;</a></h1>
 <h2 id="description">Description<a class="headerlink" href="#description" title="Permanent link">&para;</a></h2>
-<p>The modem service manages the cellular modem (SimCom SIM7100E) for internet connectivity and GPS functionality using ModemManager (mmcli). It monitors network registration, signal quality, access technology (2G/3G/4G), handles modem power management and recovery, manages network connectivity, and provides GPS coordinates via gpsd. The service implements intelligent health monitoring with multi-strategy recovery procedures and GPS-specific recovery mechanisms.</p>
+<p>The modem service manages the cellular modem (SimCom SIM7100E) for internet connectivity and GPS functionality using ModemManager over D-Bus. It monitors network registration, signal quality, access technology (2G/3G/4G), handles modem power management and recovery, manages network connectivity, and provides GPS coordinates via gpsd. The service implements intelligent health monitoring with multi-strategy recovery procedures and GPS-specific recovery mechanisms.</p>
 <h2 id="command-line-options">Command-Line Options<a class="headerlink" href="#command-line-options" title="Permanent link">&para;</a></h2>
 <div class="language-text highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>Usage of modem-service:
 </span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>  -debug
@@ -2199,7 +2199,7 @@
 <li><code>modem-state</code> - Raw modem status ("off", "connected", "disconnected", "no-modem", "UNKNOWN")</li>
 <li><code>status</code> - Derived internet connectivity status ("connected", "disconnected") - determined by TCP connections to port 53 on public DNS resolvers (8.8.8.8, 1.1.1.1, 9.9.9.9, 208.67.222.222), each socket bound to the modem interface with SO_BINDTODEVICE</li>
 <li><code>ip-address</code> - Interface IP address from wwu1i5/ppp0</li>
-<li><code>access-tech</code> - Access technology from modem ("2G", "GSM", "3G", "UMTS", "4G", "LTE", "5G", "UNKNOWN")</li>
+<li><code>access-tech</code> - Access technology from modem ("5G", "4G", "HSPA+", "HSPA", "3G", "UMTS", "EDGE", "GSM", "UNKNOWN")</li>
 <li><code>signal-quality</code> - Signal strength (0-100, or 255 if unknown)</li>
 <li><code>unu-cloud</code> - Cloud (uplink) connection status — written by <code>uplink-service</code>, not modem-service ("connected"/"disconnected")</li>
 <li><code>sim-imei</code> - Modem IMEI identifier (identifies modem hardware, not SIM - name kept for backward compatibility)</li>
@@ -2216,9 +2216,11 @@
 <li><code>operator-name</code> - Current network operator name</li>
 <li><code>operator-code</code> - Current network operator code</li>
 <li><code>is-roaming</code> - Roaming status ("true", "false")</li>
+<li><code>registration</code> - 3GPP registration state ("idle", "home", "searching", "denied", "roaming", "unknown")</li>
 <li><code>registration-fail</code> - Registration failure reason (if any)</li>
-<li><code>error-state</code> - Consolidated error state ("ok", "powered-off", "sim-missing", "sim-inactive", "sim-locked", "registration-denied", "registration-failed", "disconnected", "no-modem", "status-error")</li>
-<li><code>pin-action</code> - Outcome of the last SIM PIN reconcile ("unconfigured", "unlocked", "lock-enabled", "wrong-pin", "low-retries-bail", "puk-required")</li>
+<li><code>error-state</code> - Consolidated error state ("ok", "powered-off", "sim-missing", "sim-inactive", "sim-locked", "registration-denied", "registration-failed", "disconnected", "no-modem", "modem-disappeared")</li>
+<li><code>connectivity</code> - Debounced coarse connectivity ("online", "offline", "no-sim"); online commits after 60s of agreement, offline after 3 minutes, no-sim immediately</li>
+<li><code>pin-action</code> - Outcome of the last SIM PIN reconcile ("unconfigured", "ok", "unlocked", "lock-enabled", "wrong-pin", "low-retries-bail", "puk-required", "error")</li>
 </ul>
 <p><strong>Published channel:</strong> <code>modem</code> (publishes field name on change)</p>
 <p><strong>SIM PIN:</strong> when <code>cellular.sim-pin</code> is set in <code>settings</code>, modem-service unlocks a PIN-locked SIM and enables SIM lock with that PIN; the outcome is reported in <code>pin-action</code>. An empty <code>cellular.sim-pin</code> leaves the SIM as-is.</p>
@@ -2327,7 +2329,7 @@
 <li>SIM lock status</li>
 <li>Network registration state (home/roaming/denied/searching)</li>
 <li>Signal quality (0-100 or 255 for unknown)</li>
-<li>Access technology (2G/GSM, 3G/UMTS, 4G/LTE, 5G)</li>
+<li>Access technology (GSM, EDGE, UMTS, 3G, HSPA, HSPA+, 4G, 5G)</li>
 <li>Operator name and code</li>
 <li>Roaming status</li>
 <li>IMEI, IMSI, ICCID identifiers</li>
@@ -2489,13 +2491,13 @@
 </ul>
 <p>This multi-strategy approach handles various failure modes:</p>
 <ul>
-<li>Software hangs → mmcli reset</li>
+<li>Software hangs → ModemManager D-Bus reset</li>
 <li>USB/driver issues → USB unbind/bind</li>
 <li>Firmware crashes → GPIO hardware reset</li>
 <li>Transient issues → Extended wait</li>
 </ul>
 <h2 id="log-output">Log Output<a class="headerlink" href="#log-output" title="Permanent link">&para;</a></h2>
-<p>The service logs to journald with systemd-aware formatting (no prefix when INVOCATION_ID is set).</p>
+<p>The service logs to journald with systemd-aware formatting (no prefix or timestamps when <code>JOURNAL_STREAM</code> is set).</p>
 <p><strong>Common log patterns:</strong></p>
 <p>Modem status:</p>
 <ul>

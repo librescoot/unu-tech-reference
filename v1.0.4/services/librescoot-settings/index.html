@@ -2416,15 +2416,9 @@
 <h3 id="startup-sequence">Startup Sequence<a class="headerlink" href="#startup-sequence" title="Permanent link">&para;</a></h3>
 <ol>
 <li>Connects to Redis</li>
-<li>Checks if <code>/data/settings.toml</code> exists</li>
-<li>If exists and non-empty:</li>
-<li>Flushes existing Redis <code>settings</code> hash</li>
-<li>Reads TOML file</li>
-<li>Populates Redis with all settings</li>
-<li>Publishes each setting to <code>settings</code> channel</li>
-<li>If doesn't exist or empty <code>[scooter]</code> section:</li>
-<li>Flushes Redis <code>settings</code> hash</li>
-<li>Creates empty TOML file</li>
+<li>Loads the settings schema from <code>/usr/share/settings-service/settings.schema.json</code> and collects every key that carries a non-null <code>default</code></li>
+<li>Overlays <code>/data/settings.toml</code> on top of those defaults (user values win). A missing TOML file just means schema defaults only; the load path itself creates no file, and there is no special case for an empty <code>[scooter]</code> section.</li>
+<li>Replaces the Redis <code>settings</code> hash in one pipeline (DEL, then HSET of every merged field) and publishes a single <code>reload</code> message on the <code>settings</code> channel. The service is subscribed to that channel itself, so handling its own <code>reload</code> writes <code>/data/settings.toml</code> back from the keys it recorded as user-set (an all-empty file when there was none to load).</li>
 <li>Deletes existing WireGuard connections from NetworkManager</li>
 <li>Waits for internet connectivity (event-driven; max 120s timeout)</li>
 <li>Imports all WireGuard configs from <code>/data/wireguard/</code></li>
@@ -2550,8 +2544,10 @@
 </span><span id="__span-8-4"><a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a><span class="c1"># Restart settings service</span>
 </span><span id="__span-8-5"><a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a>systemctl<span class="w"> </span>restart<span class="w"> </span>librescoot-settings
 </span><span id="__span-8-6"><a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a>
-</span><span id="__span-8-7"><a id="__codelineno-8-7" name="__codelineno-8-7" href="#__codelineno-8-7"></a><span class="c1"># Redis settings hash is now empty</span>
-</span><span id="__span-8-8"><a id="__codelineno-8-8" name="__codelineno-8-8" href="#__codelineno-8-8"></a><span class="c1"># Services will use default values</span>
+</span><span id="__span-8-7"><a id="__codelineno-8-7" name="__codelineno-8-7" href="#__codelineno-8-7"></a><span class="c1"># Redis settings hash now holds only the schema defaults</span>
+</span><span id="__span-8-8"><a id="__codelineno-8-8" name="__codelineno-8-8" href="#__codelineno-8-8"></a><span class="c1"># Services will use those default values</span>
+</span><span id="__span-8-9"><a id="__codelineno-8-9" name="__codelineno-8-9" href="#__codelineno-8-9"></a><span class="c1"># Note: the service also rewrites /data/settings.toml as a stub</span>
+</span><span id="__span-8-10"><a id="__codelineno-8-10" name="__codelineno-8-10" href="#__codelineno-8-10"></a><span class="c1"># containing only the section headers, so the file comes back</span>
 </span></code></pre></div>
 <h2 id="building">Building<a class="headerlink" href="#building" title="Permanent link">&para;</a></h2>
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="c1"># Build for ARM target</span>
