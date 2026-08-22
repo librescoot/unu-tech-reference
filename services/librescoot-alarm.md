@@ -2,7 +2,7 @@
 
 ## Description
 
-Security alarm for the scooter, driven by motion, button presses, the handlebar sensors and unauthorized seatbox openings. alarm-service is a pure FSM/policy layer — as of the [motion-service refactor](librescoot-motion.md), it does not touch the BMX055 directly. It publishes its FSM state (`alarm.status`) so motion-service can reactively configure the chip; consumes `motion:interrupt` events; and uses one synchronous `motion:rpc/prepare-hibernation` Call to gate pm-service's hibernation entry.
+Security alarm for the scooter, driven by motion and unauthorized seatbox openings. alarm-service is a pure FSM/policy layer — as of the [motion-service refactor](librescoot-motion.md), it does not touch the BMX055 directly. It publishes its FSM state (`alarm.status`) so motion-service can reactively configure the chip; consumes `motion:interrupt` events; and uses one synchronous `motion:rpc/prepare-hibernation` Call to gate pm-service's hibernation entry.
 
 ## Version
 
@@ -50,7 +50,6 @@ These flags only take effect when explicitly passed; each one then writes its va
 **Fields read:**
 - `alarm.enabled`, `alarm.honk`, `alarm.duration`, `alarm.seatbox-trigger`
 - `alarm.hairtrigger`, `alarm.hairtrigger-duration`, `alarm.l1-cooldown`
-- `alarm.trigger.motion`, `alarm.trigger.buttons`, `alarm.trigger.handlebar` (per-source trigger gates, see [Trigger Sources](#trigger-sources))
 
 **Fields written (if CLI flags set):** same fields, overrides Redis values on startup.
 
@@ -64,16 +63,15 @@ These flags only take effect when explicitly passed; each one then writes its va
 
 ### Hash: `motion`
 
-**Fields read on startup:** `wake-cause` (deleted after consumption). Durable backstop for the wake-from-hibernation indicator across the startup-ordering race with motion-service's pub/sub.
+**Fields read on startup:** `wake-cause` (HGET + HDEL, `MotionClient.ConsumeWakeCause`). Nothing writes this field in this release — motion-service only publishes the live `motion:interrupt {type: "wake-hibernation"}` event — so the read always misses and the startup-ordering race is not actually covered.
 
 ### Pub/Sub Channels
 
 **Subscribes to:**
-- `vehicle` — state, seatbox:opened event, seatbox:lock, handlebar:lock-sensor, handlebar:position
+- `vehicle` — state, seatbox:opened event, seatbox:lock
 - `settings` — alarm.* changes
 - `power-manager` — state field
 - `motion:interrupt` — JSON envelope `{type, timestamp, engine}` from motion-service. `type` becomes `BMXInterruptEvent.Data` (the FSM discriminates `wake-hibernation` from regular edges).
-- `buttons`: raw input edges from vehicle-service (`brake:left:{on,off}`, `brake:right:{on,off}`, `horn:{on,off}`, `seatbox:{on,off}`). Blinker edges share the channel and are ignored.
 
 ### RPC Calls (synchronous, via redis-ipc CallMethod)
 
@@ -91,67 +89,6 @@ These flags only take effect when explicitly passed; each one then writes its va
 
 - `scooter:horn` — `on`, `off`
 - `scooter:blinker` — `both`, `off`
-
-## Trigger Sources
-
-Four inputs escalate the alarm out of `armed`. Each has its own settings gate.
-
-| Setting | Source | Default |
-|---|---|---|
-| `alarm.trigger.motion` | `motion:interrupt` events from motion-service | `true` |
-| `alarm.trigger.buttons` | brake left/right, horn and seatbox button presses on the `buttons` channel | `true` |
-| `alarm.trigger.handlebar` | `vehicle[handlebar:lock-sensor]` going `unlocked`, `vehicle[handlebar:position]` going `off-place` | `false` |
-| `alarm.seatbox-trigger` | unauthorized `vehicle[seatbox:lock]` = `open` | `true` |
-
-The defaults are the settings-service schema values, which settings-service
-writes into the `settings` hash at startup. Without settings-service the
-compiled-in fallbacks apply, and those are `true` for all three
-`alarm.trigger.*` flags.
-
-Button and handlebar edges are filtered in the Redis subscriber, so a source
-that is switched off never reaches the FSM. Motion is filtered in the FSM
-instead: a motion event also carries the wake-from-hibernation stamp that the
-re-hibernate bookkeeping depends on, and the stamp has to survive the drop.
-
-Switching a source off suppresses the alarm, not the wake. The accelerometer
-still asserts its interrupt and the nRF52 still wakes the MDB;
-`alarm.trigger.motion=false` only means the resulting event is dropped instead
-of escalated.
-
-Only the pressed edge of a button counts, so one press is one trigger. Throttle
-is not a source: it exists only as an ECU CAN payload and the ECU is powered
-down in stand-by.
-
-### Handlebar Baseline
-
-The two handlebar fields count only on a genuine safe-to-unsafe transition,
-`locked` -> `unlocked` and `on-place` -> `off-place`. The first value each field
-delivers after startup is recorded as a baseline and triggers nothing. Plenty of
-scooters park with the handlebar lock never engaged and report `unlocked` as
-their resting value, which the initial hash sync would otherwise turn into an
-alarm on every service restart.
-
-### Handlebar Settling Window
-
-Both handlebar sources stay muted for **90 seconds** after every entry into
-`armed` (`handlebarSettleDelay` in `internal/fsm/state_machine.go`). Locking the
-vehicle is itself a handlebar event: vehicle-service drives the lock solenoid
-for 1.1 s with up to 3 retries, and a rider who still has to swing the bars into
-place gets a 60 s positioning window that pulses again at the end of it. Either
-can bounce the lock sensor or move the position sensor while the alarm has
-already armed.
-
-Arming starts ~5 s after the vehicle reaches stand-by, so a 60 s window here
-would expire just as vehicle-service's own closes, and the retry pulses of a
-late positioning would land outside it entirely. 90 s clears both with ~30 s to
-spare.
-
-Edges inside the window are dropped rather than queued. Replaying a stale edge
-once the window closes would sound the alarm for something that finished a
-minute ago. The timer keeps running when `armed` is left, so an escalation
-cannot strand the sources muted, and a disarm/rearm cycle opens a fresh window.
-Motion, buttons and the seatbox are never muted, so the vehicle keeps a live
-tamper path throughout.
 
 ## Alarm State Machine
 
@@ -174,7 +111,7 @@ Plus `seatbox_access` (transient state during authorized seatbox openings) and `
 - **waiting_enabled**: Alarm disabled, waiting for enable command
 - **disarmed**: Alarm enabled but vehicle not in stand-by
 - **delay_armed**: 5-second delay before arming (allows user to leave)
-- **armed**: Armed and monitoring the enabled trigger sources (motion, buttons, handlebar, seatbox)
+- **armed**: Armed and monitoring `motion:interrupt` events and unauthorized seatbox openings
 - **trigger_level_1_wait**: Cooldown after a trigger. `alarm.l1-cooldown`, default 15s. With hair trigger: immediate short alarm.
 - **trigger_level_1**: 5-second check for continued movement
 - **trigger_level_2**: Full alarm activated (horn + hazards). Duration is `alarm.duration`, default 30s. Capped at 6 cycles.
@@ -190,7 +127,7 @@ Plus `seatbox_access` (transient state during authorized seatbox openings) and `
 
 ### Triggering
 
-- An enabled [trigger source](#trigger-sources) fires while in `armed`: a `motion:interrupt`, a button press, or a handlebar edge past the settling window
+- A `motion:interrupt` event arrives while in `armed`
 - `armed` → `trigger_level_1_wait`
 - Hazards blink once
 - If hair trigger enabled: short horn pulse (skipped if this edge was the wake-from-hibernation edge — `wakeFromHibernation` flag gates it)
@@ -219,7 +156,7 @@ This is the only synchronous call alarm-service makes. All other chip-config flo
 
 ## Wake-from-Hibernation Detection
 
-When motion-service starts up after a hibernation wake AND finds `INT_STATUS_0` already latched, it publishes a one-shot `motion:interrupt {type: "wake-hibernation", ...}` AND writes `motion.wake-cause = <unix-ms>` to its hash. The hash field is durable across the startup-ordering race.
+When motion-service starts up after a hibernation wake AND finds `INT_STATUS_0` already latched, it publishes a one-shot `motion:interrupt {type: "wake-hibernation", ...}`. There is no durable hash backstop in this release: motion-service does not write `motion.wake-cause`, so a consumer that starts after the publish misses the signal.
 
 alarm-service on startup:
 1. Calls `MotionClient.ConsumeWakeCause(ctx)` — HGET + HDEL on `motion.wake-cause`. If the timestamp is within 30 s of now, returns true.

@@ -128,7 +128,7 @@ lsc svc status pm
 # View service logs
 lsc svc logs vehicle
 lsc svc logs battery --follow        # Follow in real-time (-f)
-lsc svc logs redis --lines 100       # Show 100 lines (-n 100)
+lsc svc logs valkey --lines 100      # Show 100 lines (-n 100)
 ```
 
 **Service name shortcuts** (from `serviceNameMap` in `cmd/lsc/service/service.go`;
@@ -151,7 +151,6 @@ a name with no entry is passed through with `.service` appended):
 - `update` → `librescoot-update.service`
 - `version` → `librescoot-version.service`
 - `netconfig` → `librescoot-netconfig.service`
-- `redis`, `valkey` → resolved at runtime, see below
 
 The datastore alias is special-cased: lsc asks systemd whether
 `valkey.service` is loaded and uses it if so, falling back to `redis.service`.
@@ -349,8 +348,8 @@ lsc diag handlebar unlock
 ```
 
 **Redis operations:**
-- Reads from `version:mdb` and `version:dbc` hashes
-- Reads from `vehicle:fault`, `engine-ecu:fault`, `battery:0:fault` and `battery:1:fault` sets
+- Reads firmware versions from the `system` hash
+- Reads from `vehicle:fault`, `battery:0:faults` and `battery:1:faults` sets
 - Reads from `events:faults` stream using XREAD
 - Sends commands to `scooter:blinker`, `scooter:horn`, `scooter:handlebar` lists
 
@@ -446,7 +445,7 @@ in a `.staging-<timestamp>` sibling and removed once the archive is written:
 logs-2025-10-25-13-54/
   metadata.json               bundle format 2: collected_at, since, until, hosts, tool, services, priority
   mdb/
-    metadata.json             hostname, boot_timestamp, uptime_seconds, kernel_release, os_release_*, byte counts, fault_events
+    metadata.json             hostname, boot_timestamp, uptime_seconds, kernel_release, os_release_*, byte counts
     dmesg.log
     librescoot-vehicle.log    one journalctl dump per requested service, short-monotonic format
     librescoot-battery.log
@@ -454,12 +453,10 @@ logs-2025-10-25-13-54/
       vehicle.json            one HGETALL snapshot per hash, ':' becomes '-' in the filename
       battery-0.json
       version-mdb.json
-      events-faults.log
 ```
 
 **Redis operations:**
 - HGETALL over `settings`, `vehicle`, `gps`, `battery:0`, `battery:1`, `aux-battery`, `cb-battery`, `engine-ecu`, `power-manager`, `modem`, `internet`, `alarm`, `ble`, `system`, `dashboard`, `ota`, `power-mux`, `version:mdb`, `version:dbc`. A hash that is missing or empty writes no file
-- XREVRANGE over the `events:faults` stream, capped at 1000 entries to match the writers' `MAXLEN ~ 1000`
 
 `redis/events-faults.log` is the fault history, oldest entry first:
 
