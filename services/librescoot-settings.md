@@ -23,6 +23,7 @@ REDIS_ADDR=localhost:6379             Redis server address (environment variable
 ### Hash: `settings`
 
 **Fields read and written:**
+
 - Any field with format `<section>.<key>` (e.g., `scooter.speed_limit`, `cellular.apn`)
 
 The service syncs all fields in the `settings` hash with the TOML file.
@@ -30,6 +31,7 @@ The service syncs all fields in the `settings` hash with the TOML file.
 **Subscribed channel:** `settings`
 
 When a field is published to the `settings` channel, the service:
+
 1. Reads the new value from Redis
 2. Updates the TOML file
 3. Performs special handling for certain fields (e.g., APN updates)
@@ -39,6 +41,7 @@ When a field is published to the `settings` channel, the service:
 Consumed by settings-service via BRPOP. Applies or clears a named settings overlay without touching `/data/settings.toml`.
 
 **Commands:**
+
 - `apply:<name>` - apply the named overlay (currently only `service` is defined)
 - `clear:<name>` - clear the named overlay and restore base values
 
@@ -54,6 +57,7 @@ See [Overlays](#settings-overlays) below for the overlay mechanics and the full 
 Settings are organized by section. Examples:
 
 **Alarm settings:**
+
 - `alarm.enabled` - Alarm system enabled ("true"/"false")
 - `alarm.honk` - Horn enabled during alarm ("true"/"false")
 - `alarm.duration` - Alarm duration in seconds
@@ -72,17 +76,21 @@ Settings are organized by section. Examples:
 - `scooter.horn-when-seatbox-open` - Allow the manual horn button while the seatbox is open and the scooter is unlocked (default: false). When false, the manual horn is muted in any non-standby state while the seatbox sensor reads open, so the open seat lid resting on the button does not honk. Does not affect the alarm or remote/CLI horn.
 
 **Cellular settings:**
+
 - `cellular.apn` - Cellular APN for data connection
 
 **Power management settings:**
+
 - `hibernation-timer` - Hibernation timeout in seconds (0=disabled)
 
 **Scooter settings:**
+
 - `scooter.auto-standby-seconds` - Auto-lock timeout when parked in seconds (default: 0 = disabled; max 3600). The last 60 s are shown as a cancellable countdown on the dashboard; any user input (brake, kickstand, seatbox button) resets the timer.
 - `scooter.lock-on-bluetooth-disconnect-seconds` - Grace period in seconds before the scooter locks (enters stand-by) after the connected phone's Bluetooth link drops while parked (default: 0 = disabled; floored at 5 s when set). Reuses the auto-standby countdown: the deadline is published to `vehicle` `auto-standby-deadline` and shown on the dashboard. Any user input (brake, kickstand, seatbox button) or a Bluetooth reconnect cancels it.
 - `scooter.brake-hibernation` - Enable brake lever hibernation ("enabled"/"disabled")
 
 **Update settings:**
+
 - `updates.mdb.channel` - MDB update channel (stable/testing/nightly)
 - `updates.mdb.check-interval` - Update check interval as Go duration ("6h", "24h", "never")
 - `updates.mdb.method` - Update method (full/delta)
@@ -98,6 +106,7 @@ Settings are organized by section. Examples:
 - `updates.mdb.orchestrate-dbc` - Auto power-on DBC and trigger update check when newer DBC release available (default: false)
 
 **Dashboard settings:**
+
 - `dashboard.show-raw-speed` - Show raw uncorrected speed ("true"/"false")
 - `dashboard.show-clock` - Clock visibility (always/never)
 - `dashboard.show-gps` - GPS indicator visibility (always/active-or-error/error/never)
@@ -121,6 +130,7 @@ Settings are organized by section. Examples:
 - `dashboard.navigation-available` - Full navigation available (system-managed; default: false)
 
 **ECU settings:**
+
 - `engine-ecu.kers` - KERS enable/disable ("enabled"/"disabled"; default: "enabled")
 - `engine-ecu.kers-power` - KERS regenerative braking current in mA
 - `engine-ecu.boost` - Enable motor boost mode (default: false)
@@ -208,6 +218,7 @@ When `cellular.apn` is updated, the service automatically updates:
 **File:** `/etc/NetworkManager/system-connections/wwan.nmconnection`
 
 The service:
+
 1. Reads the existing nmconnection file
 2. Updates the `apn=` field in the `[gsm]` section
 3. Writes the updated file
@@ -256,6 +267,7 @@ redis-cli PUBLISH settings scooter.speed_limit
 ```
 
 The service:
+
 1. Receives the publish notification
 2. Reads the new value from Redis
 3. Parses the section and key (e.g., "scooter" and "speed_limit")
@@ -265,6 +277,7 @@ The service:
 #### TOML to Redis Sync (Startup Only)
 
 On startup, if `/data/settings.toml` exists:
+
 1. Entire file is read
 2. All sections and keys are converted to Redis format
 3. Redis `settings` hash is flushed
@@ -280,6 +293,7 @@ On startup, the service publishes the raw schema JSON to this string key so othe
 #### APN Special Handling
 
 When `cellular.apn` is updated:
+
 1. TOML file is updated (normal behavior)
 2. Service checks if `/etc/NetworkManager/system-connections/wwan.nmconnection` exists
 3. If exists:
@@ -293,6 +307,7 @@ When `cellular.apn` is updated:
 #### Empty Config Handling
 
 If the TOML file is empty or has an empty `[scooter]` section:
+
 - Redis `settings` hash is flushed
 - Service treats this as "factory reset" of settings
 - Services using settings will fall back to their defaults
@@ -317,6 +332,7 @@ PersistentKeepalive = 25
 ```
 
 **Management process:**
+
 1. On startup: Service deletes all existing WireGuard connections
 2. Waits for internet connectivity (event-driven; falls back to 120s timeout)
 3. Scans `/data/wireguard/` for `*.conf` files
@@ -437,6 +453,7 @@ WantedBy=multi-user.target
 ## Log Output
 
 The service logs to stdout/stderr (captured by systemd):
+
 - TOML file read/write operations
 - Redis synchronization events
 - APN configuration updates
@@ -461,6 +478,7 @@ All Librescoot services can use the settings system:
 - **modem-service**: APN is configured via NetworkManager
 
 Services should:
+
 1. Subscribe to `settings` channel
 2. Read from `settings` hash when notified
 3. Apply new settings immediately

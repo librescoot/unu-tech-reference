@@ -59,6 +59,7 @@ The unu Scooter Pro uses a distributed architecture with several key systems:
 ### Hardware Details
 
 Detailed documentation available for:
+
 - [Electronic Systems](electronic/README.md)
 - [Mechanical Components](mechanical/README.md)
 - [Wiring & Connectors](wiring/README.md)
@@ -81,6 +82,7 @@ For complete Librescoot service documentation, see [Librescoot Services](service
 ## System States
 
 The scooter operates in several power states:
+
 - Hibernating
 - Booting
 - Stand-By
@@ -89,6 +91,7 @@ The scooter operates in several power states:
 - Shutting Down
 
 State transitions are triggered by:
+
 - User actions (lock/unlock)
 - Power management events
 - System commands
@@ -100,6 +103,7 @@ State transitions are triggered by:
 ### lsc - Librescoot Control CLI
 
 `lsc` is a comprehensive command-line tool for controlling and monitoring Librescoot systems. It provides easy access to:
+
 - Vehicle control (lock/unlock, hibernate)
 - Service management (start/stop/logs)
 - Battery and GPS monitoring

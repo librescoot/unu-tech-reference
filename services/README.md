@@ -83,18 +83,21 @@ graph TB
 
 ### Event Publishing
 Services publish events to Redis channels when state changes:
+
 - `PUBLISH <hash-name> <field>` notifies subscribers of field changes
 - Individual fields may publish separately (e.g., `PUBLISH vehicle state`)
 - Dashboard and other services subscribe to relevant channels
 
 ### Command Lists
 Command producer services use LPUSH, consumer services use BRPOP:
+
 - **Producers**: `bluetooth-service` (from BLE commands) → LPUSH to `scooter:*` lists
 - **Consumers**: `vehicle-service` → BRPOP from `scooter:state`, `scooter:seatbox`, `scooter:horn`, `scooter:blinker`
 - Example: `LPUSH scooter:state lock` queues a vehicle lock command
 
 ### State Storage
 Services store state in Redis hashes:
+
 - `HSET vehicle state ready-to-drive` - Update vehicle state
 - `HGETALL vehicle` - Read all vehicle fields
 - Services only write to their own hashes (see table above)
@@ -145,6 +148,7 @@ Services store state in Redis hashes:
 ## Service Configuration
 
 All services are managed by systemd:
+
 - Service files in `/etc/systemd/system/`
 - Started via `systemctl start <service>`
 - Logs via `journalctl -u <service>`

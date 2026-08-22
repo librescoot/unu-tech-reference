@@ -40,15 +40,18 @@ Usage of pm-service:
 ### Hash: `power-manager`
 
 **Fields written:**
+
 - `state` - Power manager state (see States section below)
 - `wakeup-source` - IRQ number of wakeup source (e.g., "45" for RTC)
 - `wake-timer-seconds` - Requested wake-timer duration for the next nRF52 wake (decimal seconds; `0` disarms). Written when a `hibernate-for` flow enters `low-power-imminent`, before `EnterIssuingLowPower` blocks for the ACK.
 
 **Fields read:**
+
 - `wake-timer-armed` - Set to `"true"` by bluetooth-service when the nRF52 acknowledges the wake-timer arm, `"false"` on disarm. pm-service blocks (up to `pm.wake-timer-ack-timeout`) on this field flipping to `true` in `EnterIssuingLowPower`; on timeout it aborts the hibernation rather than power off without a confirmed wake source.
 - `power-state-sent` - The nRF suspend-ACK, written by bluetooth-service when it confirms it forwarded a power state to the nRF52. Only the value `"suspending"` is acted on. Before suspending, pm-service publishes the `suspending` state and then blocks (up to `suspendQuiesceTimeout`, 3 s) in `EnterIssuingLowPower` for `power-state-sent=suspending`. The nRF must stop its USOCK TX before the iMX6 sleeps; otherwise routine traffic on the armed ttymxc1 wakeup pulls the iMX6 straight back out of suspend-to-RAM. On ACK it settles a 200 ms margin (so the nRF's reply to the suspending frame can drain) and then suspends; on timeout it aborts back to `running` rather than suspend into the wake loop. This gate applies only to the `suspend` target, not to hibernate/poweroff/reboot.
 
 **Published channel:** `power-manager`
+
 - `state` - Published when power state changes
 - `wakeup-source` - Published when system wakes from suspend
 - `wake-timer-seconds` - Published when pm-service requests a wake-timer change
@@ -57,6 +60,7 @@ Usage of pm-service:
 ### Hash: `power-manager:busy-services`
 
 **Fields written:**
+
 - `<who> <why> <what>` = `<type>` — inhibitor entry
 - Example: `"pm-service delay default delay" = "delay"` (pm-service's own delay inhibitor)
 - Example: `"connection-based connection-based connection-based" = "block"` (active socket connection)
@@ -64,11 +68,13 @@ Usage of pm-service:
 This hash tracks all active inhibitors. Socket-based connections always use `"connection-based"` for `who`, `why`, and `what`. Redis-based inhibitors use values from the `power:inhibits` hash entry.
 
 **Published channel:** `power-manager:busy-services`
+
 - Updated atomically (DEL + HMSET + PUBLISH) when inhibitors change
 
 ### Hash: `power:inhibits`
 
 **Fields written/read:**
+
 - `<inhibit-id>` — JSON data with inhibit request details
 - Format: `{"id": "...", "who": "...", "what": "...", "why": "...", "type": "block|delay|suspend-only", "duration": <unix_ns>, "created": <unix_ns>}`
 
@@ -79,6 +85,7 @@ pm-service subscribes to the `power:inhibits` channel and syncs entries into its
 ### Hash: `settings`
 
 **Fields read:**
+
 - `pm.hibernation-timer` - Inactivity-based hibernation timer duration in seconds (0 = disabled)
 - `pm.default-state` - Default target power state when idle (`run` / `suspend`)
 - `pm.suspend-when-online` - Bool, default `true`. Only matters when no main battery is present: a pack present (or active) in either slot always blocks suspend (`Cannot enter suspend state: a main battery is present or active`), independent of this setting. With no main battery, the default (`true`) lets the scooter suspend even while online. Set `false` to keep an online scooter awake so cloud commands can still reach it, which blocks suspend with `Suspend blocked: no main battery but online and pm.suspend-when-online disabled`. The guard only applies to the `suspend` target (not hibernate/reboot). Present and active are read live from Redis at the decision point because pub/sub state is lost across a suspend freeze.
@@ -89,19 +96,23 @@ pm-service subscribes to the `power:inhibits` channel and syncs entries into its
 - `pm.wake-timer-ack-timeout` - How long to wait for the nRF52 ACK before aborting (default `10s`)
 
 **Subscribed channel:** `settings`
+
 - Each of the fields above triggers a re-read on change.
 
 ### Hash: `gps`
 
 **Fields read:**
+
 - `active` - Polled by pm-service (every 30 s, immediate first check) as the proxy for "the wall clock has been bootstrapped from GPS". modem-service calls `chronyc settime` in the same loop iteration that flips `gps.active` to `true` on a valid fix. The scheduler latches this signal — once observed `true`, the wall-clock validity gate stays open even if the GPS fix is later lost (chrony retains the bootstrap). NTP-only scooters with a broken or absent GPS receiver would never flip this; that's a documented limitation.
 
 ### Hash: `system`
 
 **Fields written:**
+
 - `cpu:governor` - CPU governor setting (ondemand, powersave, performance)
 
 **Published channel:** `system`
+
 - `cpu:governor` - Published when CPU governor changes
 
 ### Lists consumed (BRPOP via HandleRequests)
@@ -175,12 +186,14 @@ See [States Documentation](../states/README.md) for complete state machine.
 ### nRF52840 Communication
 
 The power manager interacts with nRF hardware indirectly via Redis:
+
 - Commands hibernation via `scooter:power` list (handled by vehicle-service)
 - nRF firmware handles actual hardware power control
 
 ### Hibernation Levels
 
 When hibernating, the nRF firmware selects between two levels based on CB battery charge:
+
 - **L1:** CB battery >5%, periodic wakeup checks
 - **L2:** CB battery ≤5%, switches to AUX battery, minimal power
 
@@ -199,6 +212,7 @@ See [nRF Power Management](../nrf/power-management.md) for details.
 ### Dry-Run Mode
 
 When started with `--dry-run`, the service:
+
 - Operates normally
 - Does NOT actually suspend/hibernate the system
 - Logs all power state transitions
@@ -207,6 +221,7 @@ When started with `--dry-run`, the service:
 ### Delay Configuration
 
 Command-line flags control timing:
+
 - **Pre-suspend delay** (`-pre-suspend-delay`): Time after stand-by before entering imminent state on the natural suspend path (default: 1m)
 - **Suspend imminent delay** (`-suspend-imminent-delay`): Minimum duration in imminent state (default: 5s)
 - **Inhibitor duration** (`-inhibitor-duration`): How long system stays active after suspend request (default: 500ms)
@@ -216,6 +231,7 @@ These delays allow services to complete operations before power down.
 ### Default Power State
 
 The `-default-state` option sets the target power state at startup:
+
 - `run` - No automatic power transitions
 - `suspend` - Allow suspend when vehicle is in stand-by (default)
 - `hibernate` - Target hibernation when conditions met
@@ -251,6 +267,7 @@ The `-default-state` option sets the target power state at startup:
 #### Suspend Trigger
 
 When vehicle enters `stand-by` state with target=`suspend`:
+
 1. FSM transitions to `pre-suspend`; publishes `suspending-pending`
 2. Pre-suspend delay timer starts (default 1m)
 3. After pre-suspend delay, FSM transitions to `suspend-imminent`; publishes `suspending-imminent`
@@ -264,10 +281,12 @@ Explicit `suspend` commands (LPUSH scooter:power suspend) skip the pre-suspend d
 #### Hibernation Trigger
 
 **Explicit hibernate command:**
+
 - `LPUSH scooter:power hibernate` (or `hibernate-manual`, `hibernate-timer`)
 - Skips pre-suspend delay; FSM goes directly to `hibernate-imminent`
 
 **Hibernation timer:**
+
 - After timer expires (default 3 days outside `ready-to-drive`)
 - FSM goes to `hibernate-imminent` with timer target
 
@@ -276,6 +295,7 @@ Explicit `suspend` commands (LPUSH scooter:power suspend) skip the pre-suspend d
 The pm-service implements two inhibitor mechanisms:
 
 **1. Unix Socket Inhibitors**
+
 - Services connect to Unix domain socket (default: `/tmp/suspend_inhibitor`)
 - Connection-based: inhibitor active while socket connection open
 - All socket connections are `block` type
@@ -283,6 +303,7 @@ The pm-service implements two inhibitor mechanisms:
 - Automatically released when socket closes
 
 **2. Redis-based Inhibitors**
+
 - Stored in `power:inhibits` hash as JSON
 - Synced into the inhibitor manager on startup and on channel notifications
 - Three types: `block` (blocks everything), `delay` (short delay), `suspend-only` (blocks suspend but not hibernate/poweroff/reboot)
@@ -418,28 +439,33 @@ When the condition holds and the vehicle is in `stand-by`, a watcher enqueues `E
 The service logs to journald. Common log patterns:
 
 **Startup:**
+
 - `Starting power management service <version>`
 - `Enabled wakeup on ttymxc0` / `ttymxc1`
 - `Initial vehicle state: stand-by`
 - `Initial battery:0 state: idle`
 
 **Power state changes:**
+
 - `Received power command: hibernate`
 - `FSM state transition: running -> hibernate-imminent`
 - `Entering hibernate-imminent state`
 - `Issuing poweroff command`
 
 **Inhibitors:**
+
 - `Redis inhibitor added: update-service (block) by update-service — downloading`
 - `New inhibitor connected: @`
 - `Inhibitor disconnected: @`
 
 **Wakeup:**
+
 - `Wakeup detected with reason: 45`
 - `RTC wakeup detected, using fast path`
 - `Publishing wakeup source: 45`
 
 **CPU governor:**
+
 - `Received governor command: powersave`
 - `Setting CPU governor to: powersave`
 - `Successfully set CPU governor to powersave`
@@ -461,31 +487,37 @@ Use `journalctl -u librescoot-pm.service` to view logs.
 ### Key Components
 
 **FSM (`internal/fsm/definition.go`, `internal/fsm/types.go`)**
+
 - Defines all states, events, and transitions using librefsm
 - States: `running`, `pre-suspend`, `suspend-imminent`, `low-power-imminent`, `waiting-inhibitors`, `issuing-low-power`, `suspended`
 - Priority-based transition guards
 
 **Inhibitor Manager (`internal/inhibitor/inhibitor.go`)**
+
 - Manages Unix socket for connection-based inhibitors (always `block` type)
 - Tracks programmatically-added inhibitors
 - Calls `onChange` callback on every change; FSM receives `EvInhibitorsChanged`
 
 **Redis Inhibitor Listener (`internal/inhibitor/redis.go`)**
+
 - Syncs `power:inhibits` hash entries into the inhibitor manager
 - Supports `block`, `delay`, and `suspend-only` types from JSON `type` field
 
 **Hibernation Timer (`internal/hibernation/timer.go`)**
+
 - Tracks whether vehicle is in an idle state (not `ready-to-drive`)
 - Configurable timer duration (default 5 days); set to 0 to disable
 - Fires `EvHibernationTimerExpired` into the FSM on expiry
 
 **Hibernation Scheduler (`internal/hibernation/scheduler.go`)**
+
 - Cron-driven scheduler for `pm.scheduled-hibernate-*` settings (uses `github.com/robfig/cron/v3`, standard 5-field parser)
 - Latches a wall-clock validity gate based on `gps.active`; suppresses fires until first observed `"true"`
 - Defers cron fires while the vehicle is not in `stand-by` and dispatches on the next standby transition with the remaining time until the original wake-by target
 - 30 s background monitor detects wall-clock jumps and rebuilds the cron entry / re-evaluates pending deferred wakes accordingly
 
 **Service Coordinator (`internal/service/service.go`)**
+
 - Implements the FSM `Actions` interface
 - Coordinates all components (FSM, inhibitors, hibernation timer)
 - Handles Redis subscriptions and command lists
@@ -520,6 +552,7 @@ Supported governors: `ondemand`, `powersave`, `performance`.
 ### Wakeup Source Management
 
 The service enables wakeup on serial ports at startup:
+
 - `/sys/class/tty/ttymxc0/power/wakeup` → `enabled`
 - `/sys/class/tty/ttymxc1/power/wakeup` → `enabled`
 
@@ -556,22 +589,27 @@ redis-cli LPUSH scooter:governor powersave
 ### Integration Points
 
 **With vehicle-service:**
+
 - Monitors `vehicle state` for stand-by conditions
 - Triggers power transitions based on vehicle state changes
 
 **With battery-service:**
+
 - Monitors `battery:0` and `battery:1` state
 - Derived aggregate: if either slot is `active`, suspend is blocked
 
 **With modem-service:**
+
 - Sends `disable` command before hibernation when modem is the only blocker
 - Waits for modem to clear its blocking inhibitor
 
 **With settings-service:**
+
 - Reads `settings hibernation-timer` for timer duration in seconds
 - Subscribes to settings changes for dynamic updates
 
 **With update-service:**
+
 - Respects inhibitors written to `power:inhibits` hash
 - Type `suspend-only` delays suspend only; `block` blocks all low-power transitions
 

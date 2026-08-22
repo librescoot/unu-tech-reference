@@ -24,6 +24,7 @@ Usage of modem-service:
 ```
 
 **Active polling intervals:**
+
 - Modem health checks: Controlled by `-internet-check-time` (default: 30s)
 - GPS updates: Fixed at 1 second (GPSUpdateInterval constant)
 
@@ -32,6 +33,7 @@ Usage of modem-service:
 ### Hash: `internet`
 
 **Fields written:**
+
 - `modem-health` - Modem health state ("normal", "recovering", "recovery-failed-waiting-reboot", "permanent-failure-needs-replacement")
 - `modem-state` - Raw modem status ("off", "connected", "disconnected", "no-modem", "UNKNOWN")
 - `connectivity` - Debounced connectivity classification folding modem-state, SIM, registration, the enable flag and health into one verdict: `connected` / `disconnected` (provisioned-but-down) / `disabled` (off by command) / `no-sim` / `denied` (registration denied/failed, e.g. deactivated SIM) / `failed` (modem broken). Consumed by the dashboard to gate the internet icon. Hysteresis: connected->disconnected 3 min, denied 60 s; disabled/no-sim/failed immediate.
@@ -49,6 +51,7 @@ Usage of modem-service:
 ### Hash: `modem`
 
 **Fields written:**
+
 - `power-state` - Modem power state ("on", "off")
 - `sim-state` - SIM card state ("present", "missing", "locked", "inactive")
 - `sim-lock` - SIM lock status (unlock required type or empty)
@@ -66,6 +69,7 @@ Usage of modem-service:
 ### Hash: `gps`
 
 **Fields written:**
+
 - `latitude` - GPS latitude (decimal degrees, 6 decimal places)
 - `longitude` - GPS longitude (decimal degrees, 6 decimal places)
 - `altitude` - Altitude in meters
@@ -135,6 +139,7 @@ Watched via the settings hash and applied on change:
 ### Modem Power Control
 
 The service can control modem power via GPIO pin 110:
+
 - **Start modem:** 500ms pulse (turns modem ON)
 - **Restart modem:** 3500ms pulse (turns OFF), wait 15s, then 500ms pulse (turns ON)
 - **USB device path:** 1-1 (for USB unbind/bind recovery)
@@ -202,12 +207,14 @@ The service reconciles `cellular.apn`, `cellular.username`, `cellular.password`,
 **Check interval:** Configurable via `-internet-check-time` (default: 30s)
 
 **Health checks performed:**
+
 1. Find modem ID via ModemManager DBus
 2. Verify primary port is cdc-wdm0 (QMI interface)
 3. Verify power state is "on"
 4. If modem reports connected, perform ping test to 8.8.8.8
 
 **Monitored parameters (via ModemManager):**
+
 - Power state (on/off)
 - SIM state (present/missing/locked/inactive)
 - SIM lock status
@@ -235,6 +242,7 @@ The service uses a two-level status model:
    - "disconnected" - Modem not connected OR ping fails
 
 **Connectivity test:**
+
 - **Method:** ping -c 1 -W 1 8.8.8.8
 - **Timeout:** 2 seconds (context timeout)
 - **Trigger recovery:** If modem reports connected but ping fails
@@ -246,12 +254,14 @@ This ensures the service only reports "connected" when actual internet connectiv
 **Update interval:** 1 second (GPSUpdateInterval constant)
 
 **GPS States:**
+
 - `off` - GPS disabled (initial state)
 - `searching` - GPS enabled, waiting for fix
 - `fix-established` - Valid 2D or 3D fix obtained
 - `error` - GPS configuration or connection failed
 
 **State transitions:**
+
 1. GPS enable: `off` → `searching` → configure GPS → connect to gpsd
 2. Fix acquired: `searching` → `fix-established` (system clock set via `chronyc` on first fix)
 3. Fix lost: `fix-established` → `searching`
@@ -311,6 +321,7 @@ The service monitors GPS health separately from modem health:
 **GPS-Specific Recovery:**
 
 Before escalating to modem recovery, GPS-specific recovery is attempted (up to 3 times):
+
 1. Stop gpsd service
 2. Close existing GPS connection
 3. Reset GPS state tracking
@@ -329,6 +340,7 @@ The service maintains a health state machine with 4 states:
 4. **"permanent-failure-needs-replacement"** - Modem likely defective
 
 **Recovery triggers:**
+
 - No modem found via ModemManager
 - Wrong primary port (not cdc-wdm0)
 - Wrong power state (not "on")
@@ -340,11 +352,13 @@ The service maintains a health state machine with 4 states:
 When modem failure is detected, the service attempts recovery with 4 strategies (max 5 attempts):
 
 **Strategy 1: Software Reset**
+
 - Use mmcli to reset modem (mmcli -m X --reset)
 - Wait 60 seconds for recovery
 - Verify modem health
 
 **Strategy 2: USB Recovery**
+
 - Unbind USB device (echo "1-1" > /sys/bus/usb/drivers/usb/unbind)
 - Wait 30 seconds
 - Bind USB device (echo "1-1" > /sys/bus/usb/drivers/usb/bind)
@@ -352,6 +366,7 @@ When modem failure is detected, the service attempts recovery with 4 strategies 
 - Verify modem health
 
 **Strategy 3: GPIO Hardware Reset**
+
 - Send 3500ms GPIO pulse to turn modem OFF
 - Wait 15 seconds
 - Send 500ms GPIO pulse to turn modem ON
@@ -360,15 +375,18 @@ When modem failure is detected, the service attempts recovery with 4 strategies 
 - Fallback to mmcli reset if GPIO fails
 
 **Strategy 4: Extended Wait**
+
 - Wait 30 additional seconds
 - Recheck modem health
 
 **Recovery behavior:**
+
 - If max attempts (5) reached, wait 2 minutes and reset recovery counter (forgiving mode)
 - GPS recovery counter reset on successful modem recovery
 - Health state published to Redis after each recovery attempt
 
 This multi-strategy approach handles various failure modes:
+
 - Software hangs → mmcli reset
 - USB/driver issues → USB unbind/bind
 - Firmware crashes → GPIO hardware reset
@@ -381,6 +399,7 @@ The service logs to journald with systemd-aware formatting (no prefix when INVOC
 **Common log patterns:**
 
 Modem status:
+
 - "internet status: connected/disconnected"
 - "internet modem-state: off/connected/disconnected/no-modem"
 - "internet signal-quality: N"
@@ -390,6 +409,7 @@ Modem status:
 - "modem error-state: ok/powered-off/sim-missing/etc"
 
 GPS events:
+
 - "Waiting for valid GPS fix..."
 - "GPS fix established"
 - "gps quality: X.XX" (logged every 90 seconds)
@@ -397,6 +417,7 @@ GPS events:
 - "Successfully connected to gpsd"
 
 Recovery events:
+
 - "Modem failure detected: wrong_primary_port/wrong_power_state/etc"
 - "Attempting modem recovery (attempt N/5)"
 - "Attempting to reset the modem via mmcli"
@@ -407,6 +428,7 @@ Recovery events:
 - "Attempting GPS-specific recovery for: ..."
 
 Startup:
+
 - "modem-service v0.2.0"
 - "Modem is already present via D-Bus"
 - "Starting modem service on interface wwu1i5"
@@ -428,6 +450,7 @@ Use `journalctl -u librescoot-modem` or `journalctl -u modem-service` to view lo
 ### Go Dependencies
 
 From go.mod:
+
 - **github.com/redis/go-redis/v9** v9.7.0 - Redis client
 - **github.com/rescoot/go-mmcli** v0.5.0 - ModemManager interface
 - **github.com/stratoberry/go-gpsd** v1.3.0 - GPSD client

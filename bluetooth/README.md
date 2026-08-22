@@ -187,5 +187,6 @@ Reset reason register. Cumulative unless cleared. Fields are cleared by writing 
 | VBUS | 20 | RW | Reset due to wake up from System OFF mode (VBUS rising into valid range) | 0<br>1 | Not detected<br>Detected |
 
 Register layout has:
+
 - Low bits (0-3): Basic reset sources
 - High bits (16-20): System OFF wake-up sources

@@ -32,6 +32,7 @@ These flags only take effect when explicitly passed; each one then writes its va
 ### Hash: `alarm`
 
 **Fields written:**
+
 - `status` — current alarm status:
   - `disabled` — alarm system is disabled
   - `disarmed` — alarm enabled but not armed (vehicle not in stand-by)
@@ -48,6 +49,7 @@ These flags only take effect when explicitly passed; each one then writes its va
 ### Hash: `settings`
 
 **Fields read:**
+
 - `alarm.enabled`, `alarm.honk`, `alarm.duration`, `alarm.seatbox-trigger`
 - `alarm.hairtrigger`, `alarm.hairtrigger-duration`, `alarm.l1-cooldown`
 
@@ -68,6 +70,7 @@ These flags only take effect when explicitly passed; each one then writes its va
 ### Pub/Sub Channels
 
 **Subscribes to:**
+
 - `vehicle` — state, seatbox:opened event, seatbox:lock
 - `settings` — alarm.* changes
 - `power-manager` — state field
@@ -159,6 +162,7 @@ This is the only synchronous call alarm-service makes. All other chip-config flo
 When motion-service starts up after a hibernation wake AND finds `INT_STATUS_0` already latched, it publishes a one-shot `motion:interrupt {type: "wake-hibernation", ...}`. In this release motion-service does not yet write a `motion.wake-cause` hash field, so the durable backstop alarm-service looks for is never populated and the pub/sub event is the only carrier.
 
 alarm-service on startup:
+
 1. Calls `MotionClient.ConsumeWakeCause(ctx)` — HGET + HDEL on `motion.wake-cause`. If the timestamp is within 30 s of now, returns true.
 2. If true: sends `BMXInterruptEvent{Data:"wake-hibernation"}` to the FSM at `StateInit`. Sets `wakeFromHibernation=true`.
 3. FSM init checks the flag at `InitCompleteEvent`: if alarm-enabled + standby + wakeFromHibernation, transitions directly to `StateTriggerLevel1Wait` (treats the wake-edge as the L1 trigger). Hair trigger is skipped on this entry — the wake-edge isn't a tampering event by itself.

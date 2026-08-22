@@ -20,9 +20,11 @@ UMS_MENDER_TIMEOUT=15m       Per-file timeout for Mender update transfers (envir
 ### Hash: `usb`
 
 **Fields read/written:**
+
 - `mode` - Current USB mode (`normal`, `ums`, `ums-by-dbc`)
 
 **Fields written:**
+
 - `status` - Service status (`idle`, `preparing`, `active`, `processing`, `awaiting-reboot`)
   - `awaiting-reboot` is set while a UMS-initiated update install runs and the service waits for the post-install reboot (see UMS exit flow). It transitions back to `idle` once the reboot is triggered, the wait fails/times out, or a new UMS session cancels the pending reboot.
 - `step` - Current processing step (`settings`, `wireguard`, `radio-gaga`, `uplink-service`, `onboot`, `updates`, `maps`, or empty). The RPM and script stages run without setting `step`.
@@ -30,6 +32,7 @@ UMS_MENDER_TIMEOUT=15m       Per-file timeout for Mender update transfers (envir
 - `detail` - Human-readable transfer sub-step (e.g. `map.mbtiles (120/380 MB)`)
 
 **Subscribed channel:** `usb`
+
 - `mode` - Triggers mode switch when published
 
 ### List: `usb:log`
@@ -63,6 +66,7 @@ redis-cli PUBLISH usb mode
 ```
 
 **Mode behavior:**
+
 - **ums** — returns to normal after first USB disconnect
 - **ums-by-dbc** — stays in UMS after first disconnect, switches to normal after second disconnect (for DBC updates, which may disconnect and reconnect mid-process)
 - **normal** — standard g_ether USB network mode
