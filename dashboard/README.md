@@ -7,6 +7,7 @@ The Dashboard Controller (DBC) provides the primary user interface for the scoot
 ## Implementation
 
 The dashboard UI is implemented as a Qt/QML application (unu-dashboard-ui) that:
+
 - Runs on the DBC (Dashboard Controller)
 - Connects to Redis at 192.168.7.1:6379 in production (defaults to 127.0.0.1:6379, configurable via command-line options)
 - Subscribes to Redis pub/sub channels for real-time updates
@@ -44,6 +45,7 @@ The debug mode provides a development and diagnostic interface that is not inten
 ### Activating Debug Mode
 
 Debug mode can be activated by:
+
 1. Push to the command list: `LPUSH scooter:dashboard-mode debug`
 2. The dashboard uses BLPOP to read from this list and switches to debug view
 3. The dashboard then writes the mode to `dashboard:mode` as confirmation
@@ -79,6 +81,7 @@ The central display area adapts based on the current mode:
 ### Speedometer Display
 
 The speedometer shows:
+
 - Current speed (km/h or mph based on user settings)
 - Energy recuperation status during braking
 - Throttle status indicators
@@ -89,12 +92,14 @@ Speed display can adapt to the user's preferred unit system (metric/imperial), b
 ### Navigation View
 
 The navigation interface includes:
+
 - Interactive map with route visualization
 - Turn-by-turn instruction banners
 - Distance to destination
 - Estimated arrival information
 
 The view adapts based on vehicle state:
+
 - Parked: Route overview mode
 - Driving: Tracking mode with upcoming instructions
 - Rerouting: Rerouting status display
@@ -144,6 +149,7 @@ HGET internet access-tech  # Network type (LTE, UMTS, etc.)
 ### Notification System
 
 The dashboard displays various notifications for:
+
 - Battery status (low charge warnings, charging status)
 - System warnings (faults, errors)
 - Navigation events
@@ -178,6 +184,7 @@ The navigation view has several states that adapt based on vehicle status:
 ### Theme Adaptation
 
 The dashboard automatically switches between:
+
 - Dark theme (Speedometer mode)
 - Light theme (Navigation mode)
 
@@ -200,6 +207,7 @@ Theme transitions include animation timing for smooth visual changes.
 ### Mode Switching Logic
 
 Mode switching occurs when:
+
 - Navigation is started/stopped (via `LPUSH scooter:navigation start/stop`)
 - Debug mode is explicitly enabled/disabled (via `LPUSH scooter:dashboard-mode debug`)
 - Dashboard reads mode commands from Redis lists using BLPOP with infinite timeout
@@ -207,6 +215,7 @@ Mode switching occurs when:
 ### Navigation Behavior
 
 The navigation system responds to several states:
+
 - Navigation triggered by `LPUSH scooter:navigation start` (using the Mapbox API - doesn't work anymore)
 - Navigation stopped by `LPUSH scooter:navigation stop`
 - Automatic rerouting when deviating from route (doesn't seem work)

@@ -89,12 +89,14 @@ stateDiagram-v2
 
 #### CanEnterReadyToDrive()
 Vehicle can enter "ready-to-drive" when ALL conditions are met:
+
 - Dashboard ready
 - Kickstand up
 - Handlebar unlocked
 
 #### Hibernation Sequence
 Manual hibernation requires:
+
 1. Both brakes pressed
 2. Current state is `parked`
 3. Brake-lever hibernation not disabled via the `settings` hash key `scooter.brake-hibernation`

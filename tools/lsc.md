@@ -62,6 +62,7 @@ lsc vehicle open
 ```
 
 **Redis operations:**
+
 - Sends commands to `scooter:state` list (lock, unlock, force-lock, lock-hibernate)
 - Sends commands to `scooter:seatbox` list (open)
 - Monitors `vehicle` hash for state changes
@@ -88,6 +89,7 @@ lsc power reboot
 ```
 
 **Redis operations:**
+
 - Sends commands to `scooter:power` list
 - Reads from `power-manager` hash
 
@@ -119,6 +121,7 @@ lsc svc logs redis --lines 100       # Show 100 lines (-n 100)
 ```
 
 **Service name shortcuts** (every mapped name resolves to a `librescoot-*` unit):
+
 - `vehicle` → `librescoot-vehicle.service`
 - `battery` → `librescoot-battery.service`
 - `ecu` → `librescoot-ecu.service`
@@ -141,6 +144,7 @@ Any name not in the map is passed through unchanged with `.service` appended, so
 resolves to `redis.service`.
 
 **System integration:**
+
 - Uses `systemctl` commands via D-Bus
 - Uses `journalctl` for log retrieval
 
@@ -157,6 +161,7 @@ lsc led fade <channel> <index|name>
 ```
 
 **Redis operations:**
+
 - Sends commands to `scooter:led:cue` list
 - Sends commands to `scooter:led:fade` list
 
@@ -178,6 +183,7 @@ lsc battery --json
 ```
 
 **Redis operations:**
+
 - Reads from the `battery:0`, `battery:1`, `aux-battery` and `cb-battery` hashes, plus the `battery:<id>:faults` sets
 
 ### GPS Tracking
@@ -196,6 +202,7 @@ lsc gps status --json
 ```
 
 **Redis operations:**
+
 - Reads from `gps` hash
 - `lsc gps watch` re-reads the `gps` hash on a 1 s ticker (it does not subscribe to any channel)
 
@@ -222,6 +229,7 @@ lsc alarm silence
 ```
 
 **Redis operations:**
+
 - `arm` / `disarm` HSET `alarm.enabled` in the `settings` hash and PUBLISH `settings` — they do not touch `scooter:alarm`
 - `trigger [duration]` sends `start:<seconds>` to the `scooter:alarm` list; `silence` sends `disarm`
 - Reads from `alarm` hash (`status`)
@@ -249,6 +257,7 @@ lsc del custom.field
 ```
 
 **Common settings:**
+
 - `alarm.enabled` - Enable/disable alarm system (true/false)
 - `alarm.honk` - Enable horn during alarm (true/false)
 - `alarm.duration` - Alarm duration in seconds
@@ -262,6 +271,7 @@ lsc del custom.field
 - `updates.dbc.channel` - DBC update channel
 
 **Redis operations:**
+
 - Reads/writes `settings` hash
 - Publishes to `settings` channel for changes
 
@@ -295,6 +305,7 @@ lsc ota status --json
 ```
 
 **Redis operations:**
+
 - Reads from the `ota` hash (status:mdb, status:dbc, download-progress, etc.), plus `settings`, `vehicle`, and `version_id` from `version:mdb` / `version:dbc`
 - `lsc ota check [mdb|dbc]` sends `check-now` to `scooter:update:mdb` and/or `scooter:update:dbc`
 
@@ -342,6 +353,7 @@ lsc diag handlebar unlock
 ```
 
 **Redis operations:**
+
 - `diag version` reads the `system`, `engine-ecu`, `battery:0`, `battery:1` and `ota` hashes
 - `diag faults` reads the `vehicle:fault`, `battery:0:faults` and `battery:1:faults` sets
 - Reads from `events:faults` stream using XREAD
@@ -364,6 +376,7 @@ lsc engine off
 ```
 
 **Redis operations:**
+
 - Sends commands to `scooter:hardware` list (dashboard:on, dashboard:off, engine:on, engine:off)
 
 ### Status Overview
@@ -379,6 +392,7 @@ lsc status --json
 ```
 
 Shows summary of:
+
 - Vehicle state (state, kickstand, brakes, blinker switch, seatbox, ambient temperature)
 - Motor status (speed, RPM, throttle, odometer, voltage, current, temperature, KERS)
 - Main batteries 0 and 1, plus the AUX and CB batteries
@@ -400,6 +414,7 @@ lsc monitor all --duration 30m
 ```
 
 **Redis operations:**
+
 - Subscribes to the channels named on the command line and displays real-time updates
 - Samples and logs metrics at intervals
 

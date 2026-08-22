@@ -29,6 +29,7 @@ Usage of ecu-service:
 ### Hash: `engine-ecu`
 
 **Fields written:**
+
 - `motor:voltage` - Motor voltage in mV
 - `motor:current` - Motor current in mA (signed, negative during regenerative braking)
 - `rpm` - Motor RPM
@@ -44,6 +45,7 @@ Usage of ecu-service:
 - `kers-reason-off` - Reason KERS is disabled ("none", "cold", "hot")
 
 **Published channels:**
+
 - `engine-ecu throttle` - Published when throttle state changes
 - `engine-ecu kers` - Published when KERS state changes
 - `engine-ecu odometer` - Published when odometer updates
@@ -52,6 +54,7 @@ Usage of ecu-service:
 ### Hash: `settings`
 
 **Fields read:**
+
 - `engine-ecu.kers` - KERS enable/disable ("enabled"/"disabled"; default: enabled)
 - `engine-ecu.kers-power` - KERS regenerative braking current in mA for single-battery operation (default: 10000)
 - `engine-ecu.kers-power-dual` - KERS regenerative braking current in mA when both batteries are active (optional; when unset, `kers-power` is used for both cases)
@@ -70,9 +73,11 @@ The service subscribes to the following channels to monitor system state:
 ### Redis Operations for Fault Management
 
 **Set:** `engine-ecu:fault`
+
 - Contains active fault codes (SADD when fault occurs, SREM when cleared)
 
 **Stream:** `events:faults`
+
 - Publishes fault events with group="engine-ecu", code (positive when set, negative when cleared), and description
 - Limited to 1000 entries (MAXLEN)
 
@@ -95,6 +100,7 @@ The service supports two ECU types, selectable via the `-ecu_type` flag:
 #### Bosch ECU
 
 **CAN Message IDs:**
+
 - `0x7E0` - Status1: Voltage, current, RPM, speed, throttle state
 - `0x7E1` - Status2: Temperature, fault codes
 - `0x7E2` - Status3: Odometer
@@ -103,14 +109,17 @@ The service supports two ECU types, selectable via the `-ecu_type` flag:
 - `0x4E2` - EBS settings (sent to ECU for KERS voltage/current)
 
 **Speed Calibration:**
+
 - Applies calibration factor: 1.03
 - Applies tolerance factor: 1.155556
 - Formula: `speed = moving_average(raw_speed, 3 samples) * 1.03 * 1.155556` (the buffer resets to 0 whenever raw speed is 0)
 
 **Odometer Calibration:**
+
 - Odometer values multiplied by 1.07 and converted from 0.1km to meters
 
 **KERS Control:**
+
 - Sends voltage/current settings (56V, 10A) via CAN ID 0x4E2
 - Sends enable/disable commands via CAN ID 0x4E0
 - Supports gear mode and boost mode flags
@@ -118,19 +127,23 @@ The service supports two ECU types, selectable via the `-ecu_type` flag:
 #### Votol ECU
 
 **CAN Message IDs:**
+
 - `0x9026105A` - Display to controller (speed, odometer)
 - `0x90261022` - Controller to display (RPM, voltage, current)
 - `0x90261023` - Controller status (temperature, fault codes)
 
 **Speed Calculation:**
+
 - Speed calculated from RPM: `speed = rpm * 0.0783744`
 - No separate speed calibration applied
 
 **KERS Control:**
+
 - KERS control not yet implemented for Votol (TODO in code)
 - State tracking only, no active control
 
 **Throttle State:**
+
 - Votol ECU does not report throttle state in current implementation
 - Throttle field always reports "off"
 
@@ -231,6 +244,7 @@ The service manages KERS based on battery temperature and vehicle state:
 The service monitors ECU fault codes and manages them through Redis. Faults are specific to each ECU type:
 
 **Common Faults (Both ECU Types):**
+
 - Battery over-voltage / under-voltage
 - Motor stalled
 - Hall sensor abnormal
@@ -240,6 +254,7 @@ The service monitors ECU fault codes and manages them through Redis. Faults are 
 - Internal 15V abnormal
 
 **Bosch-Specific Faults:**
+
 - Motor short-circuit
 - Motor open-circuit
 - MOSFET check error
@@ -247,10 +262,12 @@ The service monitors ECU fault codes and manages them through Redis. Faults are 
 - Throttle active at power-up
 
 **Votol-Specific Fault Mapping:**
+
 - Fault codes are bit-mapped (0x01, 0x02, 0x04, etc.)
 - Subset of common faults supported
 
 **Fault Handling:**
+
 - Active faults added to `engine-ecu:fault` set
 - Fault events published to `events:faults` stream
 - Notification published to `engine-ecu` channel with "fault" payload
