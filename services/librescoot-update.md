@@ -56,11 +56,13 @@ All fields are namespaced by component (`mdb` or `dbc`):
 | `error-message:{component}` | Human-readable error details | String or empty |
 
 **Published channel:** `ota`
+
 - All field updates are published atomically on state transitions
 
 ### Hash: `settings` (read/written)
 
 **Fields read:**
+
 - `updates.{component}.channel` — update channel (`stable`, `testing`, `nightly`)
 - `updates.{component}.check-interval` — check interval (e.g. `6h`, `30m`)
 - `updates.{component}.releases-url` — release index base URL
@@ -69,9 +71,11 @@ All fields are namespaced by component (`mdb` or `dbc`):
 - `updates.mdb.orchestrate-dbc` — MDB-only: whether MDB orchestrates DBC updates
 
 **Fields written:**
+
 - `updates.{component}.last-check-time` — RFC3339 timestamp of last update check
 
 **Subscribed channel:** `settings`
+
 - All `updates.{component}.*` field changes are applied at runtime
 
 ### Hash: `version:{component}` (read)

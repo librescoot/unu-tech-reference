@@ -33,6 +33,7 @@ LibreScoot alarm-service v0.10.0 (v1.0.5 pinned SRCREV a20b0c5)
 ### Hash: `alarm`
 
 **Fields written:**
+
 - `status` - Current alarm status:
   - `disabled` - Alarm system is disabled
   - `disarmed` - Alarm enabled but not armed (vehicle not in stand-by)
@@ -48,6 +49,7 @@ LibreScoot alarm-service v0.10.0 (v1.0.5 pinned SRCREV a20b0c5)
 ### Hash: `settings`
 
 **Fields read:**
+
 - `alarm.enabled` - Alarm system enabled ("true"/"false")
 - `alarm.honk` - Horn enabled during alarm ("true"/"false")
 - `alarm.duration` - Alarm duration in seconds
@@ -57,6 +59,7 @@ LibreScoot alarm-service v0.10.0 (v1.0.5 pinned SRCREV a20b0c5)
 - `alarm.l1-cooldown` - Level 1 cooldown duration in seconds
 
 **Fields written (if CLI flags set):**
+
 - `alarm.enabled` - Overrides alarm enabled state
 - `alarm.honk` - Overrides Redis value with CLI flag value
 - `alarm.duration` - Overrides alarm duration
@@ -70,6 +73,7 @@ LibreScoot alarm-service v0.10.0 (v1.0.5 pinned SRCREV a20b0c5)
 ### Hash: `bmx`
 
 **Fields written once at startup (informational; never updated afterwards):**
+
 - `initialized` - always "true"
 - `interrupt` - always "disabled"
 - `sensitivity` - always "none"
@@ -129,16 +133,19 @@ init → waiting_enabled → disarmed → delay_armed (5s) → armed
 ### State Transitions
 
 The alarm arms when:
+
 - Alarm is enabled (`settings alarm.enabled` = "true")
 - Vehicle enters `stand-by` state
 - 5-second delay_armed period completes
 
 The alarm triggers when:
+
 - BMX055 detects motion while armed
 - Level 1: Minor movement detected
 - Level 2: Major movement detected or Level 1 continues
 
 The alarm disarms when:
+
 - Vehicle enters `parked`, `ready-to-drive` or `waiting-seatbox`. Other states, including `updating` and the hibernation-wait states, keep the alarm armed
 - User disables alarm (`LPUSH scooter:alarm disable`)
 - Runtime disarm (`LPUSH scooter:alarm disarm`). `stop` only silences the horn and hazards; it does not change FSM state
@@ -176,12 +183,14 @@ The service automatically configures BMX sensitivity based on alarm state:
 ### Alarm Outputs
 
 **Horn Pattern:**
+
 - 400ms on, 400ms off alternating (800ms per cycle)
 - Runs for integral cycles only (no partial honks)
 - Active during Level 2 trigger and hair trigger (if enabled)
 - Controlled via `scooter:horn` list
 
 **Hazard Lights:**
+
 - Continuous during Level 2 alarm
 - Controlled via `scooter:blinker` list (`both` command)
 
@@ -275,6 +284,7 @@ When vehicle enters `stand-by` with alarm enabled:
 ### Disarming
 
 Alarm disarms when:
+
 - Vehicle enters `parked`, `ready-to-drive` or `waiting-seatbox` (user unlocks)
 - Alarm disabled via `LPUSH scooter:alarm disable`
 - Runtime disarm via `LPUSH scooter:alarm disarm` (`stop` only silences horn and hazards)

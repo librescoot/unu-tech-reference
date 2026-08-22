@@ -7,6 +7,7 @@ Four 30-pin connectors (CM1, CM3, CM9, CM10) interface with the Middle Driver Bo
 
 #### CM10 Connector (Primary Power)
 Key signals:
+
 - +48V ECU/MDB connection 
 - Battery supply lines
 - CAN bus (H/L)
@@ -18,6 +19,7 @@ Key signals:
 
 #### CM9 Connector (System Control)
 Key signals:
+
 - Seat box sensor
 - Steering lock state
 - Handlebar position
@@ -31,6 +33,7 @@ Key signals:
 
 #### CM3 Connector (Motor Control) 
 Key signals:
+
 - Motor phase connections (U/V/W)
 - Hall sensor interface
   - Power (+5V)
@@ -42,6 +45,7 @@ Key signals:
 
 #### CM1 Connector (Auxiliary Systems)
 Key signals:
+
 - LCD Display interface
 - Keypad/button inputs
 - Status LED outputs
@@ -53,6 +57,7 @@ Key signals:
 
 ### ECU Connections
 Main connector:
+
 - Motor phase connections (U/V/W)
 - Hall sensor interface:
   - +5V supply
@@ -115,12 +120,14 @@ Main connector:
 ## Control Interfaces
 ### Handlebar Controls
 Left side:
+
 - Seat box release button
 - Turn signal switch (3-position)
 - Horn button
 - Brake switch
 
 Right side:
+
 - Throttle position sensor
 - Brake switch
 - Ground connections

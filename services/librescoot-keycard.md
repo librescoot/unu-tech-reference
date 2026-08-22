@@ -21,14 +21,17 @@ Handles NFC-based authentication for the scooter. Detects keycards via the PN715
 ### Hash: `keycard` (written)
 
 **Fields written on authentication:**
+
 - `authentication` - `passed` when authorized UID detected
 - `type` - `scooter`
 - `uid` - UID of the card that authenticated (expires after 10 seconds)
 
 **Fields written on command response:**
+
 - `command-result` - Result of last management command (e.g. `ok`, `count:3`, `card:<uid>`, `error:<reason>`)
 
 **Published channel:** `keycard`
+
 - `authentication` - Published when authorized keycard detected
 
 ### List: `scooter:keycard` (consumed)
@@ -57,15 +60,18 @@ Responses are written to `keycard command-result`.
 ### LED Controllers
 
 **I2C LED (LP5562 tri-color):**
+
 - I2C bus 2, address `0x30`
 - Enabled with `--led-device /dev/i2c-2`
 - Green: authorized card; Red: unauthorized; Amber: lookup in progress; Blinking: master learning mode
 
 **PWM LEDs (learn mode):**
+
 - `/dev/pwm_led3`, `/dev/pwm_led7` — on during learn mode
 - Controlled via `/usr/bin/ledcontrol.sh`
 
 **Script-based fallback** (when `--led-device` not set):
+
 - `/usr/bin/greenled.sh` — color/on/off
 - `/usr/bin/ledcontrol.sh` — PWM pattern control
 
@@ -74,6 +80,7 @@ Responses are written to `keycard command-result`.
 ### Master Learning Mode (first boot)
 
 Activated when `master_uids.txt` does not exist:
+
 1. RGB LED blinks (500ms) — waiting for master card
 2. First card presented becomes master UID, saved to `master_uids.txt`
 3. Authorized list cleared; RGB LED flashes once to confirm
@@ -90,6 +97,7 @@ Activated when `master_uids.txt` does not exist:
 ### Learn Mode
 
 Activated by presenting master UID or via `learn:start`:
+
 1. PWM LEDs 3 + 7 turn on
 2. Each new card presented: added to session queue, Green LED flash
 3. Present master UID again or `learn:stop` to exit
