@@ -301,6 +301,17 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#what-changed-in-v103" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        What changed in v1.0.3
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#system-architecture" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
@@ -1502,6 +1513,17 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#what-changed-in-v103" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        What changed in v1.0.3
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#system-architecture" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
@@ -1673,6 +1695,20 @@
 
 <h1 id="unu-scooter-pro-technical-documentation">unu Scooter Pro - Technical Documentation<a class="headerlink" href="#unu-scooter-pro-technical-documentation" title="Permanent link">&para;</a></h1>
 <p>Reverse-engineered technical documentation of the unu Scooter Pro.</p>
+<h2 id="what-changed-in-v103">What changed in v1.0.3<a class="headerlink" href="#what-changed-in-v103" title="Permanent link">&para;</a></h2>
+<p>Hotfix for v1.0.2 with corrected version pinning. It ships the same service
+revisions as v1.0.2, which should be skipped. Everything below landed in v1.0.2
+and is documented here because v1.0.3 is the release you should be running.</p>
+<ul>
+<li>BLE accepts the legacy version-string subtype key, fixing pairing with
+  scooters still on older firmware</li>
+<li>Keycard learning gained <code>learn:master</code> and <code>reset</code> commands, with events
+  published on tap</li>
+<li>Dual-battery display fixes: the turtle icon triggers when either active pack
+  is low, and the low-charge colour follows whichever pack is active</li>
+<li>update-service matches real stable filenames when picking a Mender artifact</li>
+</ul>
+<p><a href="https://github.com/librescoot/librescoot/releases/tag/v1.0.3">Release notes</a></p>
 <h2 id="system-architecture">System Architecture<a class="headerlink" href="#system-architecture" title="Permanent link">&para;</a></h2>
 <p>The unu Scooter Pro uses a distributed architecture with several key systems:</p>
 <h3 id="core-electronics">Core Electronics<a class="headerlink" href="#core-electronics" title="Permanent link">&para;</a></h3>

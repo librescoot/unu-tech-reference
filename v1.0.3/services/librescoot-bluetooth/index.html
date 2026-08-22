@@ -2831,7 +2831,7 @@ Messages are CBOR-encoded maps with structure:
 <li><code>alarm:start:&lt;N&gt;</code> → <code>LPUSH scooter:alarm start:&lt;N&gt;</code></li>
 <li><code>alarm:stop</code> → <code>LPUSH scooter:alarm stop</code></li>
 </ul>
-<p>The alarm-service processes the command and the response (<code>alarm:ok</code>) is returned via EXTENDED_RESPONSE (0x0402).</p>
+<p>bluetooth-service replies <code>alarm:ok</code> via EXTENDED_RESPONSE (0x0402) as soon as the command is queued on <code>scooter:alarm</code>. The reply confirms the enqueue only; alarm-service processes the command asynchronously.</p>
 <p><strong>LTC4020 aux charger control:</strong></p>
 <ul>
 <li><code>ltc:enable</code> — safe-enable LTC4020 charger (rejected if unsafe)</li>

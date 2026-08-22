@@ -2444,7 +2444,7 @@
 </li>
 <li>Subscribe to SKY reports (for DOP values: HDOP, VDOP, PDOP)</li>
 <li>Subscribe to TPV reports (for position data)</li>
-<li>Monitor fix mode: 0/1=none, 2=2D, 3=3D</li>
+<li>Monitor fix mode: 0=no value in this report (previous fix state preserved), 1=none, 2=2D, 3=3D</li>
 </ol>
 <p><strong>GPS Data Processing:</strong></p>
 <ul>
@@ -2531,7 +2531,7 @@
 <li>Transient issues → Extended wait</li>
 </ul>
 <h2 id="log-output">Log Output<a class="headerlink" href="#log-output" title="Permanent link">&para;</a></h2>
-<p>The service logs to journald with systemd-aware formatting (no prefix when INVOCATION_ID is set).</p>
+<p>The service logs to journald with systemd-aware formatting (no prefix or timestamps when <code>JOURNAL_STREAM</code> is set).</p>
 <p><strong>Common log patterns:</strong></p>
 <p>Modem status (all fields that changed on a tick are consolidated into one line per hash, as key=value pairs):</p>
 <ul>
