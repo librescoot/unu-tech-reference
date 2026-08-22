@@ -2,27 +2,21 @@
 
 ## Description
 
-The modem service manages the cellular modem (SimCom SIM7100E) for internet connectivity and GPS functionality using ModemManager (mmcli). It monitors network registration, signal quality, access technology (2G/3G/4G), handles modem power management and recovery, manages network connectivity, and provides GPS coordinates via gpsd. The service implements intelligent health monitoring with multi-strategy recovery procedures and GPS-specific recovery mechanisms. It also sends and receives SMS: outbound messages via the `scooter:sms` queue, inbound messages published to the `sms` hash.
-
+The modem service manages the cellular modem (SimCom SIM7100E) for internet connectivity and GPS functionality using ModemManager (mmcli). It monitors network registration, signal quality, access technology (2G/3G/4G), handles modem power management and recovery, manages network connectivity, and provides GPS coordinates via gpsd. The service implements intelligent health monitoring with multi-strategy recovery procedures and GPS-specific recovery mechanisms. 
 ## Command-Line Options
 
 ```
 Usage of modem-service:
-  -data-usage-file string
-        Where to persist cellular byte totals; empty keeps them in memory only
-        (default "/data/internet-usage.json")
   -debug
         Enable debug logging
   -gpsd-server string
         GPSD server address (default "localhost:2947")
   -interface string
-        Network interface to monitor (default "wwan0")
+        Network interface to monitor (default "wwu1i5")
   -internet-check-time duration
         Internet check interval (default 30s)
   -redis-url string
         Redis URL (default "redis://127.0.0.1:6379")
-  -sms-keepalive
-        Keep the CS (SGs) registration alive for SMS delivery via periodic self-calls
   -supl-server string
         SUPL server for A-GPS (default "supl.google.com:7276")
   -version
@@ -42,51 +36,15 @@ Usage of modem-service:
 - `modem-state` - Raw modem status ("off", "connected", "disconnected", "no-modem", "UNKNOWN")
 - `connectivity` - Debounced connectivity classification folding modem-state, SIM, registration, the enable flag and health into one verdict: `connected` / `disconnected` (provisioned-but-down) / `disabled` (off by command) / `no-sim` / `denied` (registration denied/failed, e.g. deactivated SIM) / `failed` (modem broken). Consumed by the dashboard to gate the internet icon. Hysteresis: connected->disconnected 3 min, denied 60 s; disabled/no-sim/failed immediate.
 - `status` - Derived internet connectivity status ("connected", "disconnected") - determined by actual ping test to 8.8.8.8
-- `ip-address` - Interface IP address from wwan0/ppp0
+- `ip-address` - Interface IP address from wwu1i5/ppp0
 - `access-tech` - Access technology from modem ("2G", "GSM", "3G", "UMTS", "4G", "LTE", "5G", "UNKNOWN")
 - `signal-quality` - Signal strength (0-100, or 255 if unknown)
 - `unu-cloud` - Cloud (uplink) connection status — written by `uplink-service`, not modem-service ("connected"/"disconnected")
 - `sim-imei` - Modem IMEI identifier (identifies modem hardware, not SIM - name kept for backward compatibility)
 - `sim-imsi` - SIM IMSI identifier (unique subscriber identity)
 - `sim-iccid` - SIM ICCID identifier (unique SIM card identifier)
-- `reachability` - Probe verdict: `ok` / `unreachable` (nothing answered but the local stack is healthy, which is the correct steady state on a restricted APN) / `no-path` (local stack broken)
-- `link-layer` - Local stack assessment: `ok`, or the failed layer plus an optional reason
 
 **Published channel:** `internet` (publishes field name on change)
-
-### Hash: `internet-usage`
-
-Cellular byte totals, taken from the ModemManager bearer's own counters.
-
-**Fields written:**
-- `rx-bytes` - Bytes received over the cellular bearer since `since`
-- `tx-bytes` - Bytes transmitted over the cellular bearer since `since`
-- `rx-bytes-roaming` - The part of `rx-bytes` that moved while registered as roaming
-- `tx-bytes-roaming` - The part of `tx-bytes` that moved while registered as roaming
-- `since` - RFC 3339 timestamp of when counting started
-- `updated` - RFC 3339 timestamp of the last write
-
-**Published channel:** none. The hash is written silently because the totals move
-on every poll while data is flowing; consumers poll it.
-
-The totals are monotonic. ModemManager's own counters are not: they belong to a
-bearer object, and it hands out a fresh one on every modem reset. modem-service
-reads MM's across-reconnect figures (`total-rx-bytes`/`total-tx-bytes`, MM 1.20+,
-falling back to the per-connection-attempt `rx-bytes`/`tx-bytes`) and folds each
-reading into a running total, treating a new bearer or a counter going backwards
-as a restart. Period boundaries are not modelled on the vehicle: difference the
-totals to get usage over a window.
-
-The roaming fields are a subset, not a separate pot - roaming traffic is counted
-in both, so home traffic is `rx-bytes - rx-bytes-roaming`.
-
-Persisted to `/data/internet-usage.json` (see `-data-usage-file`) when
-the modem is disabled ahead of a suspend/hibernate/poweroff and on service
-shutdown, with a 6 hour backstop for a unit that stays up without a power
-transition. Writing on every poll would spend eMMC write cycles on a counter that
-is device-reported and not billing-grade, so a hard power cut can lose up to that
-much counted traffic. A `since` that has moved forward means the stored file was
-lost and the baseline restarted.
 
 ### Hash: `modem`
 
@@ -104,42 +62,6 @@ lost and the baseline restarted.
 - `apn-action` - Outcome of last APN reconcile ("no-sim", "unconfigured", "ok", "applied", "iccid-changed-cleared", "error")
 
 **Published channel:** `modem` (publishes field name on change)
-
-### SMS: hash `sms`, streams `sms:received` / `sms:sent`
-
-**`sms` hash (latest-value convenience state):**
-- `state` - Send state of the last outbound message ("idle", "sending", "error"); published as a `state` notification on the `sms` channel
-- `last-sent-to` - Recipient number of the last successfully sent SMS
-- `last-sent-at` - RFC 3339 timestamp the last send completed
-- `last-received-from` - Sender number of the last inbound SMS
-- `last-received-text` - Body of the last inbound SMS
-- `last-received-at` - RFC 3339 timestamp the last inbound SMS arrived
-- `unread-count` - Inbound messages received since service start
-
-The `last-received-*` fields refresh silently; per-message notifications go to
-the dedicated channels below.
-
-**Streams (capped at 100 entries, one dedicated pub/sub channel each):**
-- `sms:received` - one entry per inbound message: `from`, `text`, `timestamp`.
-  The `sms:received` channel carries each entry as JSON including its stream
-  `id`.
-- `sms:sent` - one entry per terminal send outcome: `request-id` (caller's
-  `id` token from `scooter:sms`, empty if none), `to`, `text`, `outcome`
-  (`sent`/`error`), `error`, `timestamp`. The `sms:sent` channel carries each
-  entry as JSON including its stream `id`.
-
-An inbound message is deleted from modem storage only after its XADD
-succeeded, so modem storage buffers messages across Redis outages and the
-periodic drain retries delivery. Messages that arrived while the service was
-offline are drained on startup. Redis is not persistent on librescoot: the
-streams are a live window, empty after reboot.
-
-With `-sms-keepalive` enabled, the service keeps the CS (SGs) registration
-alive by briefly calling its own number after ~13 minutes without CS activity,
-working around operators that implicitly detach idle CS registrations (which
-silently stops inbound SMS). Off by default: the self-call is only free as
-long as the SIM's mailbox does not pick up busy calls, and it needs a SIM with
-a stored MSISDN.
 
 ### Hash: `gps`
 
@@ -175,7 +97,6 @@ Full TPV snapshot (same fields as the `gps` hash, JSON object) published for eve
 ### Lists consumed (BRPOP)
 
 - `scooter:modem` - `enable`, `disable`
-- `scooter:sms` - outbound SMS requests as JSON: `{"id":"optional-token","to":"+49...","text":"..."}` (the only queue with a JSON payload)
 
 GPS has no commands: the GNSS positioning mode is derived automatically from connectivity state, gated by the `modem.gps` setting. The legacy `gps:enable` / `gps:disable` commands are gone.
 
@@ -207,7 +128,7 @@ Watched via the settings hash and applied on change:
 - **Model:** SimCom SIM7100E
 - **Interface:** USB (managed via ModemManager)
 - **Primary port:** cdc-wdm0 (QMI control interface)
-- **Network interface:** Configurable via `-interface` option (default: `wwan0`)
+- **Network interface:** Configurable via `-interface` option (default: `wwu1i5`)
 - **Control:** Via ModemManager (mmcli) and AT commands
 - **GPIO control:** GPIO pin 110 (LTE_POWER) for hardware reset
 
@@ -241,7 +162,7 @@ The service can control modem power via GPIO pin 110:
 
 ### Network Configuration
 
-- **Interface:** wwan0 (default) or ppp0
+- **Interface:** wwu1i5 (default) or ppp0
 - **DNS:** Provided by mobile operator
 - **Connectivity test:** Ping to 8.8.8.8 (Google DNS)
 
@@ -487,8 +408,8 @@ Recovery events:
 
 Startup:
 - "modem-service v0.2.0"
-- "Modem interface wwan0 is already present"
-- "Starting modem service on interface wwan0"
+- "Modem is already present via D-Bus"
+- "Starting modem service on interface wwu1i5"
 
 Use `journalctl -u librescoot-modem` or `journalctl -u modem-service` to view logs.
 

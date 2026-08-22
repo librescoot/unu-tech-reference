@@ -11,19 +11,6 @@ Local connection command:
 redis-cli -h 192.168.7.1 -p 6379
 ```
 
-### Redis or Valkey - Librescoot Only
-
-Librescoot 1.2 replaced Redis with Valkey 9 (wrynose's meta-oe ships it; the
-tuned config was ported over directly). It speaks the same protocol on the same
-port and `redis-cli` remains as a compat symlink, so everything documented here
-applies unchanged, as do the `--redis-*` flags across the services.
-
-What did change is the systemd unit name: service units now order against
-`valkey.service`, not `redis.service`. Anything that hardcodes the old unit name
-will not find it on 1.2 or later.
-
-Stock ScooterOS and Librescoot 1.1 and earlier still run Redis.
-
 ## Key Structure
 
 The Redis database uses hash sets for system state storage. All fields default to empty strings ("") when data is unavailable unless otherwise noted.
@@ -41,9 +28,7 @@ hgetall vehicle
 | handlebar:lock-sensor | "locked"/"unlocked" | Handlebar lock state | "unlocked" |
 | main-power | "on"/"off" | Main power state | "off" |
 | kickstand | "up"/"down" | Side stand position | "down" |
-| seatbox:button | "on"/"off" | Seat open button state | "off" |
 | seatbox:lock | "open"/"closed" | Seat lock state | "closed" |
-| horn:button | "on"/"off" | Horn button state | "off" |
 | brake:left | "on"/"off" | Left brake state | "off" |
 | brake:right | "on"/"off" | Right brake state | "off" |
 | blinker:switch | "left"/"right"/"both"/"off" | Blinker switch position | "off" |
@@ -154,7 +139,6 @@ hgetall system
 | dbc-version | string | Dashboard computer version | "v1.15.0+430553" |
 | keycard-master-count | integer | Master keycards enrolled, written by keycard-service | "1" |
 | keycard-authorized-count | integer | Authorized keycards enrolled, written by keycard-service | "3" |
-| usb0-gate | string | This boot's usb0 gate decision, written by vehicle-service: `open` (link held up) or `closed` (link tracks `dashboard:power`). Absent until vehicle-service resolves the gate. | "closed" |
 
 ### Power Management (`power-manager`)
 ```
@@ -763,22 +747,6 @@ patch against and so forces a full update regardless of
 
 See [update-service documentation](../services/librescoot-update.md) for details.
 
-### BLE OTA Transfer Status (`ota:ble`) - Librescoot Only
-
-Written by bluetooth-service's OTA receiver while a phone pushes a firmware bundle over BLE (see [BLE OTA Firmware Transfer](../bluetooth/ota-transfer.md)):
-
-| Field | Type | Description | Example |
-|-------|------|-------------|----------|
-| state | string | Receiver state: `idle`, `receiving`, `installing` | "receiving" |
-| bundle-id | string | Bundle ID of the active session | "librescoot-nightly-20260701" |
-| component | string | Target board: `mdb`, `dbc` | "mdb" |
-| received-bytes | integer | In-order bytes received so far | "3145728" |
-| total-bytes | integer | Declared bundle size | "104857600" |
-| rate-bps | integer | Rolling transfer rate in bytes/second | "9200" |
-| updated-at | integer | Unix timestamp of last update | "1780000000" |
-
-Session fields (all but `state`/`updated-at`) are only present while a session is active.
-
 ### Version Information - Librescoot Only
 
 #### MDB Version (`version:mdb`)
@@ -805,7 +773,7 @@ Contains all fields from `/etc/os-release` with lowercase keys, plus `serial_num
 version-service populates these hashes on startup, as a oneshot unit per board
 (`version-service-mdb.service` passing `-hash version:mdb`,
 `version-service-dbc.service` passing `-hash version:dbc`; the MDB unit also
-orders itself after `valkey.service`, the DBC unit restarts on failure). The
+orders itself after `redis.service`, the DBC unit restarts on failure). The
 binary itself has no board-specific logic: the hash name is the only difference.
 It reads the serial from `/sys/bus/nvmem/devices/imx-ocotp0/nvmem`
 (offsets 4 and 8 for CFG0 and CFG1), falling back to `/sys/fsl_otp/HW_OCOTP_CFG*`
@@ -849,16 +817,15 @@ rather than `off`. Consumers that want the combined switch position read
 
 Nothing on this channel carries a timestamp or duration. For press duration
 semantics use `input-events`; for the current level of an input read the
-`vehicle` hash (`horn:button`, `seatbox:button`, `brake:left`, `brake:right`,
-`blinker:switch`).
+`vehicle` hash (`brake:left`, `brake:right`, `blinker:switch`). The horn and
+seatbox buttons have no level field in the `vehicle` hash in this release.
 
-There is no `buttons` hash. Between Librescoot 1.x (2025-12) and this release a
-`buttons` hash existed with fields `horn:on` / `horn:off` / `seatbox:on` /
-`seatbox:off` set to the literal `"1"` and never cleared; it had no readers and
-was removed. Over the same period `vehicle[horn:button]` and
-`vehicle[seatbox:button]` were not written and read back empty. Both are fixed:
-the level fields are in the `vehicle` hash again, and each edge is published on
-`buttons` exactly once.
+There is also a `buttons` **hash**, distinct from the channel of the same name.
+vehicle-service sets its fields `horn:on` / `horn:off` / `seatbox:on` /
+`seatbox:off` to the literal `"1"` and never clears them, so the hash is a
+write-only artefact with no readers. Do not read it; use the `buttons` channel
+for edges and `input-events` for gestures. `vehicle[horn:button]` and
+`vehicle[seatbox:button]` are not written in this release and read back empty.
 
 #### `input-events` channel - synthesized gestures
 

@@ -31,7 +31,7 @@ concurrency:
   cancel-in-progress: false
 
 env:
-  LATEST_STABLE: "v1.0.5"
+  LATEST_STABLE: "v1.2.1"
 
 jobs:
   deploy:

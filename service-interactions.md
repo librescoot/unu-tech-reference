@@ -118,23 +118,9 @@ Generated from source analysis of all service repositories.
 
 **DBC update power hold.** `start-dbc` makes vehicle-service keep dashboard power up and
 defer the power cut that entering stand-by would normally perform, until `complete-dbc`
-arrives. A watchdog bounds that hold, reset on any `ota` hash field ending in `:dbc`:
+arrives. A watchdog bounds that hold at 15 minutes, reset on any `ota` hash field
+ending in `:dbc`.
 
-| condition | timeout |
-|---|---|
-| a `heartbeat:dbc` has been seen during this update | 3 min |
-| no heartbeat seen | 15 min |
-
-The longer fallback exists for a DBC whose update-service is too old to publish
-`heartbeat:{component}`; cutting its power early could interrupt an install. The short
-timeout applies only once the DBC has proven it publishes heartbeats. The flag is
-seeded on vehicle-service startup from `heartbeat:dbc`, because the `ota` watcher does
-not replay field values after a restart.
-
-Dashboard power has a second holder: scootui-qt holds it for the duration of a map or
-routing tile download, tracked by vehicle-service alongside the update hold. When the
-update watchdog expires it will not cut power while a map download is still holding
-the rail.
 
 **Produces queues (LPUSH):**
 - `scooter:governor` → "ondemand"/"powersave" (send to pm-service via intermediate; actually uses its own queue handler — see note)
@@ -552,7 +538,6 @@ Inhibitor ids worth knowing, because fleet tooling matches on their prefixes:
 | `download-transfer:{component}` | suspend-only | update-service | an OTA transfer is in flight, both components |
 | `download:{component}`, `preparing:{component}`, `install:{component}` | delay | update-service | the corresponding update phase (advisory only, see below) |
 | `dbc-update` | suspend-only | vehicle-service | a DBC update holds dashboard power |
-| `map-download` | suspend-only | vehicle-service | the dashboard is mid map or tile download |
 
 `download-transfer` is what keeps the MDB out of suspend during an OTA. Without it
 pm-service suspends roughly a minute into stand-by and takes the modem with it, so a
@@ -571,7 +556,6 @@ orphan a suspend inhibit that nothing ever clears:
 |---|---|
 | update-service | normally, on every exit path of the transfer |
 | update-service | at startup, clearing a stale one left by a crash or power cut |
-| vehicle-service | whenever it cuts dashboard power, since that is what orphans it |
 
 The `delay`-typed inhibits are advisory: pm-service's blocking check honours only
 `block` and `suspend-only`, and the duration carried in the JSON is not read. They
