@@ -2,6 +2,27 @@
 
 Reverse-engineered technical documentation of the unu Scooter Pro.
 
+## What changed in v1.1.0
+
+The first release containing motion-service, which takes ownership of the
+BMX055 IMU from alarm-service.
+
+- Power management gained a lot: suspend with no drive battery inserted,
+  `hibernate-for`, cron-scheduled hibernation, and a last-ditch hibernate that
+  fires on a low CBB or low aux voltage to avoid deep discharge
+- Service mode, with a settings overlay and `lsc service-mode`
+- Manual backlight control, plus slower lux smoothing to cut flicker
+- Low-charge warnings for the internal batteries, and optional CBB/AUX charge
+  icons in the status bar
+- Hop-on can be unlocked with a keycard
+- New settings: disable the horn button while the seatbox is open, and lock on
+  Bluetooth disconnect. New menu entry to lock the scooter
+- Battery cell and CBB temperatures on the debug screen
+- Regen reworked: ecu-service publishes the applied EBS voltage and current and
+  derives regen availability, and the power bar follows it
+
+[Release notes](https://github.com/librescoot/librescoot/releases/tag/v1.1.0)
+
 ## System Architecture
 
 The unu Scooter Pro uses a distributed architecture with several key systems:
