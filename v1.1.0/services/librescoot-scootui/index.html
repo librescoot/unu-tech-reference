@@ -2566,9 +2566,11 @@
 <p>Primary: <code>/sys/devices/soc0/serial_number</code></p>
 <p>Fallback (OTP fuses): <code>/sys/fsl_otp/HW_OCOTP_CFG0</code> + <code>HW_OCOTP_CFG1</code></p>
 <h3 id="boot-animation">Boot Animation<a class="headerlink" href="#boot-animation" title="Permanent link">&para;</a></h3>
-<p>On Linux startup:
-1. Fades in framebuffer overlay: <code>imx-overlay-alpha fade 0 255 1000</code> (skipped on kernel 6.6 imx-drm)
-2. Stops boot animation: <code>systemctl stop boot-animation.service</code></p>
+<p>On Linux startup:</p>
+<ol>
+<li>Fades in framebuffer overlay: <code>imx-overlay-alpha fade 0 255 1000</code> (skipped on kernel 6.6 imx-drm)</li>
+<li>Stops boot animation: <code>systemctl stop boot-animation.service</code></li>
+</ol>
 <h3 id="shutdown">Shutdown<a class="headerlink" href="#shutdown" title="Permanent link">&para;</a></h3>
 <p>On SIGTERM or <code>vehicle state</code> → <code>shutting-down</code>: <code>ShutdownStore::forceBlackout()</code> blacks out the display.</p>
 <h2 id="map-tiles">Map Tiles<a class="headerlink" href="#map-tiles" title="Permanent link">&para;</a></h2>

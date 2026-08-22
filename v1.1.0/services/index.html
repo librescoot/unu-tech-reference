@@ -2055,20 +2055,26 @@
     UMS &lt;--&gt; USB</code></pre>
 <h2 id="service-communication-patterns">Service Communication Patterns<a class="headerlink" href="#service-communication-patterns" title="Permanent link">&para;</a></h2>
 <h3 id="event-publishing">Event Publishing<a class="headerlink" href="#event-publishing" title="Permanent link">&para;</a></h3>
-<p>Services publish events to Redis channels when state changes:
-- <code>PUBLISH &lt;hash-name&gt; &lt;field&gt;</code> notifies subscribers of field changes
-- Individual fields may publish separately (e.g., <code>PUBLISH vehicle state</code>)
-- Dashboard and other services subscribe to relevant channels</p>
+<p>Services publish events to Redis channels when state changes:</p>
+<ul>
+<li><code>PUBLISH &lt;hash-name&gt; &lt;field&gt;</code> notifies subscribers of field changes</li>
+<li>Individual fields may publish separately (e.g., <code>PUBLISH vehicle state</code>)</li>
+<li>Dashboard and other services subscribe to relevant channels</li>
+</ul>
 <h3 id="command-lists">Command Lists<a class="headerlink" href="#command-lists" title="Permanent link">&para;</a></h3>
-<p>Command producer services use LPUSH, consumer services use BRPOP:
-- <strong>Producers</strong>: <code>bluetooth-service</code> (from BLE commands) → LPUSH to <code>scooter:*</code> lists
-- <strong>Consumers</strong>: <code>vehicle-service</code> → BRPOP from <code>scooter:state</code>, <code>scooter:seatbox</code>, <code>scooter:horn</code>, <code>scooter:blinker</code>
-- Example: <code>LPUSH scooter:state lock</code> queues a vehicle lock command</p>
+<p>Command producer services use LPUSH, consumer services use BRPOP:</p>
+<ul>
+<li><strong>Producers</strong>: <code>bluetooth-service</code> (from BLE commands) → LPUSH to <code>scooter:*</code> lists</li>
+<li><strong>Consumers</strong>: <code>vehicle-service</code> → BRPOP from <code>scooter:state</code>, <code>scooter:seatbox</code>, <code>scooter:horn</code>, <code>scooter:blinker</code></li>
+<li>Example: <code>LPUSH scooter:state lock</code> queues a vehicle lock command</li>
+</ul>
 <h3 id="state-storage">State Storage<a class="headerlink" href="#state-storage" title="Permanent link">&para;</a></h3>
-<p>Services store state in Redis hashes:
-- <code>HSET vehicle state ready-to-drive</code> - Update vehicle state
-- <code>HGETALL vehicle</code> - Read all vehicle fields
-- Services only write to their own hashes (see table above)</p>
+<p>Services store state in Redis hashes:</p>
+<ul>
+<li><code>HSET vehicle state ready-to-drive</code> - Update vehicle state</li>
+<li><code>HGETALL vehicle</code> - Read all vehicle fields</li>
+<li>Services only write to their own hashes (see table above)</li>
+</ul>
 <h3 id="key-service-relationships">Key Service Relationships<a class="headerlink" href="#key-service-relationships" title="Permanent link">&para;</a></h3>
 <ul>
 <li><strong>battery-service</strong> is independent - monitors batteries via NFC, writes to <code>battery:0/1</code>, subscribes to <code>vehicle:state</code> and <code>vehicle:seatbox:lock</code></li>
@@ -2117,10 +2123,12 @@
 <li>System enters low-power state</li>
 </ol>
 <h2 id="service-configuration">Service Configuration<a class="headerlink" href="#service-configuration" title="Permanent link">&para;</a></h2>
-<p>All services are managed by systemd:
-- Service files in <code>/etc/systemd/system/</code>
-- Started via <code>systemctl start &lt;service&gt;</code>
-- Logs via <code>journalctl -u &lt;service&gt;</code></p>
+<p>All services are managed by systemd:</p>
+<ul>
+<li>Service files in <code>/etc/systemd/system/</code></li>
+<li>Started via <code>systemctl start &lt;service&gt;</code></li>
+<li>Logs via <code>journalctl -u &lt;service&gt;</code></li>
+</ul>
 <p>See individual service documentation for specific configuration details.</p>
 
 

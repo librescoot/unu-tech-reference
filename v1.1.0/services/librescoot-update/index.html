@@ -2107,8 +2107,10 @@ than one board:</p>
 </tr>
 </tbody>
 </table>
-<p><strong>Published channel:</strong> <code>ota</code>
-- All field updates are published atomically on state transitions</p>
+<p><strong>Published channel:</strong> <code>ota</code></p>
+<ul>
+<li>All field updates are published atomically on state transitions</li>
+</ul>
 <h4 id="flat-status">Flat status<a class="headerlink" href="#flat-status" title="Permanent link">&para;</a></h4>
 <p><code>status</code> and <code>update-type</code> mirror the per-component state into the non-namespaced
 convention used by stock, for consumers that do not know about <code>status:mdb</code> and
@@ -2199,20 +2201,26 @@ A consumer that needs to distinguish a failed update from no update has to read
 </tbody>
 </table>
 <h3 id="hash-settings-readwritten">Hash: <code>settings</code> (read/written)<a class="headerlink" href="#hash-settings-readwritten" title="Permanent link">&para;</a></h3>
-<p><strong>Fields read:</strong>
-- <code>updates.{component}.channel</code> — update channel (<code>stable</code>, <code>testing</code>, <code>nightly</code>)
-- <code>updates.{component}.check-interval</code> — check interval (e.g. <code>6h</code>, <code>30m</code>)
-- <code>updates.{component}.releases-url</code> — release index base URL
-- <code>updates.{component}.dry-run</code> — dry-run mode (<code>true</code>/<code>false</code>)
-- <code>updates.{component}.download-max-duration</code> - wall-clock cap on a single download attempt (default <code>60m</code>, <code>0</code> disables)
-- <code>updates.{component}.download-stall-window</code> - rolling window the download throughput floor is measured over (default <code>2m</code>, <code>0</code> disables)
-- <code>updates.{component}.download-stall-min-bytes</code> - bytes that must arrive within each stall window (default <code>65536</code>)
-- <code>updates.{component}.method</code> — update method (<code>full</code> or <code>delta</code>)
-- <code>updates.mdb.orchestrate-dbc</code> — MDB-only: whether MDB orchestrates DBC updates</p>
-<p><strong>Fields written:</strong>
-- <code>updates.{component}.last-check-time</code> — RFC3339 timestamp of last update check</p>
-<p><strong>Subscribed channel:</strong> <code>settings</code>
-- All <code>updates.{component}.*</code> field changes are applied at runtime</p>
+<p><strong>Fields read:</strong></p>
+<ul>
+<li><code>updates.{component}.channel</code> — update channel (<code>stable</code>, <code>testing</code>, <code>nightly</code>)</li>
+<li><code>updates.{component}.check-interval</code> — check interval (e.g. <code>6h</code>, <code>30m</code>)</li>
+<li><code>updates.{component}.releases-url</code> — release index base URL</li>
+<li><code>updates.{component}.dry-run</code> — dry-run mode (<code>true</code>/<code>false</code>)</li>
+<li><code>updates.{component}.download-max-duration</code> - wall-clock cap on a single download attempt (default <code>60m</code>, <code>0</code> disables)</li>
+<li><code>updates.{component}.download-stall-window</code> - rolling window the download throughput floor is measured over (default <code>2m</code>, <code>0</code> disables)</li>
+<li><code>updates.{component}.download-stall-min-bytes</code> - bytes that must arrive within each stall window (default <code>65536</code>)</li>
+<li><code>updates.{component}.method</code> — update method (<code>full</code> or <code>delta</code>)</li>
+<li><code>updates.mdb.orchestrate-dbc</code> — MDB-only: whether MDB orchestrates DBC updates</li>
+</ul>
+<p><strong>Fields written:</strong></p>
+<ul>
+<li><code>updates.{component}.last-check-time</code> — RFC3339 timestamp of last update check</li>
+</ul>
+<p><strong>Subscribed channel:</strong> <code>settings</code></p>
+<ul>
+<li>All <code>updates.{component}.*</code> field changes are applied at runtime</li>
+</ul>
 <h3 id="hash-versioncomponent-read">Hash: <code>version:{component}</code> (read)<a class="headerlink" href="#hash-versioncomponent-read" title="Permanent link">&para;</a></h3>
 <ul>
 <li><code>version_id</code> — installed version string (used to detect channel and for delta base)</li>

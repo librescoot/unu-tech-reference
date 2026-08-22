@@ -2551,118 +2551,154 @@
 </span></code></pre></div>
 <h2 id="redis-operations">Redis Operations<a class="headerlink" href="#redis-operations" title="Permanent link">&para;</a></h2>
 <h3 id="hash-ble">Hash: <code>ble</code><a class="headerlink" href="#hash-ble" title="Permanent link">&para;</a></h3>
-<p><strong>Fields written:</strong>
-- <code>mac-address</code> - Bluetooth MAC address (received from nRF52)
-- <code>status</code> - BLE connection status string
-- <code>pin-code</code> - Temporary pairing PIN code (when pairing is active)</p>
+<p><strong>Fields written:</strong></p>
+<ul>
+<li><code>mac-address</code> - Bluetooth MAC address (received from nRF52)</li>
+<li><code>status</code> - BLE connection status string</li>
+<li><code>pin-code</code> - Temporary pairing PIN code (when pairing is active)</li>
+</ul>
 <p><strong>Published channel:</strong> <code>ble</code> (when pin-code field changes)</p>
 <h3 id="hash-cb-battery">Hash: <code>cb-battery</code><a class="headerlink" href="#hash-cb-battery" title="Permanent link">&para;</a></h3>
-<p><strong>Fields written:</strong>
-- <code>charge</code> - Charge level (0-100%)
-- <code>current</code> - Current in μA
-- <code>remaining-capacity</code> - Remaining capacity in μWh
-- <code>full-capacity</code> - Full capacity in μWh
-- <code>cell-voltage</code> - Cell voltage in μV
-- <code>temperature</code> - Temperature in °C
-- <code>cycle-count</code> - Battery cycle count
-- <code>time-to-empty</code> - Time until battery is empty in seconds
-- <code>time-to-full</code> - Time until battery is full in seconds
-- <code>state-of-health</code> - Battery health percentage (0-100)
-- <code>part-number</code> - Part identification string
-- <code>serial-number</code> - Serial number
-- <code>unique-id</code> - Unique identifier
-- <code>present</code> - Battery presence ("true", "false")
-- <code>charge-status</code> - Charging status ("not-charging", "charging")</p>
+<p><strong>Fields written:</strong></p>
+<ul>
+<li><code>charge</code> - Charge level (0-100%)</li>
+<li><code>current</code> - Current in μA</li>
+<li><code>remaining-capacity</code> - Remaining capacity in μWh</li>
+<li><code>full-capacity</code> - Full capacity in μWh</li>
+<li><code>cell-voltage</code> - Cell voltage in μV</li>
+<li><code>temperature</code> - Temperature in °C</li>
+<li><code>cycle-count</code> - Battery cycle count</li>
+<li><code>time-to-empty</code> - Time until battery is empty in seconds</li>
+<li><code>time-to-full</code> - Time until battery is full in seconds</li>
+<li><code>state-of-health</code> - Battery health percentage (0-100)</li>
+<li><code>part-number</code> - Part identification string</li>
+<li><code>serial-number</code> - Serial number</li>
+<li><code>unique-id</code> - Unique identifier</li>
+<li><code>present</code> - Battery presence ("true", "false")</li>
+<li><code>charge-status</code> - Charging status ("not-charging", "charging")</li>
+</ul>
 <p><strong>Published channel:</strong> None (fields are written but not published by this service)</p>
 <h3 id="hash-aux-battery">Hash: <code>aux-battery</code><a class="headerlink" href="#hash-aux-battery" title="Permanent link">&para;</a></h3>
-<p><strong>Fields written:</strong>
-- <code>voltage</code> - Voltage in mV
-- <code>charge</code> - Charge level in 25% steps (0, 25, 50, 75, 100)
-- <code>charge-status</code> - Charging status ("absorption-charge", "not-charging", "float-charge", "bulk-charge")
-- <code>data-stream-enable</code> - Data streaming enable flag ("0", "1")</p>
+<p><strong>Fields written:</strong></p>
+<ul>
+<li><code>voltage</code> - Voltage in mV</li>
+<li><code>charge</code> - Charge level in 25% steps (0, 25, 50, 75, 100)</li>
+<li><code>charge-status</code> - Charging status ("absorption-charge", "not-charging", "float-charge", "bulk-charge")</li>
+<li><code>data-stream-enable</code> - Data streaming enable flag ("0", "1")</li>
+</ul>
 <p><strong>Published channel:</strong> None (fields are written but not published by this service)</p>
 <h3 id="hash-power-manager">Hash: <code>power-manager</code><a class="headerlink" href="#hash-power-manager" title="Permanent link">&para;</a></h3>
-<p><strong>Fields written:</strong>
-- <code>nrf-reset-count</code> - Reset count from nRF52
-- <code>nrf-reset-reason</code> - Nordic RESETREAS register value (integer)
-- <code>wake-timer-armed</code> - "true"/"false". Echo of the nRF wake-timer ACK: non-zero seconds echoed back means the timer is armed ("true"), zero means disarmed ("false").
-- <code>power-state-sent</code> - "suspending". Written when the nRF ACKs the suspending power-management state (state ACK value 0). pm-service gates the actual suspend-to-RAM on this confirmation, because the ACK reply has to fully drain off the UART before the iMX6 suspends.</p>
+<p><strong>Fields written:</strong></p>
+<ul>
+<li><code>nrf-reset-count</code> - Reset count from nRF52</li>
+<li><code>nrf-reset-reason</code> - Nordic RESETREAS register value (integer)</li>
+<li><code>wake-timer-armed</code> - "true"/"false". Echo of the nRF wake-timer ACK: non-zero seconds echoed back means the timer is armed ("true"), zero means disarmed ("false").</li>
+<li><code>power-state-sent</code> - "suspending". Written when the nRF ACKs the suspending power-management state (state ACK value 0). pm-service gates the actual suspend-to-RAM on this confirmation, because the ACK reply has to fully drain off the UART before the iMX6 suspends.</li>
+</ul>
 <p><strong>Published channel:</strong> <code>power-manager</code> (when nrf-reset-reason changes)</p>
 <h3 id="hash-power-mux">Hash: <code>power-mux</code><a class="headerlink" href="#hash-power-mux" title="Permanent link">&para;</a></h3>
-<p><strong>Fields written:</strong>
-- <code>selected-input</code> - Selected power input source ("cb", "aux")</p>
+<p><strong>Fields written:</strong></p>
+<ul>
+<li><code>selected-input</code> - Selected power input source ("cb", "aux")</li>
+</ul>
 <p><strong>Published channel:</strong> <code>power-mux</code></p>
 <h3 id="hash-system">Hash: <code>system</code><a class="headerlink" href="#hash-system" title="Permanent link">&para;</a></h3>
-<p><strong>Fields written:</strong>
-- <code>nrf-fw-version</code> - nRF52 firmware version string (received from nRF52 during initialization)</p>
-<p><strong>Fields read (not written by this service):</strong>
-- <code>mdb-version</code> - MDB firmware version string (forwarded to nRF52 when it changes)</p>
+<p><strong>Fields written:</strong></p>
+<ul>
+<li><code>nrf-fw-version</code> - nRF52 firmware version string (received from nRF52 during initialization)</li>
+</ul>
+<p><strong>Fields read (not written by this service):</strong></p>
+<ul>
+<li><code>mdb-version</code> - MDB firmware version string (forwarded to nRF52 when it changes)</li>
+</ul>
 <h3 id="hash-engine-ecu">Hash: <code>engine-ecu</code><a class="headerlink" href="#hash-engine-ecu" title="Permanent link">&para;</a></h3>
-<p><strong>Fields written:</strong>
-- <code>odometer</code> - Odometer/mileage value in meters (received from nRF52)</p>
+<p><strong>Fields written:</strong></p>
+<ul>
+<li><code>odometer</code> - Odometer/mileage value in meters (received from nRF52)</li>
+</ul>
 <h3 id="hash-navigation">Hash: <code>navigation</code><a class="headerlink" href="#hash-navigation" title="Permanent link">&para;</a></h3>
-<p><strong>Fields written:</strong>
-- <code>latitude</code> - Navigation destination latitude (from extended command <code>nav:dest</code>)
-- <code>longitude</code> - Navigation destination longitude (from extended command <code>nav:dest</code>)
-- <code>destination</code> - Legacy combined coordinates "lat,lon" (from extended command <code>nav:dest</code> or BLE event <code>navi:start</code>)
-- <code>address</code> - Destination name/address (from extended command <code>nav:dest lat,lon,name</code>)</p>
+<p><strong>Fields written:</strong></p>
+<ul>
+<li><code>latitude</code> - Navigation destination latitude (from extended command <code>nav:dest</code>)</li>
+<li><code>longitude</code> - Navigation destination longitude (from extended command <code>nav:dest</code>)</li>
+<li><code>destination</code> - Legacy combined coordinates "lat,lon" (from extended command <code>nav:dest</code> or BLE event <code>navi:start</code>)</li>
+<li><code>address</code> - Destination name/address (from extended command <code>nav:dest lat,lon,name</code>)</li>
+</ul>
 <p><strong>Fields cleared:</strong> <code>nav:clear</code> sets all navigation fields (latitude, longitude, destination, address, timestamp) to empty strings (does not HDEL).</p>
 <p><strong>Published channel:</strong> <code>navigation</code> (when fields change)</p>
 <h3 id="hash-settings">Hash: <code>settings</code><a class="headerlink" href="#hash-settings" title="Permanent link">&para;</a></h3>
-<p><strong>Fields written:</strong>
-- <code>cellular.apn</code> - Cellular APN (from extended command <code>config:apn</code> or legacy BLE event <code>apn &lt;value&gt;</code>)
-- <code>hibernation-timer</code> - Hibernation timeout in seconds (from extended command <code>config:hibernate-timer</code>)
-- <code>updates.mdb.channel</code> - MDB OTA update channel (from extended command <code>config:update-channel</code>)
-- <code>updates.dbc.channel</code> - DBC OTA update channel (from extended command <code>config:update-channel</code>)
-- <code>dashboard.saved-locations.&lt;id&gt;.latitude</code> - Saved location lat (from <code>nav:fav:add</code>)
-- <code>dashboard.saved-locations.&lt;id&gt;.longitude</code> - Saved location lon (from <code>nav:fav:add</code>)
-- <code>dashboard.saved-locations.&lt;id&gt;.label</code> - Saved location name (from <code>nav:fav:add</code>)</p>
+<p><strong>Fields written:</strong></p>
+<ul>
+<li><code>cellular.apn</code> - Cellular APN (from extended command <code>config:apn</code> or legacy BLE event <code>apn &lt;value&gt;</code>)</li>
+<li><code>hibernation-timer</code> - Hibernation timeout in seconds (from extended command <code>config:hibernate-timer</code>)</li>
+<li><code>updates.mdb.channel</code> - MDB OTA update channel (from extended command <code>config:update-channel</code>)</li>
+<li><code>updates.dbc.channel</code> - DBC OTA update channel (from extended command <code>config:update-channel</code>)</li>
+<li><code>dashboard.saved-locations.&lt;id&gt;.latitude</code> - Saved location lat (from <code>nav:fav:add</code>)</li>
+<li><code>dashboard.saved-locations.&lt;id&gt;.longitude</code> - Saved location lon (from <code>nav:fav:add</code>)</li>
+<li><code>dashboard.saved-locations.&lt;id&gt;.label</code> - Saved location name (from <code>nav:fav:add</code>)</li>
+</ul>
 <p><strong>Published channel:</strong> <code>settings</code> (when fields change)</p>
 <h3 id="hash-usb">Hash: <code>usb</code><a class="headerlink" href="#hash-usb" title="Permanent link">&para;</a></h3>
-<p><strong>Fields written:</strong>
-- <code>mode</code> - USB mode ("ums" or "normal", from extended command <code>usb:ums</code>/<code>usb:normal</code> or legacy BLE events)</p>
+<p><strong>Fields written:</strong></p>
+<ul>
+<li><code>mode</code> - USB mode ("ums" or "normal", from extended command <code>usb:ums</code>/<code>usb:normal</code> or legacy BLE events)</li>
+</ul>
 <p><strong>Published channel:</strong> <code>usb</code> (when mode field changes)</p>
 <h3 id="hash-scooter-written">Hash: <code>scooter</code> (written)<a class="headerlink" href="#hash-scooter-written" title="Permanent link">&para;</a></h3>
-<p><strong>Fields written:</strong>
-- <code>temperature</code> - External temperature in tenths of °C (from nRF vehicle state message)</p>
+<p><strong>Fields written:</strong></p>
+<ul>
+<li><code>temperature</code> - External temperature in tenths of °C (from nRF vehicle state message)</li>
+</ul>
 <p><strong>Published channel:</strong> <code>scooter</code></p>
 <h3 id="hash-dashboard">Hash: <code>dashboard</code><a class="headerlink" href="#hash-dashboard" title="Permanent link">&para;</a></h3>
-<p><strong>Fields read (not written):</strong>
-- <code>maps-available</code> - Offline display maps installed (set by scootui-qt, queried via <code>status:maps-available</code>)
-- <code>navigation-available</code> - Routing engine available (set by scootui-qt, queried via <code>status:navigation-available</code>)</p>
+<p><strong>Fields read (not written):</strong></p>
+<ul>
+<li><code>maps-available</code> - Offline display maps installed (set by scootui-qt, queried via <code>status:maps-available</code>)</li>
+<li><code>navigation-available</code> - Routing engine available (set by scootui-qt, queried via <code>status:navigation-available</code>)</li>
+</ul>
 <h3 id="hash-powerinhibits">Hash: <code>power:inhibits</code><a class="headerlink" href="#hash-powerinhibits" title="Permanent link">&para;</a></h3>
-<p><strong>Fields written:</strong>
-- <code>ble-dfu</code> - Block-type power inhibitor held while the nRF52 firmware is being flashed, so pm-service does not suspend or hibernate mid-DFU. Removed when the flash finishes (success or failure).</p>
+<p><strong>Fields written:</strong></p>
+<ul>
+<li><code>ble-dfu</code> - Block-type power inhibitor held while the nRF52 firmware is being flashed, so pm-service does not suspend or hibernate mid-DFU. Removed when the flash finishes (success or failure).</li>
+</ul>
 <h3 id="hashes-read-not-written">Hashes read (not written)<a class="headerlink" href="#hashes-read-not-written" title="Permanent link">&para;</a></h3>
-<p>The service reads but does not write to these hashes:
-- <code>battery:0</code> - Reads battery state and charge
-- <code>battery:1</code> - Reads battery state and charge
-- <code>vehicle</code> - Reads vehicle state for nRF synchronization
-- <code>power-manager</code> - Reads power state</p>
+<p>The service reads but does not write to these hashes:</p>
+<ul>
+<li><code>battery:0</code> - Reads battery state and charge</li>
+<li><code>battery:1</code> - Reads battery state and charge</li>
+<li><code>vehicle</code> - Reads vehicle state for nRF synchronization</li>
+<li><code>power-manager</code> - Reads power state</li>
+</ul>
 <h3 id="lists-consumed-brpop">Lists consumed (BRPOP)<a class="headerlink" href="#lists-consumed-brpop" title="Permanent link">&para;</a></h3>
-<p>The service consumes commands from:
-- <code>scooter:bluetooth</code> - BLE management commands with indefinite blocking</p>
-<p><strong>Commands recognized:</strong>
-- <code>advertising-start-with-whitelisting</code> - Start advertising with whitelist
-- <code>advertising-restart-no-whitelisting</code> - Restart advertising without whitelist
-- <code>advertising-stop</code> - Stop BLE advertising
-- <code>delete-bond</code> - Delete current bond
-- <code>delete-all-bonds</code> - Delete all bonded devices
-- <code>remove</code> - Remove pairing PIN from display
-- <code>ltc-enable</code> - Enable LTC4020 aux charger (safe mode)
-- <code>ltc-disable</code> - Disable LTC4020 aux charger
-- <code>ltc-force-enable</code> - Force-enable LTC4020 aux charger (bypasses safety check)
-- <code>ltc-force-disable</code> - Force-disable LTC4020 aux charger
-- <code>ltc-status</code> - Query LTC4020 charger status
-- <code>firmware-update</code> - Trigger immediate nRF firmware update</p>
+<p>The service consumes commands from:</p>
+<ul>
+<li><code>scooter:bluetooth</code> - BLE management commands with indefinite blocking</li>
+</ul>
+<p><strong>Commands recognized:</strong></p>
+<ul>
+<li><code>advertising-start-with-whitelisting</code> - Start advertising with whitelist</li>
+<li><code>advertising-restart-no-whitelisting</code> - Restart advertising without whitelist</li>
+<li><code>advertising-stop</code> - Stop BLE advertising</li>
+<li><code>delete-bond</code> - Delete current bond</li>
+<li><code>delete-all-bonds</code> - Delete all bonded devices</li>
+<li><code>remove</code> - Remove pairing PIN from display</li>
+<li><code>ltc-enable</code> - Enable LTC4020 aux charger (safe mode)</li>
+<li><code>ltc-disable</code> - Disable LTC4020 aux charger</li>
+<li><code>ltc-force-enable</code> - Force-enable LTC4020 aux charger (bypasses safety check)</li>
+<li><code>ltc-force-disable</code> - Force-disable LTC4020 aux charger</li>
+<li><code>ltc-status</code> - Query LTC4020 charger status</li>
+<li><code>firmware-update</code> - Trigger immediate nRF firmware update</li>
+</ul>
 <h3 id="lists-produced-lpush">Lists produced (LPUSH)<a class="headerlink" href="#lists-produced-lpush" title="Permanent link">&para;</a></h3>
-<p>The service writes requests to:
-- <code>scooter:state</code> - State change requests ("lock", "unlock", "lock-hibernate")
-- <code>scooter:power</code> - Power requests ("hibernate", "hibernate-manual", "reboot", "hibernate-for:<seconds>", "hibernate-cancel")
-- <code>scooter:seatbox</code> - Seatbox commands ("open")
-- <code>scooter:blinker</code> - Blinker commands ("left", "right", "both", "off")
-- <code>scooter:keycard</code> - Keycard management commands ("list", "count", "add:<uid>", "remove:<uid>")
-- <code>scooter:alarm</code> - Alarm commands ("enable", "disable", "arm", "disarm", "start:<seconds>", "stop")</p>
+<p>The service writes requests to:</p>
+<ul>
+<li><code>scooter:state</code> - State change requests ("lock", "unlock", "lock-hibernate")</li>
+<li><code>scooter:power</code> - Power requests ("hibernate", "hibernate-manual", "reboot", "hibernate-for:<seconds>", "hibernate-cancel")</li>
+<li><code>scooter:seatbox</code> - Seatbox commands ("open")</li>
+<li><code>scooter:blinker</code> - Blinker commands ("left", "right", "both", "off")</li>
+<li><code>scooter:keycard</code> - Keycard management commands ("list", "count", "add:<uid>", "remove:<uid>")</li>
+<li><code>scooter:alarm</code> - Alarm commands ("enable", "disable", "arm", "disarm", "start:<seconds>", "stop")</li>
+</ul>
 <p>These are triggered by BLE characteristic writes received from the nRF52 (BLE events or extended commands).</p>
 <h3 id="pubsub-published">Pub/Sub published<a class="headerlink" href="#pubsub-published" title="Permanent link">&para;</a></h3>
 <ul>
@@ -2678,33 +2714,41 @@
 </ul>
 <h4 id="usock-protocol-details">USOCK Protocol Details<a class="headerlink" href="#usock-protocol-details" title="Permanent link">&para;</a></h4>
 <p>The USOCK protocol is a frame-based protocol for reliable serial communication:</p>
-<p><strong>Frame Structure:</strong>
-- Sync Byte 1: <code>0xF6</code>
-- Sync Byte 2: <code>0xD9</code>
-- Frame ID: 1 byte (lower byte of message type)
-- Payload Length: 2 bytes (little-endian, max 1024 bytes)
-- Header CRC: 2 bytes (CRC-16/ARC over sync+frameID+length)
-- Payload: Variable length CBOR-encoded data
-- Payload CRC: 2 bytes (CRC-16/ARC over payload)</p>
+<p><strong>Frame Structure:</strong></p>
+<ul>
+<li>Sync Byte 1: <code>0xF6</code></li>
+<li>Sync Byte 2: <code>0xD9</code></li>
+<li>Frame ID: 1 byte (lower byte of message type)</li>
+<li>Payload Length: 2 bytes (little-endian, max 1024 bytes)</li>
+<li>Header CRC: 2 bytes (CRC-16/ARC over sync+frameID+length)</li>
+<li>Payload: Variable length CBOR-encoded data</li>
+<li>Payload CRC: 2 bytes (CRC-16/ARC over payload)</li>
+</ul>
 <p><strong>CBOR Message Format:</strong>
 Messages are CBOR-encoded maps with structure:
 <div class="language-text highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>{messageType: {absoluteSubtype: value}}
 </span></code></pre></div></p>
-<p>Where:
-- <code>messageType</code> is a 16-bit message category (e.g., 0xA000 for BLE version)
-- <code>absoluteSubtype</code> is <code>messageType + relativeSubtype</code>
-- <code>value</code> can be integer, string, or array</p>
-<p><strong>CRC Calculation:</strong>
-- Algorithm: CRC-16/ARC (also known as CRC-16/IBM)
-- Polynomial: 0x8005
-- Initial value: 0x0000
-- Reflected input/output</p>
+<p>Where:</p>
+<ul>
+<li><code>messageType</code> is a 16-bit message category (e.g., 0xA000 for BLE version)</li>
+<li><code>absoluteSubtype</code> is <code>messageType + relativeSubtype</code></li>
+<li><code>value</code> can be integer, string, or array</li>
+</ul>
+<p><strong>CRC Calculation:</strong></p>
+<ul>
+<li>Algorithm: CRC-16/ARC (also known as CRC-16/IBM)</li>
+<li>Polynomial: 0x8005</li>
+<li>Initial value: 0x0000</li>
+<li>Reflected input/output</li>
+</ul>
 <p>See <a href="../../nrf/UART/">nRF UART Protocol</a> for message types and protocol details.</p>
 <h3 id="ble-interface-via-nrf52840">BLE Interface (via nRF52840)<a class="headerlink" href="#ble-interface-via-nrf52840" title="Permanent link">&para;</a></h3>
-<p>The service does not directly manage BLE - this is handled by the nRF52840 firmware. The bluetooth-service only communicates with the nRF52 via UART to:
-- Receive BLE connection events and characteristic writes
-- Send state updates to be exposed via BLE characteristics
-- Control advertising and bonding</p>
+<p>The service does not directly manage BLE - this is handled by the nRF52840 firmware. The bluetooth-service only communicates with the nRF52 via UART to:</p>
+<ul>
+<li>Receive BLE connection events and characteristic writes</li>
+<li>Send state updates to be exposed via BLE characteristics</li>
+<li>Control advertising and bonding</li>
+</ul>
 <p>BLE services and characteristics are defined in the nRF52 firmware.</p>
 <h2 id="configuration">Configuration<a class="headerlink" href="#configuration" title="Permanent link">&para;</a></h2>
 <h3 id="systemd-unit">Systemd Unit<a class="headerlink" href="#systemd-unit" title="Permanent link">&para;</a></h3>
@@ -2754,118 +2798,158 @@ Messages are CBOR-encoded maps with structure:
 <div class="language-text highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>BLE App → nRF52840 → UART/USOCK/CBOR → bluetooth-service → Redis → other services
 </span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>other services → Redis (pub/sub) → bluetooth-service → UART/USOCK/CBOR → nRF52840 → BLE App
 </span></code></pre></div>
-<p><strong>Inbound (from BLE to system):</strong>
-1. User interacts with BLE app
-2. nRF52 receives BLE characteristic write
-3. nRF52 sends USOCK frame with CBOR-encoded event string to bluetooth-service
-4. bluetooth-service parses event and performs LPUSH to appropriate Redis list
-5. Other services consume from Redis lists and perform actions</p>
-<p><strong>Outbound (from system to BLE):</strong>
-1. Services update Redis hash fields
-2. Redis publishes change notification on pub/sub channel
-3. bluetooth-service receives pub/sub message
-4. bluetooth-service reads updated value from Redis
-5. bluetooth-service encodes as CBOR and sends USOCK frame to nRF52
-6. nRF52 updates BLE characteristic value
-7. BLE app receives notification of characteristic change</p>
+<p><strong>Inbound (from BLE to system):</strong></p>
+<ol>
+<li>User interacts with BLE app</li>
+<li>nRF52 receives BLE characteristic write</li>
+<li>nRF52 sends USOCK frame with CBOR-encoded event string to bluetooth-service</li>
+<li>bluetooth-service parses event and performs LPUSH to appropriate Redis list</li>
+<li>Other services consume from Redis lists and perform actions</li>
+</ol>
+<p><strong>Outbound (from system to BLE):</strong></p>
+<ol>
+<li>Services update Redis hash fields</li>
+<li>Redis publishes change notification on pub/sub channel</li>
+<li>bluetooth-service receives pub/sub message</li>
+<li>bluetooth-service reads updated value from Redis</li>
+<li>bluetooth-service encodes as CBOR and sends USOCK frame to nRF52</li>
+<li>nRF52 updates BLE characteristic value</li>
+<li>BLE app receives notification of characteristic change</li>
+</ol>
 <h3 id="uart-message-types-processed">UART Message Types Processed<a class="headerlink" href="#uart-message-types-processed" title="Permanent link">&para;</a></h3>
 <p>The service handles various USOCK message types from the nRF52. See <a href="../../nrf/UART/">nRF UART Protocol</a> for complete list.</p>
-<p><strong>Key message types received:</strong>
-- <code>0x0000</code> - Generic events (BLE characteristic writes as event strings)
-- <code>0x0020</code> - Vehicle state updates (acknowledgments)
-- <code>0x0040</code> - Auxiliary battery data
-- <code>0x0060</code> - CB battery detailed information (MAX1730X fuel gauge data)
-- <code>0x0100</code> - Power mux status
-- <code>0x0120</code> - LTC4020 aux charger control (bidirectional)
-- <code>0x0200</code> - Accelerometer wake-up events (suspend/hibernation)
-- <code>0x0400</code> - Extended commands (string commands from phone app)
-- <code>0x0800</code> - Power management (hibernation requests from nRF)
-- <code>0x00C0</code> - Data stream control acknowledgments
-- <code>0x00E0</code> - Battery slot status (slot 1 and 2)
-- <code>0xA000</code> - BLE firmware version
-- <code>0xA020</code> - BLE reset information (reason and count)
-- <code>0xA040</code> - Scooter info (mileage, firmware version, system time from nRF)
-- <code>0xA080</code> - BLE parameters (MAC address, PIN code, connection status)
-- <code>0xAA00</code> - BLE command acknowledgments</p>
-<p><strong>Key message types sent:</strong>
-- <code>0x0020</code> - Vehicle state (locked/unlocked, seatbox, handlebar)
-- <code>0x0400</code> - Extended response (response string to phone app, up to 512 bytes)
-- <code>0x0800</code> - Power management state updates
-- <code>0x00C0</code> - Data stream enable/disable/sync
-- <code>0x00E0</code> - Battery status (presence, charge, cycle count for both slots)
-- <code>0x0120</code> - LTC4020 aux charger control (bidirectional)
-- <code>0xA000</code> - Request BLE firmware version
-- <code>0xA040</code> - Scooter info (firmware version, mileage, navigation active, UMS status)
-- <code>0xA080</code> - Request BLE MAC address, remove PIN
-- <code>0xAA00</code> - BLE commands (advertising control, bond management)</p>
+<p><strong>Key message types received:</strong></p>
+<ul>
+<li><code>0x0000</code> - Generic events (BLE characteristic writes as event strings)</li>
+<li><code>0x0020</code> - Vehicle state updates (acknowledgments)</li>
+<li><code>0x0040</code> - Auxiliary battery data</li>
+<li><code>0x0060</code> - CB battery detailed information (MAX1730X fuel gauge data)</li>
+<li><code>0x0100</code> - Power mux status</li>
+<li><code>0x0120</code> - LTC4020 aux charger control (bidirectional)</li>
+<li><code>0x0200</code> - Accelerometer wake-up events (suspend/hibernation)</li>
+<li><code>0x0400</code> - Extended commands (string commands from phone app)</li>
+<li><code>0x0800</code> - Power management (hibernation requests from nRF)</li>
+<li><code>0x00C0</code> - Data stream control acknowledgments</li>
+<li><code>0x00E0</code> - Battery slot status (slot 1 and 2)</li>
+<li><code>0xA000</code> - BLE firmware version</li>
+<li><code>0xA020</code> - BLE reset information (reason and count)</li>
+<li><code>0xA040</code> - Scooter info (mileage, firmware version, system time from nRF)</li>
+<li><code>0xA080</code> - BLE parameters (MAC address, PIN code, connection status)</li>
+<li><code>0xAA00</code> - BLE command acknowledgments</li>
+</ul>
+<p><strong>Key message types sent:</strong></p>
+<ul>
+<li><code>0x0020</code> - Vehicle state (locked/unlocked, seatbox, handlebar)</li>
+<li><code>0x0400</code> - Extended response (response string to phone app, up to 512 bytes)</li>
+<li><code>0x0800</code> - Power management state updates</li>
+<li><code>0x00C0</code> - Data stream enable/disable/sync</li>
+<li><code>0x00E0</code> - Battery status (presence, charge, cycle count for both slots)</li>
+<li><code>0x0120</code> - LTC4020 aux charger control (bidirectional)</li>
+<li><code>0xA000</code> - Request BLE firmware version</li>
+<li><code>0xA040</code> - Scooter info (firmware version, mileage, navigation active, UMS status)</li>
+<li><code>0xA080</code> - Request BLE MAC address, remove PIN</li>
+<li><code>0xAA00</code> - BLE commands (advertising control, bond management)</li>
+</ul>
 <h3 id="ble-event-strings-processed">BLE Event Strings Processed<a class="headerlink" href="#ble-event-strings-processed" title="Permanent link">&para;</a></h3>
 <p>Event strings received from nRF52 (message type 0x0000) are parsed and converted to Redis operations:</p>
-<p><strong>Vehicle control:</strong>
-- <code>"scooter:state lock"</code> → <code>LPUSH scooter:state lock</code>
-- <code>"scooter:state unlock"</code> → <code>LPUSH scooter:state unlock</code></p>
-<p><strong>Seatbox:</strong>
-- <code>"scooter:seatbox open"</code> → <code>LPUSH scooter:seatbox open</code></p>
-<p><strong>Blinker control:</strong>
-- <code>"scooter:blinker left"</code> → <code>LPUSH scooter:blinker left</code>
-- <code>"scooter:blinker right"</code> → <code>LPUSH scooter:blinker right</code>
-- <code>"scooter:blinker both"</code> → <code>LPUSH scooter:blinker both</code>
-- <code>"scooter:blinker off"</code> → <code>LPUSH scooter:blinker off</code></p>
-<p><strong>Navigation:</strong>
-- <code>"navi:start &lt;coords&gt;"</code> → <code>HSET navigation destination &lt;coords&gt;</code> + publish</p>
-<p><strong>Settings:</strong>
-- <code>"apn &lt;value&gt;"</code> → <code>HSET settings cellular.apn &lt;value&gt;</code> + publish</p>
-<p><strong>USB mode:</strong>
-- <code>"usb:ums"</code> → <code>HSET usb mode ums</code> + publish
-- <code>"usb:normal"</code> → <code>HSET usb mode normal</code> + publish</p>
+<p><strong>Vehicle control:</strong></p>
+<ul>
+<li><code>"scooter:state lock"</code> → <code>LPUSH scooter:state lock</code></li>
+<li><code>"scooter:state unlock"</code> → <code>LPUSH scooter:state unlock</code></li>
+</ul>
+<p><strong>Seatbox:</strong></p>
+<ul>
+<li><code>"scooter:seatbox open"</code> → <code>LPUSH scooter:seatbox open</code></li>
+</ul>
+<p><strong>Blinker control:</strong></p>
+<ul>
+<li><code>"scooter:blinker left"</code> → <code>LPUSH scooter:blinker left</code></li>
+<li><code>"scooter:blinker right"</code> → <code>LPUSH scooter:blinker right</code></li>
+<li><code>"scooter:blinker both"</code> → <code>LPUSH scooter:blinker both</code></li>
+<li><code>"scooter:blinker off"</code> → <code>LPUSH scooter:blinker off</code></li>
+</ul>
+<p><strong>Navigation:</strong></p>
+<ul>
+<li><code>"navi:start &lt;coords&gt;"</code> → <code>HSET navigation destination &lt;coords&gt;</code> + publish</li>
+</ul>
+<p><strong>Settings:</strong></p>
+<ul>
+<li><code>"apn &lt;value&gt;"</code> → <code>HSET settings cellular.apn &lt;value&gt;</code> + publish</li>
+</ul>
+<p><strong>USB mode:</strong></p>
+<ul>
+<li><code>"usb:ums"</code> → <code>HSET usb mode ums</code> + publish</li>
+<li><code>"usb:normal"</code> → <code>HSET usb mode normal</code> + publish</li>
+</ul>
 <h3 id="extended-commands-message-type-0x0400">Extended Commands (message type 0x0400)<a class="headerlink" href="#extended-commands-message-type-0x0400" title="Permanent link">&para;</a></h3>
 <p>Extended commands arrive as string payloads via the EXTENDED_COMMAND BLE characteristic (0x0401). The bluetooth-service routes them by prefix:</p>
-<p><strong>Navigation:</strong>
-- <code>nav:dest lat,lon[,name]</code> → sets <code>navigation</code> hash fields (latitude, longitude, destination, address)
-- <code>nav:clear</code> → deletes all <code>navigation</code> hash fields
-- <code>nav:fav:add lat,lon,name</code> → adds to <code>settings:dashboard.saved-locations.&lt;id&gt;.*</code>
-- <code>nav:fav:delete &lt;id&gt;</code> → removes saved location
-- <code>nav:fav:navigate &lt;id&gt;</code> → sets navigation destination from saved location
-- <code>nav:fav:list</code> → responds with count + one notification per saved location</p>
-<p><strong>USB mode:</strong>
-- <code>usb:ums</code> → <code>HSET usb mode ums</code>
-- <code>usb:normal</code> → <code>HSET usb mode normal</code></p>
-<p><strong>Keycard management:</strong>
-- <code>keycard:list</code>, <code>keycard:count</code>, <code>keycard:add:&lt;uid&gt;</code>, <code>keycard:remove:&lt;uid&gt;</code> → forwarded to <code>scooter:keycard</code> Redis list; response returned asynchronously via <code>keycard</code> hash <code>command-result</code> field</p>
-<p><strong>Time:</strong>
-- <code>time:set &lt;unix_timestamp&gt;</code> → sets system clock via <code>timedatectl set-time</code></p>
-<p><strong>Configuration:</strong>
-- <code>config:apn &lt;value&gt;</code> → <code>HSET settings cellular.apn &lt;value&gt;</code>
-- <code>config:hibernate-timer &lt;seconds&gt;</code> → <code>HSET settings hibernation-timer &lt;value&gt;</code>
-- <code>config:update-channel &lt;stable|testing|nightly&gt;</code> → sets <code>settings:updates.mdb.channel</code> and <code>settings:updates.dbc.channel</code>
-- <code>config:auto-standby-seconds &lt;seconds&gt;</code> → <code>HSET settings scooter.auto-standby-seconds &lt;value&gt;</code> (auto-lock idle timeout when parked, 0=disabled, 0-3600; last 60s shown as a cancellable countdown on the dashboard)</p>
-<p><strong>Alarm:</strong>
-- <code>alarm:enable</code> → <code>LPUSH scooter:alarm enable</code>
-- <code>alarm:disable</code> → <code>LPUSH scooter:alarm disable</code>
-- <code>alarm:arm</code> → <code>LPUSH scooter:alarm arm</code>
-- <code>alarm:disarm</code> → <code>LPUSH scooter:alarm disarm</code>
-- <code>alarm:start</code> → <code>LPUSH scooter:alarm start</code> (duration default from settings)
-- <code>alarm:start:&lt;N&gt;</code> → <code>LPUSH scooter:alarm start:&lt;N&gt;</code>
-- <code>alarm:stop</code> → <code>LPUSH scooter:alarm stop</code></p>
+<p><strong>Navigation:</strong></p>
+<ul>
+<li><code>nav:dest lat,lon[,name]</code> → sets <code>navigation</code> hash fields (latitude, longitude, destination, address)</li>
+<li><code>nav:clear</code> → deletes all <code>navigation</code> hash fields</li>
+<li><code>nav:fav:add lat,lon,name</code> → adds to <code>settings:dashboard.saved-locations.&lt;id&gt;.*</code></li>
+<li><code>nav:fav:delete &lt;id&gt;</code> → removes saved location</li>
+<li><code>nav:fav:navigate &lt;id&gt;</code> → sets navigation destination from saved location</li>
+<li><code>nav:fav:list</code> → responds with count + one notification per saved location</li>
+</ul>
+<p><strong>USB mode:</strong></p>
+<ul>
+<li><code>usb:ums</code> → <code>HSET usb mode ums</code></li>
+<li><code>usb:normal</code> → <code>HSET usb mode normal</code></li>
+</ul>
+<p><strong>Keycard management:</strong></p>
+<ul>
+<li><code>keycard:list</code>, <code>keycard:count</code>, <code>keycard:add:&lt;uid&gt;</code>, <code>keycard:remove:&lt;uid&gt;</code> → forwarded to <code>scooter:keycard</code> Redis list; response returned asynchronously via <code>keycard</code> hash <code>command-result</code> field</li>
+</ul>
+<p><strong>Time:</strong></p>
+<ul>
+<li><code>time:set &lt;unix_timestamp&gt;</code> → sets system clock via <code>timedatectl set-time</code></li>
+</ul>
+<p><strong>Configuration:</strong></p>
+<ul>
+<li><code>config:apn &lt;value&gt;</code> → <code>HSET settings cellular.apn &lt;value&gt;</code></li>
+<li><code>config:hibernate-timer &lt;seconds&gt;</code> → <code>HSET settings hibernation-timer &lt;value&gt;</code></li>
+<li><code>config:update-channel &lt;stable|testing|nightly&gt;</code> → sets <code>settings:updates.mdb.channel</code> and <code>settings:updates.dbc.channel</code></li>
+<li><code>config:auto-standby-seconds &lt;seconds&gt;</code> → <code>HSET settings scooter.auto-standby-seconds &lt;value&gt;</code> (auto-lock idle timeout when parked, 0=disabled, 0-3600; last 60s shown as a cancellable countdown on the dashboard)</li>
+</ul>
+<p><strong>Alarm:</strong></p>
+<ul>
+<li><code>alarm:enable</code> → <code>LPUSH scooter:alarm enable</code></li>
+<li><code>alarm:disable</code> → <code>LPUSH scooter:alarm disable</code></li>
+<li><code>alarm:arm</code> → <code>LPUSH scooter:alarm arm</code></li>
+<li><code>alarm:disarm</code> → <code>LPUSH scooter:alarm disarm</code></li>
+<li><code>alarm:start</code> → <code>LPUSH scooter:alarm start</code> (duration default from settings)</li>
+<li><code>alarm:start:&lt;N&gt;</code> → <code>LPUSH scooter:alarm start:&lt;N&gt;</code></li>
+<li><code>alarm:stop</code> → <code>LPUSH scooter:alarm stop</code></li>
+</ul>
 <p>The alarm-service processes the command and the response (<code>alarm:ok</code>) is returned via EXTENDED_RESPONSE (0x0402).</p>
-<p><strong>Power management:</strong>
-- <code>pm:hibernate-for &lt;duration&gt;</code> -&gt; arms a one-shot hibernation that wakes after the given duration. Duration uses Go <code>time.ParseDuration</code> syntax (e.g. "8h", "30m", "120s"); it is converted to whole seconds and forwarded as <code>LPUSH scooter:power hibernate-for:&lt;seconds&gt;</code>.
-- <code>pm:hibernate-cancel</code> -&gt; cancels a pending wake timer and returns the system to run, forwarded as <code>LPUSH scooter:power hibernate-cancel</code>.</p>
-<p>Responses via EXTENDED_RESPONSE (0x0402):
-- <code>pm:ok</code> on success
-- <code>pm:error:invalid duration</code> if the duration cannot be parsed
-- <code>pm:error:duration must be positive</code> if the parsed duration is &lt;= 0 seconds
-- <code>pm:error:redis</code> if forwarding to <code>scooter:power</code> fails
-- <code>pm:error:unknown command</code> for any other <code>pm:</code> payload</p>
-<p><strong>LTC4020 aux charger control:</strong>
-- <code>ltc:enable</code> — safe-enable LTC4020 charger (rejected if unsafe)
-- <code>ltc:disable</code> — disable LTC4020 charger
-- <code>ltc:force-enable</code> — force-enable LTC4020 charger (bypasses safety check)
-- <code>ltc:force-disable</code> — force-disable LTC4020 charger
-- <code>ltc:status</code> — query charger state; responds with <code>ltc:status:on</code> or <code>ltc:status:off</code></p>
+<p><strong>Power management:</strong></p>
+<ul>
+<li><code>pm:hibernate-for &lt;duration&gt;</code> -&gt; arms a one-shot hibernation that wakes after the given duration. Duration uses Go <code>time.ParseDuration</code> syntax (e.g. "8h", "30m", "120s"); it is converted to whole seconds and forwarded as <code>LPUSH scooter:power hibernate-for:&lt;seconds&gt;</code>.</li>
+<li><code>pm:hibernate-cancel</code> -&gt; cancels a pending wake timer and returns the system to run, forwarded as <code>LPUSH scooter:power hibernate-cancel</code>.</li>
+</ul>
+<p>Responses via EXTENDED_RESPONSE (0x0402):</p>
+<ul>
+<li><code>pm:ok</code> on success</li>
+<li><code>pm:error:invalid duration</code> if the duration cannot be parsed</li>
+<li><code>pm:error:duration must be positive</code> if the parsed duration is &lt;= 0 seconds</li>
+<li><code>pm:error:redis</code> if forwarding to <code>scooter:power</code> fails</li>
+<li><code>pm:error:unknown command</code> for any other <code>pm:</code> payload</li>
+</ul>
+<p><strong>LTC4020 aux charger control:</strong></p>
+<ul>
+<li><code>ltc:enable</code> — safe-enable LTC4020 charger (rejected if unsafe)</li>
+<li><code>ltc:disable</code> — disable LTC4020 charger</li>
+<li><code>ltc:force-enable</code> — force-enable LTC4020 charger (bypasses safety check)</li>
+<li><code>ltc:force-disable</code> — force-disable LTC4020 charger</li>
+<li><code>ltc:status</code> — query charger state; responds with <code>ltc:status:on</code> or <code>ltc:status:off</code></li>
+</ul>
 <p>Response codes: <code>ltc:ok</code> (success), <code>ltc:error:unsafe</code> (rejected as unsafe), <code>ltc:error:invalid</code> (invalid state).</p>
-<p><strong>Status queries (read-only):</strong>
-- <code>status:maps-available</code> → reads <code>dashboard:maps-available</code> (set by scootui-qt)
-- <code>status:navigation-available</code> → reads <code>dashboard:navigation-available</code> (set by scootui-qt)</p>
+<p><strong>Status queries (read-only):</strong></p>
+<ul>
+<li><code>status:maps-available</code> → reads <code>dashboard:maps-available</code> (set by scootui-qt)</li>
+<li><code>status:navigation-available</code> → reads <code>dashboard:navigation-available</code> (set by scootui-qt)</li>
+</ul>
 <p>Responses are sent back via EXTENDED_RESPONSE (0x0402) as string notifications to the phone app.</p>
 <h3 id="accelerometer-wake-up-events">Accelerometer Wake-up Events<a class="headerlink" href="#accelerometer-wake-up-events" title="Permanent link">&para;</a></h3>
 <p>The service handles accelerometer wake-up messages from the nRF (message type 0x0200):</p>
@@ -2876,31 +2960,43 @@ Messages are CBOR-encoded maps with structure:
 <p>The alarm-service subscribes to <code>bmx:interrupt</code> to trigger alarm escalation.</p>
 <h3 id="power-management">Power Management<a class="headerlink" href="#power-management" title="Permanent link">&para;</a></h3>
 <p>The service handles hibernation requests from the nRF52:</p>
-<p><strong>Automatic hibernation:</strong>
-- nRF sends hibernation request (type=automatic)
-- Service forwards: <code>LPUSH scooter:power hibernate</code></p>
-<p><strong>Manual hibernation:</strong>
-- nRF sends hibernation request (type=manual)
-- If vehicle state is "parked": <code>LPUSH scooter:state lock-hibernate</code>
-- Otherwise: <code>LPUSH scooter:power hibernate-manual</code></p>
-<p><strong>Soft reboot:</strong>
-- nRF receives "reboot" from the BLE power control characteristic
-- Service forwards: <code>LPUSH scooter:power reboot</code>
-- pm-service triggers a Linux-only reboot (same path as post-OTA reboots)</p>
-<p><strong>Hard reboot:</strong>
-- nRF receives "hard-reboot" from the BLE power control characteristic
-- nRF notifies iMX that a power cycle is imminent, then controls the power rails directly
-- iMX reboots automatically when power is restored</p>
-<p>When power-manager enters hibernation state, the service:
-1. Disables data streaming to nRF52
-2. Sends hibernation level request (L1 or L2)
-3. Sends power management state update to nRF52</p>
+<p><strong>Automatic hibernation:</strong></p>
+<ul>
+<li>nRF sends hibernation request (type=automatic)</li>
+<li>Service forwards: <code>LPUSH scooter:power hibernate</code></li>
+</ul>
+<p><strong>Manual hibernation:</strong></p>
+<ul>
+<li>nRF sends hibernation request (type=manual)</li>
+<li>If vehicle state is "parked": <code>LPUSH scooter:state lock-hibernate</code></li>
+<li>Otherwise: <code>LPUSH scooter:power hibernate-manual</code></li>
+</ul>
+<p><strong>Soft reboot:</strong></p>
+<ul>
+<li>nRF receives "reboot" from the BLE power control characteristic</li>
+<li>Service forwards: <code>LPUSH scooter:power reboot</code></li>
+<li>pm-service triggers a Linux-only reboot (same path as post-OTA reboots)</li>
+</ul>
+<p><strong>Hard reboot:</strong></p>
+<ul>
+<li>nRF receives "hard-reboot" from the BLE power control characteristic</li>
+<li>nRF notifies iMX that a power cycle is imminent, then controls the power rails directly</li>
+<li>iMX reboots automatically when power is restored</li>
+</ul>
+<p>When power-manager enters hibernation state, the service:</p>
+<ol>
+<li>Disables data streaming to nRF52</li>
+<li>Sends hibernation level request (L1 or L2)</li>
+<li>Sends power management state update to nRF52</li>
+</ol>
 <h2 id="log-output">Log Output<a class="headerlink" href="#log-output" title="Permanent link">&para;</a></h2>
-<p>The service logs to journald. Common log patterns include:
-- UART frame parsing errors
-- CBOR decoding errors
-- Redis connection status
-- BLE command processing</p>
+<p>The service logs to journald. Common log patterns include:</p>
+<ul>
+<li>UART frame parsing errors</li>
+<li>CBOR decoding errors</li>
+<li>Redis connection status</li>
+<li>BLE command processing</li>
+</ul>
 <p>Use <code>journalctl -u bluetooth-service</code> to view logs.</p>
 <h2 id="dependencies">Dependencies<a class="headerlink" href="#dependencies" title="Permanent link">&para;</a></h2>
 <ul>
@@ -2912,24 +3008,30 @@ Messages are CBOR-encoded maps with structure:
 <h2 id="cb-battery-monitoring">CB Battery Monitoring<a class="headerlink" href="#cb-battery-monitoring" title="Permanent link">&para;</a></h2>
 <p>The service receives detailed battery information from the nRF52 (which reads from MAX1730X fuel gauge) and processes alerts and faults:</p>
 <h3 id="cb-battery-alert-conditions-status-register">CB Battery Alert Conditions (Status Register)<a class="headerlink" href="#cb-battery-alert-conditions-status-register" title="Permanent link">&para;</a></h3>
-<p>Written to <code>cb-battery:alert</code> hash field <code>alert</code>:
-- Minimum Current Alert Threshold Exceeded
-- Maximum Current Alert Threshold Exceeded
-- Minimum Voltage Alert Threshold Exceeded
-- Maximum Voltage Alert Threshold Exceeded
-- Minimum Temperature Alert Threshold Exceeded
-- Maximum Temperature Alert Threshold Exceeded
-- Minimum SOC Alert Threshold Exceeded
-- Maximum SOC Alert Threshold Exceeded</p>
+<p>Written to <code>cb-battery:alert</code> hash field <code>alert</code>:</p>
+<ul>
+<li>Minimum Current Alert Threshold Exceeded</li>
+<li>Maximum Current Alert Threshold Exceeded</li>
+<li>Minimum Voltage Alert Threshold Exceeded</li>
+<li>Maximum Voltage Alert Threshold Exceeded</li>
+<li>Minimum Temperature Alert Threshold Exceeded</li>
+<li>Maximum Temperature Alert Threshold Exceeded</li>
+<li>Minimum SOC Alert Threshold Exceeded</li>
+<li>Maximum SOC Alert Threshold Exceeded</li>
+</ul>
 <h3 id="cb-battery-fault-conditions">CB Battery Fault Conditions<a class="headerlink" href="#cb-battery-fault-conditions" title="Permanent link">&para;</a></h3>
 <p>Written to <code>cb-battery:fault</code> hash field <code>fault</code>:</p>
-<p><strong>From Protection Status Register:</strong>
-- Discharging fault (ODCP, UVP, TOOHOTD, DIEHOT)
-- Charging fault (TOOCOLDC, OVP, OCCP, QOVFLW, TOOHOTC, FULL, DIEHOT)</p>
-<p><strong>From Battery Status Register:</strong>
-- ChargeFET Failure-Short Detected
-- DischargeFET Failure-Short Detected
-- FET Failure open</p>
+<p><strong>From Protection Status Register:</strong></p>
+<ul>
+<li>Discharging fault (ODCP, UVP, TOOHOTD, DIEHOT)</li>
+<li>Charging fault (TOOCOLDC, OVP, OCCP, QOVFLW, TOOHOTC, FULL, DIEHOT)</li>
+</ul>
+<p><strong>From Battery Status Register:</strong></p>
+<ul>
+<li>ChargeFET Failure-Short Detected</li>
+<li>DischargeFET Failure-Short Detected</li>
+<li>FET Failure open</li>
+</ul>
 <p>Alerts and faults are cleared automatically when the condition is resolved (all relevant bits clear).</p>
 <h2 id="redis-pubsub-subscriptions">Redis Pub/Sub Subscriptions<a class="headerlink" href="#redis-pubsub-subscriptions" title="Permanent link">&para;</a></h2>
 <p>The service subscribes to these Redis channels to monitor for state changes:</p>
@@ -2945,10 +3047,12 @@ Messages are CBOR-encoded maps with structure:
 <li><code>usb</code> - Monitors for USB mode changes → sends UMS status (0/1) to nRF</li>
 <li><code>keycard</code> - Monitors for <code>command-result</code> field → relays response to phone via extended response</li>
 </ul>
-<p>When a subscribed field changes, the service:
-1. Receives the field name via pub/sub
-2. Reads the updated value from the Redis hash
-3. Encodes and sends the update to nRF52 via USOCK</p>
+<p>When a subscribed field changes, the service:</p>
+<ol>
+<li>Receives the field name via pub/sub</li>
+<li>Reads the updated value from the Redis hash</li>
+<li>Encodes and sends the update to nRF52 via USOCK</li>
+</ol>
 <h2 id="related-documentation">Related Documentation<a class="headerlink" href="#related-documentation" title="Permanent link">&para;</a></h2>
 <ul>
 <li><a href="../../bluetooth/">Bluetooth Protocol</a></li>

@@ -2408,35 +2408,45 @@
 </span></code></pre></div>
 <h2 id="redis-operations">Redis Operations<a class="headerlink" href="#redis-operations" title="Permanent link">&para;</a></h2>
 <h3 id="hash-settings">Hash: <code>settings</code><a class="headerlink" href="#hash-settings" title="Permanent link">&para;</a></h3>
-<p><strong>Fields read and written:</strong>
-- Any field with format <code>&lt;section&gt;.&lt;key&gt;</code> (e.g., <code>scooter.speed_limit</code>, <code>cellular.apn</code>)</p>
+<p><strong>Fields read and written:</strong></p>
+<ul>
+<li>Any field with format <code>&lt;section&gt;.&lt;key&gt;</code> (e.g., <code>scooter.speed_limit</code>, <code>cellular.apn</code>)</li>
+</ul>
 <p>The service syncs all fields in the <code>settings</code> hash with the TOML file.</p>
 <p><strong>Subscribed channel:</strong> <code>settings</code></p>
-<p>When a field is published to the <code>settings</code> channel, the service:
-1. Reads the new value from Redis
-2. Updates the TOML file
-3. Performs special handling for certain fields (e.g., APN updates)</p>
+<p>When a field is published to the <code>settings</code> channel, the service:</p>
+<ol>
+<li>Reads the new value from Redis</li>
+<li>Updates the TOML file</li>
+<li>Performs special handling for certain fields (e.g., APN updates)</li>
+</ol>
 <h3 id="list-settingsoverlay-command-queue">List: <code>settings:overlay</code> (command queue)<a class="headerlink" href="#list-settingsoverlay-command-queue" title="Permanent link">&para;</a></h3>
 <p>Consumed by settings-service via BRPOP. Applies or clears a named settings overlay without touching <code>/data/settings.toml</code>.</p>
-<p><strong>Commands:</strong>
-- <code>apply:&lt;name&gt;</code> - apply the named overlay (currently only <code>service</code> is defined)
-- <code>clear:&lt;name&gt;</code> - clear the named overlay and restore base values</p>
+<p><strong>Commands:</strong></p>
+<ul>
+<li><code>apply:&lt;name&gt;</code> - apply the named overlay (currently only <code>service</code> is defined)</li>
+<li><code>clear:&lt;name&gt;</code> - clear the named overlay and restore base values</li>
+</ul>
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>redis-cli<span class="w"> </span>LPUSH<span class="w"> </span>settings:overlay<span class="w"> </span>apply:service
 </span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>redis-cli<span class="w"> </span>LPUSH<span class="w"> </span>settings:overlay<span class="w"> </span>clear:service
 </span></code></pre></div>
 <p>See <a href="#settings-overlays">Overlays</a> below for the overlay mechanics and the full service-mode override set.</p>
 <h3 id="settings-structure">Settings Structure<a class="headerlink" href="#settings-structure" title="Permanent link">&para;</a></h3>
 <p>Settings are organized by section. Examples:</p>
-<p><strong>Alarm settings:</strong>
-- <code>alarm.enabled</code> - Alarm system enabled ("true"/"false")
-- <code>alarm.honk</code> - Horn enabled during alarm ("true"/"false")
-- <code>alarm.duration</code> - Alarm duration in seconds
-- <code>alarm.seatbox-trigger</code> - Trigger alarm on unauthorized seatbox opening ("true"/"false")
-- <code>alarm.hairtrigger</code> - Hair trigger mode enabled ("true"/"false")
-- <code>alarm.hairtrigger-duration</code> - Hair trigger alarm duration in seconds
-- <code>alarm.l1-cooldown</code> - Level 1 cooldown duration in seconds</p>
+<p><strong>Alarm settings:</strong></p>
 <ul>
-<li><code>scooter.max-voltage-delta</code> - Maximum voltage difference between batteries in mV before dual battery activation is refused (default: 1000; 0 to disable)</li>
+<li><code>alarm.enabled</code> - Alarm system enabled ("true"/"false")</li>
+<li><code>alarm.honk</code> - Horn enabled during alarm ("true"/"false")</li>
+<li><code>alarm.duration</code> - Alarm duration in seconds</li>
+<li><code>alarm.seatbox-trigger</code> - Trigger alarm on unauthorized seatbox opening ("true"/"false")</li>
+<li><code>alarm.hairtrigger</code> - Hair trigger mode enabled ("true"/"false")</li>
+<li><code>alarm.hairtrigger-duration</code> - Hair trigger alarm duration in seconds</li>
+<li>
+<p><code>alarm.l1-cooldown</code> - Level 1 cooldown duration in seconds</p>
+</li>
+<li>
+<p><code>scooter.max-voltage-delta</code> - Maximum voltage difference between batteries in mV before dual battery activation is refused (default: 1000; 0 to disable)</p>
+</li>
 <li><code>scooter.battery-keep-active-on-seatbox-open</code> - Keep active battery on across seatbox opens (default: false)</li>
 <li><code>scooter.battery-aux-low-keep-active-enter-mv</code> - Aux battery voltage in mV below which the keep-active-on-seatbox-open override engages automatically (default: 11500). Hysteresis pairs with the exit threshold.</li>
 <li><code>scooter.battery-aux-low-keep-active-exit-mv</code> - Aux battery voltage in mV at or above which the aux-low keep-active override disengages (default: 12000). Must be greater than the enter threshold.</li>
@@ -2445,55 +2455,67 @@
 <li><code>scooter.enable-horn</code> - Horn enable mode ("true"/"false"/"in-drive"; default: "true")</li>
 <li><code>scooter.horn-when-seatbox-open</code> - Allow the manual horn button while the seatbox is open and the scooter is unlocked (default: false). When false, the manual horn is muted in any non-standby state while the seatbox sensor reads open, so the open seat lid resting on the button does not honk. Does not affect the alarm or remote/CLI horn.</li>
 </ul>
-<p><strong>Cellular settings:</strong>
-- <code>cellular.apn</code> - Cellular APN for data connection</p>
-<p><strong>Power management settings:</strong>
-- <code>hibernation-timer</code> - Hibernation timeout in seconds (0=disabled)</p>
-<p><strong>Scooter settings:</strong>
-- <code>scooter.auto-standby-seconds</code> - Auto-lock timeout when parked in seconds (default: 0 = disabled; max 3600). The last 60 s are shown as a cancellable countdown on the dashboard; any user input (brake, kickstand, seatbox button) resets the timer.
-- <code>scooter.lock-on-bluetooth-disconnect-seconds</code> - Grace period in seconds before the scooter locks (enters stand-by) after the connected phone's Bluetooth link drops while parked (default: 0 = disabled; floored at 5 s when set). Reuses the auto-standby countdown: the deadline is published to <code>vehicle</code> <code>auto-standby-deadline</code> and shown on the dashboard. Any user input (brake, kickstand, seatbox button) or a Bluetooth reconnect cancels it.
-- <code>scooter.brake-hibernation</code> - Enable brake lever hibernation ("enabled"/"disabled")</p>
-<p><strong>Update settings:</strong>
-- <code>updates.mdb.channel</code> - MDB update channel (stable/testing/nightly)
-- <code>updates.mdb.check-interval</code> - Update check interval as Go duration ("6h", "24h", "never")
-- <code>updates.mdb.method</code> - Update method (full/delta)
-- <code>updates.mdb.dry-run</code> - Dry-run mode ("true"/"false")
-- <code>updates.mdb.releases-url</code> - Releases API endpoint
-- <code>updates.mdb.last-check-time</code> - Last check timestamp (ISO8601)
-- <code>updates.dbc.channel</code> - DBC update channel
-- <code>updates.dbc.check-interval</code> - DBC update check interval as Go duration
-- <code>updates.dbc.method</code> - DBC update method (full/delta)
-- <code>updates.dbc.dry-run</code> - DBC dry-run mode
-- <code>updates.dbc.releases-url</code> - DBC releases API endpoint
-- <code>updates.dbc.last-check-time</code> - DBC last check timestamp
-- <code>updates.mdb.orchestrate-dbc</code> - Auto power-on DBC and trigger update check when newer DBC release available (default: false)</p>
-<p><strong>Dashboard settings:</strong>
-- <code>dashboard.show-raw-speed</code> - Show raw uncorrected speed ("true"/"false")
-- <code>dashboard.show-clock</code> - Clock visibility (always/never)
-- <code>dashboard.show-gps</code> - GPS indicator visibility (always/active-or-error/error/never)
-- <code>dashboard.show-bluetooth</code> - Bluetooth indicator visibility
-- <code>dashboard.show-cloud</code> - Cloud indicator visibility
-- <code>dashboard.show-internet</code> - Internet indicator visibility
-- <code>dashboard.blinker-style</code> - Blinker indicator style (icon/overlay)
-- <code>dashboard.language</code> - UI language (en, de, ...)
-- <code>dashboard.map.type</code> - Map tile source (online/offline)
-- <code>dashboard.map.render-mode</code> - Map rendering mode (vector/raster)
-- <code>dashboard.theme</code> - UI theme (light/dark/auto)
-- <code>dashboard.mode</code> - Default screen mode (speedometer/navigation)
-- <code>dashboard.valhalla-url</code> - Valhalla routing service endpoint
-- <code>dashboard.app</code> - Display app to launch on DBC boot ("scootui-qt"/"scootui-tui"; default: "scootui-qt")
-- <code>dashboard.power-display-mode</code> - Power display unit (kw/amps; default: "kw")
-- <code>dashboard.battery-display-mode</code> - Battery display mode (percentage/range)
-- <code>dashboard.hop-on-combo</code> - Custom hop-on unlock combo, pipe-delimited tokens (empty = no combo)
-- <code>dashboard.maps.check-for-updates</code> - Auto-check for map updates weekly when online (default: true)
-- <code>dashboard.maps.auto-download</code> - Auto-download map updates (default: false)
-- <code>dashboard.maps-available</code> - Offline map tiles available (system-managed; default: false)
-- <code>dashboard.navigation-available</code> - Full navigation available (system-managed; default: false)</p>
-<p><strong>ECU settings:</strong>
-- <code>engine-ecu.kers</code> - KERS enable/disable ("enabled"/"disabled"; default: "enabled")
-- <code>engine-ecu.kers-power</code> - KERS regenerative braking current in mA
-- <code>engine-ecu.boost</code> - Enable motor boost mode (default: false)
-- <code>engine-ecu.kers-power-dual</code> - KERS current in mA when both batteries active</p>
+<p><strong>Cellular settings:</strong></p>
+<ul>
+<li><code>cellular.apn</code> - Cellular APN for data connection</li>
+</ul>
+<p><strong>Power management settings:</strong></p>
+<ul>
+<li><code>hibernation-timer</code> - Hibernation timeout in seconds (0=disabled)</li>
+</ul>
+<p><strong>Scooter settings:</strong></p>
+<ul>
+<li><code>scooter.auto-standby-seconds</code> - Auto-lock timeout when parked in seconds (default: 0 = disabled; max 3600). The last 60 s are shown as a cancellable countdown on the dashboard; any user input (brake, kickstand, seatbox button) resets the timer.</li>
+<li><code>scooter.lock-on-bluetooth-disconnect-seconds</code> - Grace period in seconds before the scooter locks (enters stand-by) after the connected phone's Bluetooth link drops while parked (default: 0 = disabled; floored at 5 s when set). Reuses the auto-standby countdown: the deadline is published to <code>vehicle</code> <code>auto-standby-deadline</code> and shown on the dashboard. Any user input (brake, kickstand, seatbox button) or a Bluetooth reconnect cancels it.</li>
+<li><code>scooter.brake-hibernation</code> - Enable brake lever hibernation ("enabled"/"disabled")</li>
+</ul>
+<p><strong>Update settings:</strong></p>
+<ul>
+<li><code>updates.mdb.channel</code> - MDB update channel (stable/testing/nightly)</li>
+<li><code>updates.mdb.check-interval</code> - Update check interval as Go duration ("6h", "24h", "never")</li>
+<li><code>updates.mdb.method</code> - Update method (full/delta)</li>
+<li><code>updates.mdb.dry-run</code> - Dry-run mode ("true"/"false")</li>
+<li><code>updates.mdb.releases-url</code> - Releases API endpoint</li>
+<li><code>updates.mdb.last-check-time</code> - Last check timestamp (ISO8601)</li>
+<li><code>updates.dbc.channel</code> - DBC update channel</li>
+<li><code>updates.dbc.check-interval</code> - DBC update check interval as Go duration</li>
+<li><code>updates.dbc.method</code> - DBC update method (full/delta)</li>
+<li><code>updates.dbc.dry-run</code> - DBC dry-run mode</li>
+<li><code>updates.dbc.releases-url</code> - DBC releases API endpoint</li>
+<li><code>updates.dbc.last-check-time</code> - DBC last check timestamp</li>
+<li><code>updates.mdb.orchestrate-dbc</code> - Auto power-on DBC and trigger update check when newer DBC release available (default: false)</li>
+</ul>
+<p><strong>Dashboard settings:</strong></p>
+<ul>
+<li><code>dashboard.show-raw-speed</code> - Show raw uncorrected speed ("true"/"false")</li>
+<li><code>dashboard.show-clock</code> - Clock visibility (always/never)</li>
+<li><code>dashboard.show-gps</code> - GPS indicator visibility (always/active-or-error/error/never)</li>
+<li><code>dashboard.show-bluetooth</code> - Bluetooth indicator visibility</li>
+<li><code>dashboard.show-cloud</code> - Cloud indicator visibility</li>
+<li><code>dashboard.show-internet</code> - Internet indicator visibility</li>
+<li><code>dashboard.blinker-style</code> - Blinker indicator style (icon/overlay)</li>
+<li><code>dashboard.language</code> - UI language (en, de, ...)</li>
+<li><code>dashboard.map.type</code> - Map tile source (online/offline)</li>
+<li><code>dashboard.map.render-mode</code> - Map rendering mode (vector/raster)</li>
+<li><code>dashboard.theme</code> - UI theme (light/dark/auto)</li>
+<li><code>dashboard.mode</code> - Default screen mode (speedometer/navigation)</li>
+<li><code>dashboard.valhalla-url</code> - Valhalla routing service endpoint</li>
+<li><code>dashboard.app</code> - Display app to launch on DBC boot ("scootui-qt"/"scootui-tui"; default: "scootui-qt")</li>
+<li><code>dashboard.power-display-mode</code> - Power display unit (kw/amps; default: "kw")</li>
+<li><code>dashboard.battery-display-mode</code> - Battery display mode (percentage/range)</li>
+<li><code>dashboard.hop-on-combo</code> - Custom hop-on unlock combo, pipe-delimited tokens (empty = no combo)</li>
+<li><code>dashboard.maps.check-for-updates</code> - Auto-check for map updates weekly when online (default: true)</li>
+<li><code>dashboard.maps.auto-download</code> - Auto-download map updates (default: false)</li>
+<li><code>dashboard.maps-available</code> - Offline map tiles available (system-managed; default: false)</li>
+<li><code>dashboard.navigation-available</code> - Full navigation available (system-managed; default: false)</li>
+</ul>
+<p><strong>ECU settings:</strong></p>
+<ul>
+<li><code>engine-ecu.kers</code> - KERS enable/disable ("enabled"/"disabled"; default: "enabled")</li>
+<li><code>engine-ecu.kers-power</code> - KERS regenerative braking current in mA</li>
+<li><code>engine-ecu.boost</code> - Enable motor boost mode (default: false)</li>
+<li><code>engine-ecu.kers-power-dual</code> - KERS current in mA when both batteries active</li>
+</ul>
 <h2 id="settings-overlays">Settings Overlays<a class="headerlink" href="#settings-overlays" title="Permanent link">&para;</a></h2>
 <p>An overlay is a named set of key-value pairs that settings-service applies to the live <code>settings</code> hash in memory. Overlays are strictly non-persistent:</p>
 <ul>
@@ -2594,11 +2616,13 @@
 <h3 id="networkmanager-apn-configuration">NetworkManager APN Configuration<a class="headerlink" href="#networkmanager-apn-configuration" title="Permanent link">&para;</a></h3>
 <p>When <code>cellular.apn</code> is updated, the service automatically updates:</p>
 <p><strong>File:</strong> <code>/etc/NetworkManager/system-connections/wwan.nmconnection</code></p>
-<p>The service:
-1. Reads the existing nmconnection file
-2. Updates the <code>apn=</code> field in the <code>[gsm]</code> section
-3. Writes the updated file
-4. NetworkManager automatically reloads the connection</p>
+<p>The service:</p>
+<ol>
+<li>Reads the existing nmconnection file</li>
+<li>Updates the <code>apn=</code> field in the <code>[gsm]</code> section</li>
+<li>Writes the updated file</li>
+<li>NetworkManager automatically reloads the connection</li>
+</ol>
 <h3 id="wireguard-configuration-management">WireGuard Configuration Management<a class="headerlink" href="#wireguard-configuration-management" title="Permanent link">&para;</a></h3>
 <p>On startup, the service manages WireGuard VPN connections:</p>
 <ol>
@@ -2633,38 +2657,46 @@
 </span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>redis-cli<span class="w"> </span>HSET<span class="w"> </span>settings<span class="w"> </span>scooter.speed_limit<span class="w"> </span><span class="s2">"30"</span>
 </span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>redis-cli<span class="w"> </span>PUBLISH<span class="w"> </span>settings<span class="w"> </span>scooter.speed_limit
 </span></code></pre></div>
-<p>The service:
-1. Receives the publish notification
-2. Reads the new value from Redis
-3. Parses the section and key (e.g., "scooter" and "speed_limit")
-4. Updates the TOML file
-5. Saves to disk</p>
+<p>The service:</p>
+<ol>
+<li>Receives the publish notification</li>
+<li>Reads the new value from Redis</li>
+<li>Parses the section and key (e.g., "scooter" and "speed_limit")</li>
+<li>Updates the TOML file</li>
+<li>Saves to disk</li>
+</ol>
 <h4 id="toml-to-redis-sync-startup-only">TOML to Redis Sync (Startup Only)<a class="headerlink" href="#toml-to-redis-sync-startup-only" title="Permanent link">&para;</a></h4>
-<p>On startup, if <code>/data/settings.toml</code> exists:
-1. Entire file is read
-2. All sections and keys are converted to Redis format
-3. Redis <code>settings</code> hash is flushed
-4. All settings written to Redis
-5. Each setting published to <code>settings</code> channel</p>
+<p>On startup, if <code>/data/settings.toml</code> exists:</p>
+<ol>
+<li>Entire file is read</li>
+<li>All sections and keys are converted to Redis format</li>
+<li>Redis <code>settings</code> hash is flushed</li>
+<li>All settings written to Redis</li>
+<li>Each setting published to <code>settings</code> channel</li>
+</ol>
 <p>This ensures Redis reflects the persistent configuration.</p>
 <h3 id="key-settingsschema">Key: <code>settings:schema</code><a class="headerlink" href="#key-settingsschema" title="Permanent link">&para;</a></h3>
 <p>On startup, the service publishes the raw schema JSON to this string key so other services can introspect available settings and their metadata.</p>
 <h4 id="apn-special-handling">APN Special Handling<a class="headerlink" href="#apn-special-handling" title="Permanent link">&para;</a></h4>
-<p>When <code>cellular.apn</code> is updated:
-1. TOML file is updated (normal behavior)
-2. Service checks if <code>/etc/NetworkManager/system-connections/wwan.nmconnection</code> exists
-3. If exists:
-   - Reads the file
-   - Finds the <code>[gsm]</code> section
-   - Updates the <code>apn=</code> line
-   - Writes the file back
-4. NetworkManager detects the change and reloads the connection
-5. New APN takes effect on next modem connection</p>
+<p>When <code>cellular.apn</code> is updated:</p>
+<ol>
+<li>TOML file is updated (normal behavior)</li>
+<li>Service checks if <code>/etc/NetworkManager/system-connections/wwan.nmconnection</code> exists</li>
+<li>If exists:</li>
+<li>Reads the file</li>
+<li>Finds the <code>[gsm]</code> section</li>
+<li>Updates the <code>apn=</code> line</li>
+<li>Writes the file back</li>
+<li>NetworkManager detects the change and reloads the connection</li>
+<li>New APN takes effect on next modem connection</li>
+</ol>
 <h4 id="empty-config-handling">Empty Config Handling<a class="headerlink" href="#empty-config-handling" title="Permanent link">&para;</a></h4>
-<p>If the TOML file is empty or has an empty <code>[scooter]</code> section:
-- Redis <code>settings</code> hash is flushed
-- Service treats this as "factory reset" of settings
-- Services using settings will fall back to their defaults</p>
+<p>If the TOML file is empty or has an empty <code>[scooter]</code> section:</p>
+<ul>
+<li>Redis <code>settings</code> hash is flushed</li>
+<li>Service treats this as "factory reset" of settings</li>
+<li>Services using settings will fall back to their defaults</li>
+</ul>
 <h3 id="wireguard-management">WireGuard Management<a class="headerlink" href="#wireguard-management" title="Permanent link">&para;</a></h3>
 <p><strong>Directory:</strong> <code>/data/wireguard/</code></p>
 <p><strong>File format:</strong> Standard WireGuard <code>.conf</code> files</p>
@@ -2679,12 +2711,14 @@
 </span><span id="__span-5-8"><a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a><span class="na">AllowedIPs</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">0.0.0.0/0</span>
 </span><span id="__span-5-9"><a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a><span class="na">PersistentKeepalive</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">25</span>
 </span></code></pre></div></p>
-<p><strong>Management process:</strong>
-1. On startup: Service deletes all existing WireGuard connections
-2. Waits for internet connectivity (event-driven; falls back to 120s timeout)
-3. Scans <code>/data/wireguard/</code> for <code>*.conf</code> files
-4. Imports each file as a NetworkManager connection
-5. Connections are named based on filename (e.g., <code>vpn.conf</code> → "vpn")</p>
+<p><strong>Management process:</strong></p>
+<ol>
+<li>On startup: Service deletes all existing WireGuard connections</li>
+<li>Waits for internet connectivity (event-driven; falls back to 120s timeout)</li>
+<li>Scans <code>/data/wireguard/</code> for <code>*.conf</code> files</li>
+<li>Imports each file as a NetworkManager connection</li>
+<li>Connections are named based on filename (e.g., <code>vpn.conf</code> → "vpn")</li>
+</ol>
 <p>This allows easy VPN configuration by placing <code>.conf</code> files in <code>/data/wireguard/</code>.</p>
 <h2 id="configuration-examples">Configuration Examples<a class="headerlink" href="#configuration-examples" title="Permanent link">&para;</a></h2>
 <h3 id="setting-speed-limit">Setting Speed Limit<a class="headerlink" href="#setting-speed-limit" title="Permanent link">&para;</a></h3>
@@ -2772,12 +2806,14 @@
 </span><span id="__span-12-20"><a id="__codelineno-12-20" name="__codelineno-12-20" href="#__codelineno-12-20"></a><span class="na">WantedBy</span><span class="o">=</span><span class="s">multi-user.target</span>
 </span></code></pre></div>
 <h2 id="log-output">Log Output<a class="headerlink" href="#log-output" title="Permanent link">&para;</a></h2>
-<p>The service logs to stdout/stderr (captured by systemd):
-- TOML file read/write operations
-- Redis synchronization events
-- APN configuration updates
-- WireGuard connection management
-- Parse errors or file I/O errors</p>
+<p>The service logs to stdout/stderr (captured by systemd):</p>
+<ul>
+<li>TOML file read/write operations</li>
+<li>Redis synchronization events</li>
+<li>APN configuration updates</li>
+<li>WireGuard connection management</li>
+<li>Parse errors or file I/O errors</li>
+</ul>
 <p>Use <code>journalctl -u librescoot-settings</code> to view logs.</p>
 <h2 id="dependencies">Dependencies<a class="headerlink" href="#dependencies" title="Permanent link">&para;</a></h2>
 <ul>
@@ -2793,11 +2829,13 @@
 <li><strong>vehicle-service</strong>: Can read scooter behavior settings</li>
 <li><strong>modem-service</strong>: APN is configured via NetworkManager</li>
 </ul>
-<p>Services should:
-1. Subscribe to <code>settings</code> channel
-2. Read from <code>settings</code> hash when notified
-3. Apply new settings immediately
-4. Fall back to defaults if setting not present</p>
+<p>Services should:</p>
+<ol>
+<li>Subscribe to <code>settings</code> channel</li>
+<li>Read from <code>settings</code> hash when notified</li>
+<li>Apply new settings immediately</li>
+<li>Fall back to defaults if setting not present</li>
+</ol>
 <h2 id="librescoot-feature">Librescoot Feature<a class="headerlink" href="#librescoot-feature" title="Permanent link">&para;</a></h2>
 <p>This is a Librescoot-only service. Benefits:</p>
 <ul>
