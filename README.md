@@ -2,6 +2,21 @@
 
 Reverse-engineered technical documentation of the unu Scooter Pro.
 
+## What changed in v1.0.4
+
+- SIM PIN support: PIN-protected SIMs can be unlocked and have lock enabled,
+  configured through the new `cellular.sim-pin` setting
+- More robust nRF firmware updates: each staged flash is retried up to three
+  times, a bricked application is detected at startup and recovered through the
+  bootloader, and `firmware-update-status` is written synchronously
+- Keycard learn mode is additive and emits an event per tap
+- CBB reported charge is capped at 100%
+- vehicle-service starts its state machine after hardware initialisation, and
+  the separate init state is gone: the FSM now starts in stand-by
+- settings-service persists only user-set keys to its TOML file
+
+[Release notes](https://github.com/librescoot/librescoot/releases/tag/v1.0.4)
+
 ## System Architecture
 
 The unu Scooter Pro uses a distributed architecture with several key systems:
