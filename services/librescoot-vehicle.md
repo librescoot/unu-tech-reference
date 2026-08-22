@@ -23,11 +23,12 @@ Usage of vehicle-service:
 - `state` - Vehicle state (see States section below)
 - `brake:left` - Left brake state ("on", "off")
 - `brake:right` - Right brake state ("on", "off")
-- `blinker:state` - Blinker active state ("on", "off")
+- `blinker:state` - Blinker active state ("off", "left", "right", "both")
 - `blinker:start_nanos` - Monotonic start time of current blinker cycle (for UI sync)
 - `blinker:switch` - Blinker switch position ("left", "right", "both", "off")
-- `horn:button` - Horn button state ("on", "off")
-- `seatbox:button` - Seatbox button state ("on", "off")
+- `main-power` - Commanded main power rail state ("on", "off"), read by ecu-service
+- `engine-power` - Commanded `engine_power` GPIO state ("on", "off"), read by ecu-service
+- (no `horn:button` / `seatbox:button` fields: horn and seatbox button presses are written to the `buttons` hash as `horn:on` / `horn:off` / `seatbox:on` / `seatbox:off`, value "1")
 - `seatbox:lock` - Seatbox lock state ("open", "closed")
 - `kickstand` - Kickstand position ("up", "down")
 - `handlebar:position` - Handlebar position ("on-place", "off-place")
@@ -67,7 +68,6 @@ Usage of vehicle-service:
 - `keycard` - Keycard authentication events (payload: "authentication")
 - `ota` - OTA update notifications
 - `power-manager` - Power manager events
-- `vehicle` - Vehicle state change notifications
 - `settings` - Settings update notifications (payload: setting key that changed)
 
 ### Channels published
@@ -107,7 +107,7 @@ The manual hibernation sequence works as follows:
 3. **hibernation-awaiting-confirm**: User can release brakes or keep holding
    - A 30s timeout runs from entry into this phase (not from brake release) and is not reset by further brake activity; on expiry the vehicle returns to `parked`
    - If brakes held continuously for 30s total: auto-confirm (skip seatbox check)
-   - If brakes re-pressed after release: hold for 15s to auto-confirm
+   - Re-pressing the brakes does not restart the force timer: it is armed once on entry to `hibernation-awaiting-confirm` and only samples the levers when it expires 15s later
 4. **Keycard tap** or **continuous hold timeout**: Check safety conditions (kickstand down, seatbox closed)
    - If seatbox open: transition to `hibernation-seatbox` and wait for user to close it
 5. **hibernation-confirm**: 3-second final countdown before hibernation
@@ -270,7 +270,7 @@ Will manually transition to `ready-to-drive` and blink the main light once for c
      - The timeout is armed on entry into the phase and is not reset by touching the brakes again
      - If timeout expires: cancel hibernation, return to `parked`
    - If brakes held continuously for 30s total from start: auto-confirm (warehouse mode)
-   - If brakes re-pressed after release: hold for 15s to auto-confirm
+   - Re-pressing the brakes does not restart the force timer: it is armed once on entry to the confirmation phase and only samples the levers when it expires 15s later
    - **Keycard tap during confirmation:** triggers immediate safety check and confirmation
 4. **Safety Checks:**
    - Kickstand must be down (always required)
@@ -496,7 +496,7 @@ The service responds to settings changes via PUBSUB:
 - Main goroutine handles system coordination
 - Separate goroutines for:
   - Redis PUBSUB listener
-  - 8 Redis BRPOP command listeners (one per list)
+  - 9 Redis BRPOP command listeners (one per list, including `scooter:hop-on`)
   - Blinker timer (when active)
   - Various hardware timers (hibernation, shutdown, handlebar lock)
 - Thread-safe state access via sync.RWMutex

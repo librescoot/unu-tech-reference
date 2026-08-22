@@ -2,7 +2,7 @@
 
 ## Description
 
-The modem service manages the cellular modem (SimCom SIM7100E) for internet connectivity and GPS functionality using ModemManager (mmcli). It monitors network registration, signal quality, access technology (2G/3G/4G), handles modem power management and recovery, manages network connectivity, and provides GPS coordinates via gpsd. The service implements intelligent health monitoring with multi-strategy recovery procedures and GPS-specific recovery mechanisms.
+The modem service manages the cellular modem (SimCom SIM7100E) for internet connectivity and GPS functionality using ModemManager over D-Bus. It monitors network registration, signal quality, access technology (2G/3G/4G), handles modem power management and recovery, manages network connectivity, and provides GPS coordinates via gpsd. The service implements intelligent health monitoring with multi-strategy recovery procedures and GPS-specific recovery mechanisms.
 
 ## Command-Line Options
 
@@ -39,7 +39,7 @@ Usage of modem-service:
 - `modem-state` - Raw modem status ("off", "connected", "disconnected", "no-modem", "UNKNOWN")
 - `status` - Derived internet connectivity status ("connected", "disconnected") - determined by TCP connections to port 53 on public DNS resolvers (8.8.8.8, 1.1.1.1, 9.9.9.9, 208.67.222.222), each socket bound to the modem interface with SO_BINDTODEVICE
 - `ip-address` - Interface IP address from wwu1i5/ppp0
-- `access-tech` - Access technology from modem ("2G", "GSM", "3G", "UMTS", "4G", "LTE", "5G", "UNKNOWN")
+- `access-tech` - Access technology from modem ("5G", "4G", "HSPA+", "HSPA", "3G", "UMTS", "EDGE", "GSM", "UNKNOWN")
 - `signal-quality` - Signal strength (0-100, or 255 if unknown)
 - `unu-cloud` - Cloud (uplink) connection status — written by `uplink-service`, not modem-service ("connected"/"disconnected")
 - `sim-imei` - Modem IMEI identifier (identifies modem hardware, not SIM - name kept for backward compatibility)
@@ -58,9 +58,11 @@ Usage of modem-service:
 - `operator-name` - Current network operator name
 - `operator-code` - Current network operator code
 - `is-roaming` - Roaming status ("true", "false")
+- `registration` - 3GPP registration state ("idle", "home", "searching", "denied", "roaming", "unknown")
 - `registration-fail` - Registration failure reason (if any)
-- `error-state` - Consolidated error state ("ok", "powered-off", "sim-missing", "sim-inactive", "sim-locked", "registration-denied", "registration-failed", "disconnected", "no-modem", "status-error")
-- `pin-action` - Outcome of the last SIM PIN reconcile ("unconfigured", "unlocked", "lock-enabled", "wrong-pin", "low-retries-bail", "puk-required")
+- `error-state` - Consolidated error state ("ok", "powered-off", "sim-missing", "sim-inactive", "sim-locked", "registration-denied", "registration-failed", "disconnected", "no-modem", "modem-disappeared")
+- `connectivity` - Debounced coarse connectivity ("online", "offline", "no-sim"); online commits after 60s of agreement, offline after 3 minutes, no-sim immediately
+- `pin-action` - Outcome of the last SIM PIN reconcile ("unconfigured", "ok", "unlocked", "lock-enabled", "wrong-pin", "low-retries-bail", "puk-required", "error")
 
 **Published channel:** `modem` (publishes field name on change)
 
@@ -183,7 +185,7 @@ The modem typically uses:
 - SIM lock status
 - Network registration state (home/roaming/denied/searching)
 - Signal quality (0-100 or 255 for unknown)
-- Access technology (2G/GSM, 3G/UMTS, 4G/LTE, 5G)
+- Access technology (GSM, EDGE, UMTS, 3G, HSPA, HSPA+, 4G, 5G)
 - Operator name and code
 - Roaming status
 - IMEI, IMSI, ICCID identifiers
@@ -344,14 +346,14 @@ When modem failure is detected, the service attempts recovery with 4 strategies 
 
 This multi-strategy approach handles various failure modes:
 
-- Software hangs → mmcli reset
+- Software hangs → ModemManager D-Bus reset
 - USB/driver issues → USB unbind/bind
 - Firmware crashes → GPIO hardware reset
 - Transient issues → Extended wait
 
 ## Log Output
 
-The service logs to journald with systemd-aware formatting (no prefix when INVOCATION_ID is set).
+The service logs to journald with systemd-aware formatting (no prefix or timestamps when `JOURNAL_STREAM` is set).
 
 **Common log patterns:**
 

@@ -182,15 +182,9 @@ This ensures clean WireGuard state on boot and allows easy VPN configuration via
 ### Startup Sequence
 
 1. Connects to Redis
-2. Checks if `/data/settings.toml` exists
-3. If exists and non-empty:
-   - Flushes existing Redis `settings` hash
-   - Reads TOML file
-   - Populates Redis with all settings
-   - Publishes each setting to `settings` channel
-4. If doesn't exist or empty `[scooter]` section:
-   - Flushes Redis `settings` hash
-   - Creates empty TOML file
+2. Loads the settings schema from `/usr/share/settings-service/settings.schema.json` and collects every key that carries a non-null `default`
+3. Overlays `/data/settings.toml` on top of those defaults (user values win). A missing TOML file just means schema defaults only; the load path itself creates no file, and there is no special case for an empty `[scooter]` section.
+4. Replaces the Redis `settings` hash in one pipeline (DEL, then HSET of every merged field) and publishes a single `reload` message on the `settings` channel. The service is subscribed to that channel itself, so handling its own `reload` writes `/data/settings.toml` back from the keys it recorded as user-set (an all-empty file when there was none to load).
 5. Deletes existing WireGuard connections from NetworkManager
 6. Waits for internet connectivity (event-driven; max 120s timeout)
 7. Imports all WireGuard configs from `/data/wireguard/`
@@ -348,8 +342,10 @@ rm /data/settings.toml
 # Restart settings service
 systemctl restart librescoot-settings
 
-# Redis settings hash is now empty
-# Services will use default values
+# Redis settings hash now holds only the schema defaults
+# Services will use those default values
+# Note: the service also rewrites /data/settings.toml as a stub
+# containing only the section headers, so the file comes back
 ```
 
 ## Building

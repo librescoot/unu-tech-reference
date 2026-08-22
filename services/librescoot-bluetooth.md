@@ -49,7 +49,7 @@ The Bluetooth service provides the BLE (Bluetooth Low Energy) interface for the 
 - `present` - Battery presence ("true", "false")
 - `charge-status` - Charging status ("not-charging", "charging")
 
-**Published channel:** None (fields are written but not published by this service)
+**Published channel:** `cb-battery` (every field write is an HSET plus a PUBLISH of the field name)
 
 ### Hash: `aux-battery`
 
@@ -60,7 +60,7 @@ The Bluetooth service provides the BLE (Bluetooth Low Energy) interface for the 
 - `charge-status` - Charging status ("absorption-charge", "not-charging", "float-charge", "bulk-charge")
 - `data-stream-enable` - Data streaming enable flag ("0", "1")
 
-**Published channel:** None (fields are written but not published by this service)
+**Published channel:** `aux-battery` (every field write is an HSET plus a PUBLISH of the field name)
 
 ### Hash: `power-manager`
 
