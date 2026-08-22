@@ -1788,12 +1788,12 @@
 <h1 id="unu-scooter-pro-technical-documentation">unu Scooter Pro - Technical Documentation<a class="headerlink" href="#unu-scooter-pro-technical-documentation" title="Permanent link">&para;</a></h1>
 <p>Reverse-engineered technical documentation of the unu Scooter Pro.</p>
 <h2 id="what-changed-in-v110">What changed in v1.1.0<a class="headerlink" href="#what-changed-in-v110" title="Permanent link">&para;</a></h2>
-<p>The first release containing motion-service, which takes ownership of the
-BMX055 IMU from alarm-service.</p>
+<p>First release containing motion-service, which takes ownership of the BMX055
+IMU from alarm-service.</p>
 <ul>
-<li>Power management gained a lot: suspend with no drive battery inserted,
-  <code>hibernate-for</code>, cron-scheduled hibernation, and a last-ditch hibernate that
-  fires on a low CBB or low aux voltage to avoid deep discharge</li>
+<li>Power management: suspend with no drive battery inserted, <code>hibernate-for</code>,
+  cron-scheduled hibernation, and a last-ditch hibernate that fires on a low CBB
+  or low aux voltage to avoid deep discharge</li>
 <li>Service mode, with a settings overlay and <code>lsc service-mode</code></li>
 <li>Manual backlight control, plus slower lux smoothing to cut flicker</li>
 <li>Low-charge warnings for the internal batteries, and optional CBB/AUX charge
