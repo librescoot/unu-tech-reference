@@ -66,6 +66,7 @@ than one board:
 | `update-type` | Whether the flat status blocks use of the vehicle | `blocking`, or empty |
 
 **Published channel:** `ota`
+
 - All field updates are published atomically on state transitions
 
 #### Flat status
@@ -182,6 +183,7 @@ silence, not 90 seconds of heartbeat age.
 ### Hash: `settings` (read/written)
 
 **Fields read:**
+
 - `updates.{component}.channel` — update channel (`stable`, `testing`, `nightly`)
 - `updates.{component}.check-interval` — check interval (e.g. `6h`, `30m`)
 - `updates.{component}.releases-url` — release index base URL
@@ -190,9 +192,11 @@ silence, not 90 seconds of heartbeat age.
 - `updates.mdb.orchestrate-dbc` — MDB-only: whether MDB orchestrates DBC updates
 
 **Fields written:**
+
 - `updates.{component}.last-check-time` — RFC3339 timestamp of last update check
 
 **Subscribed channel:** `settings`
+
 - All `updates.{component}.*` field changes are applied at runtime
 
 ### Hash: `version:{component}` (read)

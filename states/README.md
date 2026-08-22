@@ -93,6 +93,7 @@ stateDiagram-v2
 
 #### is_ready_to_drive()
 Vehicle can enter "ready-to-drive" when ALL conditions are met:
+
 - Dashboard ready
 - Kickstand up
 - Seatbox lock closed
@@ -102,6 +103,7 @@ Vehicle can enter "ready-to-drive" when ALL conditions are met:
 
 #### Hibernation Sequence
 Manual hibernation requires:
+
 1. Both brakes pressed
 2. Dashboard ready
 3. Not activating

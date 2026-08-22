@@ -98,6 +98,7 @@ Generated from source analysis of all service repositories.
 | `events:faults` | fault events (Redis Stream) | — |
 
 **Reads:**
+
 - `vehicle/state` (self-reads for restart recovery)
 - `vehicle/dbc-updating`, `vehicle/dashboard:power` (self-reads)
 - `dashboard/ready` (from scootui)
@@ -107,6 +108,7 @@ Generated from source analysis of all service repositories.
 - `ota/standby-timer-start` (indirectly via update-service)
 
 **Consumes queues (BRPOP):**
+
 - `scooter:state` → "unlock", "lock", "lock-hibernate", "force-lock"
 - `scooter:seatbox` → "open"
 - `scooter:horn` → "on", "off"
@@ -124,6 +126,7 @@ heartbeat-driven short timeout in this release.
 
 
 **Produces queues (LPUSH):**
+
 - `scooter:governor` → "ondemand"/"powersave" (send to pm-service via intermediate; actually uses its own queue handler — see note)
 
 **Hardware access:** GPIO via `/dev/gpiochip*`, PWM LED via kernel driver
@@ -140,12 +143,14 @@ heartbeat-driven short timeout in this release.
 | `battery:N:fault` | fault codes (Redis Set) | `battery:N` (payload: "fault") |
 
 **Reads:**
+
 - `vehicle/state` (vehicle state for active/standby mode)
 - `vehicle/seatbox:lock` (seatbox state for enabling battery readers)
 - `settings/scooter.battery-keep-active-on-seatbox-open`
 - `settings/scooter.dual-battery`
 
 **Subscribes to:**
+
 - `vehicle` channel (payload: "state", "seatbox:lock")
 - `settings` channel (payload: "scooter.battery-keep-active-on-seatbox-open", "scooter.dual-battery")
 
@@ -166,12 +171,14 @@ heartbeat-driven short timeout in this release.
 | `engine-ecu` | `gear`, `fw-version` | (no publish) |
 
 **Reads:**
+
 - `vehicle/state` (for engine ready state)
 - `battery:0/state`, `battery:0/temperature-state`
 - `battery:1/state`, `battery:1/temperature-state`
 - `settings/engine-ecu.boost`
 
 **Subscribes to:**
+
 - `vehicle` channel (payload: "state")
 - `battery:0`, `battery:1` channels (all fields → HGETALL)
 - `settings` channel (payload: "engine-ecu.boost")
@@ -206,6 +213,7 @@ Note: Sets 10-second TTL on `keycard` hash after publish.
 | `ble:fault` | fault codes (Redis Set) | `ble` (payload: "fault") |
 
 **Reads:**
+
 - `vehicle/state`, `vehicle/seatbox:lock`, `vehicle/handlebar:lock-sensor`
 - `battery:0/state`, `battery:0/present`, `battery:0/charge`, `battery:0/cycle-count`
 - `battery:1/state`, `battery:1/present`, `battery:1/charge`, `battery:1/cycle-count`
@@ -215,9 +223,11 @@ Note: Sets 10-second TTL on `keycard` hash after publish.
 - `ble/pin-code`
 
 **Subscribes to:**
+
 - `vehicle`, `battery:0`, `battery:1`, `power-manager`, `engine-ecu`, `system`, `ble` channels
 
 **Consumes queues:**
+
 - `scooter:bluetooth` → BLE commands ("advertising-start-with-whitelisting", "advertising-restart-no-whitelisting", "advertising-stop", "delete-bond", "delete-all-bonds", "remove", "firmware-update")
 
 **Hardware access:** UART via usock to nRF52 at `/var/run/bluetooth-service.sock` or similar
@@ -234,21 +244,25 @@ Note: Sets 10-second TTL on `keycard` hash after publish.
 | `system` | `cpu:governor` | `system` |
 
 **Reads:**
+
 - `vehicle/state` (watches for standby/parked/ready-to-drive transitions)
 - `battery:0/state` (watches for active/inactive)
 - `settings/hibernation-timer`
 
 **Subscribes to:**
+
 - `vehicle` channel via HashWatcher
 - `battery:0` channel via HashWatcher
 - `settings` channel (for hibernation-timer)
 - `power:inhibits` hash (inhibitor redis listener)
 
 **Consumes queues:**
+
 - `scooter:power` → "run", "suspend", "hibernate", "hibernate-manual", "hibernate-timer", "reboot"
 - `scooter:governor` → "ondemand", "powersave", "performance"
 
 **Produces queues:**
+
 - `scooter:modem` → "disable" (to disable modem before power state change)
 
 **Hardware access:** `/sys/power/pm_wakeup_irq`, `/sys/class/tty/*/power/wakeup`, systemd D-Bus
@@ -264,6 +278,7 @@ Note: Sets 10-second TTL on `keycard` hash after publish.
 | `settings` | `updates.<component>.last-check-time` | `settings` |
 
 **Reads:**
+
 - `vehicle/state` (watches; state-based update triggering)
 - `vehicle/state:timestamp` (for standby duration check)
 - `ota/standby-timer-start` (from vehicle-service, for timing)
@@ -274,14 +289,17 @@ Note: Sets 10-second TTL on `keycard` hash after publish.
 - `settings/updates.<component>.last-check-time`
 
 **Subscribes to:**
+
 - `vehicle` channel (via HashWatcher)
 - `ota` channel (via HashWatcher)
 - `settings` channel (via HashWatcher)
 
 **Consumes queues:**
+
 - `scooter:update:<component>` → "check-now"
 
 **Produces queues:**
+
 - `scooter:update` → "start-dbc", "complete-dbc" (to vehicle-service)
 - `scooter:power` → "reboot" (after MDB update)
 
@@ -301,9 +319,11 @@ Note: Sets 10-second TTL on `keycard` hash after publish.
 | `events:faults` | modem fault events (Redis Stream) | — |
 
 **Reads:**
+
 - `vehicle/state` (via HashWatcher, for hibernation behavior)
 
 **Consumes queues:**
+
 - `scooter:modem` → "disable", "enable"
 
 **Hardware access:** ModemManager via D-Bus, GPIO modem power, USB
@@ -331,13 +351,16 @@ Note: version-service does NOT publish to the `os-release` channel. It runs once
 | `settings` | All TOML fields: `scooter.*`, `cellular.*`, `updates.*`, `dashboard.*`, `alarm.*`; overlay-injected values (in-memory only, not persisted); `dashboard.service-mode-active` status field | NONE (critical gap — see gaps section) |
 
 **Reads:**
+
 - `settings/*` (all fields, to save back to TOML)
 
 **Subscribes to:**
+
 - `settings` channel (to detect changes and flush to TOML)
 - `internet` channel (for WireGuard manager)
 
 **Consumes queues (BRPOP):**
+
 - `settings:overlay` → `apply:service`, `clear:service` — owns the overlay command list; the `service` overlay fans out to pm-service, vehicle-service, alarm-service, and scootui purely via existing `settings`-channel reactions
 
 **Hardware access:** `/data/settings.toml`, NetworkManager D-Bus
@@ -352,16 +375,20 @@ Note: version-service does NOT publish to the `os-release` channel. It runs once
 | `alarm` | `status` ("disabled", "disarmed", "armed", "level-1-triggered", "level-2-triggered") | `alarm` |
 
 **Produces queues (LPUSH):**
+
 - `scooter:horn` → "on", "off"
 - `scooter:blinker` → "both", "off"
 
 **Publishes:**
+
 - `alarm` hash `status` field — motion-service watches this and reactively re-derives the BMX055 chip profile
 
 **Calls (synchronous RPC via redis-ipc CallMethod):**
+
 - `motion:rpc/prepare-hibernation` — gates pm-service's hibernation entry on motion-service confirming the chip is in armed-hibernation profile
 
 **Reads:**
+
 - `vehicle/state` (via HashWatcher)
 - `vehicle/seatbox:lock` (via HashWatcher)
 - `settings/alarm.enabled`, `settings/alarm.honk`, `settings/alarm.duration`
@@ -370,12 +397,14 @@ Note: version-service does NOT publish to the `os-release` channel. It runs once
 - `motion/wake-cause` (once on startup — durable backstop for wake-from-hibernation indicator)
 
 **Subscribes to:**
+
 - `vehicle` channel (state, seatbox:opened event, seatbox:lock)
 - `settings` channel
 - `power-manager` channel (state field — drives hibernation handshake)
 - `motion:interrupt` channel (JSON envelope `{type, timestamp, engine}`)
 
 **Consumes queues:**
+
 - `scooter:alarm` → "enable", "disable", "start:N", "stop"
 
 **Hardware access:** I2C BMX055 accelerometer/gyroscope at `/dev/i2c-3`
@@ -390,6 +419,7 @@ Note: version-service does NOT publish to the `os-release` channel. It runs once
 | `dashboard` | `backlight` (int 0-10240), `brightness` (float lux) | `dashboard` |
 
 **Reads:**
+
 - `dashboard/backlight-enabled` (override; absent means enabled)
 - `settings/dashboard.backlight-mode` (auto, low, medium, high; absent means auto)
 
@@ -412,12 +442,15 @@ overridden off or pinned to a fixed level.
 | `dashboard` | `ready` ("true"), `serial-number` | `dashboard` |
 
 **Reads (HGETALL / HGET):**
+
 - `vehicle`, `battery:0`, `battery:1`, `engine-ecu`, `power-manager`, `internet`, `modem`, `gps`, `keycard`, `ble`, `dashboard`, `system`
 
 **Subscribes to (pub/sub):**
+
 - Multiple channels for real-time updates (subscription details in app UI layers)
 
 **Produces queues (LPUSH):**
+
 - `scooter:state` → "lock", "unlock", "lock-hibernate"
 - `scooter:seatbox` → "open"
 - `scooter:horn` → "on", "off"
@@ -425,6 +458,7 @@ overridden off or pinned to a fixed level.
 - (via `push()` method)
 
 **Publishes:**
+
 - `buttons` channel (button events)
 
 **Hardware access:** Display via Flutter framebuffer/DRM backend
@@ -434,9 +468,11 @@ overridden off or pinned to a fixed level.
 ### uplink-service
 
 **Reads (telemetry, HGETALL):**
+
 - `vehicle`, `battery:0`, `battery:1`, `aux-battery`, `cb-battery`, `engine-ecu`, `power-manager`, `internet`, `modem`, `gps`, `keycard`, `ble`, `dashboard`, `system`
 
 **Produces queues (LPUSH) — from remote server commands:**
+
 - `scooter:state` → "unlock", "lock", "lock-hibernate", "force-lock"
 - `scooter:seatbox` → "open"
 - `scooter:horn` → "on", "off"
@@ -454,6 +490,7 @@ overridden off or pinned to a fixed level.
 | `usb` | `mode` ("normal", "ums", "ums-by-dbc") | `usb` |
 
 **Reads:**
+
 - `usb/mode` (via HashWatcher, to trigger mode changes)
 
 **Hardware access:** USB gadget via configfs, `/data/dbc/`
@@ -465,6 +502,7 @@ overridden off or pinned to a fixed level.
 **Reads (HGETALL / HGET):** All state hashes for display
 
 **Produces queues (LPUSH):**
+
 - `scooter:state`, `scooter:seatbox`, `scooter:horn`, `scooter:blinker`, `scooter:hardware`, `scooter:power`, `scooter:alarm`, `scooter:led:cue`, `scooter:led:fade`, `settings:overlay` (`apply:service`, `clear:service` via `lsc service-mode on|off`)
 
 ---

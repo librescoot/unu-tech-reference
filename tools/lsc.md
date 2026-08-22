@@ -59,6 +59,7 @@ lsc vehicle open
 ```
 
 **Redis operations:**
+
 - Sends commands to `scooter:state` list (lock, unlock, force-lock, lock-hibernate)
 - Sends commands to `scooter:seatbox` list (open)
 - Monitors `vehicle` hash for state changes
@@ -101,6 +102,7 @@ lsc settings set pm.scheduled-hibernate-enabled true
 ```
 
 **Redis operations:**
+
 - Sends commands to `scooter:power` list
 - Reads from `power-manager` hash
 
@@ -163,6 +165,7 @@ resolved literally, so the datastore row read `inactive` / `not-found` on 1.2
 images and `status`, `restart` and `logs` failed for it.
 
 **System integration:**
+
 - Uses `systemctl` commands via D-Bus
 - Uses `journalctl` for log retrieval
 
@@ -179,6 +182,7 @@ lsc led fade <channel> <index>
 ```
 
 **Redis operations:**
+
 - Sends commands to `scooter:led:cue` list
 - Sends commands to `scooter:led:fade` list
 
@@ -200,6 +204,7 @@ lsc battery --json
 ```
 
 **Redis operations:**
+
 - Reads from `battery:0` and `battery:1` hashes
 
 ### GPS Tracking
@@ -218,6 +223,7 @@ lsc gps status --json
 ```
 
 **Redis operations:**
+
 - Reads from `gps` hash
 - Subscribes to `gps` channel for real-time updates
 
@@ -240,6 +246,7 @@ lsc alarm trigger
 ```
 
 **Redis operations:**
+
 - Sends commands to `scooter:alarm` list (enable, disable, start, stop)
 - Reads from `alarm` hash
 - Reads from `settings` hash (alarm.enabled, alarm.honk)
@@ -266,6 +273,7 @@ lsc del custom.field
 ```
 
 **Common settings:**
+
 - `alarm.enabled` - Enable/disable alarm system (true/false)
 - `alarm.honk` - Enable horn during alarm (true/false)
 - `alarm.duration` - Alarm duration in seconds
@@ -279,6 +287,7 @@ lsc del custom.field
 - `updates.dbc.channel` - DBC update channel
 
 **Redis operations:**
+
 - Reads/writes `settings` hash
 - Publishes to `settings` channel for changes
 
@@ -301,6 +310,7 @@ lsc ota status --json
 ```
 
 **Redis operations:**
+
 - Reads from `ota` hash (status:mdb, status:dbc, download-progress, etc.)
 - Sends commands to `scooter:update` list (check-now)
 
@@ -348,6 +358,7 @@ lsc diag handlebar unlock
 ```
 
 **Redis operations:**
+
 - Reads firmware versions from the `system` hash
 - Reads from `vehicle:fault`, `battery:0:faults` and `battery:1:faults` sets
 - Reads from `events:faults` stream using XREAD
@@ -370,6 +381,7 @@ lsc engine off
 ```
 
 **Redis operations:**
+
 - Sends commands to `scooter:hardware` list (dashboard:on, dashboard:off, engine:on, engine:off)
 
 ### Status Overview
@@ -385,6 +397,7 @@ lsc status --json
 ```
 
 Shows summary of:
+
 - Vehicle state
 - Motor status (speed, odometer, temperature)
 - Battery status for all batteries
@@ -406,6 +419,7 @@ lsc monitor
 ```
 
 **Redis operations:**
+
 - Subscribes to all channels and displays real-time updates
 - Samples and logs metrics at intervals
 
@@ -428,6 +442,7 @@ lsc logs all --priority err
 ```
 
 **Flags:**
+
 - `--since <time>` - Start of the journal window, default `24h`. Bare durations (`30m`, `1h`, `1d`, `2w`) are rewritten to journalctl's "N units ago"; anything containing a space, `-` or `:` is passed through as an absolute timestamp
 - `--until <time>` - End of the window, default now
 - `--priority <level>` - journalctl priority filter (`err`, `warning`, `info`, `debug`)
@@ -456,6 +471,7 @@ logs-2025-10-25-13-54/
 ```
 
 **Redis operations:**
+
 - HGETALL over `settings`, `vehicle`, `gps`, `battery:0`, `battery:1`, `aux-battery`, `cb-battery`, `engine-ecu`, `power-manager`, `modem`, `internet`, `alarm`, `ble`, `system`, `dashboard`, `ota`, `power-mux`, `version:mdb`, `version:dbc`. A hash that is missing or empty writes no file
 
 `redis/events-faults.log` is the fault history, oldest entry first:
