@@ -6,7 +6,7 @@
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width,initial-scale=1">
       
-        <meta name="description" content="Hardware and software reference for the LibreScoot electric scooter platform">
+        <meta name="description" content="Hardware and software reference for the Librescoot electric scooter platform">
       
       
       
@@ -27,7 +27,7 @@
     
     
       
-        <title>librescoot-keycard (keycard-service) - LibreScoot Tech Reference</title>
+        <title>librescoot-keycard (keycard-service) - Librescoot Tech Reference</title>
       
     
     
@@ -105,7 +105,7 @@
 
 <header class="md-header md-header--shadow" data-md-component="header">
   <nav class="md-header__inner md-grid" aria-label="Header">
-    <a href="../.." title="LibreScoot Tech Reference" class="md-header__button md-logo" aria-label="LibreScoot Tech Reference" data-md-component="logo">
+    <a href="../.." title="Librescoot Tech Reference" class="md-header__button md-logo" aria-label="Librescoot Tech Reference" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-book-open" viewBox="0 0 24 24"><path d="M12 5v16M20.001 19A2 2 0 0 0 22 17V5a2 2 0 0 0-1.999-2L16 3.002A5 5 0 0 0 12 5a5 5 0 0 0-4-2H4a2 2 0 0 0-2 2v12a2 2 0 0 0 1.999 2H8a5 5 0 0 1 4 2 5 5 0 0 1 4-2z"/></svg>
@@ -119,7 +119,7 @@
       <div class="md-header__ellipsis">
         <div class="md-header__topic">
           <span class="md-ellipsis">
-            LibreScoot Tech Reference
+            Librescoot Tech Reference
           </span>
         </div>
         <div class="md-header__topic" data-md-component="header-topic">
@@ -214,13 +214,13 @@
 
 <nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
-    <a href="../.." title="LibreScoot Tech Reference" class="md-nav__button md-logo" aria-label="LibreScoot Tech Reference" data-md-component="logo">
+    <a href="../.." title="Librescoot Tech Reference" class="md-nav__button md-logo" aria-label="Librescoot Tech Reference" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-book-open" viewBox="0 0 24 24"><path d="M12 5v16M20.001 19A2 2 0 0 0 22 17V5a2 2 0 0 0-1.999-2L16 3.002A5 5 0 0 0 12 5a5 5 0 0 0-4-2H4a2 2 0 0 0-2 2v12a2 2 0 0 0 1.999 2H8a5 5 0 0 1 4 2 5 5 0 0 1 4-2z"/></svg>
 
     </a>
-    LibreScoot Tech Reference
+    Librescoot Tech Reference
   </label>
   
     <div class="md-nav__source">
@@ -1880,14 +1880,20 @@
 </span></code></pre></div>
 <h2 id="redis-operations">Redis Operations<a class="headerlink" href="#redis-operations" title="Permanent link">&para;</a></h2>
 <h3 id="hash-keycard-written">Hash: <code>keycard</code> (written)<a class="headerlink" href="#hash-keycard-written" title="Permanent link">&para;</a></h3>
-<p><strong>Fields written on authentication:</strong>
-- <code>authentication</code> - <code>passed</code> when authorized UID detected
-- <code>type</code> - <code>scooter</code>
-- <code>uid</code> - UID of the card that authenticated. Each successful auth also sets a 10-second TTL on the whole <code>keycard</code> hash, so <code>authentication</code>, <code>type</code> and <code>uid</code> all expire together.</p>
-<p><strong>Fields written on command response:</strong>
-- <code>command-result</code> - Result of last management command (e.g. <code>ok</code>, <code>count:3</code>, <code>card:&lt;uid&gt;</code>, <code>error:&lt;reason&gt;</code>)</p>
-<p><strong>Published channel:</strong> <code>keycard</code>
-- <code>authentication</code> - Published when authorized keycard detected</p>
+<p><strong>Fields written on authentication:</strong></p>
+<ul>
+<li><code>authentication</code> - <code>passed</code> when authorized UID detected</li>
+<li><code>type</code> - <code>scooter</code></li>
+<li><code>uid</code> - UID of the card that authenticated. Each successful auth also sets a 10-second TTL on the whole <code>keycard</code> hash, so <code>authentication</code>, <code>type</code> and <code>uid</code> all expire together.</li>
+</ul>
+<p><strong>Fields written on command response:</strong></p>
+<ul>
+<li><code>command-result</code> - Result of last management command (e.g. <code>ok</code>, <code>count:3</code>, <code>card:&lt;uid&gt;</code>, <code>error:&lt;reason&gt;</code>)</li>
+</ul>
+<p><strong>Published channel:</strong> <code>keycard</code></p>
+<ul>
+<li><code>authentication</code> - Published when authorized keycard detected</li>
+</ul>
 <h3 id="list-scooterkeycard-consumed">List: <code>scooter:keycard</code> (consumed)<a class="headerlink" href="#list-scooterkeycard-consumed" title="Permanent link">&para;</a></h3>
 <p>Management commands via LPUSH:</p>
 <table>
@@ -1937,23 +1943,31 @@
 <li><strong>UID format:</strong> uppercase hex string (e.g. <code>04A1B2C3D4E5F6</code>)</li>
 </ul>
 <h3 id="led-controllers">LED Controllers<a class="headerlink" href="#led-controllers" title="Permanent link">&para;</a></h3>
-<p><strong>I2C LED (LP5562 tri-color):</strong>
-- I2C bus 2, address <code>0x30</code>
-- Enabled with <code>--led-device /dev/i2c-2</code>
-- Green: authorized card; Red: unauthorized; Amber: lookup in progress; Blinking: master learning mode</p>
-<p><strong>PWM LEDs (learn mode):</strong>
-- <code>/dev/pwm_led3</code>, <code>/dev/pwm_led7</code> — on during learn mode
-- Controlled via <code>/usr/bin/ledcontrol.sh</code></p>
-<p><strong>Script-based fallback</strong> (when <code>--led-device</code> not set):
-- <code>/usr/bin/greenled.sh</code> — color/on/off
-- <code>/usr/bin/ledcontrol.sh</code> — PWM pattern control</p>
+<p><strong>I2C LED (LP5562 tri-color):</strong></p>
+<ul>
+<li>I2C bus 2, address <code>0x30</code></li>
+<li>Enabled with <code>--led-device /dev/i2c-2</code></li>
+<li>Green: authorized card; Red: unauthorized; Amber: lookup in progress; Blinking: master learning mode</li>
+</ul>
+<p><strong>PWM LEDs (learn mode):</strong></p>
+<ul>
+<li><code>/dev/pwm_led3</code>, <code>/dev/pwm_led7</code> — on during learn mode</li>
+<li>Controlled via <code>/usr/bin/ledcontrol.sh</code></li>
+</ul>
+<p><strong>Script-based fallback</strong> (when <code>--led-device</code> not set):</p>
+<ul>
+<li><code>/usr/bin/greenled.sh</code> — color/on/off</li>
+<li><code>/usr/bin/ledcontrol.sh</code> — PWM pattern control</li>
+</ul>
 <h2 id="operational-modes">Operational Modes<a class="headerlink" href="#operational-modes" title="Permanent link">&para;</a></h2>
 <h3 id="master-learning-mode-first-boot">Master Learning Mode (first boot)<a class="headerlink" href="#master-learning-mode-first-boot" title="Permanent link">&para;</a></h3>
-<p>Activated when <code>master_uids.txt</code> does not exist:
-1. RGB LED blinks (500ms) — waiting for master card
-2. First card presented becomes master UID, saved to <code>master_uids.txt</code>
-3. Authorized list cleared; RGB LED flashes once to confirm
-4. Switches to normal operation</p>
+<p>Activated when <code>master_uids.txt</code> does not exist:</p>
+<ol>
+<li>RGB LED blinks (500ms) — waiting for master card</li>
+<li>First card presented becomes master UID, saved to <code>master_uids.txt</code></li>
+<li>Authorized list cleared; RGB LED flashes once to confirm</li>
+<li>Switches to normal operation</li>
+</ol>
 <h3 id="normal-operation">Normal Operation<a class="headerlink" href="#normal-operation" title="Permanent link">&para;</a></h3>
 <table>
 <thead>
@@ -1982,13 +1996,15 @@
 </tbody>
 </table>
 <h3 id="learn-mode">Learn Mode<a class="headerlink" href="#learn-mode" title="Permanent link">&para;</a></h3>
-<p>Activated by presenting master UID or via <code>learn:start</code>:
-1. PWM LEDs 3 + 7 turn on
-2. Each new card presented: added to session queue, Green LED flash
-3. Present master UID again or <code>learn:stop</code> to exit
-4. If cards were learned: <strong>replaces</strong> entire authorized list in <code>authorized_uids.txt</code>
-5. If no cards learned: existing list unchanged
-6. PWM LEDs 3 + 7 turn off</p>
+<p>Activated by presenting master UID or via <code>learn:start</code>:</p>
+<ol>
+<li>PWM LEDs 3 + 7 turn on</li>
+<li>Each new card presented: added to session queue, Green LED flash</li>
+<li>Present master UID again or <code>learn:stop</code> to exit</li>
+<li>If cards were learned: <strong>replaces</strong> entire authorized list in <code>authorized_uids.txt</code></li>
+<li>If no cards learned: existing list unchanged</li>
+<li>PWM LEDs 3 + 7 turn off</li>
+</ol>
 <h2 id="file-locations">File Locations<a class="headerlink" href="#file-locations" title="Permanent link">&para;</a></h2>
 <table>
 <thead>
@@ -2102,7 +2118,7 @@
       <div class="md-copyright">
   
     <div class="md-copyright__highlight">
-      Copyright &copy; 2025-2026 LibreScoot contributors
+      Copyright &copy; 2025-2026 Librescoot contributors
     </div>
   
   

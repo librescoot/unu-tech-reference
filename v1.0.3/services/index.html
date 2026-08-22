@@ -6,7 +6,7 @@
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width,initial-scale=1">
       
-        <meta name="description" content="Hardware and software reference for the LibreScoot electric scooter platform">
+        <meta name="description" content="Hardware and software reference for the Librescoot electric scooter platform">
       
       
       
@@ -27,7 +27,7 @@
     
     
       
-        <title>System Services - LibreScoot Tech Reference</title>
+        <title>System Services - Librescoot Tech Reference</title>
       
     
     
@@ -105,7 +105,7 @@
 
 <header class="md-header md-header--shadow" data-md-component="header">
   <nav class="md-header__inner md-grid" aria-label="Header">
-    <a href="./.." title="LibreScoot Tech Reference" class="md-header__button md-logo" aria-label="LibreScoot Tech Reference" data-md-component="logo">
+    <a href="./.." title="Librescoot Tech Reference" class="md-header__button md-logo" aria-label="Librescoot Tech Reference" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-book-open" viewBox="0 0 24 24"><path d="M12 5v16M20.001 19A2 2 0 0 0 22 17V5a2 2 0 0 0-1.999-2L16 3.002A5 5 0 0 0 12 5a5 5 0 0 0-4-2H4a2 2 0 0 0-2 2v12a2 2 0 0 0 1.999 2H8a5 5 0 0 1 4 2 5 5 0 0 1 4-2z"/></svg>
@@ -119,7 +119,7 @@
       <div class="md-header__ellipsis">
         <div class="md-header__topic">
           <span class="md-ellipsis">
-            LibreScoot Tech Reference
+            Librescoot Tech Reference
           </span>
         </div>
         <div class="md-header__topic" data-md-component="header-topic">
@@ -214,13 +214,13 @@
 
 <nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
-    <a href="./.." title="LibreScoot Tech Reference" class="md-nav__button md-logo" aria-label="LibreScoot Tech Reference" data-md-component="logo">
+    <a href="./.." title="Librescoot Tech Reference" class="md-nav__button md-logo" aria-label="Librescoot Tech Reference" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-book-open" viewBox="0 0 24 24"><path d="M12 5v16M20.001 19A2 2 0 0 0 22 17V5a2 2 0 0 0-1.999-2L16 3.002A5 5 0 0 0 12 5a5 5 0 0 0-4-2H4a2 2 0 0 0-2 2v12a2 2 0 0 0 1.999 2H8a5 5 0 0 1 4 2 5 5 0 0 1 4-2z"/></svg>
 
     </a>
-    LibreScoot Tech Reference
+    Librescoot Tech Reference
   </label>
   
     <div class="md-nav__source">
@@ -1985,20 +1985,26 @@
     UMS &lt;--&gt; USB</code></pre>
 <h2 id="service-communication-patterns">Service Communication Patterns<a class="headerlink" href="#service-communication-patterns" title="Permanent link">&para;</a></h2>
 <h3 id="event-publishing">Event Publishing<a class="headerlink" href="#event-publishing" title="Permanent link">&para;</a></h3>
-<p>Services publish events to Redis channels when state changes:
-- <code>PUBLISH &lt;hash-name&gt; &lt;field&gt;</code> notifies subscribers of field changes
-- Individual fields may publish separately (e.g., <code>PUBLISH vehicle state</code>)
-- Dashboard and other services subscribe to relevant channels</p>
+<p>Services publish events to Redis channels when state changes:</p>
+<ul>
+<li><code>PUBLISH &lt;hash-name&gt; &lt;field&gt;</code> notifies subscribers of field changes</li>
+<li>Individual fields may publish separately (e.g., <code>PUBLISH vehicle state</code>)</li>
+<li>Dashboard and other services subscribe to relevant channels</li>
+</ul>
 <h3 id="command-lists">Command Lists<a class="headerlink" href="#command-lists" title="Permanent link">&para;</a></h3>
-<p>Command producer services use LPUSH, consumer services use BRPOP:
-- <strong>Producers</strong>: <code>bluetooth-service</code> (from BLE commands) → LPUSH to <code>scooter:*</code> lists
-- <strong>Consumers</strong>: <code>vehicle-service</code> → BRPOP from <code>scooter:state</code>, <code>scooter:seatbox</code>, <code>scooter:horn</code>, <code>scooter:blinker</code>
-- Example: <code>LPUSH scooter:state lock</code> queues a vehicle lock command</p>
+<p>Command producer services use LPUSH, consumer services use BRPOP:</p>
+<ul>
+<li><strong>Producers</strong>: <code>bluetooth-service</code> (from BLE commands) → LPUSH to <code>scooter:*</code> lists</li>
+<li><strong>Consumers</strong>: <code>vehicle-service</code> → BRPOP from <code>scooter:state</code>, <code>scooter:seatbox</code>, <code>scooter:horn</code>, <code>scooter:blinker</code></li>
+<li>Example: <code>LPUSH scooter:state lock</code> queues a vehicle lock command</li>
+</ul>
 <h3 id="state-storage">State Storage<a class="headerlink" href="#state-storage" title="Permanent link">&para;</a></h3>
-<p>Services store state in Redis hashes:
-- <code>HSET vehicle state ready-to-drive</code> - Update vehicle state
-- <code>HGETALL vehicle</code> - Read all vehicle fields
-- Services only write to their own hashes (see table above)</p>
+<p>Services store state in Redis hashes:</p>
+<ul>
+<li><code>HSET vehicle state ready-to-drive</code> - Update vehicle state</li>
+<li><code>HGETALL vehicle</code> - Read all vehicle fields</li>
+<li>Services only write to their own hashes (see table above)</li>
+</ul>
 <h3 id="key-service-relationships">Key Service Relationships<a class="headerlink" href="#key-service-relationships" title="Permanent link">&para;</a></h3>
 <ul>
 <li><strong>battery-service</strong> is independent - monitors batteries via NFC, writes to <code>battery:0/1</code>, subscribes to <code>vehicle:state</code> and <code>vehicle:seatbox:lock</code></li>
@@ -2047,10 +2053,12 @@
 <li>System enters low-power state</li>
 </ol>
 <h2 id="service-configuration">Service Configuration<a class="headerlink" href="#service-configuration" title="Permanent link">&para;</a></h2>
-<p>All services are managed by systemd:
-- Service files in <code>/usr/lib/systemd/system/</code> (the images enable <code>usrmerge</code>); <code>/etc/systemd/system/</code> holds only admin overrides and the <code>*.wants</code> enable symlinks
-- Started via <code>systemctl start &lt;service&gt;</code>
-- Logs via <code>journalctl -u &lt;service&gt;</code></p>
+<p>All services are managed by systemd:</p>
+<ul>
+<li>Service files in <code>/usr/lib/systemd/system/</code> (the images enable <code>usrmerge</code>); <code>/etc/systemd/system/</code> holds only admin overrides and the <code>*.wants</code> enable symlinks</li>
+<li>Started via <code>systemctl start &lt;service&gt;</code></li>
+<li>Logs via <code>journalctl -u &lt;service&gt;</code></li>
+</ul>
 <p>See individual service documentation for specific configuration details.</p>
 
 
@@ -2129,7 +2137,7 @@
       <div class="md-copyright">
   
     <div class="md-copyright__highlight">
-      Copyright &copy; 2025-2026 LibreScoot contributors
+      Copyright &copy; 2025-2026 Librescoot contributors
     </div>
   
   

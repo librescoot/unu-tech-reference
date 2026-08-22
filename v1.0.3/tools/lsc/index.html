@@ -6,7 +6,7 @@
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width,initial-scale=1">
       
-        <meta name="description" content="Hardware and software reference for the LibreScoot electric scooter platform">
+        <meta name="description" content="Hardware and software reference for the Librescoot electric scooter platform">
       
       
       
@@ -25,7 +25,7 @@
     
     
       
-        <title>lsc - LibreScoot Control CLI - LibreScoot Tech Reference</title>
+        <title>lsc - LibreScoot Control CLI - Librescoot Tech Reference</title>
       
     
     
@@ -103,7 +103,7 @@
 
 <header class="md-header md-header--shadow" data-md-component="header">
   <nav class="md-header__inner md-grid" aria-label="Header">
-    <a href="../.." title="LibreScoot Tech Reference" class="md-header__button md-logo" aria-label="LibreScoot Tech Reference" data-md-component="logo">
+    <a href="../.." title="Librescoot Tech Reference" class="md-header__button md-logo" aria-label="Librescoot Tech Reference" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-book-open" viewBox="0 0 24 24"><path d="M12 5v16M20.001 19A2 2 0 0 0 22 17V5a2 2 0 0 0-1.999-2L16 3.002A5 5 0 0 0 12 5a5 5 0 0 0-4-2H4a2 2 0 0 0-2 2v12a2 2 0 0 0 1.999 2H8a5 5 0 0 1 4 2 5 5 0 0 1 4-2z"/></svg>
@@ -117,7 +117,7 @@
       <div class="md-header__ellipsis">
         <div class="md-header__topic">
           <span class="md-ellipsis">
-            LibreScoot Tech Reference
+            Librescoot Tech Reference
           </span>
         </div>
         <div class="md-header__topic" data-md-component="header-topic">
@@ -212,13 +212,13 @@
 
 <nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
-    <a href="../.." title="LibreScoot Tech Reference" class="md-nav__button md-logo" aria-label="LibreScoot Tech Reference" data-md-component="logo">
+    <a href="../.." title="Librescoot Tech Reference" class="md-nav__button md-logo" aria-label="Librescoot Tech Reference" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-book-open" viewBox="0 0 24 24"><path d="M12 5v16M20.001 19A2 2 0 0 0 22 17V5a2 2 0 0 0-1.999-2L16 3.002A5 5 0 0 0 12 5a5 5 0 0 0-4-2H4a2 2 0 0 0-2 2v12a2 2 0 0 0 1.999 2H8a5 5 0 0 1 4 2 5 5 0 0 1 4-2z"/></svg>
 
     </a>
-    LibreScoot Tech Reference
+    Librescoot Tech Reference
   </label>
   
     <div class="md-nav__source">
@@ -2299,10 +2299,12 @@
 </span><span id="__span-1-13"><a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a><span class="c1"># Open seatbox (also via: lsc open)</span>
 </span><span id="__span-1-14"><a id="__codelineno-1-14" name="__codelineno-1-14" href="#__codelineno-1-14"></a>lsc<span class="w"> </span>vehicle<span class="w"> </span>open
 </span></code></pre></div>
-<p><strong>Redis operations:</strong>
-- Sends commands to <code>scooter:state</code> list (lock, unlock, force-lock, lock-hibernate)
-- Sends commands to <code>scooter:seatbox</code> list (open)
-- Monitors <code>vehicle</code> hash for state changes</p>
+<p><strong>Redis operations:</strong></p>
+<ul>
+<li>Sends commands to <code>scooter:state</code> list (lock, unlock, force-lock, lock-hibernate)</li>
+<li>Sends commands to <code>scooter:seatbox</code> list (open)</li>
+<li>Monitors <code>vehicle</code> hash for state changes</li>
+</ul>
 <h3 id="power-management">Power Management<a class="headerlink" href="#power-management" title="Permanent link">&para;</a></h3>
 <p>Control system power states.</p>
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="c1"># Show power manager status</span>
@@ -2320,9 +2322,11 @@
 </span><span id="__span-2-13"><a id="__codelineno-2-13" name="__codelineno-2-13" href="#__codelineno-2-13"></a><span class="c1"># Reboot the system</span>
 </span><span id="__span-2-14"><a id="__codelineno-2-14" name="__codelineno-2-14" href="#__codelineno-2-14"></a>lsc<span class="w"> </span>power<span class="w"> </span>reboot
 </span></code></pre></div>
-<p><strong>Redis operations:</strong>
-- Sends commands to <code>scooter:power</code> list
-- Reads from <code>power-manager</code> hash</p>
+<p><strong>Redis operations:</strong></p>
+<ul>
+<li>Sends commands to <code>scooter:power</code> list</li>
+<li>Reads from <code>power-manager</code> hash</li>
+</ul>
 <h3 id="service-management">Service Management<a class="headerlink" href="#service-management" title="Permanent link">&para;</a></h3>
 <p>Manage systemd services with convenient shorthand names.</p>
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="c1"># List all services with status</span>
@@ -2346,29 +2350,33 @@
 </span><span id="__span-3-19"><a id="__codelineno-3-19" name="__codelineno-3-19" href="#__codelineno-3-19"></a>lsc<span class="w"> </span>svc<span class="w"> </span>logs<span class="w"> </span>battery<span class="w"> </span>--follow<span class="w">        </span><span class="c1"># Follow in real-time (-f)</span>
 </span><span id="__span-3-20"><a id="__codelineno-3-20" name="__codelineno-3-20" href="#__codelineno-3-20"></a>lsc<span class="w"> </span>svc<span class="w"> </span>logs<span class="w"> </span>redis<span class="w"> </span>--lines<span class="w"> </span><span class="m">100</span><span class="w">       </span><span class="c1"># Show 100 lines (-n 100)</span>
 </span></code></pre></div>
-<p><strong>Service name shortcuts</strong> (every mapped name resolves to a <code>librescoot-*</code> unit):
-- <code>vehicle</code> → <code>librescoot-vehicle.service</code>
-- <code>battery</code> → <code>librescoot-battery.service</code>
-- <code>ecu</code> → <code>librescoot-ecu.service</code>
-- <code>modem</code> → <code>librescoot-modem.service</code>
-- <code>alarm</code> → <code>librescoot-alarm.service</code>
-- <code>settings</code> → <code>librescoot-settings.service</code>
-- <code>keycard</code> → <code>librescoot-keycard.service</code>
-- <code>boot-led</code> → <code>librescoot-boot-led.service</code>
-- <code>bluetooth</code> → <code>librescoot-bluetooth.service</code>
-- <code>ums</code> → <code>librescoot-ums.service</code>
-- <code>brightness</code> → <code>librescoot-brightness.service</code>
-- <code>onboot</code> → <code>librescoot-onboot.service</code>
-- <code>backlight</code> → <code>dbc-backlight.service</code>
-- <code>pm</code> → <code>librescoot-pm.service</code>
-- <code>update</code> → <code>librescoot-update.service</code>
-- <code>version</code> → <code>librescoot-version.service</code>
-- <code>netconfig</code> → <code>librescoot-netconfig.service</code></p>
+<p><strong>Service name shortcuts</strong> (every mapped name resolves to a <code>librescoot-*</code> unit):</p>
+<ul>
+<li><code>vehicle</code> → <code>librescoot-vehicle.service</code></li>
+<li><code>battery</code> → <code>librescoot-battery.service</code></li>
+<li><code>ecu</code> → <code>librescoot-ecu.service</code></li>
+<li><code>modem</code> → <code>librescoot-modem.service</code></li>
+<li><code>alarm</code> → <code>librescoot-alarm.service</code></li>
+<li><code>settings</code> → <code>librescoot-settings.service</code></li>
+<li><code>keycard</code> → <code>librescoot-keycard.service</code></li>
+<li><code>boot-led</code> → <code>librescoot-boot-led.service</code></li>
+<li><code>bluetooth</code> → <code>librescoot-bluetooth.service</code></li>
+<li><code>ums</code> → <code>librescoot-ums.service</code></li>
+<li><code>brightness</code> → <code>librescoot-brightness.service</code></li>
+<li><code>onboot</code> → <code>librescoot-onboot.service</code></li>
+<li><code>backlight</code> → <code>dbc-backlight.service</code></li>
+<li><code>pm</code> → <code>librescoot-pm.service</code></li>
+<li><code>update</code> → <code>librescoot-update.service</code></li>
+<li><code>version</code> → <code>librescoot-version.service</code></li>
+<li><code>netconfig</code> → <code>librescoot-netconfig.service</code></li>
+</ul>
 <p>Any name not in the map is passed through unchanged with <code>.service</code> appended, so <code>lsc svc logs redis</code>
 resolves to <code>redis.service</code>.</p>
-<p><strong>System integration:</strong>
-- Uses <code>systemctl</code> commands via D-Bus
-- Uses <code>journalctl</code> for log retrieval</p>
+<p><strong>System integration:</strong></p>
+<ul>
+<li>Uses <code>systemctl</code> commands via D-Bus</li>
+<li>Uses <code>journalctl</code> for log retrieval</li>
+</ul>
 <h3 id="led-control">LED Control<a class="headerlink" href="#led-control" title="Permanent link">&para;</a></h3>
 <p>Control LED cues and fade animations.</p>
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="c1"># Trigger LED cue by index or name</span>
@@ -2377,9 +2385,11 @@ resolves to <code>redis.service</code>.</p>
 </span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="c1"># Trigger LED fade animation by index or name</span>
 </span><span id="__span-4-5"><a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a>lsc<span class="w"> </span>led<span class="w"> </span>fade<span class="w"> </span>&lt;channel&gt;<span class="w"> </span>&lt;index<span class="p">|</span>name&gt;
 </span></code></pre></div>
-<p><strong>Redis operations:</strong>
-- Sends commands to <code>scooter:led:cue</code> list
-- Sends commands to <code>scooter:led:fade</code> list</p>
+<p><strong>Redis operations:</strong></p>
+<ul>
+<li>Sends commands to <code>scooter:led:cue</code> list</li>
+<li>Sends commands to <code>scooter:led:fade</code> list</li>
+</ul>
 <h3 id="battery-diagnostics">Battery Diagnostics<a class="headerlink" href="#battery-diagnostics" title="Permanent link">&para;</a></h3>
 <p>View detailed battery information.</p>
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="c1"># Show all batteries</span>
@@ -2393,8 +2403,10 @@ resolves to <code>redis.service</code>.</p>
 </span><span id="__span-5-9"><a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a><span class="c1"># JSON output for scripting</span>
 </span><span id="__span-5-10"><a id="__codelineno-5-10" name="__codelineno-5-10" href="#__codelineno-5-10"></a>lsc<span class="w"> </span>battery<span class="w"> </span>--json
 </span></code></pre></div>
-<p><strong>Redis operations:</strong>
-- Reads from the <code>battery:0</code>, <code>battery:1</code>, <code>aux-battery</code> and <code>cb-battery</code> hashes, plus the <code>battery:&lt;id&gt;:faults</code> sets</p>
+<p><strong>Redis operations:</strong></p>
+<ul>
+<li>Reads from the <code>battery:0</code>, <code>battery:1</code>, <code>aux-battery</code> and <code>cb-battery</code> hashes, plus the <code>battery:&lt;id&gt;:faults</code> sets</li>
+</ul>
 <h3 id="gps-tracking">GPS Tracking<a class="headerlink" href="#gps-tracking" title="Permanent link">&para;</a></h3>
 <p>Monitor GPS status and location.</p>
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="c1"># Show GPS status</span>
@@ -2406,9 +2418,11 @@ resolves to <code>redis.service</code>.</p>
 </span><span id="__span-6-7"><a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a><span class="c1"># JSON output</span>
 </span><span id="__span-6-8"><a id="__codelineno-6-8" name="__codelineno-6-8" href="#__codelineno-6-8"></a>lsc<span class="w"> </span>gps<span class="w"> </span>status<span class="w"> </span>--json
 </span></code></pre></div>
-<p><strong>Redis operations:</strong>
-- Reads from <code>gps</code> hash
-- <code>lsc gps watch</code> re-reads the <code>gps</code> hash on a 1 s ticker (it does not subscribe to any channel)</p>
+<p><strong>Redis operations:</strong></p>
+<ul>
+<li>Reads from <code>gps</code> hash</li>
+<li><code>lsc gps watch</code> re-reads the <code>gps</code> hash on a 1 s ticker (it does not subscribe to any channel)</li>
+</ul>
 <h3 id="alarm-system">Alarm System<a class="headerlink" href="#alarm-system" title="Permanent link">&para;</a></h3>
 <p>Control the motion-based alarm system.</p>
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="c1"># Check alarm status</span>
@@ -2427,11 +2441,13 @@ resolves to <code>redis.service</code>.</p>
 </span><span id="__span-7-14"><a id="__codelineno-7-14" name="__codelineno-7-14" href="#__codelineno-7-14"></a><span class="c1"># Temporarily silence a sounding alarm without changing alarm.enabled</span>
 </span><span id="__span-7-15"><a id="__codelineno-7-15" name="__codelineno-7-15" href="#__codelineno-7-15"></a>lsc<span class="w"> </span>alarm<span class="w"> </span>silence
 </span></code></pre></div>
-<p><strong>Redis operations:</strong>
-- <code>arm</code> / <code>disarm</code> HSET <code>alarm.enabled</code> in the <code>settings</code> hash and PUBLISH <code>settings</code> — they do not touch <code>scooter:alarm</code>
-- <code>trigger [duration]</code> sends <code>start:&lt;seconds&gt;</code> to the <code>scooter:alarm</code> list; <code>silence</code> sends <code>disarm</code>
-- Reads from <code>alarm</code> hash (<code>status</code>)
-- Reads from <code>settings</code> hash (alarm.enabled, alarm.honk, alarm.duration, alarm.seatbox-trigger, alarm.hairtrigger, alarm.hairtrigger-duration)</p>
+<p><strong>Redis operations:</strong></p>
+<ul>
+<li><code>arm</code> / <code>disarm</code> HSET <code>alarm.enabled</code> in the <code>settings</code> hash and PUBLISH <code>settings</code> — they do not touch <code>scooter:alarm</code></li>
+<li><code>trigger [duration]</code> sends <code>start:&lt;seconds&gt;</code> to the <code>scooter:alarm</code> list; <code>silence</code> sends <code>disarm</code></li>
+<li>Reads from <code>alarm</code> hash (<code>status</code>)</li>
+<li>Reads from <code>settings</code> hash (alarm.enabled, alarm.honk, alarm.duration, alarm.seatbox-trigger, alarm.hairtrigger, alarm.hairtrigger-duration)</li>
+</ul>
 <h3 id="settings-management">Settings Management<a class="headerlink" href="#settings-management" title="Permanent link">&para;</a></h3>
 <p>View and modify scooter configuration.</p>
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="c1"># List all settings</span>
@@ -2449,21 +2465,25 @@ resolves to <code>redis.service</code>.</p>
 </span><span id="__span-8-13"><a id="__codelineno-8-13" name="__codelineno-8-13" href="#__codelineno-8-13"></a>lsc<span class="w"> </span>settings<span class="w"> </span>del<span class="w"> </span>custom.field
 </span><span id="__span-8-14"><a id="__codelineno-8-14" name="__codelineno-8-14" href="#__codelineno-8-14"></a>lsc<span class="w"> </span>del<span class="w"> </span>custom.field
 </span></code></pre></div>
-<p><strong>Common settings:</strong>
-- <code>alarm.enabled</code> - Enable/disable alarm system (true/false)
-- <code>alarm.honk</code> - Enable horn during alarm (true/false)
-- <code>alarm.duration</code> - Alarm duration in seconds
-- <code>alarm.seatbox-trigger</code> - Trigger alarm on unauthorized seatbox opening (true/false)
-- <code>alarm.hairtrigger</code> - Enable hair trigger mode (true/false)
-- <code>alarm.hairtrigger-duration</code> - Hair trigger alarm duration in seconds
-- <code>pm.hibernation-timer</code> - Hibernation timeout in seconds
-- <code>scooter.auto-standby-seconds</code> - Auto-lock timeout when parked (0 = disabled)
-- <code>cellular.apn</code> - Cellular APN configuration
-- <code>updates.mdb.channel</code> - MDB update channel (stable/testing/nightly)
-- <code>updates.dbc.channel</code> - DBC update channel</p>
-<p><strong>Redis operations:</strong>
-- Reads/writes <code>settings</code> hash
-- Publishes to <code>settings</code> channel for changes</p>
+<p><strong>Common settings:</strong></p>
+<ul>
+<li><code>alarm.enabled</code> - Enable/disable alarm system (true/false)</li>
+<li><code>alarm.honk</code> - Enable horn during alarm (true/false)</li>
+<li><code>alarm.duration</code> - Alarm duration in seconds</li>
+<li><code>alarm.seatbox-trigger</code> - Trigger alarm on unauthorized seatbox opening (true/false)</li>
+<li><code>alarm.hairtrigger</code> - Enable hair trigger mode (true/false)</li>
+<li><code>alarm.hairtrigger-duration</code> - Hair trigger alarm duration in seconds</li>
+<li><code>pm.hibernation-timer</code> - Hibernation timeout in seconds</li>
+<li><code>scooter.auto-standby-seconds</code> - Auto-lock timeout when parked (0 = disabled)</li>
+<li><code>cellular.apn</code> - Cellular APN configuration</li>
+<li><code>updates.mdb.channel</code> - MDB update channel (stable/testing/nightly)</li>
+<li><code>updates.dbc.channel</code> - DBC update channel</li>
+</ul>
+<p><strong>Redis operations:</strong></p>
+<ul>
+<li>Reads/writes <code>settings</code> hash</li>
+<li>Publishes to <code>settings</code> channel for changes</li>
+</ul>
 <h3 id="ota-updates">OTA Updates<a class="headerlink" href="#ota-updates" title="Permanent link">&para;</a></h3>
 <p>Manage over-the-air updates.</p>
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="c1"># View OTA update status</span>
@@ -2489,9 +2509,11 @@ resolves to <code>redis.service</code>.</p>
 </span><span id="__span-9-21"><a id="__codelineno-9-21" name="__codelineno-9-21" href="#__codelineno-9-21"></a><span class="c1"># JSON output</span>
 </span><span id="__span-9-22"><a id="__codelineno-9-22" name="__codelineno-9-22" href="#__codelineno-9-22"></a>lsc<span class="w"> </span>ota<span class="w"> </span>status<span class="w"> </span>--json
 </span></code></pre></div>
-<p><strong>Redis operations:</strong>
-- Reads from the <code>ota</code> hash (status:mdb, status:dbc, download-progress, etc.), plus <code>settings</code>, <code>vehicle</code>, and <code>version_id</code> from <code>version:mdb</code> / <code>version:dbc</code>
-- <code>lsc ota check [mdb|dbc]</code> sends <code>check-now</code> to <code>scooter:update:mdb</code> and/or <code>scooter:update:dbc</code></p>
+<p><strong>Redis operations:</strong></p>
+<ul>
+<li>Reads from the <code>ota</code> hash (status:mdb, status:dbc, download-progress, etc.), plus <code>settings</code>, <code>vehicle</code>, and <code>version_id</code> from <code>version:mdb</code> / <code>version:dbc</code></li>
+<li><code>lsc ota check [mdb|dbc]</code> sends <code>check-now</code> to <code>scooter:update:mdb</code> and/or <code>scooter:update:dbc</code></li>
+</ul>
 <h3 id="diagnostics">Diagnostics<a class="headerlink" href="#diagnostics" title="Permanent link">&para;</a></h3>
 <p>System diagnostics and fault monitoring.</p>
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="c1"># Show firmware versions (also via: lsc ver)</span>
@@ -2531,11 +2553,13 @@ resolves to <code>redis.service</code>.</p>
 </span><span id="__span-10-35"><a id="__codelineno-10-35" name="__codelineno-10-35" href="#__codelineno-10-35"></a>lsc<span class="w"> </span>diag<span class="w"> </span>handlebar<span class="w"> </span>lock
 </span><span id="__span-10-36"><a id="__codelineno-10-36" name="__codelineno-10-36" href="#__codelineno-10-36"></a>lsc<span class="w"> </span>diag<span class="w"> </span>handlebar<span class="w"> </span>unlock
 </span></code></pre></div>
-<p><strong>Redis operations:</strong>
-- <code>diag version</code> reads the <code>system</code>, <code>engine-ecu</code>, <code>battery:0</code>, <code>battery:1</code> and <code>ota</code> hashes
-- <code>diag faults</code> reads the <code>vehicle:fault</code>, <code>battery:0:faults</code> and <code>battery:1:faults</code> sets
-- Reads from <code>events:faults</code> stream using XREAD
-- Sends commands to the <code>scooter:blinker</code> and <code>scooter:horn</code> lists; <code>diag handlebar lock|unlock</code> goes to <code>scooter:hardware</code> as <code>handlebar:lock</code> / <code>handlebar:unlock</code></p>
+<p><strong>Redis operations:</strong></p>
+<ul>
+<li><code>diag version</code> reads the <code>system</code>, <code>engine-ecu</code>, <code>battery:0</code>, <code>battery:1</code> and <code>ota</code> hashes</li>
+<li><code>diag faults</code> reads the <code>vehicle:fault</code>, <code>battery:0:faults</code> and <code>battery:1:faults</code> sets</li>
+<li>Reads from <code>events:faults</code> stream using XREAD</li>
+<li>Sends commands to the <code>scooter:blinker</code> and <code>scooter:horn</code> lists; <code>diag handlebar lock|unlock</code> goes to <code>scooter:hardware</code> as <code>handlebar:lock</code> / <code>handlebar:unlock</code></li>
+</ul>
 <h3 id="hardware-control">Hardware Control<a class="headerlink" href="#hardware-control" title="Permanent link">&para;</a></h3>
 <p>Direct hardware control commands.</p>
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="c1"># Control dashboard power (also via: lsc dbc)</span>
@@ -2548,8 +2572,10 @@ resolves to <code>redis.service</code>.</p>
 </span><span id="__span-11-8"><a id="__codelineno-11-8" name="__codelineno-11-8" href="#__codelineno-11-8"></a>lsc<span class="w"> </span>engine<span class="w"> </span>on
 </span><span id="__span-11-9"><a id="__codelineno-11-9" name="__codelineno-11-9" href="#__codelineno-11-9"></a>lsc<span class="w"> </span>engine<span class="w"> </span>off
 </span></code></pre></div>
-<p><strong>Redis operations:</strong>
-- Sends commands to <code>scooter:hardware</code> list (dashboard:on, dashboard:off, engine:on, engine:off)</p>
+<p><strong>Redis operations:</strong></p>
+<ul>
+<li>Sends commands to <code>scooter:hardware</code> list (dashboard:on, dashboard:off, engine:on, engine:off)</li>
+</ul>
 <h3 id="status-overview">Status Overview<a class="headerlink" href="#status-overview" title="Permanent link">&para;</a></h3>
 <p>Get overall system status.</p>
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-12-1"><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a><span class="c1"># Show comprehensive status</span>
@@ -2558,10 +2584,12 @@ resolves to <code>redis.service</code>.</p>
 </span><span id="__span-12-4"><a id="__codelineno-12-4" name="__codelineno-12-4" href="#__codelineno-12-4"></a><span class="c1"># JSON output for automation</span>
 </span><span id="__span-12-5"><a id="__codelineno-12-5" name="__codelineno-12-5" href="#__codelineno-12-5"></a>lsc<span class="w"> </span>status<span class="w"> </span>--json
 </span></code></pre></div>
-<p>Shows summary of:
-- Vehicle state (state, kickstand, brakes, blinker switch, seatbox, ambient temperature)
-- Motor status (speed, RPM, throttle, odometer, voltage, current, temperature, KERS)
-- Main batteries 0 and 1, plus the AUX and CB batteries</p>
+<p>Shows summary of:</p>
+<ul>
+<li>Vehicle state (state, kickstand, brakes, blinker switch, seatbox, ambient temperature)</li>
+<li>Motor status (speed, RPM, throttle, odometer, voltage, current, temperature, KERS)</li>
+<li>Main batteries 0 and 1, plus the AUX and CB batteries</li>
+</ul>
 <p>It reads <code>vehicle</code>, <code>engine-ecu</code>, <code>battery:0</code>, <code>battery:1</code>, <code>aux-battery</code>, <code>cb-battery</code> and <code>scooter</code>. Power-manager state, GPS and internet are not part of <code>lsc status</code> - use <code>lsc power status</code> and <code>lsc gps status</code>.</p>
 <h3 id="real-time-monitoring">Real-time Monitoring<a class="headerlink" href="#real-time-monitoring" title="Permanent link">&para;</a></h3>
 <p>Monitor Redis pub/sub channels and record metrics.</p>
@@ -2573,9 +2601,11 @@ resolves to <code>redis.service</code>.</p>
 </span><span id="__span-13-6"><a id="__codelineno-13-6" name="__codelineno-13-6" href="#__codelineno-13-6"></a>lsc<span class="w"> </span>monitor<span class="w"> </span>gps<span class="w"> </span>--duration<span class="w"> </span>1h
 </span><span id="__span-13-7"><a id="__codelineno-13-7" name="__codelineno-13-7" href="#__codelineno-13-7"></a>lsc<span class="w"> </span>monitor<span class="w"> </span>all<span class="w"> </span>--duration<span class="w"> </span>30m
 </span></code></pre></div>
-<p><strong>Redis operations:</strong>
-- Subscribes to the channels named on the command line and displays real-time updates
-- Samples and logs metrics at intervals</p>
+<p><strong>Redis operations:</strong></p>
+<ul>
+<li>Subscribes to the channels named on the command line and displays real-time updates</li>
+<li>Samples and logs metrics at intervals</li>
+</ul>
 <h3 id="saved-locations">Saved Locations<a class="headerlink" href="#saved-locations" title="Permanent link">&para;</a></h3>
 <p>Manage GPS location bookmarks (if supported by implementation).</p>
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-14-1"><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a><span class="c1"># Manage saved locations</span>
@@ -2798,7 +2828,7 @@ resolves to <code>redis.service</code>.</p>
       <div class="md-copyright">
   
     <div class="md-copyright__highlight">
-      Copyright &copy; 2025-2026 LibreScoot contributors
+      Copyright &copy; 2025-2026 Librescoot contributors
     </div>
   
   
