@@ -1730,21 +1730,7 @@
 <h1 id="unu-scooter-pro-technical-documentation">unu Scooter Pro - Technical Documentation<a class="headerlink" href="#unu-scooter-pro-technical-documentation" title="Permanent link">&para;</a></h1>
 <p>Reverse-engineered technical documentation of the unu Scooter Pro.</p>
 <h2 id="what-changed-in-v100">What changed in v1.0.0<a class="headerlink" href="#what-changed-in-v100" title="Permanent link">&para;</a></h2>
-<p>The first stable LibreScoot release, so there is no predecessor to compare it
-against. Three things are worth knowing when reading this snapshot, because all
-three change in the very next release:</p>
-<ul>
-<li>Hop-on exists, but only inside vehicle-service. <code>vehicle:state</code> never
-  publishes <code>hop-on</code>: a scooter sitting in hop-on reports <code>parked</code>, and hop-on
-  is visible only through the <code>vehicle[hop-on-active]</code> flag. The published leaf
-  states arrive in v1.0.1.</li>
-<li>Combo learning is entered with <code>engage-silent</code>, later renamed
-  <code>engage-learning</code>.</li>
-<li>The nRF firmware is v2.3.0-ls, which has no <code>HOP_ON</code> wire value, so
-  bluetooth-service presents stand-by to BLE clients in software instead.</li>
-</ul>
-<p><code>carplay-service</code> is pinned in the release manifest but is installed by neither
-image recipe, so it does not ship.</p>
+<p>The first stable LibreScoot release.</p>
 <p><a href="https://github.com/librescoot/librescoot/releases/tag/v1.0.0">Release notes</a></p>
 <h3 id="nrf-firmware">nRF firmware<a class="headerlink" href="#nrf-firmware" title="Permanent link">&para;</a></h3>
 <p>Ships nRF firmware <strong>v2.3.0-ls</strong>. Over the stock firmware it provides:</p>
