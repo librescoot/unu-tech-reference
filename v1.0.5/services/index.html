@@ -2055,7 +2055,7 @@
 <h2 id="service-configuration">Service Configuration<a class="headerlink" href="#service-configuration" title="Permanent link">&para;</a></h2>
 <p>All services are managed by systemd:</p>
 <ul>
-<li>Service files in <code>/etc/systemd/system/</code></li>
+<li>Service files in <code>/usr/lib/systemd/system/</code> (<code>/lib</code> is a symlink to <code>usr/lib</code>, so <code>/lib/systemd/system/</code> is the same directory); <code>/etc/systemd/system/</code> holds the <code>*.wants</code> enable symlinks, unit aliases, drop-in overrides and masks</li>
 <li>Started via <code>systemctl start &lt;service&gt;</code></li>
 <li>Logs via <code>journalctl -u &lt;service&gt;</code></li>
 </ul>

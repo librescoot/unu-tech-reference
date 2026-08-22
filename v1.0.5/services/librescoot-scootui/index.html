@@ -2504,7 +2504,7 @@
 <li>Stops boot animation: <code>systemctl stop boot-animation.service</code></li>
 </ol>
 <h3 id="shutdown">Shutdown<a class="headerlink" href="#shutdown" title="Permanent link">&para;</a></h3>
-<p>On SIGTERM or <code>vehicle state</code> → <code>shutting-down</code>: <code>ShutdownStore::forceBlackout()</code> blacks out the display.</p>
+<p>On SIGTERM: <code>ShutdownStore::forceBlackout()</code> sets <code>showBlackout</code> and <code>ShutdownOverlay.qml</code> fades to black over 600 ms. A <code>vehicle state</code> of <code>shutting-down</code> never reaches <code>forceBlackout()</code>; <code>onVehicleStateChanged()</code> calls <code>beginShutdown()</code> instead, and only when the previous state was in the parked family (<code>Parked</code>, <code>HopOn</code>, <code>HopOnLearning</code>) or <code>ready-to-drive</code>. That leaves <code>showBlackout</code> false and plays the slower 1500 ms shutdown fade with the shutdown and OTA text.</p>
 <h2 id="map-tiles">Map Tiles<a class="headerlink" href="#map-tiles" title="Permanent link">&para;</a></h2>
 <p>Offline tiles expected at <code>/data/maps/map.mbtiles</code> on the DBC. The app watches <code>/data/maps/</code> via inotify and reloads map services when the file appears or changes.</p>
 <h2 id="project-structure">Project Structure<a class="headerlink" href="#project-structure" title="Permanent link">&para;</a></h2>
@@ -2522,7 +2522,6 @@
 </span><span id="__span-5-12"><a id="__codelineno-5-12" name="__codelineno-5-12" href="#__codelineno-5-12"></a>  widgets/        Reusable UI components
 </span><span id="__span-5-13"><a id="__codelineno-5-13" name="__codelineno-5-13" href="#__codelineno-5-13"></a>  overlays/       Modal overlays (menu, toast, ...)
 </span><span id="__span-5-14"><a id="__codelineno-5-14" name="__codelineno-5-14" href="#__codelineno-5-14"></a>  simulator/      Simulator panel (desktop mode only)
-</span><span id="__span-5-15"><a id="__codelineno-5-15" name="__codelineno-5-15" href="#__codelineno-5-15"></a>  theme/          Theme definitions
 </span></code></pre></div>
 <h2 id="dependencies">Dependencies<a class="headerlink" href="#dependencies" title="Permanent link">&para;</a></h2>
 <ul>

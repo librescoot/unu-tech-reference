@@ -1884,7 +1884,7 @@
 <ul>
 <li><code>authentication</code> - <code>passed</code> when authorized UID detected</li>
 <li><code>type</code> - <code>scooter</code></li>
-<li><code>uid</code> - UID of the card that authenticated (expires after 10 seconds)</li>
+<li><code>uid</code> - UID of the card that authenticated. Each successful auth also sets a 10-second TTL on the whole <code>keycard</code> hash, so <code>authentication</code>, <code>type</code> and <code>uid</code> expire together (as does any <code>command-result</code> written into the same hash inside that window).</li>
 </ul>
 <p><strong>Fields written on command response:</strong></p>
 <ul>

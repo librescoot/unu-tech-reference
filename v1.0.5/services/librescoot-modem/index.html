@@ -2168,7 +2168,7 @@
 
 <h1 id="librescoot-modem-modem-service">librescoot-modem (modem-service)<a class="headerlink" href="#librescoot-modem-modem-service" title="Permanent link">&para;</a></h1>
 <h2 id="description">Description<a class="headerlink" href="#description" title="Permanent link">&para;</a></h2>
-<p>The modem service manages the cellular modem (SimCom SIM7100E) for internet connectivity and GPS functionality using ModemManager (mmcli). It monitors network registration, signal quality, access technology (2G/3G/4G), handles modem power management and recovery, manages network connectivity, and provides GPS coordinates via gpsd. The service implements intelligent health monitoring with multi-strategy recovery procedures and GPS-specific recovery mechanisms.</p>
+<p>The modem service manages the cellular modem (SimCom SIM7100E) for internet connectivity and GPS functionality using ModemManager over D-Bus. It monitors network registration, signal quality, access technology (2G/3G/4G), handles modem power management and recovery, manages network connectivity, and provides GPS coordinates via gpsd. The service implements intelligent health monitoring with multi-strategy recovery procedures and GPS-specific recovery mechanisms.</p>
 <h2 id="command-line-options">Command-Line Options<a class="headerlink" href="#command-line-options" title="Permanent link">&para;</a></h2>
 <div class="language-text highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>Usage of modem-service:
 </span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>  -debug
@@ -2331,7 +2331,7 @@
 <li>SIM lock status</li>
 <li>Network registration state (home/roaming/denied/searching)</li>
 <li>Signal quality (0-100 or 255 for unknown)</li>
-<li>Access technology (2G/GSM, 3G/UMTS, 4G/LTE, 5G)</li>
+<li>Access technology (GSM, EDGE, UMTS, 3G, HSPA, HSPA+, 4G, 5G)</li>
 <li>Operator name and code</li>
 <li>Roaming status</li>
 <li>IMEI, IMSI, ICCID identifiers</li>
@@ -2516,7 +2516,7 @@
 </ul>
 <p>Recovery events:</p>
 <ul>
-<li>"Modem failure detected: wrong_primary_port/wrong_power_state/etc"</li>
+<li>"Modem failure detected: probe_failed/internet_connectivity_failed/data_session_stalled/gps_stuck_after_gps_recovery"</li>
 <li>"Attempting modem recovery (attempt N/5)"</li>
 <li>"Attempting to reset the modem via D-Bus"</li>
 <li>"Attempting USB recovery (unbind/bind)..."</li>

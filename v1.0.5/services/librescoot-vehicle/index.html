@@ -2480,7 +2480,7 @@
 <li><code>state</code> - Vehicle state (see States section below)</li>
 <li><code>brake:left</code> - Left brake state ("on", "off")</li>
 <li><code>brake:right</code> - Right brake state ("on", "off")</li>
-<li><code>blinker:state</code> - Blinker active state ("on", "off")</li>
+<li><code>blinker:state</code> - Blinker active state ("off", "left", "right", "both")</li>
 <li><code>blinker:start_nanos</code> - Monotonic start time of current blinker cycle (for UI sync)</li>
 <li><code>blinker:switch</code> - Blinker switch position ("left", "right", "both", "off")</li>
 <li><code>main-power</code> - Commanded main power rail state ("on", "off")</li>
@@ -2720,7 +2720,7 @@ In <code>parked</code> state, if dashboard is not ready, pressing the seatbox bu
 <li>If seatbox open: transition to <code>waiting-hibernation-seatbox</code> state to notify user</li>
 <li><strong>Final Confirmation:</strong></li>
 <li>Transition to <code>waiting-hibernation-confirm</code> state</li>
-<li>3-second non-abortable countdown</li>
+<li>3-second countdown, abortable: the seatbox button, an <code>unlock</code> command, or raising the kickstand all cancel it back out of hibernation</li>
 <li>Then transition to <code>shutting-down</code> with hibernation flag</li>
 <li>Send "hibernate-manual" command to power manager</li>
 </ol>
@@ -2940,7 +2940,7 @@ During DBC (Dashboard Controller) firmware updates:</p>
 <ul>
 <li>Dashboard power is kept on regardless of vehicle state</li>
 <li>Power state changes are deferred until update completes</li>
-<li>Dashboard power can be cycled remotely via <code>scooter:update</code> command</li>
+<li>A dashboard power-cycle handler exists in the core, but it is unreachable in this release: the <code>scooter:update</code> list handler rejects "cycle-dashboard-power" before dispatching</li>
 <li>Service tracks update status via <code>ota</code> hash <code>status:dbc</code> field</li>
 </ul>
 <p><strong>Force Standby:</strong>
