@@ -301,6 +301,17 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#what-changed-in-v110" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        What changed in v1.1.0
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#system-architecture" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
@@ -1560,6 +1571,17 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#what-changed-in-v110" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        What changed in v1.1.0
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#system-architecture" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
@@ -1731,6 +1753,25 @@
 
 <h1 id="unu-scooter-pro-technical-documentation">unu Scooter Pro - Technical Documentation<a class="headerlink" href="#unu-scooter-pro-technical-documentation" title="Permanent link">&para;</a></h1>
 <p>Reverse-engineered technical documentation of the unu Scooter Pro.</p>
+<h2 id="what-changed-in-v110">What changed in v1.1.0<a class="headerlink" href="#what-changed-in-v110" title="Permanent link">&para;</a></h2>
+<p>The first release containing motion-service, which takes ownership of the
+BMX055 IMU from alarm-service.</p>
+<ul>
+<li>Power management gained a lot: suspend with no drive battery inserted,
+  <code>hibernate-for</code>, cron-scheduled hibernation, and a last-ditch hibernate that
+  fires on a low CBB or low aux voltage to avoid deep discharge</li>
+<li>Service mode, with a settings overlay and <code>lsc service-mode</code></li>
+<li>Manual backlight control, plus slower lux smoothing to cut flicker</li>
+<li>Low-charge warnings for the internal batteries, and optional CBB/AUX charge
+  icons in the status bar</li>
+<li>Hop-on can be unlocked with a keycard</li>
+<li>New settings: disable the horn button while the seatbox is open, and lock on
+  Bluetooth disconnect. New menu entry to lock the scooter</li>
+<li>Battery cell and CBB temperatures on the debug screen</li>
+<li>Regen reworked: ecu-service publishes the applied EBS voltage and current and
+  derives regen availability, and the power bar follows it</li>
+</ul>
+<p><a href="https://github.com/librescoot/librescoot/releases/tag/v1.1.0">Release notes</a></p>
 <h2 id="system-architecture">System Architecture<a class="headerlink" href="#system-architecture" title="Permanent link">&para;</a></h2>
 <p>The unu Scooter Pro uses a distributed architecture with several key systems:</p>
 <h3 id="core-electronics">Core Electronics<a class="headerlink" href="#core-electronics" title="Permanent link">&para;</a></h3>
