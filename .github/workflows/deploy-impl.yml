@@ -1,0 +1,164 @@
+name: Deploy versioned docs (implementation)
+
+# The whole pipeline lives here, on main, and is called by the thin stub in
+# deploy.yml that every branch carries. Actions always runs the workflow from
+# the pushed ref, so the stub cannot be de-versioned, but everything it does
+# can: fixing the pipeline is one commit on main rather than one per snapshot.
+#
+#   push main          -> mike deploy dev
+#   push docs/vX.Y.Z   -> mike deploy vX.Y.Z   (frozen release snapshot)
+#
+# A push NEVER moves the stable / latest aliases. Promotion is an explicit
+# manual run with the version in the promote input.
+
+on:
+  workflow_call:
+    inputs:
+      promote:
+        description: "Version to promote to stable/latest and serve at /. Empty means deploy the calling ref."
+        required: false
+        type: string
+        default: ""
+
+jobs:
+  deploy:
+    # A push, or a manual run with no version to promote.
+    if: inputs.promote == ''
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Install zensical + mike (squidfunk fork)
+        run: |
+          pip install zensical
+          pip install git+https://github.com/squidfunk/mike
+
+      # Site chrome is not a release fact. Nav, theme and stylesheets come from
+      # main for every version, so fixing them is one commit instead of one per
+      # snapshot branch. Only the .md content below is version-specific.
+      - name: Take site config and theme from main
+        run: |
+          git fetch origin main
+          git checkout origin/main -- zensical.toml stylesheets
+
+      - name: Prepare docs/ tree
+        run: |
+          mkdir -p docs
+          cp README.md docs/index.md
+          # root-level pages other than README.md are not picked up by the
+          # directory loop below, so copy them explicitly
+          [ -f service-interactions.md ] && cp service-interactions.md docs/service-interactions.md || true
+          for d in battery battery-charger bluetooth dashboard electronic mechanical nrf redis services states tools wiring; do
+            [ -d "$d" ] && cp -r "$d" "docs/$d"
+          done
+          [ -d stylesheets ] && cp -r stylesheets docs/stylesheets || true
+
+      # main's nav lists pages that older snapshots legitimately do not have
+      # (event-service, motion-service, the BLE OTA page). Drop those entries
+      # rather than letting the build fail or emit dead links.
+      - name: Drop nav entries this version does not have
+        run: |
+          python3 - <<'PY'
+          import os, re
+          src = open("zensical.toml", encoding="utf-8").read()
+          kept, dropped = [], []
+          for line in src.split("\n"):
+              m = re.search(r'=\s*"([^"]+\.md)"\s*\}', line)
+              if m and not os.path.exists(os.path.join("docs", m.group(1))):
+                  dropped.append(m.group(1))
+                  continue
+              kept.append(line)
+          open("zensical.toml", "w", encoding="utf-8").write("\n".join(kept))
+          print("dropped %d nav entries not present in this version:" % len(dropped))
+          for d in dropped:
+              print("  -", d)
+          PY
+
+      - name: Configure git for mike
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+
+      - name: Determine version from branch
+        id: ver
+        run: |
+          ref="${GITHUB_REF_NAME}"
+          if [ "$ref" = "main" ]; then
+            echo "version=dev" >> "$GITHUB_OUTPUT"
+          else
+            echo "version=${ref#docs/}" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Deploy version
+        run: mike deploy --push "${{ steps.ver.outputs.version }}"
+
+      - name: Re-stamp CNAME on gh-pages
+        run: |
+          git fetch origin gh-pages
+          git worktree add /tmp/ghpages origin/gh-pages
+          cd /tmp/ghpages
+          if [ "$(cat CNAME 2>/dev/null)" != "reference.librescoot.org" ]; then
+            echo "reference.librescoot.org" > CNAME
+            git add CNAME
+            git commit -m "ci: ensure CNAME is reference.librescoot.org"
+            git push origin HEAD:gh-pages
+          fi
+
+  promote:
+    # A version was named: move the aliases, touch nothing else.
+    if: inputs.promote != ''
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Install mike (squidfunk fork)
+        run: pip install git+https://github.com/squidfunk/mike
+
+      - name: Configure git for mike
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+
+      - name: Check the version is already deployed
+        run: |
+          # mike validates the project config before touching gh-pages, and
+          # that config points at docs/. Promotion never builds, so make the
+          # directory exist or every mike call here fails.
+          mkdir -p docs
+          git fetch origin gh-pages
+          if ! mike list | grep -qE "(^|[[:space:],])${{ inputs.promote }}([[:space:],]|$)"; then
+            echo "::error::${{ inputs.promote }} is not deployed. Push its docs/${{ inputs.promote }} branch first."
+            mike list
+            exit 1
+          fi
+
+      # `mike alias` only rewrites the alias entries, so promotion never
+      # rebuilds or overwrites the version's own content.
+      - name: Move stable + latest onto the promoted version
+        run: |
+          mike alias --push --update-aliases "${{ inputs.promote }}" stable latest
+          mike set-default --push latest
+
+      - name: Re-stamp CNAME on gh-pages
+        run: |
+          git fetch origin gh-pages
+          git worktree add /tmp/ghpages origin/gh-pages
+          cd /tmp/ghpages
+          if [ "$(cat CNAME 2>/dev/null)" != "reference.librescoot.org" ]; then
+            echo "reference.librescoot.org" > CNAME
+            git add CNAME
+            git commit -m "ci: ensure CNAME is reference.librescoot.org"
+            git push origin HEAD:gh-pages
+          fi
