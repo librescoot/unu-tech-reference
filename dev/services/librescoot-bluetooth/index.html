@@ -2752,7 +2752,7 @@
 <h3 id="hash-scooter-written">Hash: <code>scooter</code> (written)<a class="headerlink" href="#hash-scooter-written" title="Permanent link">&para;</a></h3>
 <p><strong>Fields written:</strong></p>
 <ul>
-<li><code>temperature</code> - External temperature in tenths of °C (from nRF vehicle state message)</li>
+<li><code>temperature</code> - Ambient temperature in °C to one decimal place (the nRF sends tenths; bluetooth-service divides before writing)</li>
 </ul>
 <p><strong>Published channel:</strong> <code>scooter</code></p>
 <h3 id="hash-dashboard">Hash: <code>dashboard</code><a class="headerlink" href="#hash-dashboard" title="Permanent link">&para;</a></h3>
