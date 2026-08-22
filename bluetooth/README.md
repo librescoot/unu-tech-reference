@@ -31,7 +31,7 @@ Provides scooter state information
 |---------------|-------------|---------|
 | 9a590021 | Operating State | - "stand-by"<br>- "off"<br>- "parked"<br>- "shutting-down"<br>- "ready-to-drive"<br>- "updating" |
 
-The set above is the full set BLE clients ever observe. When the scooter is in the internal `hop-on` state, the firmware cloaks the characteristic as `"stand-by"` so mobile apps with no concept of hop-on still see a locked scooter and offer their unlock affordance. `hop-on-learning` is collapsed to `"parked"` upstream (in bluetooth-service) and never reaches the firmware as a distinct value. See [Vehicle States](../states/README.md#vehicle-states).
+The set above is the full set BLE clients ever observe. `vehicle:state` stays `"parked"` while the scooter is in the internal `hop-on` state; bluetooth-service tracks the separate `vehicle:hop-on-active` flag and, while it is `true`, overrides the value it sends to the nRF52 to `0` (`stand-by`) so mobile apps with no concept of hop-on still see a locked scooter and offer their unlock affordance. Combo-learning entry (`scooter:hop-on engage-silent`) never publishes `hop-on-active`, so it never triggers the override and stays invisible over BLE. See [Vehicle States](../states/README.md#vehicle-states).
 | 9a590022 | Seatbox State | - "open"<br>- "closed"<br>- "unknown" |
 | 9a590023 | Handlebar Lock | - "locked"<br>- "unlocked" |
 
@@ -141,24 +141,12 @@ Unified extensible command/response channel for phone app interaction
 | `alarm:disarm` | Disarm alarm | `alarm:ok` |
 | `alarm:start` / `alarm:start:<N>` | Trigger alarm; duration in seconds, default from settings | `alarm:ok` |
 | `alarm:stop` | Stop active alarm | `alarm:ok` |
-| `pm:hibernate-for <duration>` | Hibernate for the given duration (Go syntax: `30s`, `10m`, `8h`); nRF52 wakes the iMX6 after the duration | `pm:ok` |
-| `pm:hibernate-cancel` | Cancel a pending hibernate-for and disarm the wake timer | `pm:ok` |
 | `status:maps-available` | Query if offline maps are installed | `status:maps-available:true` or `false` |
 | `status:navigation-available` | Query if routing engine is available | `status:navigation-available:true` or `false` |
 | `cap:list` | Enumerate supported capability categories | `cap:count:<n>` then `cap:<name>` per category |
 | `cap:<category>` | List commands for a category | `cap:<category>:count:<n>` then `cap:<category>:<command>` per command |
 
 Error responses follow the pattern `<prefix>:error:<details>`.
-
-### OTA Transfer Service (9a590500)
-
-Firmware bundle transfer from the phone to the scooter (MDB and DBC updates over BLE). Windowed, resumable, integrity-checked; the nRF forwards these characteristics verbatim to bluetooth-service. See [BLE OTA Firmware Transfer](ota-transfer.md) for the full protocol.
-
-| Characteristic | Description | Values |
-|---------------|-------------|---------|
-| 9a590501 | OTA Data (write w/o response, max 244 B) | `[offset:u32 LE][chunk ≤ 240 B]` |
-| 9a590502 | OTA Control (write, max 128 B) | START / COMPLETE / ABORT / STATUS_REQ messages |
-| 9a590503 | OTA Status (read+notify, max 64 B) | START_ACK / ACK / COMPLETE_ACK / INSTALL_PROGRESS / ABORT_ACK / ERROR messages |
 
 ### Scooter Info Service (9a59a040)
 

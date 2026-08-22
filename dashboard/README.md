@@ -6,7 +6,7 @@ The Dashboard Controller (DBC) provides the primary user interface for the scoot
 
 ## Implementation
 
-The dashboard UI is implemented as a Qt/QML application (scootui-qt) that:
+The dashboard UI is implemented as a Qt/QML application (unu-dashboard-ui) that:
 
 - Runs on the DBC (Dashboard Controller)
 - Connects to Redis at 192.168.7.1:6379 in production (defaults to 127.0.0.1:6379, configurable via command-line options)
@@ -106,47 +106,34 @@ The view adapts based on vehicle state:
 
 ### Status Bar
 
-The top status bar has three zones in a single row: a battery display on the left, a clock centered, and status indicators on the right. Total distance/odometer is not part of the top bar; it lives in the bottom bar alongside the speedometer.
+The dashboard features a status bar at the top of the screen displaying:
 
-Both side widgets measure their own width at every "degrade level" (see below) and a coordinator in the top bar hands each side the most detailed level that still fits next to the clock. When the clock is hidden (`showClock` setting is `never`), the two sides share the whole row width instead of a fixed half each.
+- Current time (left side)
+- Status icons (left-center)
+- Total distance/odometer (right side)
 
-#### Left Zone: Battery Display
+#### Status Icons
 
-| Element | Shown when | Notes |
-|---------|-----------|-------|
-| Battery 0 icon + value | Always | Value is charge (%) or estimated range (km), depending on the `batteryDisplayMode` setting (`percentage` / `range`); the `icon` mode hides the value text entirely and leaves just the icon |
-| Battery 1 icon + value | A second pack is present (dual-battery scooters) | Same value formatting as battery 0 |
-| CBB (Connectivity Battery Box) level glyph | `showCbBattery` setting is `always`, or `warning` (default) and the CBB charge is below 50% | Icon-only glyph, bucketed to 0/25/50/75/100%; suppressed while a CB warning/stranded icon is showing in its place |
-| AUX (12V) level glyph | `showAuxBattery` setting is `always`, or `warning` (default) and AUX voltage is below 11700 mV | Icon-only glyph, bucketed to 0/25/50/75/100% (from the AUX SoC quantization); suppressed while an AUX warning/stranded icon is showing in its place |
-| Seatbox-open icon | Seatbox lock is open | |
-| CB-not-present icon | No CBB detected | Blank battery glyph with a slashed overlay |
-| CB warning icon | CBB charge < 50%, not charging, main pack present/active, seatbox closed (3s debounce); or CBB reports low charge while no main pack is inserted ("stranded") | Blank battery glyph with an error overlay |
-| AUX warning icon | AUX voltage < 11495 mV (or < 11000 mV critical), main pack present, seatbox closed (3s debounce); or AUX voltage < 11700 mV while no main pack is inserted ("stranded") | Blank battery glyph with an error overlay |
+The status bar displays several icons that indicate system status:
 
-Detail sheds in this order as space runs out: drop range decimals, drop battery 1's value text, collapse the AUX level glyph into the overflow chip, collapse the CBB level glyph into the overflow chip, drop battery 0's value text. Warning/error icons (seatbox, CB-not-present, CB/AUX warning, stranded) never degrade.
+| Icon | Description | States |
+|------|-------------|--------|
+| Connection Strength | Internet/cloud connectivity | • 0-3 bars based on signal strength and network type<br>• Diagonal line when cloud disconnected but internet connected<br>• No bars when internet disconnected |
+| CB Battery | Connectivity Box battery status | • Battery outline with fill level proportional to charge<br>• Red fill when charge ≤ 25%<br>• Lightning bolt overlay when charging |
+| Bluetooth | Bluetooth connection status | • Visible when connected<br>• Hidden when disconnected |
+| Seat | Seat lock status | • Visible when seat is open<br>• Hidden when seat is closed |
 
-#### Right Zone: Status Indicators
+#### Connection Strength Indicator
 
-The row lays out right-to-left, so the internet/modem icon sits at the outer right edge of the bar, with cloud, bluetooth, GPS, OTA status, and temperature progressing leftward toward the clock.
+The connection strength icon adapts based on multiple factors:
 
-| Element | Shown when | Notes |
-|---------|-----------|-------|
-| Internet/modem icon | `showInternet` setting is `always`, or `active-or-error` (default) with the modem connected or in an error state, or `error` with an error state only | Off/disconnected glyphs, or 0-4 signal bars when connected (`signalQuality / 20`, capped at 4); small access-tech label (2G/3G/H/H+/4G/5G/1x/G) overlaid when connected |
-| Cloud icon | A cloud client (radio-gaga / uplink-service) has published `unu-cloud`, and `showCloud` setting allows it (`active-or-error` by default) | Connected/disconnected glyph; independent of the internet/modem icon, not a diagonal-line overlay on it |
-| Bluetooth icon | `showBluetooth` setting allows it (`active-or-error` by default) | Connected/disconnected glyph |
-| GPS icon | `showGps` setting allows it (`error` only by default) | Off / searching (pulsing center dot) / fix-established / error glyphs |
-| OTA status | An OTA update is active and the vehicle is Ready-to-Drive or Parked | Icon reflects downloading/preparing/installing/waiting-for-reboot/error; percentage digits shown next to it while downloading, preparing, or installing |
-| Temperature | `showTemperature` setting is `always`, or `warning` (default) while ambient temperature is in the frost band (< 5 degC) | Rounded ambient temperature with a degree sign; a snowflake+"!" glyph is prepended while in the frost band |
-
-Detail sheds in this order as space runs out: drop OTA progress digits, collapse bluetooth into the overflow chip, collapse cloud into the overflow chip, collapse GPS into the overflow chip, collapse temperature into the overflow chip. Any icon shown specifically because of an error state (or, for temperature, the frost warning) never degrades.
-
-#### Overflow Chip
-
-Icons collapsed by degradation are replaced by a single "..."+N chip (N = number of hidden icons) at the point in the row where they used to sit. It is display-only; full status detail is available elsewhere (e.g. the parked detail view).
-
-#### Reduced-Power (Turtle) Indicator
-
-The turtle / reduced-power icon is not part of the top status bar. It is one of the telltales in the floating bottom-left telltale panel, alongside engine-warning, hazard-lights, and parking-brake telltales, shown when a present and active battery pack is at or below 20% charge.
+| Network Type | Signal Bars | Conditions |
+|--------------|-------------|------------|
+| 2G (GSM/GPRS/EDGE) | 1 bar | Always shows 1 bar when connected |
+| 3G (UMTS/HSPA) | 1-2 bars | • 1 bar when signal < 50%<br>• 2 bars when signal ≥ 50% |
+| 4G (LTE) | 1-3 bars | • 1 bar when signal < 25%<br>• 2 bars when signal 25-49%<br>• 3 bars when signal ≥ 50% |
+| Any type | 0 bars + diagonal line | When internet connected but cloud disconnected |
+| Any type | 0 bars | When internet disconnected |
 
 #### Internet Status Redis Keys
 
@@ -207,7 +194,7 @@ Theme transitions include animation timing for smooth visual changes.
 
 ### Startup Sequence
 
-1. Dashboard application starts (scootui-qt)
+1. Dashboard application starts (unu-dashboard-ui)
 2. Connects to Redis (192.168.7.1:6379 in production, defaults to 127.0.0.1:6379, configurable via `-b` and `-p` options)
 3. Subscribes to all service Redis pub/sub channels
 4. Reads OS version from `/etc/os-release` and sets `system dbc-version` to VERSION_ID+BUILD_ID
