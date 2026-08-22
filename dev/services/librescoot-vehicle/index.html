@@ -23,7 +23,7 @@
       
       
       <link rel="icon" href="../../assets/images/favicon.png">
-      <meta name="generator" content="zensical-0.0.56">
+      <meta name="generator" content="zensical-0.0.57">
     
     
       
@@ -34,12 +34,12 @@
       
         
       
-      <link rel="stylesheet" href="../../assets/stylesheets/modern/main.20815dad.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/modern/main.5da3a30f.min.css">
       
         
           
         
-        <link rel="stylesheet" href="../../assets/stylesheets/modern/palette.dfe2e883.min.css">
+        <link rel="stylesheet" href="../../assets/stylesheets/modern/palette.812a03bb.min.css">
       
       
 
@@ -758,6 +758,10 @@
       
         
       
+        
+      
+        
+      
     
     
     
@@ -825,6 +829,33 @@
     
   
   Services
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../service-interactions/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Service Interactions
 
     
   </span>
@@ -933,6 +964,33 @@
     
   
   ecu-service
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../librescoot-events/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  event-service
 
     
   </span>
@@ -2568,6 +2626,10 @@
       
         
       
+        
+      
+        
+      
     
     
     
@@ -2613,24 +2675,26 @@
 <p><strong>Note:</strong> vehicle-service has minimal command-line options. Redis host and port are hardcoded to 127.0.0.1:6379. Most configuration is done via Redis and hardware interfaces.</p>
 <h2 id="redis-operations">Redis Operations<a class="headerlink" href="#redis-operations" title="Permanent link">&para;</a></h2>
 <h3 id="hash-vehicle">Hash: <code>vehicle</code><a class="headerlink" href="#hash-vehicle" title="Permanent link">&para;</a></h3>
-<p><strong>Fields written:</strong>
-- <code>state</code> - Vehicle state (see States section below)
-- <code>brake:left</code> - Left brake state ("on", "off")
-- <code>brake:right</code> - Right brake state ("on", "off")
-- <code>blinker:state</code> - Blinker active state ("on", "off")
-- <code>blinker:start_nanos</code> - Monotonic start time of current blinker cycle (for UI sync)
-- <code>blinker:switch</code> - Blinker switch position ("left", "right", "both", "off")
-- <code>horn:button</code> - Horn button state ("on", "off")
-- <code>seatbox:button</code> - Seatbox button state ("on", "off")
-- <code>seatbox:lock</code> - Seatbox lock state ("open", "closed")
-- <code>kickstand</code> - Kickstand position ("up", "down")
-- <code>handlebar:position</code> - Handlebar position ("on-place", "off-place")
-- <code>handlebar:lock-sensor</code> - Handlebar lock sensor ("locked", "unlocked")
-- <code>dbc-updating</code> - DBC update in progress flag
-- <code>dashboard:power</code> - Dashboard power state ("on", "off")
-- <code>update:status</code> - Aggregated update status surface for UI
-- <code>auto-standby-remaining</code> - Seconds remaining until auto-standby (absent when timer not running)
-- <code>auto-standby-deadline</code> - Unix timestamp of auto-standby deadline (absent when timer not running)</p>
+<p><strong>Fields written:</strong></p>
+<ul>
+<li><code>state</code> - Vehicle state (see States section below)</li>
+<li><code>brake:left</code> - Left brake state ("on", "off")</li>
+<li><code>brake:right</code> - Right brake state ("on", "off")</li>
+<li><code>blinker:state</code> - Blinker active state ("on", "off")</li>
+<li><code>blinker:start_nanos</code> - Monotonic start time of current blinker cycle (for UI sync)</li>
+<li><code>blinker:switch</code> - Blinker switch position ("left", "right", "both", "off")</li>
+<li><code>horn:button</code> - Horn button state ("on", "off")</li>
+<li><code>seatbox:button</code> - Seatbox button state ("on", "off")</li>
+<li><code>seatbox:lock</code> - Seatbox lock state ("open", "closed")</li>
+<li><code>kickstand</code> - Kickstand position ("up", "down")</li>
+<li><code>handlebar:position</code> - Handlebar position ("on-place", "off-place")</li>
+<li><code>handlebar:lock-sensor</code> - Handlebar lock sensor ("locked", "unlocked")</li>
+<li><code>dbc-updating</code> - DBC update in progress flag</li>
+<li><code>dashboard:power</code> - Dashboard power state ("on", "off")</li>
+<li><code>update:status</code> - Aggregated update status surface for UI</li>
+<li><code>auto-standby-remaining</code> - Seconds remaining until auto-standby (absent when timer not running)</li>
+<li><code>auto-standby-deadline</code> - Unix timestamp of auto-standby deadline (absent when timer not running)</li>
+</ul>
 <p><strong>Published channel:</strong> <code>vehicle</code></p>
 <h3 id="lists-consumed-brpop">Lists consumed (BRPOP)<a class="headerlink" href="#lists-consumed-brpop" title="Permanent link">&para;</a></h3>
 <ul>
@@ -2713,40 +2777,50 @@
 <ul>
 <li><strong>Input device:</strong> <code>/dev/input/by-path/platform-gpio-keys-event</code></li>
 </ul>
-<p><strong>Monitored inputs:</strong>
-- <code>kickstand</code> - Kickstand position sensor (true = down, false = up)
-- <code>brake_left</code> - Left brake lever sensor (true = pressed)
-- <code>brake_right</code> - Right brake lever sensor (true = pressed)
-- <code>blinker_left</code> - Left blinker button
-- <code>blinker_right</code> - Right blinker button
-- <code>horn_button</code> - Horn button
-- <code>seatbox_button</code> - Seatbox unlock button
-- <code>seatbox_lock_sensor</code> - Seatbox lock position sensor (true = closed, false = open)
-- <code>handlebar_position</code> - Handlebar position sensor (true = on-place, false = off-place)
-- <code>handlebar_lock_sensor</code> - Handlebar lock sensor (true = unlocked, false = locked)
-- <code>48v_detect</code> - 48V power detection</p>
+<p><strong>Monitored inputs:</strong></p>
+<ul>
+<li><code>kickstand</code> - Kickstand position sensor (true = down, false = up)</li>
+<li><code>brake_left</code> - Left brake lever sensor (true = pressed)</li>
+<li><code>brake_right</code> - Right brake lever sensor (true = pressed)</li>
+<li><code>blinker_left</code> - Left blinker button</li>
+<li><code>blinker_right</code> - Right blinker button</li>
+<li><code>horn_button</code> - Horn button</li>
+<li><code>seatbox_button</code> - Seatbox unlock button</li>
+<li><code>seatbox_lock_sensor</code> - Seatbox lock position sensor (true = closed, false = open)</li>
+<li><code>handlebar_position</code> - Handlebar position sensor (true = on-place, false = off-place)</li>
+<li><code>handlebar_lock_sensor</code> - Handlebar lock sensor (true = unlocked, false = locked)</li>
+<li><code>48v_detect</code> - 48V power detection</li>
+</ul>
 <h3 id="gpio-outputs-via-gpiocdev">GPIO Outputs (via gpiocdev)<a class="headerlink" href="#gpio-outputs-via-gpiocdev" title="Permanent link">&para;</a></h3>
-<p><strong>Digital outputs:</strong>
-- <code>seatbox_lock</code> - Seatbox lock solenoid (GPIO chip 2, line 10) - pulsed for 200ms
-- <code>horn</code> - Horn control (GPIO chip 2, line 9)
-- <code>engine_brake</code> - Motor brake control (GPIO chip 2, line 11)
-- <code>handlebar_lock_close</code> - Handlebar lock motor close (GPIO chip 4, line 6) - pulsed for 1100ms
-- <code>handlebar_lock_open</code> - Handlebar lock motor open (GPIO chip 4, line 7) - pulsed for 1100ms
-- <code>dashboard_power</code> - Dashboard power enable (GPIO chip 1, line 18)
-- <code>engine_power</code> - Motor controller power enable (GPIO chip 2, line 17)</p>
+<p><strong>Digital outputs:</strong></p>
+<ul>
+<li><code>seatbox_lock</code> - Seatbox lock solenoid (GPIO chip 2, line 10) - pulsed for 200ms</li>
+<li><code>horn</code> - Horn control (GPIO chip 2, line 9)</li>
+<li><code>engine_brake</code> - Motor brake control (GPIO chip 2, line 11)</li>
+<li><code>handlebar_lock_close</code> - Handlebar lock motor close (GPIO chip 4, line 6) - pulsed for 1100ms</li>
+<li><code>handlebar_lock_open</code> - Handlebar lock motor open (GPIO chip 4, line 7) - pulsed for 1100ms</li>
+<li><code>dashboard_power</code> - Dashboard power enable (GPIO chip 1, line 18)</li>
+<li><code>engine_power</code> - Motor controller power enable (GPIO chip 2, line 17)</li>
+</ul>
 <h3 id="pwm-led-system">PWM LED System<a class="headerlink" href="#pwm-led-system" title="Permanent link">&para;</a></h3>
 <p>The service controls 8 PWM LED channels via the <code>imx_pwm_led</code> kernel module:</p>
 <p><strong>LED device paths:</strong> <code>/dev/pwm_led0</code> through <code>/dev/pwm_led7</code></p>
-<p><strong>PWM Configuration:</strong>
-- Period: 12000 ticks
-- Prescaler: 0 (default)
-- Invert: 0 (default)
-- Repeat: 3</p>
-<p><strong>LED patterns:</strong>
-- Fades: <code>/usr/share/led-curves/fades/fade*</code> (up to 4096 samples per fade)
-- Cues: <code>/usr/share/led-curves/cues/cue*</code> (up to 16 cues)</p>
-<p><strong>Blinker timing:</strong>
-- Blinker interval: 800ms</p>
+<p><strong>PWM Configuration:</strong></p>
+<ul>
+<li>Period: 12000 ticks</li>
+<li>Prescaler: 0 (default)</li>
+<li>Invert: 0 (default)</li>
+<li>Repeat: 3</li>
+</ul>
+<p><strong>LED patterns:</strong></p>
+<ul>
+<li>Fades: <code>/usr/share/led-curves/fades/fade*</code> (up to 4096 samples per fade)</li>
+<li>Cues: <code>/usr/share/led-curves/cues/cue*</code> (up to 16 cues)</li>
+</ul>
+<p><strong>Blinker timing:</strong></p>
+<ul>
+<li>Blinker interval: 800ms</li>
+</ul>
 <h2 id="configuration">Configuration<a class="headerlink" href="#configuration" title="Permanent link">&para;</a></h2>
 <h3 id="systemd-unit">Systemd Unit<a class="headerlink" href="#systemd-unit" title="Permanent link">&para;</a></h3>
 <ul>
@@ -2756,7 +2830,7 @@
 <li><strong>Restart policy:</strong> Always</li>
 <li><strong>Priority:</strong> Nice value -10</li>
 <li><strong>User:</strong> root</li>
-<li><strong>Type:</strong> idle</li>
+<li><strong>Type:</strong> simple</li>
 </ul>
 <h2 id="observable-behavior">Observable Behavior<a class="headerlink" href="#observable-behavior" title="Permanent link">&para;</a></h2>
 <h3 id="startup-sequence">Startup Sequence<a class="headerlink" href="#startup-sequence" title="Permanent link">&para;</a></h3>
@@ -2832,34 +2906,46 @@ subscribed to. Pairing a second card mid-install therefore does not take
 the next transition.</p>
 <h3 id="state-machine-behavior">State Machine Behavior<a class="headerlink" href="#state-machine-behavior" title="Permanent link">&para;</a></h3>
 <h4 id="ready-to-drive-conditions">Ready-to-Drive Conditions<a class="headerlink" href="#ready-to-drive-conditions" title="Permanent link">&para;</a></h4>
-<p>Vehicle enters <code>ready-to-drive</code> when ALL are true:
-- Dashboard ready (<code>dashboard</code> hash <code>ready</code> field = "true")
-- Kickstand up
-- Current state is <code>parked</code></p>
+<p>Vehicle enters <code>ready-to-drive</code> when ALL are true:</p>
+<ul>
+<li>Dashboard ready (<code>dashboard</code> hash <code>ready</code> field = "true")</li>
+<li>Kickstand up</li>
+<li>Current state is <code>parked</code></li>
+</ul>
 <p><strong>Manual Ready-to-Drive Activation:</strong>
-In <code>parked</code> state, if dashboard is not ready, pressing the seatbox button while:
-- Kickstand is up
-- Both brakes are held</p>
+In <code>parked</code> state, if dashboard is not ready, pressing the seatbox button while:</p>
+<ul>
+<li>Kickstand is up</li>
+<li>Both brakes are held</li>
+</ul>
 <p>Will manually transition to <code>ready-to-drive</code> and blink the main light once for confirmation.</p>
 <h4 id="lockunlock-handling">Lock/Unlock Handling<a class="headerlink" href="#lockunlock-handling" title="Permanent link">&para;</a></h4>
-<p><strong>Lock command</strong> (<code>LPUSH scooter:state lock</code>):
-1. Must be in <code>parked</code> state
-2. Transitions to <code>shutting-down</code>
-3. After ~4 seconds, transitions to <code>stand-by</code>
-4. Power manager then suspends/hibernates</p>
-<p><strong>Unlock command</strong> (<code>LPUSH scooter:state unlock</code>):
-1. Reads kickstand state
-2. If dashboard ready and kickstand up: transitions to <code>ready-to-drive</code>
-3. Otherwise: transitions to <code>parked</code> (if currently in <code>stand-by</code>)</p>
-<p><strong>Lock-Hibernate command</strong> (<code>LPUSH scooter:state lock-hibernate</code>):
-1. Must be in <code>parked</code> state
-2. Sets hibernation request flag
-3. Transitions to <code>shutting-down</code>
-4. Sends "hibernate-manual" command to power manager via <code>scooter:power</code> list</p>
-<p><strong>Force-Lock command</strong> (<code>LPUSH scooter:state force-lock</code>):
-1. Sets <code>forceStandbyNoLock</code> flag
-2. Immediately transitions to <code>stand-by</code> without handlebar locking
-3. Used for emergency shutdown or special cases (e.g., DBC update)</p>
+<p><strong>Lock command</strong> (<code>LPUSH scooter:state lock</code>):</p>
+<ol>
+<li>Must be in <code>parked</code> state</li>
+<li>Transitions to <code>shutting-down</code></li>
+<li>After ~4 seconds, transitions to <code>stand-by</code></li>
+<li>Power manager then suspends/hibernates</li>
+</ol>
+<p><strong>Unlock command</strong> (<code>LPUSH scooter:state unlock</code>):</p>
+<ol>
+<li>Reads kickstand state</li>
+<li>If dashboard ready and kickstand up: transitions to <code>ready-to-drive</code></li>
+<li>Otherwise: transitions to <code>parked</code> (if currently in <code>stand-by</code>)</li>
+</ol>
+<p><strong>Lock-Hibernate command</strong> (<code>LPUSH scooter:state lock-hibernate</code>):</p>
+<ol>
+<li>Must be in <code>parked</code> state</li>
+<li>Sets hibernation request flag</li>
+<li>Transitions to <code>shutting-down</code></li>
+<li>Sends "hibernate-manual" command to power manager via <code>scooter:power</code> list</li>
+</ol>
+<p><strong>Force-Lock command</strong> (<code>LPUSH scooter:state force-lock</code>):</p>
+<ol>
+<li>Sets <code>forceStandbyNoLock</code> flag</li>
+<li>Immediately transitions to <code>stand-by</code> without handlebar locking</li>
+<li>Used for emergency shutdown or special cases (e.g., DBC update)</li>
+</ol>
 <h4 id="hibernation-sequence">Hibernation Sequence<a class="headerlink" href="#hibernation-sequence" title="Permanent link">&para;</a></h4>
 <p><strong>Brake-lever hibernation</strong> (can be disabled via <code>settings</code> hash <code>scooter.brake-hibernation</code> = "disabled"):</p>
 <ol>
@@ -2887,22 +2973,26 @@ In <code>parked</code> state, if dashboard is not ready, pressing the seatbox bu
 <li>Then transition to <code>shutting-down</code> with hibernation flag</li>
 <li>Send "hibernate-manual" command to power manager</li>
 </ol>
-<p><strong>Keycard force-standby:</strong>
-- Tap keycard 3 times while holding brake lever
-- Immediately transitions to <code>stand-by</code> without handlebar lock
-- Useful for emergency situations or servicing</p>
+<p><strong>Keycard force-standby:</strong></p>
+<ul>
+<li>Tap keycard 3 times while holding brake lever</li>
+<li>Immediately transitions to <code>stand-by</code> without handlebar lock</li>
+<li>Useful for emergency situations or servicing</li>
+</ul>
 <h4 id="blinker-control">Blinker Control<a class="headerlink" href="#blinker-control" title="Permanent link">&para;</a></h4>
-<p>The service implements automatic blinker logic:
-- Blink interval: 800ms
-- Physical blinker switches only work in active states (parked, ready-to-drive, waiting states)
-- In other states, blinker control comes from software commands only
-- LED cues used:
-  - Cue 9: LED_BLINK_NONE (blinkers off)
-  - Cue 10: LED_BLINK_LEFT (left blinker)
-  - Cue 11: LED_BLINK_RIGHT (right blinker)
-  - Cue 12: LED_BLINK_BOTH (hazard lights)
-- Publishes blinker switch and state changes to Redis
-- Publishes immediate button events to <code>buttons</code> channel for UI response</p>
+<p>The service implements automatic blinker logic:</p>
+<ul>
+<li>Blink interval: 800ms</li>
+<li>Physical blinker switches only work in active states (parked, ready-to-drive, waiting states)</li>
+<li>In other states, blinker control comes from software commands only</li>
+<li>LED cues used:</li>
+<li>Cue 9: LED_BLINK_NONE (blinkers off)</li>
+<li>Cue 10: LED_BLINK_LEFT (left blinker)</li>
+<li>Cue 11: LED_BLINK_RIGHT (right blinker)</li>
+<li>Cue 12: LED_BLINK_BOTH (hazard lights)</li>
+<li>Publishes blinker switch and state changes to Redis</li>
+<li>Publishes immediate button events to <code>buttons</code> channel for UI response</li>
+</ul>
 <h5 id="hazard-switch-detection-librescoot-12">Hazard switch detection - Librescoot 1.2+<a class="headerlink" href="#hazard-switch-detection-librescoot-12" title="Permanent link">&para;</a></h5>
 <p>The stock handlebar switch offers left and right only, on separate GPIO inputs
 (<code>blinker_left</code>, <code>blinker_right</code>). Aftermarket switch assemblies with a physical
@@ -2923,26 +3013,34 @@ that want the combined position read <code>blinker:switch</code>.</p>
 <p>Stock switches are unaffected: the peer input is never active, so every
 transition behaves exactly as before.</p>
 <h4 id="seatbox-control">Seatbox Control<a class="headerlink" href="#seatbox-control" title="Permanent link">&para;</a></h4>
-<p><strong>Open command</strong> (<code>LPUSH scooter:seatbox open</code>):
-1. Pulses seatbox lock solenoid for 200ms
-2. Publishes seatbox opened event to <code>vehicle</code> channel (payload: "seatbox:opened")</p>
-<p><strong>Button press:</strong>
-- In <code>parked</code> state: pressing seatbox button opens seatbox
-- In other states: button press is logged but no action taken
-- Button events published to <code>buttons</code> channel for UI feedback
-- Pressing seatbox button cancels any active hibernation sequence</p>
+<p><strong>Open command</strong> (<code>LPUSH scooter:seatbox open</code>):</p>
+<ol>
+<li>Pulses seatbox lock solenoid for 200ms</li>
+<li>Publishes seatbox opened event to <code>vehicle</code> channel (payload: "seatbox:opened")</li>
+</ol>
+<p><strong>Button press:</strong></p>
+<ul>
+<li>In <code>parked</code> state: pressing seatbox button opens seatbox</li>
+<li>In other states: button press is logged but no action taken</li>
+<li>Button events published to <code>buttons</code> channel for UI feedback</li>
+<li>Pressing seatbox button cancels any active hibernation sequence</li>
+</ul>
 <h4 id="brake-control">Brake Control<a class="headerlink" href="#brake-control" title="Permanent link">&para;</a></h4>
-<p><strong>Brake state handling:</strong>
-- Brake pressed: plays LED cue 4 (LED_BRAKE_OFF_TO_BRAKE_ON)
-- Brake released: plays LED cue 5 (LED_BRAKE_ON_TO_BRAKE_OFF)
-- Engine brake logic:
-  - In <code>ready-to-drive</code>: engine brake follows brake levers (engaged if either pressed)
-  - In all other states: engine brake always engaged (motor disabled)
-- Brake state published to Redis (<code>vehicle</code> hash, <code>brake:left</code> and <code>brake:right</code>)
-- Button events published to <code>buttons</code> channel for immediate UI response</p>
-<p><strong>Park debounce:</strong>
-- After entering <code>ready-to-drive</code>, kickstand down events are ignored for 1 second
-- Prevents accidental transition to parked during kickstand retraction</p>
+<p><strong>Brake state handling:</strong></p>
+<ul>
+<li>Brake pressed: plays LED cue 4 (LED_BRAKE_OFF_TO_BRAKE_ON)</li>
+<li>Brake released: plays LED cue 5 (LED_BRAKE_ON_TO_BRAKE_OFF)</li>
+<li>Engine brake logic:</li>
+<li>In <code>ready-to-drive</code>: engine brake follows brake levers (engaged if either pressed)</li>
+<li>In all other states: engine brake always engaged (motor disabled)</li>
+<li>Brake state published to Redis (<code>vehicle</code> hash, <code>brake:left</code> and <code>brake:right</code>)</li>
+<li>Button events published to <code>buttons</code> channel for immediate UI response</li>
+</ul>
+<p><strong>Park debounce:</strong></p>
+<ul>
+<li>After entering <code>ready-to-drive</code>, kickstand down events are ignored for 1 second</li>
+<li>Prevents accidental transition to parked during kickstand retraction</li>
+</ul>
 <h4 id="gesture-detection-input-events-librescoot-only">Gesture Detection (<code>input-events</code>) - Librescoot Only<a class="headerlink" href="#gesture-detection-input-events-librescoot-only" title="Permanent link">&para;</a></h4>
 <p>Alongside the raw edges on <code>buttons</code>, vehicle-service runs a gesture detector
 (<code>internal/core/input_gestures.go</code>) over the horn button, seatbox button and
@@ -2999,59 +3097,71 @@ use for anything counting or reacting to discrete user actions. <code>buttons</c
 carries the raw edges; the <code>vehicle</code> hash carries the current level. See the
 <a href="../../redis/#physical-inputs-buttons-input-events">Redis reference</a>.</p>
 <h3 id="command-processing">Command Processing<a class="headerlink" href="#command-processing" title="Permanent link">&para;</a></h3>
-<p>Commands are consumed via BRPOP with 5-second timeout:
-- <code>scooter:state</code> - State change commands
-- <code>scooter:seatbox</code> - Seatbox control
-- <code>scooter:horn</code> - Horn control
-- <code>scooter:blinker</code> - Blinker control
-- <code>scooter:led:cue</code> - LED cue playback
-- <code>scooter:led:fade</code> - LED fade playback
-- <code>scooter:update</code> - Update coordination
-- <code>scooter:hardware</code> - Direct hardware control</p>
+<p>Commands are consumed via BRPOP with 5-second timeout:</p>
+<ul>
+<li><code>scooter:state</code> - State change commands</li>
+<li><code>scooter:seatbox</code> - Seatbox control</li>
+<li><code>scooter:horn</code> - Horn control</li>
+<li><code>scooter:blinker</code> - Blinker control</li>
+<li><code>scooter:led:cue</code> - LED cue playback</li>
+<li><code>scooter:led:fade</code> - LED fade playback</li>
+<li><code>scooter:update</code> - Update coordination</li>
+<li><code>scooter:hardware</code> - Direct hardware control</li>
+</ul>
 <h3 id="fault-detection">Fault Detection<a class="headerlink" href="#fault-detection" title="Permanent link">&para;</a></h3>
-<p>The service supports fault reporting via Redis:
-- Faults are added to the <code>vehicle:fault</code> set (using SADD)
-- Fault events are logged to the <code>events:faults</code> stream (using XADD)
-- Fault notifications published to <code>vehicle</code> channel (payload: "fault")
-- Fault codes are numeric identifiers
-- Cleared faults are reported with negative code values</p>
+<p>The service supports fault reporting via Redis:</p>
+<ul>
+<li>Faults are added to the <code>vehicle:fault</code> set (using SADD)</li>
+<li>Fault events are logged to the <code>events:faults</code> stream (using XADD)</li>
+<li>Fault notifications published to <code>vehicle</code> channel (payload: "fault")</li>
+<li>Fault codes are numeric identifiers</li>
+<li>Cleared faults are reported with negative code values</li>
+</ul>
 <p>Current implementation does not actively monitor for faults, but the infrastructure is in place for future fault detection.</p>
 <h2 id="log-output">Log Output<a class="headerlink" href="#log-output" title="Permanent link">&para;</a></h2>
-<p>The service logs to journald. Common log patterns:
-- State transitions (e.g., "Transitioning from PARKED to READY_TO_DRIVE")
-- Input events (e.g., "Input kickstand =&gt; true")
-- Command processing (e.g., "Received command from scooter:state: lock")
-- Redis operations (e.g., "Publishing vehicle state: parked")
-- Hardware operations (e.g., "Seatbox lock toggled for 0.2s")
-- LED operations (e.g., "Playing LED cue 4")
-- Hibernation sequence events
-- Button events published to UI
-- Settings updates</p>
-<p><strong>Log levels:</strong>
-- 0 = NONE: No logging
-- 1 = ERROR: Fatal errors only
-- 2 = WARN: Warnings and errors
-- 3 = INFO: Informational messages (default)
-- 4 = DEBUG: Detailed debugging output</p>
+<p>The service logs to journald. Common log patterns:</p>
+<ul>
+<li>State transitions (e.g., "Transitioning from PARKED to READY_TO_DRIVE")</li>
+<li>Input events (e.g., "Input kickstand =&gt; true")</li>
+<li>Command processing (e.g., "Received command from scooter:state: lock")</li>
+<li>Redis operations (e.g., "Publishing vehicle state: parked")</li>
+<li>Hardware operations (e.g., "Seatbox lock toggled for 0.2s")</li>
+<li>LED operations (e.g., "Playing LED cue 4")</li>
+<li>Hibernation sequence events</li>
+<li>Button events published to UI</li>
+<li>Settings updates</li>
+</ul>
+<p><strong>Log levels:</strong></p>
+<ul>
+<li>0 = NONE: No logging</li>
+<li>1 = ERROR: Fatal errors only</li>
+<li>2 = WARN: Warnings and errors</li>
+<li>3 = INFO: Informational messages (default)</li>
+<li>4 = DEBUG: Detailed debugging output</li>
+</ul>
 <p><strong>View logs:</strong>
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>journalctl<span class="w"> </span>-u<span class="w"> </span>librescoot-vehicle.service
 </span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>journalctl<span class="w"> </span>-u<span class="w"> </span>librescoot-vehicle.service<span class="w"> </span>-f<span class="w">  </span><span class="c1"># Follow mode</span>
 </span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>journalctl<span class="w"> </span>-u<span class="w"> </span>librescoot-vehicle.service<span class="w"> </span>--since<span class="w"> </span><span class="s2">"10 minutes ago"</span>
 </span></code></pre></div></p>
 <h2 id="dependencies">Dependencies<a class="headerlink" href="#dependencies" title="Permanent link">&para;</a></h2>
-<p><strong>Required:</strong>
-- <strong>Redis server</strong> - Must be running at 127.0.0.1:6379
-- <strong>GPIO input device</strong> - <code>/dev/input/by-path/platform-gpio-keys-event</code>
-- <strong>GPIO chip devices</strong> - For digital outputs (gpiochip1, gpiochip2, gpiochip4)
-- <strong>PWM LED kernel module</strong> - <code>imx_pwm_led</code> must be loadable
-- <strong>PWM LED device files</strong> - <code>/dev/pwm_led0</code> through <code>/dev/pwm_led7</code>
-- <strong>LED curve files</strong> - <code>/usr/share/led-curves/fades/</code> and <code>/usr/share/led-curves/cues/</code></p>
-<p><strong>Optional:</strong>
-- <strong>dashboard</strong> - Service waits for <code>dashboard ready</code> = "true" before allowing ready-to-drive
-- <strong>keycard</strong> - Authentication via keycard events
-- <strong>settings-service</strong> - For persistent settings like brake-hibernation
-- <strong>update-service</strong> - For OTA update coordination
-- <strong>power-manager</strong> - For hibernation execution</p>
+<p><strong>Required:</strong></p>
+<ul>
+<li><strong>Redis server</strong> - Must be running at 127.0.0.1:6379</li>
+<li><strong>GPIO input device</strong> - <code>/dev/input/by-path/platform-gpio-keys-event</code></li>
+<li><strong>GPIO chip devices</strong> - For digital outputs (gpiochip1, gpiochip2, gpiochip4)</li>
+<li><strong>PWM LED kernel module</strong> - <code>imx_pwm_led</code> must be loadable</li>
+<li><strong>PWM LED device files</strong> - <code>/dev/pwm_led0</code> through <code>/dev/pwm_led7</code></li>
+<li><strong>LED curve files</strong> - <code>/usr/share/led-curves/fades/</code> and <code>/usr/share/led-curves/cues/</code></li>
+</ul>
+<p><strong>Optional:</strong></p>
+<ul>
+<li><strong>dashboard</strong> - Service waits for <code>dashboard ready</code> = "true" before allowing ready-to-drive</li>
+<li><strong>keycard</strong> - Authentication via keycard events</li>
+<li><strong>settings-service</strong> - For persistent settings like brake-hibernation</li>
+<li><strong>update-service</strong> - For OTA update coordination</li>
+<li><strong>power-manager</strong> - For hibernation execution</li>
+</ul>
 <h2 id="librescoot-implementation-details">Librescoot Implementation Details<a class="headerlink" href="#librescoot-implementation-details" title="Permanent link">&para;</a></h2>
 <p>The Librescoot <strong>vehicle-service</strong> is a Go-based implementation with the following architecture:</p>
 <h3 id="technical-implementation">Technical Implementation<a class="headerlink" href="#technical-implementation" title="Permanent link">&para;</a></h3>
@@ -3149,67 +3259,83 @@ carries the raw edges; the <code>vehicle</code> hash carries the current level. 
 <p>See <a href="https://github.com/librescoot/kernel-module-imx-pwm-led/blob/master/README.md">i.MX PWM LED kernel module documentation</a> for detailed mode specifications and ioctl interface.</p>
 <h3 id="special-features">Special Features<a class="headerlink" href="#special-features" title="Permanent link">&para;</a></h3>
 <p><strong>DBC Update Support:</strong>
-During DBC (Dashboard Controller) firmware updates:
-- Dashboard power is kept on regardless of vehicle state
-- Power state changes are deferred until update completes
-- Dashboard power can be cycled remotely via <code>scooter:update</code> command
-- Service tracks update status via <code>ota</code> hash <code>status:dbc</code> field</p>
+During DBC (Dashboard Controller) firmware updates:</p>
+<ul>
+<li>Dashboard power is kept on regardless of vehicle state</li>
+<li>Power state changes are deferred until update completes</li>
+<li>Dashboard power can be cycled remotely via <code>scooter:update</code> command</li>
+<li>Service tracks update status via <code>ota</code> hash <code>status:dbc</code> field</li>
+</ul>
 <p><strong>Force Standby:</strong>
-Three keycard taps while holding brake lever triggers immediate transition to standby without handlebar lock. Useful for:
-- Emergency situations
-- Service/warehouse operations
-- Forcing standby when handlebar lock is non-functional</p>
+Three keycard taps while holding brake lever triggers immediate transition to standby without handlebar lock. Useful for:</p>
+<ul>
+<li>Emergency situations</li>
+<li>Service/warehouse operations</li>
+<li>Forcing standby when handlebar lock is non-functional</li>
+</ul>
 <p><strong>Settings Integration:</strong>
-The service responds to settings changes via PUBSUB:
-- <code>scooter.brake-hibernation</code>: "enabled" or "disabled"
-- Changes take effect immediately
-- Active hibernation sequences are cancelled when disabled</p>
+The service responds to settings changes via PUBSUB:</p>
+<ul>
+<li><code>scooter.brake-hibernation</code>: "enabled" or "disabled"</li>
+<li>Changes take effect immediately</li>
+<li>Active hibernation sequences are cancelled when disabled</li>
+</ul>
 <h3 id="architecture">Architecture<a class="headerlink" href="#architecture" title="Permanent link">&para;</a></h3>
-<p><strong>Package structure:</strong>
-- <code>cmd/vehicle-service/</code> - Main entry point
-- <code>internal/core/</code> - Core system logic and state machine
-- <code>internal/hardware/</code> - Hardware I/O abstraction (GPIO, LED)
-- <code>internal/messaging/</code> - Redis communication layer
-- <code>internal/types/</code> - Shared type definitions
-- <code>internal/logger/</code> - Leveled logging implementation</p>
-<p><strong>Concurrency model:</strong>
-- Main goroutine handles system coordination
-- Separate goroutines for:
-  - Redis PUBSUB listener
-  - 8 Redis BRPOP command listeners (one per list)
-  - Blinker timer (when active)
-  - Various hardware timers (hibernation, shutdown, handlebar lock)
-- Thread-safe state access via sync.RWMutex</p>
-<p><strong>Error handling:</strong>
-- Hardware errors are logged but don't crash the service
-- Redis disconnection causes service exit (systemd will restart)
-- Invalid commands are logged and rejected
-- State transition errors are logged and may be retried</p>
+<p><strong>Package structure:</strong></p>
+<ul>
+<li><code>cmd/vehicle-service/</code> - Main entry point</li>
+<li><code>internal/core/</code> - Core system logic and state machine</li>
+<li><code>internal/hardware/</code> - Hardware I/O abstraction (GPIO, LED)</li>
+<li><code>internal/messaging/</code> - Redis communication layer</li>
+<li><code>internal/types/</code> - Shared type definitions</li>
+<li><code>internal/logger/</code> - Leveled logging implementation</li>
+</ul>
+<p><strong>Concurrency model:</strong></p>
+<ul>
+<li>Main goroutine handles system coordination</li>
+<li>Separate goroutines for:</li>
+<li>Redis PUBSUB listener</li>
+<li>8 Redis BRPOP command listeners (one per list)</li>
+<li>Blinker timer (when active)</li>
+<li>Various hardware timers (hibernation, shutdown, handlebar lock)</li>
+<li>Thread-safe state access via sync.RWMutex</li>
+</ul>
+<p><strong>Error handling:</strong></p>
+<ul>
+<li>Hardware errors are logged but don't crash the service</li>
+<li>Redis disconnection causes service exit (systemd will restart)</li>
+<li>Invalid commands are logged and rejected</li>
+<li>State transition errors are logged and may be retried</li>
+</ul>
 <h3 id="building">Building<a class="headerlink" href="#building" title="Permanent link">&para;</a></h3>
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="c1"># Build for ARM Cortex-A7 (default target)</span>
 </span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>make<span class="w"> </span>build
 </span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>
-</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="c1"># Build for AMD64 (development/testing)</span>
-</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>make<span class="w"> </span>build-amd64
+</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="c1"># Build for the host platform (development/testing)</span>
+</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>make<span class="w"> </span>build-host
 </span><span id="__span-2-6"><a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>
 </span><span id="__span-2-7"><a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="c1"># Output: bin/vehicle-service</span>
 </span></code></pre></div>
 <h3 id="compatibility">Compatibility<a class="headerlink" href="#compatibility" title="Permanent link">&para;</a></h3>
-<p>Librescoot vehicle-service maintains Redis protocol compatibility:
-- Same hash fields and structure as original implementation
-- Same command interface (LPUSH to command lists)
-- Same PUBSUB channel usage
-- Compatible with any dashboard that follows the Librescoot Redis protocol
-- No changes required to other services</p>
+<p>Librescoot vehicle-service maintains Redis protocol compatibility:</p>
+<ul>
+<li>Same hash fields and structure as original implementation</li>
+<li>Same command interface (LPUSH to command lists)</li>
+<li>Same PUBSUB channel usage</li>
+<li>Compatible with any dashboard that follows the Librescoot Redis protocol</li>
+<li>No changes required to other services</li>
+</ul>
 <h3 id="integration-points">Integration Points<a class="headerlink" href="#integration-points" title="Permanent link">&para;</a></h3>
-<p>Librescoot vehicle-service integrates with:
-- <strong>Redis</strong> - Central message bus (required)
-- <strong>Dashboard service</strong> - Waits for ready signal before allowing drive
-- <strong>Settings service</strong> - Reads persistent behavior settings
-- <strong>Update service</strong> - Coordinates OTA firmware updates
-- <strong>Power manager</strong> - Sends hibernation commands
-- <strong>Keycard service</strong> - Receives authentication events
-- <strong>UI/HMI</strong> - Publishes button events for immediate feedback</p>
+<p>Librescoot vehicle-service integrates with:</p>
+<ul>
+<li><strong>Redis</strong> - Central message bus (required)</li>
+<li><strong>Dashboard service</strong> - Waits for ready signal before allowing drive</li>
+<li><strong>Settings service</strong> - Reads persistent behavior settings</li>
+<li><strong>Update service</strong> - Coordinates OTA firmware updates</li>
+<li><strong>Power manager</strong> - Sends hibernation commands</li>
+<li><strong>Keycard service</strong> - Receives authentication events</li>
+<li><strong>UI/HMI</strong> - Publishes button events for immediate feedback</li>
+</ul>
 <h2 id="related-documentation">Related Documentation<a class="headerlink" href="#related-documentation" title="Permanent link">&para;</a></h2>
 <ul>
 <li><a href="../../states/">Vehicle States</a> - Complete state machine documentation</li>
@@ -3348,7 +3474,7 @@ The service responds to settings changes via PUBSUB:
       <script id="__config" type="application/json">{"annotate":null,"base":"../..","features":["content.action.edit","content.code.copy","content.code.select","content.tooltips","navigation.footer","navigation.indexes","navigation.instant","navigation.instant.prefetch","navigation.path","navigation.sections","navigation.top","navigation.tracking","search.highlight","toc.follow"],"search":"../../assets/javascripts/workers/search.7d14d953.min.js","tags":null,"translations":{"clipboard.copied":"Copied to clipboard","clipboard.copy":"Copy to clipboard","search.result.more.one":"1 more on this page","search.result.more.other":"# more on this page","search.result.none":"No matching documents","search.result.one":"1 matching document","search.result.other":"# matching documents","search.result.placeholder":"Type to start searching","search.result.term.missing":"Missing","select.version":"Select version"},"version":{"provider":"mike"}}</script>
     
     
-      <script src="../../assets/javascripts/bundle.e886cdf1.min.js"></script>
+      <script src="../../assets/javascripts/bundle.49251538.min.js"></script>
       
     
   </body>

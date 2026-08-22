@@ -23,7 +23,7 @@
       
       
       <link rel="icon" href="../../assets/images/favicon.png">
-      <meta name="generator" content="zensical-0.0.56">
+      <meta name="generator" content="zensical-0.0.57">
     
     
       
@@ -34,12 +34,12 @@
       
         
       
-      <link rel="stylesheet" href="../../assets/stylesheets/modern/main.20815dad.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/modern/main.5da3a30f.min.css">
       
         
           
         
-        <link rel="stylesheet" href="../../assets/stylesheets/modern/palette.dfe2e883.min.css">
+        <link rel="stylesheet" href="../../assets/stylesheets/modern/palette.812a03bb.min.css">
       
       
 
@@ -758,6 +758,10 @@
       
         
       
+        
+      
+        
+      
     
     
     
@@ -825,6 +829,33 @@
     
   
   Services
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../service-interactions/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Service Interactions
 
     
   </span>
@@ -1368,6 +1399,33 @@
     
   
   ecu-service
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../librescoot-events/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  event-service
 
     
   </span>
@@ -2280,6 +2338,10 @@
       
         
       
+        
+      
+        
+      
     
     
     
@@ -2350,59 +2412,73 @@
 </span></code></pre></div>
 <h2 id="redis-operations">Redis Operations<a class="headerlink" href="#redis-operations" title="Permanent link">&para;</a></h2>
 <h3 id="hash-battery0-and-battery1">Hash: <code>battery:0</code> and <code>battery:1</code><a class="headerlink" href="#hash-battery0-and-battery1" title="Permanent link">&para;</a></h3>
-<p><strong>Fields written:</strong>
-- <code>state</code> - Battery state ("unknown", "asleep", "idle", "active")
-- <code>present</code> - Battery presence ("true" or "false")
-- <code>charge</code> - State of charge percentage (0-100)
-- <code>cycle-count</code> - Battery cycle count
-- <code>temperature:0</code> - Battery temperature sensor 0 (°C)
-- <code>temperature:1</code> - Battery temperature sensor 1 (°C)
-- <code>temperature:2</code> - Battery temperature sensor 2 (°C)
-- <code>temperature:3</code> - Battery temperature sensor 3 (°C)
-- <code>temperature-state</code> - Temperature status ("unknown", "cold", "hot", "ideal")
-- <code>current</code> - Battery current (mA)
-- <code>voltage</code> - Battery voltage (mV)
-- <code>state-of-health</code> - Battery health percentage (0-100)
-- <code>serial-number</code> - Battery serial number
-- <code>manufacturing-date</code> - Manufacturing date
-- <code>fw-version</code> - Firmware version</p>
-<p><strong>Published channels and messages:</strong>
-- <code>battery:0</code>, <code>battery:1</code> - Battery state change notifications
-  - <code>present</code> - Battery presence changed
-  - <code>state</code> - Battery state changed
-  - <code>charge</code> - Charge level changed
-  - <code>temperature-state</code> - Temperature state changed
-  - <code>fault</code> - Fault status changed</p>
+<p><strong>Fields written:</strong></p>
+<ul>
+<li><code>state</code> - Battery state ("unknown", "asleep", "idle", "active")</li>
+<li><code>present</code> - Battery presence ("true" or "false")</li>
+<li><code>charge</code> - State of charge percentage (0-100)</li>
+<li><code>cycle-count</code> - Battery cycle count</li>
+<li><code>temperature:0</code> - Battery temperature sensor 0 (°C)</li>
+<li><code>temperature:1</code> - Battery temperature sensor 1 (°C)</li>
+<li><code>temperature:2</code> - Battery temperature sensor 2 (°C)</li>
+<li><code>temperature:3</code> - Battery temperature sensor 3 (°C)</li>
+<li><code>temperature-state</code> - Temperature status ("unknown", "cold", "hot", "ideal")</li>
+<li><code>current</code> - Battery current (mA)</li>
+<li><code>voltage</code> - Battery voltage (mV)</li>
+<li><code>state-of-health</code> - Battery health percentage (0-100)</li>
+<li><code>serial-number</code> - Battery serial number</li>
+<li><code>manufacturing-date</code> - Manufacturing date</li>
+<li><code>fw-version</code> - Firmware version</li>
+</ul>
+<p><strong>Published channels and messages:</strong></p>
+<ul>
+<li><code>battery:0</code>, <code>battery:1</code> - the name of any field in the corresponding hash whose value changed, published once per changed field on every status update (<code>present</code>, <code>state</code>, <code>charge</code>, <code>voltage</code>, <code>current</code>, <code>temperature:0</code>-<code>temperature:3</code>, <code>temperature-state</code>, <code>cycle-count</code>, <code>state-of-health</code>, <code>serial-number</code>, <code>manufacturing-date</code>, <code>fw-version</code>)</li>
+<li><code>fault</code> - Fault status changed</li>
+</ul>
 <h3 id="hash-settings">Hash: <code>settings</code><a class="headerlink" href="#hash-settings" title="Permanent link">&para;</a></h3>
-<p><strong>Fields read:</strong>
-- <code>scooter.battery-keep-active-on-seatbox-open</code> - Bool (<code>true</code>/<code>false</code>); runtime equivalent of the <code>-keep-active-on-seatbox-open</code> CLI flag. Keeps a running battery active across a seatbox open while still letting seatbox events flow. Hot-reloaded via <code>settings</code> pub/sub; a change restarts any mid-cycle active reader so the new value takes effect at once.
-- <code>scooter.dual-battery</code> - Bool (<code>true</code>/<code>false</code>); controls whether battery slot 1 is treated as active/present. <code>true</code> sets reader 1 to the active role (subject to the <code>scooter.max-voltage-delta</code> check); <code>false</code> sets it inactive (disabled). Read on startup and hot-reloaded via <code>settings</code> pub/sub; only takes effect when a slot 1 reader exists.
-- <code>scooter.max-voltage-delta</code> - Max voltage difference between batteries in mV before battery 1 activation is refused (default: 1000; 0 to disable). Updated live via <code>settings</code> pub/sub.
-- <code>scooter.battery-aux-low-keep-active-enter-mv</code> - Aux battery voltage in mV below which the keep-active-on-seatbox-open override engages automatically (default: 11500). Hot-reloaded via <code>settings</code> pub/sub.
-- <code>scooter.battery-aux-low-keep-active-exit-mv</code> - Aux battery voltage in mV at or above which the aux-low keep-active override disengages (default: 12000). Must be greater than the enter threshold. Hot-reloaded via <code>settings</code> pub/sub.</p>
+<p><strong>Fields read:</strong></p>
+<ul>
+<li><code>scooter.battery-keep-active-on-seatbox-open</code> - Bool (<code>true</code>/<code>false</code>); runtime equivalent of the <code>-keep-active-on-seatbox-open</code> CLI flag. Keeps a running battery active across a seatbox open while still letting seatbox events flow. Hot-reloaded via <code>settings</code> pub/sub; a change restarts any mid-cycle active reader so the new value takes effect at once.</li>
+<li><code>scooter.dual-battery</code> - Bool (<code>true</code>/<code>false</code>); controls whether battery slot 1 is treated as active/present. <code>true</code> sets reader 1 to the active role (subject to the <code>scooter.max-voltage-delta</code> check); <code>false</code> sets it inactive (disabled). Read on startup and hot-reloaded via <code>settings</code> pub/sub; only takes effect when a slot 1 reader exists.</li>
+<li><code>scooter.max-voltage-delta</code> - Max voltage difference between batteries in mV before battery 1 activation is refused (default: 1000; 0 to disable). Updated live via <code>settings</code> pub/sub.</li>
+<li><code>scooter.battery-aux-low-keep-active-enter-mv</code> - Aux battery voltage in mV below which the keep-active-on-seatbox-open override engages automatically (default: 11500). Hot-reloaded via <code>settings</code> pub/sub.</li>
+<li><code>scooter.battery-aux-low-keep-active-exit-mv</code> - Aux battery voltage in mV at or above which the aux-low keep-active override disengages (default: 12000). Must be greater than the enter threshold. Hot-reloaded via <code>settings</code> pub/sub.</li>
+</ul>
 <h3 id="hash-aux-battery">Hash: <code>aux-battery</code><a class="headerlink" href="#hash-aux-battery" title="Permanent link">&para;</a></h3>
-<p><strong>Fields read:</strong>
-- <code>voltage</code> - Auxiliary (12 V) battery voltage in mV; consumed to drive the aux-low keep-active override.</p>
-<p><strong>Subscribed channels:</strong>
-- <code>aux-battery</code> - Aux battery field change notifications
-  - <code>voltage</code> - Recomputes the keep-active-on-seatbox-open override using Schmitt-trigger hysteresis (engages when below the enter threshold, disengages when at or above the exit threshold). On a transition, active readers are restarted so the FSM walks through the wake-up sequence.</p>
+<p><strong>Fields read:</strong></p>
+<ul>
+<li><code>voltage</code> - Auxiliary (12 V) battery voltage in mV; consumed to drive the aux-low keep-active override.</li>
+</ul>
+<p><strong>Subscribed channels:</strong></p>
+<ul>
+<li><code>aux-battery</code> - Aux battery field change notifications</li>
+<li><code>voltage</code> - Recomputes the keep-active-on-seatbox-open override using Schmitt-trigger hysteresis (engages when below the enter threshold, disengages when at or above the exit threshold). On a transition, active readers are restarted so the FSM walks through the wake-up sequence.</li>
+</ul>
 <h3 id="hash-vehicle">Hash: <code>vehicle</code><a class="headerlink" href="#hash-vehicle" title="Permanent link">&para;</a></h3>
-<p><strong>Fields read:</strong>
-- <code>state</code> - Vehicle state (monitored to adjust battery behavior)
-- <code>seatbox:lock</code> - Seatbox lock state ("closed" or "open")</p>
-<p><strong>Subscribed channels:</strong>
-- <code>vehicle</code> - Vehicle state change notifications
-  - <code>state</code> - Vehicle state changed
-  - <code>seatbox:lock</code> - Seatbox lock state changed</p>
+<p><strong>Fields read:</strong></p>
+<ul>
+<li><code>state</code> - Vehicle state (monitored to adjust battery behavior)</li>
+<li><code>seatbox:lock</code> - Seatbox lock state ("closed" or "open")</li>
+</ul>
+<p><strong>Subscribed channels:</strong></p>
+<ul>
+<li><code>vehicle</code> - Vehicle state change notifications</li>
+<li><code>state</code> - Vehicle state changed</li>
+<li><code>seatbox:lock</code> - Seatbox lock state changed</li>
+</ul>
 <h3 id="sets-battery0fault-and-battery1fault">Sets: <code>battery:0:fault</code> and <code>battery:1:fault</code><a class="headerlink" href="#sets-battery0fault-and-battery1fault" title="Permanent link">&para;</a></h3>
-<p><strong>Fault codes stored as set members:</strong>
-- Hardware faults (1-16): Temperature, voltage, current protection faults
-- Software faults (32+): Communication errors, NFC reader errors</p>
+<p><strong>Fault codes stored as set members:</strong></p>
+<ul>
+<li>Hardware faults (1-16): Temperature, voltage, current protection faults</li>
+<li>Software faults (32+): Communication errors, NFC reader errors</li>
+</ul>
 <h3 id="stream-eventsfaults">Stream: <code>events:faults</code><a class="headerlink" href="#stream-eventsfaults" title="Permanent link">&para;</a></h3>
-<p><strong>Fault events written:</strong>
-- <code>group</code> - Source (e.g., "battery:0")
-- <code>code</code> - Fault code (positive for set, negative for cleared)
-- <code>description</code> - Human-readable fault description</p>
+<p><strong>Fault events written:</strong></p>
+<ul>
+<li><code>group</code> - Source (e.g., "battery:0")</li>
+<li><code>code</code> - Fault code (positive for set, negative for cleared)</li>
+<li><code>description</code> - Human-readable fault description</li>
+</ul>
 <h2 id="hardware-interfaces">Hardware Interfaces<a class="headerlink" href="#hardware-interfaces" title="Permanent link">&para;</a></h2>
 <h3 id="nfc-readers">NFC Readers<a class="headerlink" href="#nfc-readers" title="Permanent link">&para;</a></h3>
 <ul>
@@ -2413,28 +2489,36 @@
 <p>Each battery slot has a dedicated NFC reader to communicate with the battery's NFC tag.</p>
 <h3 id="battery-communication-protocol">Battery Communication Protocol<a class="headerlink" href="#battery-communication-protocol" title="Permanent link">&para;</a></h3>
 <p>The service uses NFC Type 4 Tag operations to communicate with battery NFC tags:</p>
-<p><strong>Read Operations:</strong>
-- <code>0x0300</code> - STATUS0: Voltage, current, firmware version, remaining/full capacity, fault code, temperatures 0-1, state of health, low SOC flag
-- <code>0x0310</code> - STATUS1: Battery state (4 bytes), serial number (12 bytes)
-- <code>0x0320</code> - STATUS2: Serial number continuation (4 bytes), manufacturing date (8 bytes), cycle count (2 bytes), temperatures 2-3</p>
-<p><strong>Write Operations:</strong>
-- <code>0x0330</code> - COMMAND: 4-byte command code to control battery state</p>
-<p><strong>Battery Commands:</strong>
-- <code>BMSCmdOn</code> (0x50505050) - Enable high-current path
-- <code>BMSCmdOff</code> (0xCAFEF00D) - Disable high-current path
-- <code>BMSCmdInsertedInScooter</code> (0x44414E41) - Battery inserted notification
-- <code>BMSCmdSeatboxOpened</code> (0x48525259) - Seatbox opened notification
-- <code>BMSCmdSeatboxClosed</code> (0x4D4B4D4B) - Seatbox closed notification
-- <code>BMSCmdHeartbeatScooter</code> (0x534E4A41) - Keep-alive heartbeat</p>
-<p><strong>Battery States:</strong>
-- <code>BMSStateUnknown</code> (0x00000000) - Cannot determine state
-- <code>BMSStateAsleep</code> (0xA4983474) - Lowest power mode
-- <code>BMSStateIdle</code> (0xB9164828) - Systems on, high-current path disabled
-- <code>BMSStateActive</code> (0xC6583518) - High-current path enabled</p>
+<p><strong>Read Operations:</strong></p>
+<ul>
+<li><code>0x0300</code> - STATUS0: Voltage, current, firmware version, remaining/full capacity, fault code, temperatures 0-1, state of health, low SOC flag</li>
+<li><code>0x0310</code> - STATUS1: Battery state (4 bytes), serial number (12 bytes)</li>
+<li><code>0x0320</code> - STATUS2: Serial number continuation (4 bytes), manufacturing date (8 bytes), cycle count (2 bytes), temperatures 2-3</li>
+</ul>
+<p><strong>Write Operations:</strong></p>
+<ul>
+<li><code>0x0330</code> - COMMAND: 4-byte command code to control battery state</li>
+</ul>
+<p><strong>Battery Commands:</strong></p>
+<ul>
+<li><code>BMSCmdOn</code> (0x50505050) - Enable high-current path</li>
+<li><code>BMSCmdOff</code> (0xCAFEF00D) - Disable high-current path</li>
+<li><code>BMSCmdInsertedInScooter</code> (0x44414E41) - Battery inserted notification</li>
+<li><code>BMSCmdSeatboxOpened</code> (0x48525259) - Seatbox opened notification</li>
+<li><code>BMSCmdSeatboxClosed</code> (0x4D4B4D4B) - Seatbox closed notification</li>
+<li><code>BMSCmdHeartbeatScooter</code> (0x534E4A41) - Keep-alive heartbeat</li>
+</ul>
+<p><strong>Battery States:</strong></p>
+<ul>
+<li><code>BMSStateUnknown</code> (0x00000000) - Cannot determine state</li>
+<li><code>BMSStateAsleep</code> (0xA4983474) - Lowest power mode</li>
+<li><code>BMSStateIdle</code> (0xB9164828) - Systems on, high-current path disabled</li>
+<li><code>BMSStateActive</code> (0xC6583518) - High-current path enabled</li>
+</ul>
 <h2 id="configuration">Configuration<a class="headerlink" href="#configuration" title="Permanent link">&para;</a></h2>
 <h3 id="systemd-unit">Systemd Unit<a class="headerlink" href="#systemd-unit" title="Permanent link">&para;</a></h3>
 <ul>
-<li><strong>Unit file:</strong> <code>/usr/lib/systemd/system/battery-service.service</code></li>
+<li><strong>Unit file:</strong> <code>/usr/lib/systemd/system/librescoot-battery.service</code></li>
 <li><strong>Started by:</strong> systemd at boot</li>
 <li><strong>Restart policy:</strong> Always</li>
 </ul>
@@ -2458,9 +2542,8 @@
 </ol>
 <h4 id="polling-intervals">Polling Intervals<a class="headerlink" href="#polling-intervals" title="Permanent link">&para;</a></h4>
 <ul>
-<li><strong>Active mode (non-standby):</strong> 10 seconds between status updates</li>
-<li><strong>Active mode (standby):</strong> 40 seconds between status updates (configurable via <code>--heartbeat-timeout</code>)</li>
-<li><strong>Inactive mode:</strong> 30 minutes between status updates (configurable via <code>--off-update-time</code>)</li>
+<li><strong>Active-role reader:</strong> 40 seconds between status updates (configurable via <code>--heartbeat-timeout</code>)</li>
+<li><strong>Inactive-role reader:</strong> 30 minutes between status updates (configurable via <code>--off-update-time</code>)</li>
 <li><strong>Tag discovery (seatbox open):</strong> 100ms polling interval for fast detection</li>
 <li><strong>Tag discovery (seatbox closed):</strong> 2500ms polling interval for power efficiency</li>
 </ul>
@@ -2471,12 +2554,14 @@
 <li><strong>idle:</strong> Battery systems on, high-current path disabled</li>
 <li><strong>active:</strong> High-current path enabled, ready for driving/charging</li>
 </ul>
-<p>State transitions are triggered by:
-- Vehicle state changes (monitored via <code>vehicle</code> hash and channel)
-- Seatbox lock state changes (monitored via <code>vehicle</code> hash and channel)
-- Battery role (active/inactive) and enabled state
-- Battery internal conditions (SOC, faults)
-- NFC communication status</p>
+<p>State transitions are triggered by:</p>
+<ul>
+<li>Vehicle state changes (monitored via <code>vehicle</code> hash and channel)</li>
+<li>Seatbox lock state changes (monitored via <code>vehicle</code> hash and channel)</li>
+<li>Battery role (active/inactive) and enabled state</li>
+<li>Battery internal conditions (SOC, faults)</li>
+<li>NFC communication status</li>
+</ul>
 <h3 id="battery-control">Battery Control<a class="headerlink" href="#battery-control" title="Permanent link">&para;</a></h3>
 <p>Battery behavior is controlled by:</p>
 <ol>
@@ -2501,36 +2586,48 @@
 </ol>
 <h3 id="state-machine">State Machine<a class="headerlink" href="#state-machine" title="Permanent link">&para;</a></h3>
 <p>Each battery reader implements a hierarchical state machine:</p>
-<p><strong>Top-level states:</strong>
-- <code>StateInit</code> - Waiting for initial vehicle/seatbox state from Redis
-- <code>StateNFCReaderOff</code> - NFC reader deinitialized (during recovery)
-- <code>StateNFCReaderOn</code> - NFC reader initialized and operational</p>
-<p><strong>Discovery states (under NFCReaderOn):</strong>
-- <code>StateDiscoverTag</code> - Parent state for tag discovery
-  - <code>StateWaitArrival</code> - Actively polling for tag arrival
-  - <code>StateTagAbsent</code> - No tag detected, periodic checking</p>
-<p><strong>Tag present states (under NFCReaderOn):</strong>
-- <code>StateTagPresent</code> - Parent state when battery inserted
-  - <code>StateCheckPresence</code> - Verifying battery responds to commands
-  - <code>StateWaitLastCmd</code> - Waiting for minimum time between commands (400ms)
-  - Seatbox open path:
-    - <code>StateSendOff</code> - Sending OFF command
-    - <code>StateSendOpened</code> - Sending SEATBOX_OPENED command
-    - <code>StateSendInsertedOpen</code> - Sending INSERTED_IN_SCOOTER command
-  - Seatbox closed path (heartbeat):
-    - <code>StateHeartbeat</code> - Setting up heartbeat timer
-    - <code>StateHeartbeatActions</code> - Performing heartbeat sequence
-    - <code>StateSendClosed</code> - Sending SEATBOX_CLOSED command
-    - <code>StateSendOnOff</code> - Sending ON or OFF command based on enabled state
-    - <code>StateCondStateOK</code> - Checking if battery state matches expected
-    - <code>StateWaitUpdate</code> - Waiting for next heartbeat interval
-    - <code>StateSendInsertedClosed</code> - Sending INSERTED_IN_SCOOTER for recovery</p>
-<p><strong>State machine features:</strong>
-- Event-driven transitions (tag events, timeouts, vehicle state changes)
-- Hierarchical states with parent-child relationships
-- Automatic recovery from communication failures
-- Suspend inhibitor management during critical operations
-- Discovery polling rate adapts to seatbox state</p>
+<p><strong>Top-level states:</strong></p>
+<ul>
+<li><code>StateInit</code> - Waiting for initial vehicle/seatbox state from Redis</li>
+<li><code>StateNFCReaderOff</code> - NFC reader deinitialized (during recovery)</li>
+<li><code>StateNFCReaderOn</code> - NFC reader initialized and operational</li>
+</ul>
+<p><strong>Discovery states (under NFCReaderOn):</strong></p>
+<ul>
+<li><code>StateDiscoverTag</code> - Parent state for tag discovery</li>
+<li><code>StateWaitArrival</code> - Actively polling for tag arrival</li>
+<li><code>StateTagAbsent</code> - No tag detected, periodic checking</li>
+</ul>
+<p><strong>Tag present states (under NFCReaderOn):</strong></p>
+<ul>
+<li><code>StateTagPresent</code> - Parent state when battery inserted</li>
+<li><code>StateCheckPresence</code> - Verifying battery responds to commands</li>
+<li><code>StateWaitLastCmd</code> - Waiting for minimum time between commands (400ms)</li>
+<li>Seatbox open path:<ul>
+<li><code>StateSendOff</code> - Sending OFF command</li>
+<li><code>StateSendOpened</code> - Sending SEATBOX_OPENED command</li>
+<li><code>StateSendInsertedOpen</code> - Sending INSERTED_IN_SCOOTER command</li>
+</ul>
+</li>
+<li>Seatbox closed path (heartbeat):<ul>
+<li><code>StateHeartbeat</code> - Setting up heartbeat timer</li>
+<li><code>StateHeartbeatActions</code> - Performing heartbeat sequence</li>
+<li><code>StateSendClosed</code> - Sending SEATBOX_CLOSED command</li>
+<li><code>StateSendOnOff</code> - Sending ON or OFF command based on enabled state</li>
+<li><code>StateCondStateOK</code> - Checking if battery state matches expected</li>
+<li><code>StateWaitUpdate</code> - Waiting for next heartbeat interval</li>
+<li><code>StateSendInsertedClosed</code> - Sending INSERTED_IN_SCOOTER for recovery</li>
+</ul>
+</li>
+</ul>
+<p><strong>State machine features:</strong></p>
+<ul>
+<li>Event-driven transitions (tag events, timeouts, vehicle state changes)</li>
+<li>Hierarchical states with parent-child relationships</li>
+<li>Automatic recovery from communication failures</li>
+<li>Suspend inhibitor management during critical operations</li>
+<li>Discovery polling rate adapts to seatbox state</li>
+</ul>
 <h3 id="error-recovery">Error Recovery<a class="headerlink" href="#error-recovery" title="Permanent link">&para;</a></h3>
 <p>The service implements multiple recovery mechanisms:</p>
 <ol>
@@ -2562,11 +2659,10 @@
 <li>
 <p><strong>Zero Data Recovery:</strong></p>
 </li>
-<li>Detect when battery returns all-zero data</li>
-<li>Increment recovery counter</li>
-<li>Retry up to 10 times with heartbeat</li>
+<li>Detect when battery returns empty or all-zero data</li>
+<li>Increment the zero-data counter; a good read resets it to 0</li>
 <li>
-<p>After threshold, enter passive discovery (long polling intervals)</p>
+<p>Any non-zero count raises the critical <code>BMSZeroData</code> fault, which makes the slot report as not present</p>
 </li>
 <li>
 <p><strong>Heartbeat Timeout Recovery:</strong></p>
@@ -2585,54 +2681,66 @@
 </ol>
 <h3 id="fault-detection-and-reporting">Fault Detection and Reporting<a class="headerlink" href="#fault-detection-and-reporting" title="Permanent link">&para;</a></h3>
 <p>The service monitors for battery faults using a debounced fault management system:</p>
-<p><strong>Hardware Faults (from BMS):</strong>
-1. <code>ChgTempOverHighProt</code> - High temperature during charging
-2. <code>ChgTempOverLowProt</code> - Low temperature during charging
-3. <code>DsgTempOverHighProt</code> - High temperature during discharge
-4. <code>DsgTempOverLowProt</code> - Low temperature during discharge
-5. <code>SignalWireBrokeProt</code> - Signal wire disconnected
-6. <code>SecondLvlOverTemp</code> - Critical temperature level
-7. <code>PackVoltHighProt</code> - Battery pack overvoltage
-8. <code>MosTempOverHighProt</code> - Power transistor overheating
-9. <code>CellVoltHighProt</code> - Cell overvoltage
-10. <code>PackVoltLowProt</code> - Battery pack undervoltage
-11. <code>CellVoltLowProt</code> - Cell undervoltage
-12. <code>CrgOverCurrentProt</code> - Charging overcurrent
-13. <code>DsgOverCurrentProt</code> - Discharge overcurrent
-14. <code>ShortCircuitProt</code> - Short circuit detected</p>
-<p><strong>Software Faults (detected by service):</strong>
-- <code>BMSNotFollowingCmd</code> (32) - Battery not responding to commands (5s set debounce, 10s reset debounce)
-- <code>BMSZeroData</code> (33) - Battery data unavailable (critical, immediate)
-- <code>BMSCommsError</code> (34) - Battery communication failed (critical, 5s set debounce, 10s reset debounce)
-- <code>NFCReaderError</code> (35) - NFC reader malfunction (critical, 30s set debounce)</p>
-<p><strong>Fault Reporting:</strong>
-- Faults stored in Redis sets: <code>battery:N:fault</code>
-- Fault events logged to Redis stream: <code>events:faults</code>
-- Fault changes published to <code>battery:N</code> channel with message "fault"
-- Critical faults cause battery to report as not present</p>
+<p><strong>Hardware Faults (from BMS):</strong></p>
+<ol>
+<li><code>ChgTempOverHighProt</code> - High temperature during charging</li>
+<li><code>ChgTempOverLowProt</code> - Low temperature during charging</li>
+<li><code>DsgTempOverHighProt</code> - High temperature during discharge</li>
+<li><code>DsgTempOverLowProt</code> - Low temperature during discharge</li>
+<li><code>SignalWireBrokeProt</code> - Signal wire disconnected</li>
+<li><code>SecondLvlOverTemp</code> - Critical temperature level</li>
+<li><code>PackVoltHighProt</code> - Battery pack overvoltage</li>
+<li><code>MosTempOverHighProt</code> - Power transistor overheating</li>
+<li><code>CellVoltHighProt</code> - Cell overvoltage</li>
+<li><code>PackVoltLowProt</code> - Battery pack undervoltage</li>
+<li><code>CellVoltLowProt</code> - Cell undervoltage</li>
+<li><code>CrgOverCurrentProt</code> - Charging overcurrent</li>
+<li><code>DsgOverCurrentProt</code> - Discharge overcurrent</li>
+<li><code>ShortCircuitProt</code> - Short circuit detected</li>
+</ol>
+<p><strong>Software Faults (detected by service):</strong></p>
+<ul>
+<li><code>BMSNotFollowingCmd</code> (32) - Battery not responding to commands (5s set debounce, 10s reset debounce)</li>
+<li><code>BMSZeroData</code> (33) - Battery data unavailable (critical, immediate)</li>
+<li><code>BMSCommsError</code> (34) - Battery communication failed (critical, 5s set debounce, 10s reset debounce)</li>
+<li><code>NFCReaderError</code> (35) - NFC reader malfunction (critical, 30s set debounce)</li>
+</ul>
+<p><strong>Fault Reporting:</strong></p>
+<ul>
+<li>Faults stored in Redis sets: <code>battery:N:fault</code></li>
+<li>Fault events logged to Redis stream: <code>events:faults</code></li>
+<li>Fault changes published to <code>battery:N</code> channel with message "fault"</li>
+<li>Critical faults cause battery to report as not present</li>
+</ul>
 <h2 id="log-output">Log Output<a class="headerlink" href="#log-output" title="Permanent link">&para;</a></h2>
 <p>The service logs to journald with leveled logging:</p>
-<p><strong>Log Levels:</strong>
-- 0 = NONE - No logs
-- 1 = ERROR - Only error messages
-- 2 = WARN - Warning messages and errors
-- 3 = INFO - Informational messages (default)
-- 4 = DEBUG - Detailed debug messages</p>
-<p><strong>Configuration:</strong>
-- <code>--log</code> - Service-wide log level (default: 3)
-- <code>--log0</code> - Battery 0 reader log level (defaults to <code>--log</code>)
-- <code>--log1</code> - Battery 1 reader log level (defaults to <code>--log</code>)
-- <code>--debug</code> - Enable detailed NCI/DATA messages from NFC HAL</p>
-<p><strong>Common log messages:</strong>
-- NFC communication errors and recovery
-- Battery state transitions
-- Fault activation and clearing
-- Tag arrival/departure events
-- State machine transitions (debug level)
-- NCI protocol messages (debug mode only)</p>
+<p><strong>Log Levels:</strong></p>
+<ul>
+<li>0 = NONE - No logs</li>
+<li>1 = ERROR - Only error messages</li>
+<li>2 = WARN - Warning messages and errors</li>
+<li>3 = INFO - Informational messages (default)</li>
+<li>4 = DEBUG - Detailed debug messages</li>
+</ul>
+<p><strong>Configuration:</strong></p>
+<ul>
+<li><code>--log</code> - Service-wide log level (default: 3)</li>
+<li><code>--log0</code> - Battery 0 reader log level (default: 3, independent of <code>--log</code>)</li>
+<li><code>--log1</code> - Battery 1 reader log level (default: 3, independent of <code>--log</code>)</li>
+<li><code>--debug</code> - Enable detailed NCI/DATA messages from NFC HAL</li>
+</ul>
+<p><strong>Common log messages:</strong></p>
+<ul>
+<li>NFC communication errors and recovery</li>
+<li>Battery state transitions</li>
+<li>Fault activation and clearing</li>
+<li>Tag arrival/departure events</li>
+<li>State machine transitions (debug level)</li>
+<li>NCI protocol messages (debug mode only)</li>
+</ul>
 <p><strong>Viewing logs:</strong>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>journalctl<span class="w"> </span>-u<span class="w"> </span>battery-service<span class="w"> </span>-f<span class="w">           </span><span class="c1"># Follow logs</span>
-</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>journalctl<span class="w"> </span>-u<span class="w"> </span>battery-service<span class="w"> </span>--since<span class="w"> </span>today<span class="w"> </span><span class="c1"># Today's logs</span>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>journalctl<span class="w"> </span>-u<span class="w"> </span>librescoot-battery<span class="w"> </span>-f<span class="w">           </span><span class="c1"># Follow logs</span>
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>journalctl<span class="w"> </span>-u<span class="w"> </span>librescoot-battery<span class="w"> </span>--since<span class="w"> </span>today<span class="w"> </span><span class="c1"># Today's logs</span>
 </span></code></pre></div></p>
 <h2 id="dependencies">Dependencies<a class="headerlink" href="#dependencies" title="Permanent link">&para;</a></h2>
 <ul>
@@ -2643,16 +2751,19 @@
 <li><strong>pm-service</strong> - Holds a block inhibitor via pm-service's <code>/tmp/suspend_inhibitor</code> socket during NFC transactions, so the MDB does not suspend/hibernate mid-write.</li>
 <li><strong>Linux kernel</strong> - I2C support and device nodes</li>
 </ul>
-<p><strong>Go Dependencies:</strong>
-- <code>github.com/redis/go-redis/v9</code> - Redis client
-- <code>golang.org/x/sys</code> - System calls for I2C and systemd integration</p>
+<p><strong>Go Dependencies:</strong></p>
+<ul>
+<li><code>github.com/redis/go-redis/v9</code> - Redis client</li>
+<li><code>github.com/librescoot/pn7150</code> - PN7150 NFC controller driver (I2C)</li>
+<li><code>github.com/librescoot/librefsm</code> - state machine library backing the reader FSM</li>
+</ul>
 <h2 id="librescoot-implementation">Librescoot Implementation<a class="headerlink" href="#librescoot-implementation" title="Permanent link">&para;</a></h2>
 <p>The Librescoot <strong>battery-service</strong> is a complete Go reimplementation with architectural improvements:</p>
 <h3 id="key-features">Key Features<a class="headerlink" href="#key-features" title="Permanent link">&para;</a></h3>
 <ul>
 <li><strong>Per-battery log levels:</strong> Separate <code>--log0</code> and <code>--log1</code> flags for independent log control</li>
 <li><strong>Service-wide log level:</strong> Global <code>--log</code> flag with per-battery override capability</li>
-<li><strong>Build-time information:</strong> Git revision and build time embedded in binary (<code>--version</code>)</li>
+<li><strong>Build-time information:</strong> Version string from <code>git describe</code> embedded in the binary (<code>--version</code>)</li>
 <li><strong>Enhanced NFC error handling:</strong> Robust recovery from I2C errors and NFC reader failures</li>
 <li><strong>Temperature state management:</strong> Four-state temperature monitoring (unknown/cold/hot/ideal)</li>
 <li><strong>Debounced fault management:</strong> Prevents fault flapping with configurable debounce times</li>
@@ -2675,8 +2786,8 @@
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="c1"># Build for ARM target (ARMv7)</span>
 </span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>make<span class="w"> </span>build<span class="w">                  </span><span class="c1"># Output: bin/battery-service</span>
 </span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>
-</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="c1"># Build for AMD64 (development/testing)</span>
-</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>make<span class="w"> </span>build-amd64<span class="w">           </span><span class="c1"># Output: bin/battery-service-amd64</span>
+</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="c1"># Build for the host platform (development/testing)</span>
+</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>make<span class="w"> </span>build-host<span class="w">             </span><span class="c1"># Output: bin/battery-service-host</span>
 </span><span id="__span-2-6"><a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>
 </span><span id="__span-2-7"><a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="c1"># Build for current platform</span>
 </span><span id="__span-2-8"><a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a>make<span class="w"> </span>build-native
@@ -2687,26 +2798,34 @@
 </span><span id="__span-2-13"><a id="__codelineno-2-13" name="__codelineno-2-13" href="#__codelineno-2-13"></a><span class="c1"># Clean build artifacts</span>
 </span><span id="__span-2-14"><a id="__codelineno-2-14" name="__codelineno-2-14" href="#__codelineno-2-14"></a>make<span class="w"> </span>clean
 </span></code></pre></div>
-<p><strong>Build system:</strong>
-- Static linking (<code>-extldflags '-static'</code>)
-- Version information embedded via linker flags
-- Cross-compilation support for ARM and AMD64
-- Minimal dependencies (CGO_ENABLED=0)</p>
+<p><strong>Build system:</strong></p>
+<ul>
+<li>Static linking (<code>-extldflags '-static'</code>)</li>
+<li>Version information embedded via linker flags</li>
+<li>Cross-compilation support for ARM (ARMv7)</li>
+<li>Minimal dependencies (CGO_ENABLED=0)</li>
+</ul>
 <h3 id="compatibility">Compatibility<a class="headerlink" href="#compatibility" title="Permanent link">&para;</a></h3>
 <p>Librescoot battery-service maintains full Redis compatibility with original firmware:</p>
-<p><strong>Compatible interfaces:</strong>
-- Same hash fields in <code>battery:0</code> and <code>battery:1</code>
-- Same channel publication patterns
-- Same fault reporting mechanisms
-- Same vehicle state monitoring</p>
-<p><strong>Behavioral improvements:</strong>
-- More robust error recovery
-- Better fault classification
-- Enhanced logging
-- Configurable timeouts</p>
-<p><strong>Not a drop-in replacement for:</strong>
-- Command-line options changed (original used different flag names)
-- No <code>battery:N:power</code> list consumption (control is internal based on vehicle/seatbox state)</p>
+<p><strong>Compatible interfaces:</strong></p>
+<ul>
+<li>Same hash fields in <code>battery:0</code> and <code>battery:1</code></li>
+<li>Same channel publication patterns</li>
+<li>Same fault reporting mechanisms</li>
+<li>Same vehicle state monitoring</li>
+</ul>
+<p><strong>Behavioral improvements:</strong></p>
+<ul>
+<li>More robust error recovery</li>
+<li>Better fault classification</li>
+<li>Enhanced logging</li>
+<li>Configurable timeouts</li>
+</ul>
+<p><strong>Not a drop-in replacement for:</strong></p>
+<ul>
+<li>Command-line options changed (original used different flag names)</li>
+<li>No <code>battery:N:power</code> list consumption (control is internal based on vehicle/seatbox state)</li>
+</ul>
 <h2 id="related-documentation">Related Documentation<a class="headerlink" href="#related-documentation" title="Permanent link">&para;</a></h2>
 <ul>
 <li><a href="../../electronic/">Electronic Components</a> - PN7150 NFC reader details</li>
@@ -2845,7 +2964,7 @@
       <script id="__config" type="application/json">{"annotate":null,"base":"../..","features":["content.action.edit","content.code.copy","content.code.select","content.tooltips","navigation.footer","navigation.indexes","navigation.instant","navigation.instant.prefetch","navigation.path","navigation.sections","navigation.top","navigation.tracking","search.highlight","toc.follow"],"search":"../../assets/javascripts/workers/search.7d14d953.min.js","tags":null,"translations":{"clipboard.copied":"Copied to clipboard","clipboard.copy":"Copy to clipboard","search.result.more.one":"1 more on this page","search.result.more.other":"# more on this page","search.result.none":"No matching documents","search.result.one":"1 matching document","search.result.other":"# matching documents","search.result.placeholder":"Type to start searching","search.result.term.missing":"Missing","select.version":"Select version"},"version":{"provider":"mike"}}</script>
     
     
-      <script src="../../assets/javascripts/bundle.e886cdf1.min.js"></script>
+      <script src="../../assets/javascripts/bundle.49251538.min.js"></script>
       
     
   </body>

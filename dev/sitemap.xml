@@ -43,6 +43,9 @@
         <loc>https://reference.librescoot.org/dev/services/</loc>
       </url>
       <url>
+        <loc>https://reference.librescoot.org/dev/service-interactions/</loc>
+      </url>
+      <url>
         <loc>https://reference.librescoot.org/dev/services/librescoot-alarm/</loc>
       </url>
       <url>
@@ -53,6 +56,9 @@
       </url>
       <url>
         <loc>https://reference.librescoot.org/dev/services/librescoot-ecu/</loc>
+      </url>
+      <url>
+        <loc>https://reference.librescoot.org/dev/services/librescoot-events/</loc>
       </url>
       <url>
         <loc>https://reference.librescoot.org/dev/services/librescoot-keycard/</loc>

@@ -16,14 +16,14 @@
         <link rel="prev" href="../states/">
       
       
-        <link rel="next" href="./librescoot-alarm/">
+        <link rel="next" href="../service-interactions/">
       
       
         
       
       
       <link rel="icon" href="../assets/images/favicon.png">
-      <meta name="generator" content="zensical-0.0.56">
+      <meta name="generator" content="zensical-0.0.57">
     
     
       
@@ -34,12 +34,12 @@
       
         
       
-      <link rel="stylesheet" href="../assets/stylesheets/modern/main.20815dad.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/modern/main.5da3a30f.min.css">
       
         
           
         
-        <link rel="stylesheet" href="../assets/stylesheets/modern/palette.dfe2e883.min.css">
+        <link rel="stylesheet" href="../assets/stylesheets/modern/palette.812a03bb.min.css">
       
       
 
@@ -758,6 +758,10 @@
       
         
       
+        
+      
+        
+      
     
     
     
@@ -1074,6 +1078,33 @@
   
   
     <li class="md-nav__item">
+      <a href="../service-interactions/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Service Interactions
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="./librescoot-alarm/" class="md-nav__link">
         
   
@@ -1163,6 +1194,33 @@
     
   
   ecu-service
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="./librescoot-events/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  event-service
 
     
   </span>
@@ -1870,6 +1928,10 @@
       
         
       
+        
+      
+        
+      
     
     
     
@@ -1941,6 +2003,12 @@
 <td>Motor controller interface</td>
 <td><code>engine-ecu</code></td>
 <td>ECU (CAN bus), Redis</td>
+</tr>
+<tr>
+<td><a href="librescoot-events/">librescoot-events</a></td>
+<td>Normalised event bus over existing Redis traffic; rule-driven</td>
+<td><code>ev:*</code></td>
+<td>Redis</td>
 </tr>
 <tr>
 <td><a href="librescoot-keycard/">librescoot-keycard</a></td>
@@ -2053,27 +2121,33 @@
     UMS &lt;--&gt; USB</code></pre>
 <h2 id="service-communication-patterns">Service Communication Patterns<a class="headerlink" href="#service-communication-patterns" title="Permanent link">&para;</a></h2>
 <h3 id="event-publishing">Event Publishing<a class="headerlink" href="#event-publishing" title="Permanent link">&para;</a></h3>
-<p>Services publish events to Redis channels when state changes:
-- <code>PUBLISH &lt;hash-name&gt; &lt;field&gt;</code> notifies subscribers of field changes
-- Individual fields may publish separately (e.g., <code>PUBLISH vehicle state</code>)
-- Dashboard and other services subscribe to relevant channels</p>
+<p>Services publish events to Redis channels when state changes:</p>
+<ul>
+<li><code>PUBLISH &lt;hash-name&gt; &lt;field&gt;</code> notifies subscribers of field changes</li>
+<li>Individual fields may publish separately (e.g., <code>PUBLISH vehicle state</code>)</li>
+<li>Dashboard and other services subscribe to relevant channels</li>
+</ul>
 <h3 id="command-lists">Command Lists<a class="headerlink" href="#command-lists" title="Permanent link">&para;</a></h3>
-<p>Command producer services use LPUSH, consumer services use BRPOP:
-- <strong>Producers</strong>: <code>bluetooth-service</code> (from BLE commands) → LPUSH to <code>scooter:*</code> lists
-- <strong>Consumers</strong>: <code>vehicle-service</code> → BRPOP from <code>scooter:state</code>, <code>scooter:seatbox</code>, <code>scooter:horn</code>, <code>scooter:blinker</code>
-- Example: <code>LPUSH scooter:state lock</code> queues a vehicle lock command</p>
+<p>Command producer services use LPUSH, consumer services use BRPOP:</p>
+<ul>
+<li><strong>Producers</strong>: <code>bluetooth-service</code> (from BLE commands) → LPUSH to <code>scooter:*</code> lists</li>
+<li><strong>Consumers</strong>: <code>vehicle-service</code> → BRPOP from <code>scooter:state</code>, <code>scooter:seatbox</code>, <code>scooter:horn</code>, <code>scooter:blinker</code></li>
+<li>Example: <code>LPUSH scooter:state lock</code> queues a vehicle lock command</li>
+</ul>
 <h3 id="state-storage">State Storage<a class="headerlink" href="#state-storage" title="Permanent link">&para;</a></h3>
-<p>Services store state in Redis hashes:
-- <code>HSET vehicle state ready-to-drive</code> - Update vehicle state
-- <code>HGETALL vehicle</code> - Read all vehicle fields
-- Services only write to their own hashes (see table above)</p>
+<p>Services store state in Redis hashes:</p>
+<ul>
+<li><code>HSET vehicle state ready-to-drive</code> - Update vehicle state</li>
+<li><code>HGETALL vehicle</code> - Read all vehicle fields</li>
+<li>Services only write to their own hashes (see table above)</li>
+</ul>
 <h3 id="key-service-relationships">Key Service Relationships<a class="headerlink" href="#key-service-relationships" title="Permanent link">&para;</a></h3>
 <ul>
 <li><strong>battery-service</strong> is independent - monitors batteries via NFC, writes to <code>battery:0/1</code>, subscribes to <code>vehicle:state</code> and <code>vehicle:seatbox:lock</code></li>
 <li><strong>bluetooth-service</strong> reads from <code>battery:*</code> and <code>vehicle</code> but doesn't write to them</li>
 <li><strong>vehicle-service</strong> reads from <code>battery:*</code>, <code>dashboard</code>, <code>keycard</code> but doesn't write to them</li>
 <li><strong>Power management</strong> fields in <code>power-manager</code> are written by both <code>pm-service</code> and <code>bluetooth-service</code> (nRF-related fields)</li>
-<li><strong>alarm-service</strong> monitors <code>vehicle</code> state and controls <code>bmx</code> sensor, sends commands to <code>scooter:horn</code> and <code>scooter:blinker</code></li>
+<li><strong>alarm-service</strong> monitors <code>vehicle</code> state, publishes <code>alarm[status]</code> which motion-service reacts to, calls <code>prepare-hibernation</code> on <code>motion:rpc</code>, and sends commands to <code>scooter:horn</code> and <code>scooter:blinker</code></li>
 <li><strong>settings-service</strong> syncs Redis <code>settings</code> hash with <code>/data/settings.toml</code> and manages NetworkManager connections</li>
 </ul>
 <h2 id="service-lifecycle">Service Lifecycle<a class="headerlink" href="#service-lifecycle" title="Permanent link">&para;</a></h2>
@@ -2115,10 +2189,12 @@
 <li>System enters low-power state</li>
 </ol>
 <h2 id="service-configuration">Service Configuration<a class="headerlink" href="#service-configuration" title="Permanent link">&para;</a></h2>
-<p>All services are managed by systemd:
-- Service files in <code>/etc/systemd/system/</code>
-- Started via <code>systemctl start &lt;service&gt;</code>
-- Logs via <code>journalctl -u &lt;service&gt;</code></p>
+<p>All services are managed by systemd:</p>
+<ul>
+<li>Service files in <code>/etc/systemd/system/</code></li>
+<li>Started via <code>systemctl start &lt;service&gt;</code></li>
+<li>Logs via <code>journalctl -u &lt;service&gt;</code></li>
+</ul>
 <p>See individual service documentation for specific configuration details.</p>
 
 
@@ -2174,13 +2250,13 @@
         
         
           
-          <a href="./librescoot-alarm/" class="md-footer__link md-footer__link--next" aria-label="Next: alarm-service">
+          <a href="../service-interactions/" class="md-footer__link md-footer__link--next" aria-label="Next: Service Interactions">
             <div class="md-footer__title">
               <span class="md-footer__direction">
                 Next
               </span>
               <div class="md-ellipsis">
-                alarm-service
+                Service Interactions
               </div>
             </div>
             <div class="md-footer__button md-icon">
@@ -2251,7 +2327,7 @@
       <script id="__config" type="application/json">{"annotate":null,"base":"..","features":["content.action.edit","content.code.copy","content.code.select","content.tooltips","navigation.footer","navigation.indexes","navigation.instant","navigation.instant.prefetch","navigation.path","navigation.sections","navigation.top","navigation.tracking","search.highlight","toc.follow"],"search":"../assets/javascripts/workers/search.7d14d953.min.js","tags":null,"translations":{"clipboard.copied":"Copied to clipboard","clipboard.copy":"Copy to clipboard","search.result.more.one":"1 more on this page","search.result.more.other":"# more on this page","search.result.none":"No matching documents","search.result.one":"1 matching document","search.result.other":"# matching documents","search.result.placeholder":"Type to start searching","search.result.term.missing":"Missing","select.version":"Select version"},"version":{"provider":"mike"}}</script>
     
     
-      <script src="../assets/javascripts/bundle.e886cdf1.min.js"></script>
+      <script src="../assets/javascripts/bundle.49251538.min.js"></script>
       
     
   </body>

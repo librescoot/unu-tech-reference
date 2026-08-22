@@ -23,7 +23,7 @@
       
       
       <link rel="icon" href="../../assets/images/favicon.png">
-      <meta name="generator" content="zensical-0.0.56">
+      <meta name="generator" content="zensical-0.0.57">
     
     
       
@@ -34,12 +34,12 @@
       
         
       
-      <link rel="stylesheet" href="../../assets/stylesheets/modern/main.20815dad.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/modern/main.5da3a30f.min.css">
       
         
           
         
-        <link rel="stylesheet" href="../../assets/stylesheets/modern/palette.dfe2e883.min.css">
+        <link rel="stylesheet" href="../../assets/stylesheets/modern/palette.812a03bb.min.css">
       
       
 
@@ -758,6 +758,10 @@
       
         
       
+        
+      
+        
+      
     
     
     
@@ -825,6 +829,33 @@
     
   
   Services
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../service-interactions/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Service Interactions
 
     
   </span>
@@ -933,6 +964,33 @@
     
   
   ecu-service
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../librescoot-events/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  event-service
 
     
   </span>
@@ -2314,6 +2372,10 @@
       
         
       
+        
+      
+        
+      
     
     
     
@@ -2353,55 +2415,66 @@
 <p>The modem service manages the cellular modem (SimCom SIM7100E) for internet connectivity and GPS functionality using ModemManager (mmcli). It monitors network registration, signal quality, access technology (2G/3G/4G), handles modem power management and recovery, manages network connectivity, and provides GPS coordinates via gpsd. The service implements intelligent health monitoring with multi-strategy recovery procedures and GPS-specific recovery mechanisms. It also sends and receives SMS: outbound messages via the <code>scooter:sms</code> queue, inbound messages published to the <code>sms</code> hash.</p>
 <h2 id="command-line-options">Command-Line Options<a class="headerlink" href="#command-line-options" title="Permanent link">&para;</a></h2>
 <div class="language-text highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>Usage of modem-service:
-</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>  -data-usage-file string
-</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>        Where to persist cellular byte totals; empty keeps them in memory only
-</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>        (default "/data/internet-usage.json")
-</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>  -debug
-</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>        Enable debug logging
-</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>  -gpsd-server string
-</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>        GPSD server address (default "localhost:2947")
-</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>  -interface string
-</span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>        Network interface to monitor (default "wwan0")
-</span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>  -internet-check-time duration
-</span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>        Internet check interval (default 30s)
-</span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>  -redis-url string
-</span><span id="__span-0-14"><a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>        Redis URL (default "redis://127.0.0.1:6379")
-</span><span id="__span-0-15"><a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a>  -sms-keepalive
-</span><span id="__span-0-16"><a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a>        Keep the CS (SGs) registration alive for SMS delivery via periodic self-calls
-</span><span id="__span-0-17"><a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a>  -supl-server string
-</span><span id="__span-0-18"><a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a>        SUPL server for A-GPS (default "supl.google.com:7276")
-</span><span id="__span-0-19"><a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a>  -version
-</span><span id="__span-0-20"><a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a>        Print version and exit
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>  -connectivity-targets string
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>        Comma-separated host:port fallback targets for the connectivity probe
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>        (default "8.8.8.8:53,1.1.1.1:53,9.9.9.9:53,208.67.222.222:53")
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>  -data-usage-file string
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>        Where to persist cellular byte totals; empty keeps them in memory only
+</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>        (default "/data/internet-usage.json")
+</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>  -debug
+</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>        Enable debug logging
+</span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>  -gpsd-server string
+</span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>        GPSD server address (default "localhost:2947")
+</span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>  -interface string
+</span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>        Network interface to monitor (default "wwan0")
+</span><span id="__span-0-14"><a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>  -internet-check-max-interval duration
+</span><span id="__span-0-15"><a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a>        Upper bound for connectivity probe backoff (default 5m0s)
+</span><span id="__span-0-16"><a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a>  -internet-check-time duration
+</span><span id="__span-0-17"><a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a>        Internet check interval (default 30s)
+</span><span id="__span-0-18"><a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a>  -redis-url string
+</span><span id="__span-0-19"><a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a>        Redis URL (default "redis://127.0.0.1:6379")
+</span><span id="__span-0-20"><a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a>  -sms-keepalive
+</span><span id="__span-0-21"><a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a>        Keep the CS (SGs) registration alive for SMS delivery via periodic self-calls
+</span><span id="__span-0-22"><a id="__codelineno-0-22" name="__codelineno-0-22" href="#__codelineno-0-22"></a>  -supl-server string
+</span><span id="__span-0-23"><a id="__codelineno-0-23" name="__codelineno-0-23" href="#__codelineno-0-23"></a>        SUPL server for A-GPS (default "supl.google.com:7276")
+</span><span id="__span-0-24"><a id="__codelineno-0-24" name="__codelineno-0-24" href="#__codelineno-0-24"></a>  -version
+</span><span id="__span-0-25"><a id="__codelineno-0-25" name="__codelineno-0-25" href="#__codelineno-0-25"></a>        Print version and exit
 </span></code></pre></div>
-<p><strong>Active polling intervals:</strong>
-- Modem health checks: Controlled by <code>-internet-check-time</code> (default: 30s)
-- GPS updates: Fixed at 1 second (GPSUpdateInterval constant)</p>
+<p><strong>Active polling intervals:</strong></p>
+<ul>
+<li>Modem health checks: Controlled by <code>-internet-check-time</code> (default: 30s)</li>
+<li>GPS updates: Fixed at 1 second (GPSUpdateInterval constant)</li>
+</ul>
 <h2 id="redis-operations">Redis Operations<a class="headerlink" href="#redis-operations" title="Permanent link">&para;</a></h2>
 <h3 id="hash-internet">Hash: <code>internet</code><a class="headerlink" href="#hash-internet" title="Permanent link">&para;</a></h3>
-<p><strong>Fields written:</strong>
-- <code>modem-health</code> - Modem health state ("normal", "recovering", "recovery-failed-waiting-reboot", "permanent-failure-needs-replacement")
-- <code>modem-state</code> - Raw modem status ("off", "connected", "disconnected", "no-modem", "UNKNOWN")
-- <code>connectivity</code> - Debounced connectivity classification folding modem-state, SIM, registration, the enable flag and health into one verdict: <code>connected</code> / <code>disconnected</code> (provisioned-but-down) / <code>disabled</code> (off by command) / <code>no-sim</code> / <code>denied</code> (registration denied/failed, e.g. deactivated SIM) / <code>failed</code> (modem broken). Consumed by the dashboard to gate the internet icon. Hysteresis: connected-&gt;disconnected 3 min, denied 60 s; disabled/no-sim/failed immediate.
-- <code>status</code> - Derived internet connectivity status ("connected", "disconnected") - determined by actual ping test to 8.8.8.8
-- <code>ip-address</code> - Interface IP address from wwan0/ppp0
-- <code>access-tech</code> - Access technology from modem ("2G", "GSM", "3G", "UMTS", "4G", "LTE", "5G", "UNKNOWN")
-- <code>signal-quality</code> - Signal strength (0-100, or 255 if unknown)
-- <code>unu-cloud</code> - Cloud (uplink) connection status — written by <code>uplink-service</code>, not modem-service ("connected"/"disconnected")
-- <code>sim-imei</code> - Modem IMEI identifier (identifies modem hardware, not SIM - name kept for backward compatibility)
-- <code>sim-imsi</code> - SIM IMSI identifier (unique subscriber identity)
-- <code>sim-iccid</code> - SIM ICCID identifier (unique SIM card identifier)
-- <code>reachability</code> - Probe verdict: <code>ok</code> / <code>unreachable</code> (nothing answered but the local stack is healthy, which is the correct steady state on a restricted APN) / <code>no-path</code> (local stack broken)
-- <code>link-layer</code> - Local stack assessment: <code>ok</code>, or the failed layer plus an optional reason</p>
+<p><strong>Fields written:</strong></p>
+<ul>
+<li><code>modem-health</code> - Modem health state ("normal", "recovering", "recovery-failed-waiting-reboot", "permanent-failure-needs-replacement")</li>
+<li><code>modem-state</code> - Raw modem status ("off", "connected", "disconnected", "no-modem", "UNKNOWN")</li>
+<li><code>connectivity</code> - Debounced connectivity classification folding modem-state, SIM, registration, the enable flag and health into one verdict: <code>connected</code> / <code>disconnected</code> (provisioned-but-down) / <code>disabled</code> (off by command) / <code>no-sim</code> / <code>denied</code> (registration denied/failed, e.g. deactivated SIM) / <code>failed</code> (modem broken). Consumed by the dashboard to gate the internet icon. Hysteresis: -&gt; connected 60 s, connected -&gt; disconnected 3 min, -&gt; denied 60 s; disabled/no-sim/failed and any other -&gt; disconnected immediate.</li>
+<li><code>status</code> - Derived internet connectivity status ("connected", "disconnected") - set from the layer-8 reachability probe (DNS query to the network-assigned resolvers, then TCP dial of the <code>-connectivity-targets</code> fallbacks)</li>
+<li><code>ip-address</code> - Interface IP address from wwan0/ppp0</li>
+<li><code>access-tech</code> - Access technology from modem ("5G", "4G", "HSPA+", "HSPA", "3G", "UMTS", "EDGE", "GSM", "UNKNOWN")</li>
+<li><code>signal-quality</code> - Signal strength (0-100, or 255 if unknown)</li>
+<li><code>unu-cloud</code> - Cloud (uplink) connection status — written by <code>uplink-service</code>, not modem-service ("connected"/"disconnected")</li>
+<li><code>sim-imei</code> - Modem IMEI identifier (identifies modem hardware, not SIM - name kept for backward compatibility)</li>
+<li><code>sim-imsi</code> - SIM IMSI identifier (unique subscriber identity)</li>
+<li><code>sim-iccid</code> - SIM ICCID identifier (unique SIM card identifier)</li>
+<li><code>reachability</code> - Probe verdict: <code>ok</code> / <code>unreachable</code> (nothing answered but the local stack is healthy, which is the correct steady state on a restricted APN) / <code>no-path</code> (local stack broken)</li>
+<li><code>link-layer</code> - Local stack assessment: <code>ok</code>, or the failed layer plus an optional reason</li>
+</ul>
 <p><strong>Published channel:</strong> <code>internet</code> (publishes field name on change)</p>
 <h3 id="hash-internet-usage">Hash: <code>internet-usage</code><a class="headerlink" href="#hash-internet-usage" title="Permanent link">&para;</a></h3>
 <p>Cellular byte totals, taken from the ModemManager bearer's own counters.</p>
-<p><strong>Fields written:</strong>
-- <code>rx-bytes</code> - Bytes received over the cellular bearer since <code>since</code>
-- <code>tx-bytes</code> - Bytes transmitted over the cellular bearer since <code>since</code>
-- <code>rx-bytes-roaming</code> - The part of <code>rx-bytes</code> that moved while registered as roaming
-- <code>tx-bytes-roaming</code> - The part of <code>tx-bytes</code> that moved while registered as roaming
-- <code>since</code> - RFC 3339 timestamp of when counting started
-- <code>updated</code> - RFC 3339 timestamp of the last write</p>
+<p><strong>Fields written:</strong></p>
+<ul>
+<li><code>rx-bytes</code> - Bytes received over the cellular bearer since <code>since</code></li>
+<li><code>tx-bytes</code> - Bytes transmitted over the cellular bearer since <code>since</code></li>
+<li><code>rx-bytes-roaming</code> - The part of <code>rx-bytes</code> that moved while registered as roaming</li>
+<li><code>tx-bytes-roaming</code> - The part of <code>tx-bytes</code> that moved while registered as roaming</li>
+<li><code>since</code> - RFC 3339 timestamp of when counting started</li>
+<li><code>updated</code> - RFC 3339 timestamp of the last write</li>
+</ul>
 <p><strong>Published channel:</strong> none. The hash is written silently because the totals move
 on every poll while data is flowing; consumers poll it.</p>
 <p>The totals are monotonic. ModemManager's own counters are not: they belong to a
@@ -2421,38 +2494,44 @@ is device-reported and not billing-grade, so a hard power cut can lose up to tha
 much counted traffic. A <code>since</code> that has moved forward means the stored file was
 lost and the baseline restarted.</p>
 <h3 id="hash-modem">Hash: <code>modem</code><a class="headerlink" href="#hash-modem" title="Permanent link">&para;</a></h3>
-<p><strong>Fields written:</strong>
-- <code>power-state</code> - Modem power state ("on", "off")
-- <code>sim-state</code> - SIM card state ("present", "missing", "locked", "inactive")
-- <code>sim-lock</code> - SIM lock status (unlock required type or empty)
-- <code>registration</code> - Network registration state ("home", "roaming", "searching", "denied", "idle", "unknown")
-- <code>operator-name</code> - Current network operator name
-- <code>operator-code</code> - Current network operator code
-- <code>is-roaming</code> - Roaming status ("true", "false")
-- <code>registration-fail</code> - Registration failure reason (if any)
-- <code>error-state</code> - Consolidated error state ("ok", "powered-off", "sim-missing", "sim-inactive", "sim-locked", "registration-denied", "registration-failed", "disconnected", "no-modem", "status-error")
-- <code>pin-action</code> - Outcome of last SIM PIN reconcile ("unconfigured", "ok", "unlocked", "lock-enabled", "wrong-pin", "low-retries-bail", "puk-required", "error")
-- <code>apn-action</code> - Outcome of last APN reconcile ("no-sim", "unconfigured", "ok", "applied", "iccid-changed-cleared", "error")</p>
+<p><strong>Fields written:</strong></p>
+<ul>
+<li><code>power-state</code> - Modem power state ("on", "off")</li>
+<li><code>sim-state</code> - SIM card state ("present", "missing", "locked", "inactive")</li>
+<li><code>sim-lock</code> - SIM lock status (unlock required type or empty)</li>
+<li><code>registration</code> - Network registration state ("home", "roaming", "searching", "denied", "idle", "unknown")</li>
+<li><code>operator-name</code> - Current network operator name</li>
+<li><code>operator-code</code> - Current network operator code</li>
+<li><code>is-roaming</code> - Roaming status ("true", "false")</li>
+<li><code>registration-fail</code> - Registration failure reason (if any)</li>
+<li><code>error-state</code> - Consolidated error state ("ok", "powered-off", "sim-missing", "sim-inactive", "sim-locked", "registration-denied", "registration-failed", "disconnected", "no-modem", "modem-disappeared")</li>
+<li><code>pin-action</code> - Outcome of last SIM PIN reconcile ("unconfigured", "ok", "unlocked", "lock-enabled", "wrong-pin", "low-retries-bail", "puk-required", "error")</li>
+<li><code>apn-action</code> - Outcome of last APN reconcile ("no-sim", "unconfigured", "ok", "applied", "iccid-changed-cleared", "error")</li>
+</ul>
 <p><strong>Published channel:</strong> <code>modem</code> (publishes field name on change)</p>
 <h3 id="sms-hash-sms-streams-smsreceived-smssent">SMS: hash <code>sms</code>, streams <code>sms:received</code> / <code>sms:sent</code><a class="headerlink" href="#sms-hash-sms-streams-smsreceived-smssent" title="Permanent link">&para;</a></h3>
-<p><strong><code>sms</code> hash (latest-value convenience state):</strong>
-- <code>state</code> - Send state of the last outbound message ("idle", "sending", "error"); published as a <code>state</code> notification on the <code>sms</code> channel
-- <code>last-sent-to</code> - Recipient number of the last successfully sent SMS
-- <code>last-sent-at</code> - RFC 3339 timestamp the last send completed
-- <code>last-received-from</code> - Sender number of the last inbound SMS
-- <code>last-received-text</code> - Body of the last inbound SMS
-- <code>last-received-at</code> - RFC 3339 timestamp the last inbound SMS arrived
-- <code>unread-count</code> - Inbound messages received since service start</p>
+<p><strong><code>sms</code> hash (latest-value convenience state):</strong></p>
+<ul>
+<li><code>state</code> - Send state of the last outbound message ("idle", "sending", "error"); published as a <code>state</code> notification on the <code>sms</code> channel</li>
+<li><code>last-sent-to</code> - Recipient number of the last successfully sent SMS</li>
+<li><code>last-sent-at</code> - RFC 3339 timestamp the last send completed</li>
+<li><code>last-received-from</code> - Sender number of the last inbound SMS</li>
+<li><code>last-received-text</code> - Body of the last inbound SMS</li>
+<li><code>last-received-at</code> - RFC 3339 timestamp the last inbound SMS arrived</li>
+<li><code>unread-count</code> - Inbound messages received since service start</li>
+</ul>
 <p>The <code>last-received-*</code> fields refresh silently; per-message notifications go to
 the dedicated channels below.</p>
-<p><strong>Streams (capped at 100 entries, one dedicated pub/sub channel each):</strong>
-- <code>sms:received</code> - one entry per inbound message: <code>from</code>, <code>text</code>, <code>timestamp</code>.
+<p><strong>Streams (capped at 100 entries, one dedicated pub/sub channel each):</strong></p>
+<ul>
+<li><code>sms:received</code> - one entry per inbound message: <code>from</code>, <code>text</code>, <code>timestamp</code>.
   The <code>sms:received</code> channel carries each entry as JSON including its stream
-  <code>id</code>.
-- <code>sms:sent</code> - one entry per terminal send outcome: <code>request-id</code> (caller's
+  <code>id</code>.</li>
+<li><code>sms:sent</code> - one entry per terminal send outcome: <code>request-id</code> (caller's
   <code>id</code> token from <code>scooter:sms</code>, empty if none), <code>to</code>, <code>text</code>, <code>outcome</code>
   (<code>sent</code>/<code>error</code>), <code>error</code>, <code>timestamp</code>. The <code>sms:sent</code> channel carries each
-  entry as JSON including its stream <code>id</code>.</p>
+  entry as JSON including its stream <code>id</code>.</li>
+</ul>
 <p>An inbound message is deleted from modem storage only after its XADD
 succeeded, so modem storage buffers messages across Redis outages and the
 periodic drain retries delivery. Messages that arrived while the service was
@@ -2465,28 +2544,30 @@ silently stops inbound SMS). Off by default: the self-call is only free as
 long as the SIM's mailbox does not pick up busy calls, and it needs a SIM with
 a stored MSISDN.</p>
 <h3 id="hash-gps">Hash: <code>gps</code><a class="headerlink" href="#hash-gps" title="Permanent link">&para;</a></h3>
-<p><strong>Fields written:</strong>
-- <code>latitude</code> - GPS latitude (decimal degrees, 6 decimal places)
-- <code>longitude</code> - GPS longitude (decimal degrees, 6 decimal places)
-- <code>altitude</code> - Altitude in meters
-- <code>speed</code> - GPS speed in km/h (converted from m/s)
-- <code>course</code> - GPS course/heading in degrees
-- <code>timestamp</code> - GPS timestamp (RFC3339 format)
-- <code>updated</code> - Last update timestamp (RFC3339 format)
-- <code>fix</code> - GPS fix mode ("none", "2d", "3d")
-- <code>snr</code> - GPS signal-to-noise ratio
-- <code>hdop</code> - Horizontal dilution of precision
-- <code>vdop</code> - Vertical dilution of precision
-- <code>pdop</code> - Position (3D) dilution of precision
-- <code>eph</code> - Estimated horizontal position error in meters
-- <code>eps</code> - Estimated speed error in m/s
-- <code>ept</code> - Estimated time error in seconds
-- <code>satellites-used</code> - Satellites used in the fix
-- <code>satellites-visible</code> - Satellites in view
-- <code>active</code> - GPS has valid fix (boolean)
-- <code>connected</code> - Connected to gpsd (boolean)
-- <code>state</code> - GPS state ("off", "searching", "fix-established", "error")
-- <code>mode</code> - GNSS positioning mode ("standalone", "ue-based"; assisted ue-based mode is currently disabled, so always "standalone")</p>
+<p><strong>Fields written:</strong></p>
+<ul>
+<li><code>latitude</code> - GPS latitude (decimal degrees, 6 decimal places)</li>
+<li><code>longitude</code> - GPS longitude (decimal degrees, 6 decimal places)</li>
+<li><code>altitude</code> - Altitude in meters</li>
+<li><code>speed</code> - GPS speed in km/h (converted from m/s)</li>
+<li><code>course</code> - GPS course/heading in degrees</li>
+<li><code>timestamp</code> - GPS timestamp (RFC3339 format)</li>
+<li><code>updated</code> - Last update timestamp (RFC3339 format)</li>
+<li><code>fix</code> - GPS fix mode ("none", "2d", "3d")</li>
+<li><code>snr</code> - GPS signal-to-noise ratio</li>
+<li><code>hdop</code> - Horizontal dilution of precision</li>
+<li><code>vdop</code> - Vertical dilution of precision</li>
+<li><code>pdop</code> - Position (3D) dilution of precision</li>
+<li><code>eph</code> - Estimated horizontal position error in meters</li>
+<li><code>eps</code> - Estimated speed error in m/s</li>
+<li><code>ept</code> - Estimated time error in seconds</li>
+<li><code>satellites-used</code> - Satellites used in the fix</li>
+<li><code>satellites-visible</code> - Satellites in view</li>
+<li><code>active</code> - GPS has valid fix (boolean)</li>
+<li><code>connected</code> - Connected to gpsd (boolean)</li>
+<li><code>state</code> - GPS state ("off", "searching", "fix-established", "error")</li>
+<li><code>mode</code> - GNSS positioning mode ("standalone", "ue-based"; assisted ue-based mode is currently disabled, so always "standalone")</li>
+</ul>
 <p><strong>Published channel:</strong> <code>gps</code> (publishes "timestamp" only on GPS recovery events; routine updates are silent)</p>
 <h3 id="pubsub-channel-gpstpv">Pub/sub channel: <code>gps:tpv</code><a class="headerlink" href="#pubsub-channel-gpstpv" title="Permanent link">&para;</a></h3>
 <p>Full TPV snapshot (same fields as the <code>gps</code> hash, JSON object) published for every fix. Subscribe here for a continuous position stream instead of polling the hash.</p>
@@ -2525,17 +2606,19 @@ drops the inhibitor after <code>PowerOffModem</code>, and the suspend proceeds.<
 <li><strong>GPIO control:</strong> GPIO pin 110 (LTE_POWER) for hardware reset</li>
 </ul>
 <h3 id="modem-power-control">Modem Power Control<a class="headerlink" href="#modem-power-control" title="Permanent link">&para;</a></h3>
-<p>The service can control modem power via GPIO pin 110:
-- <strong>Start modem:</strong> 500ms pulse (turns modem ON)
-- <strong>Restart modem:</strong> 3500ms pulse (turns OFF), wait 15s, then 500ms pulse (turns ON)
-- <strong>USB device path:</strong> 1-1 (for USB unbind/bind recovery)</p>
+<p>The service can control modem power via GPIO pin 110:</p>
+<ul>
+<li><strong>Start modem:</strong> 500ms pulse (turns modem ON)</li>
+<li><strong>Restart modem:</strong> 3500ms pulse (turns OFF), wait 12s, then 500ms pulse (turns ON)</li>
+<li><strong>USB device path:</strong> 1-1 (for USB unbind/bind recovery)</li>
+</ul>
 <h3 id="gps-hardware">GPS Hardware<a class="headerlink" href="#gps-hardware" title="Permanent link">&para;</a></h3>
 <ul>
 <li><strong>GNSS receiver:</strong> Integrated in SimCom SIM7100E</li>
 <li><strong>Antenna power:</strong> Configurable via AT commands (default 3050mV / 3.05V)</li>
 <li><strong>Antenna GPIO:</strong> GPIO 41 (configured high for active antenna)</li>
 <li><strong>Interface:</strong> gpsd via ModemManager location sources</li>
-<li><strong>SUPL server:</strong> supl.google.com:7275 (A-GPS for faster fixes)</li>
+<li><strong>SUPL server:</strong> supl.google.com:7276 (plain-TCP SUPL port; 7275 is TLS-only and unused)</li>
 <li><strong>Refresh rate:</strong> 1 second</li>
 <li><strong>Accuracy threshold:</strong> 50 meters</li>
 </ul>
@@ -2544,16 +2627,15 @@ drops the inhibitor after <code>PowerOffModem</code>, and the suspend proceeds.<
 <ul>
 <li><strong>Unit file:</strong> <code>librescoot-modem.service</code></li>
 <li><strong>Binary location:</strong> <code>/usr/bin/modem-service</code></li>
-<li><strong>Working directory:</strong> <code>/etc/librescoot</code></li>
 <li><strong>Started by:</strong> systemd at boot (WantedBy: multi-user.target)</li>
-<li><strong>Restart policy:</strong> Always, 30 second delay</li>
+<li><strong>Restart policy:</strong> <code>Restart=always</code>, no <code>RestartSec</code> set (systemd's default applies)</li>
 <li><strong>Type:</strong> Simple</li>
 </ul>
 <h3 id="network-configuration">Network Configuration<a class="headerlink" href="#network-configuration" title="Permanent link">&para;</a></h3>
 <ul>
 <li><strong>Interface:</strong> wwan0 (default) or ppp0</li>
 <li><strong>DNS:</strong> Provided by mobile operator</li>
-<li><strong>Connectivity test:</strong> Ping to 8.8.8.8 (Google DNS)</li>
+<li><strong>Connectivity test:</strong> DNS query to the network-assigned resolvers, falling back to a TCP dial of the <code>-connectivity-targets</code> list. No ICMP is used.</li>
 </ul>
 <h4 id="apn-reconciliation">APN Reconciliation<a class="headerlink" href="#apn-reconciliation" title="Permanent link">&para;</a></h4>
 <p>The service reconciles <code>cellular.apn</code>, <code>cellular.username</code>, <code>cellular.password</code>, and <code>cellular.auth</code> from the <code>settings</code> hash against two backends on every monitor tick (gated to skip when the SIM is locked or missing):</p>
@@ -2573,30 +2655,35 @@ drops the inhibitor after <code>PowerOffModem</code>, and the suspend proceeds.<
 <li>Checks if modem is present (via interface or DBus)</li>
 <li>If modem not present, attempts to enable via GPIO (up to 5 attempts with increasing wait times)</li>
 <li>Verifies modem health (ModemID, primary port, power state)</li>
-<li>Starts monitoring goroutine with two timers:</li>
-<li>Internet check timer (default 30s)</li>
-<li>GPS update timer (1s)</li>
+<li>Starts monitoring goroutine with three timers:</li>
+<li>Internet check timer (<code>-internet-check-time</code>, default 30s)</li>
+<li>GPS update timer (<code>GPSUpdateInterval</code>, 1s)</li>
+<li>Cell-location timer (<code>CellLocationUpdateInterval</code>, 5s; drives the cell-tower geolocation fallback when <code>modem.cell-location</code> is on and there is no GPS fix)</li>
 <li>Publishes initial modem and health state</li>
 </ol>
 <h3 id="runtime-behavior">Runtime Behavior<a class="headerlink" href="#runtime-behavior" title="Permanent link">&para;</a></h3>
 <h4 id="modem-health-monitoring">Modem Health Monitoring<a class="headerlink" href="#modem-health-monitoring" title="Permanent link">&para;</a></h4>
 <p><strong>Check interval:</strong> Configurable via <code>-internet-check-time</code> (default: 30s)</p>
-<p><strong>Health checks performed:</strong>
-1. Find modem ID via ModemManager DBus
-2. Verify primary port is cdc-wdm0 (QMI interface)
-3. Verify power state is "on"
-4. If modem reports connected, perform ping test to 8.8.8.8</p>
-<p><strong>Monitored parameters (via ModemManager):</strong>
-- Power state (on/off)
-- SIM state (present/missing/locked/inactive)
-- SIM lock status
-- Network registration state (home/roaming/denied/searching)
-- Signal quality (0-100 or 255 for unknown)
-- Access technology (2G/GSM, 3G/UMTS, 4G/LTE, 5G)
-- Operator name and code
-- Roaming status
-- IMEI, IMSI, ICCID identifiers
-- Interface IP address</p>
+<p><strong>Health checks performed:</strong></p>
+<ol>
+<li>Find modem ID via ModemManager DBus</li>
+<li>Verify primary port is cdc-wdm0 (QMI interface)</li>
+<li>Verify power state is "on"</li>
+<li>If the local link assessment is healthy, run the reachability probe (DNS/TCP over the modem interface)</li>
+</ol>
+<p><strong>Monitored parameters (via ModemManager):</strong></p>
+<ul>
+<li>Power state (on/off)</li>
+<li>SIM state (present/missing/locked/inactive)</li>
+<li>SIM lock status</li>
+<li>Network registration state (home/roaming/denied/searching)</li>
+<li>Signal quality (0-100 or 255 for unknown)</li>
+<li>Access technology (GSM, EDGE, UMTS, 3G, HSPA, HSPA+, 4G, 5G)</li>
+<li>Operator name and code</li>
+<li>Roaming status</li>
+<li>IMEI, IMSI, ICCID identifiers</li>
+<li>Interface IP address</li>
+</ul>
 <h4 id="internet-connectivity-determination">Internet Connectivity Determination<a class="headerlink" href="#internet-connectivity-determination" title="Permanent link">&para;</a></h4>
 <p>The service uses a two-level status model:</p>
 <ol>
@@ -2611,26 +2698,33 @@ drops the inhibitor after <code>PowerOffModem</code>, and the suspend proceeds.<
 <li>
 <p><strong>Derived internet status</strong> (<code>status</code> field):</p>
 </li>
-<li>"connected" - Modem connected AND ping to 8.8.8.8 succeeds</li>
-<li>"disconnected" - Modem not connected OR ping fails</li>
+<li>"connected" - the reachability probe got an answer</li>
+<li>"disconnected" - no target answered, or the local link assessment was unhealthy so the probe was skipped</li>
 </ol>
-<p><strong>Connectivity test:</strong>
-- <strong>Method:</strong> ping -c 1 -W 1 8.8.8.8
-- <strong>Timeout:</strong> 2 seconds (context timeout)
-- <strong>Trigger recovery:</strong> If modem reports connected but ping fails</p>
+<p><strong>Connectivity test:</strong></p>
+<ul>
+<li><strong>Method:</strong> DNS A query for <code>connectivity-probe.invalid</code> against each network-assigned resolver, then a TCP dial of each <code>-connectivity-targets</code> entry (default <code>8.8.8.8:53,1.1.1.1:53,9.9.9.9:53,208.67.222.222:53</code>), all bound to the modem interface with SO_BINDTODEVICE. Any DNS response counts, whatever the rcode.</li>
+<li><strong>Timeout:</strong> 2 seconds per DNS query and per dial</li>
+<li><strong>Interval:</strong> backs off exponentially while the local stack is healthy, up to <code>-internet-check-max-interval</code> (default 5m); any change in the local link assessment forces an immediate re-probe</li>
+<li><strong>Trigger recovery:</strong> never. A failed probe sets <code>status=disconnected</code> and <code>reachability=unreachable</code>, but only the local <code>link.Assess</code> verdict can trigger a modem remedy.</li>
+</ul>
 <p>This ensures the service only reports "connected" when actual internet connectivity is verified.</p>
 <h4 id="gps-state-machine">GPS State Machine<a class="headerlink" href="#gps-state-machine" title="Permanent link">&para;</a></h4>
 <p><strong>Update interval:</strong> 1 second (GPSUpdateInterval constant)</p>
-<p><strong>GPS States:</strong>
-- <code>off</code> - GPS disabled (initial state)
-- <code>searching</code> - GPS enabled, waiting for fix
-- <code>fix-established</code> - Valid 2D or 3D fix obtained
-- <code>error</code> - GPS configuration or connection failed</p>
-<p><strong>State transitions:</strong>
-1. GPS enable: <code>off</code> → <code>searching</code> → configure GPS → connect to gpsd
-2. Fix acquired: <code>searching</code> → <code>fix-established</code> (system clock set via <code>chronyc</code> on first fix)
-3. Fix lost: <code>fix-established</code> → <code>searching</code>
-4. Configuration failure: <code>searching</code> → <code>error</code></p>
+<p><strong>GPS States:</strong></p>
+<ul>
+<li><code>off</code> - GPS disabled (initial state)</li>
+<li><code>searching</code> - GPS enabled, waiting for fix</li>
+<li><code>fix-established</code> - Valid 2D or 3D fix obtained</li>
+<li><code>error</code> - GPS configuration or connection failed</li>
+</ul>
+<p><strong>State transitions:</strong></p>
+<ol>
+<li>GPS enable: <code>off</code> → <code>searching</code> → configure GPS → connect to gpsd</li>
+<li>Fix acquired: <code>searching</code> → <code>fix-established</code> (system clock set via <code>chronyc</code> on first fix)</li>
+<li>Fix lost: <code>fix-established</code> → <code>searching</code></li>
+<li>Configuration failure: <code>searching</code> → <code>error</code></li>
+</ol>
 <p><strong>GPS Configuration Process:</strong></p>
 <p>When GPS is enabled, the service performs multi-step configuration:</p>
 <ol>
@@ -2640,7 +2734,6 @@ drops the inhibitor after <code>PowerOffModem</code>, and the suspend proceeds.<
 <li>Set accuracy threshold to 50m (AT+CGPSHOR=50)</li>
 <li>Configure GPS antenna GPIO 41</li>
 <li>Set GPS clock from system time</li>
-<li>Enable XTRA assisted GPS (AT+CGPSXE=1)</li>
 <li>
 <p>Configure NMEA output (AT+CGPSNMEA=511)</p>
 </li>
@@ -2657,9 +2750,7 @@ drops the inhibitor after <code>PowerOffModem</code>, and the suspend proceeds.<
 <p><strong>ModemManager Location Sources:</strong></p>
 </li>
 <li>Disable conflicting sources (gps-nmea, gps-raw)</li>
-<li>Set SUPL server to supl.google.com:7275</li>
 <li>Enable 3gpp-lac-ci (cell tower location)</li>
-<li>Enable agps-msb (A-GPS)</li>
 <li>Enable gps-unmanaged (for gpsd use)</li>
 <li>Set GPS refresh rate to 1 second</li>
 <li>
@@ -2674,28 +2765,25 @@ drops the inhibitor after <code>PowerOffModem</code>, and the suspend proceeds.<
 </ol>
 <p><strong>GPS Data Processing:</strong></p>
 <ul>
-<li>Raw location from gpsd is stored in <code>LastRawReportedLocation</code></li>
-<li>Kalman filter is applied to produce filtered location in <code>CurrentLoc</code></li>
-<li>Both raw and filtered data published to separate Redis hashes</li>
-<li>Main <code>gps</code> hash contains either raw or filtered based on <code>modem:gps:filter</code> setting</li>
-<li>GPS recovery notification published only when:</li>
-<li>GPS regains fix after &gt;5 minute outage AND has internet connection</li>
-<li>OR first fix after service initialization</li>
+<li>gpsd TPV reports are stored verbatim; <code>CurrentLoc()</code> returns the latest one</li>
+<li>The same values are written to the <code>gps</code> hash and published as JSON on <code>gps:tpv</code>; there is no filtering or smoothing stage</li>
+<li>GPS recovery notification (a <code>timestamp</code> publish on the <code>gps</code> channel) is published only when there is an internet connection AND either it is the first fix after service init, or GPS regained a fix after a &gt;5 minute outage</li>
 </ul>
 <p><strong>GPS Health Monitoring:</strong></p>
 <p>The service monitors GPS health separately from modem health:</p>
 <ol>
-<li><strong>Data staleness:</strong> No GPS data for 30 seconds</li>
-<li><strong>Timestamp stuck:</strong> GPS timestamp unchanged for 180 seconds</li>
-<li><strong>Fix timeout:</strong> No fix established for 300 seconds since GPS enabled</li>
+<li><strong>No data:</strong> No GPS stanza (TPV or SKY) received for 5 seconds (<code>gpsNoDataTimeout</code>), independent of fix state</li>
+<li><strong>Fix timeout:</strong> No fix established for 15 minutes since GPS was enabled (<code>gpsFixTimeout</code>), sized for a cold start without SUPL; disarmed once a fix is established</li>
 </ol>
 <p><strong>GPS-Specific Recovery:</strong></p>
-<p>Before escalating to modem recovery, GPS-specific recovery is attempted (up to 3 times):
-1. Stop gpsd service
-2. Close existing GPS connection
-3. Reset GPS state tracking
-4. Re-enable GPS via ModemManager
-5. Reconnect to gpsd</p>
+<p>Before escalating to modem recovery, GPS-specific recovery is attempted (up to 3 times):</p>
+<ol>
+<li>Stop gpsd service</li>
+<li>Close existing GPS connection</li>
+<li>Reset GPS state tracking</li>
+<li>Re-enable GPS via ModemManager</li>
+<li>Reconnect to gpsd</li>
+</ol>
 <p>This avoids unnecessary modem restarts for GPS-only issues.</p>
 <h4 id="modem-health-states">Modem Health States<a class="headerlink" href="#modem-health-states" title="Permanent link">&para;</a></h4>
 <p>The service maintains a health state machine with 4 states:</p>
@@ -2705,92 +2793,112 @@ drops the inhibitor after <code>PowerOffModem</code>, and the suspend proceeds.<
 <li><strong>"recovery-failed-waiting-reboot"</strong> - Max recovery attempts reached, waiting</li>
 <li><strong>"permanent-failure-needs-replacement"</strong> - Modem likely defective</li>
 </ol>
-<p><strong>Recovery triggers:</strong>
-- No modem found via ModemManager
-- Wrong primary port (not cdc-wdm0)
-- Wrong power state (not "on")
-- Internet connectivity check fails (modem connected but ping fails)
-- GPS health check failures (after GPS-specific recovery fails)</p>
+<p><strong>Recovery triggers:</strong></p>
+<ul>
+<li>No modem found via ModemManager</li>
+<li>Wrong primary port (not cdc-wdm0)</li>
+<li>Wrong power state (not "on")</li>
+<li>GPS health check failures (after GPS-specific recovery fails)</li>
+</ul>
 <h4 id="multi-strategy-modem-recovery">Multi-Strategy Modem Recovery<a class="headerlink" href="#multi-strategy-modem-recovery" title="Permanent link">&para;</a></h4>
 <p>When modem failure is detected, the service attempts recovery with 4 strategies (max 5 attempts):</p>
-<p><strong>Strategy 1: Software Reset</strong>
-- Use mmcli to reset modem (mmcli -m X --reset)
-- Wait 60 seconds for recovery
-- Verify modem health</p>
-<p><strong>Strategy 2: USB Recovery</strong>
-- Unbind USB device (echo "1-1" &gt; /sys/bus/usb/drivers/usb/unbind)
-- Wait 30 seconds
-- Bind USB device (echo "1-1" &gt; /sys/bus/usb/drivers/usb/bind)
-- Wait 30 seconds for ModemManager to detect
-- Verify modem health</p>
-<p><strong>Strategy 3: GPIO Hardware Reset</strong>
-- Send 3500ms GPIO pulse to turn modem OFF
-- Wait 15 seconds
-- Send 500ms GPIO pulse to turn modem ON
-- Wait 60 seconds for modem to initialize
-- Verify modem health
-- Fallback to mmcli reset if GPIO fails</p>
-<p><strong>Strategy 4: Extended Wait</strong>
-- Wait 30 additional seconds
-- Recheck modem health</p>
-<p><strong>Recovery behavior:</strong>
-- If max attempts (5) reached, wait 2 minutes and reset recovery counter (forgiving mode)
-- GPS recovery counter reset on successful modem recovery
-- Health state published to Redis after each recovery attempt</p>
-<p>This multi-strategy approach handles various failure modes:
-- Software hangs → mmcli reset
-- USB/driver issues → USB unbind/bind
-- Firmware crashes → GPIO hardware reset
-- Transient issues → Extended wait</p>
+<p><strong>Strategy 1: Software Reset</strong></p>
+<ul>
+<li>Reset the modem via the ModemManager D-Bus <code>Reset</code> method</li>
+<li>Wait 60 seconds for recovery</li>
+<li>Verify modem health</li>
+</ul>
+<p><strong>Strategy 2: USB Recovery</strong></p>
+<ul>
+<li>Unbind USB device (echo "1-1" &gt; /sys/bus/usb/drivers/usb/unbind)</li>
+<li>Wait 2 seconds (<code>UnbindWaitMS</code>)</li>
+<li>Bind USB device (echo "1-1" &gt; /sys/bus/usb/drivers/usb/bind)</li>
+<li>Poll up to 2 seconds (<code>BindWaitMS</code>) for /sys/bus/usb/devices/1-1 to re-enumerate</li>
+<li>Wait up to 60 seconds (<code>health.RecoveryWaitTime</code>) for ModemManager to expose the modem again</li>
+<li>Verify modem health</li>
+</ul>
+<p><strong>Strategy 3: GPIO Hardware Reset</strong></p>
+<ul>
+<li>Send 3500ms GPIO pulse to turn modem OFF</li>
+<li>Wait 12 seconds (<code>ModemOffWaitMS</code>)</li>
+<li>Send 500ms GPIO pulse to turn modem ON</li>
+<li>Wait up to 60 seconds (<code>health.RecoveryWaitTime</code>) for ModemManager to expose the modem again</li>
+<li>Verify modem health</li>
+<li>Fall back to the D-Bus Reset method if the GPIO cycle fails</li>
+</ul>
+<p><strong>Strategy 4: Extended Wait</strong></p>
+<ul>
+<li>Wait 30 additional seconds</li>
+<li>Recheck modem health</li>
+</ul>
+<p><strong>Recovery behavior:</strong></p>
+<ul>
+<li>If max attempts (5) reached, wait 2 minutes and reset recovery counter (forgiving mode)</li>
+<li>GPS recovery counter reset on successful modem recovery</li>
+<li>Health state published to Redis after each recovery attempt</li>
+</ul>
+<p>This multi-strategy approach handles various failure modes:</p>
+<ul>
+<li>Software hangs → mmcli reset</li>
+<li>USB/driver issues → USB unbind/bind</li>
+<li>Firmware crashes → GPIO hardware reset</li>
+<li>Transient issues → Extended wait</li>
+</ul>
 <h2 id="log-output">Log Output<a class="headerlink" href="#log-output" title="Permanent link">&para;</a></h2>
-<p>The service logs to journald with systemd-aware formatting (no prefix when INVOCATION_ID is set).</p>
+<p>The service logs to journald with systemd-aware formatting (no prefix or timestamps when <code>JOURNAL_STREAM</code> is set; otherwise a <code>modem-service:</code> prefix plus timestamps).</p>
 <p><strong>Common log patterns:</strong></p>
-<p>Modem status:
-- "internet status: connected/disconnected"
-- "internet modem-state: off/connected/disconnected/no-modem"
-- "internet signal-quality: N"
-- "internet access-tech: LTE/UMTS/etc"
-- "modem power-state: on/off"
-- "modem sim-state: present/missing/locked/inactive"
-- "modem error-state: ok/powered-off/sim-missing/etc"</p>
-<p>GPS events:
-- "Waiting for valid GPS fix..."
-- "GPS fix established"
-- "gps quality: X.XX" (logged every 90 seconds)
-- "GPS configuration attempt N failed: ..."
-- "Successfully connected to gpsd"</p>
-<p>Recovery events:
-- "Modem failure detected: wrong_primary_port/wrong_power_state/etc"
-- "Attempting modem recovery (attempt N/5)"
-- "Attempting to reset the modem via mmcli"
-- "Attempting USB recovery (unbind/bind)..."
-- "Attempting modem restart (GPIO with mmcli fallback)..."
-- "Modem recovery successful via [method]"
-- "GPS health check failed: gps_data_stale/gps_timestamp_stuck/etc"
-- "Attempting GPS-specific recovery for: ..."</p>
-<p>Startup:
-- "modem-service v0.2.0"
-- "Modem interface wwan0 is already present"
-- "Starting modem service on interface wwan0"</p>
+<p>Modem status (only the fields that changed, batched into at most two space-joined <code>key=value</code> lines per tick; several keys are abbreviated):</p>
+<ul>
+<li>"internet status=connected modem-state=connected ip=10.0.0.2 tech=4G signal=62 connectivity=connected" (also <code>imei=</code>, <code>imsi=</code>, <code>iccid=</code>)</li>
+<li>"modem power=on sim=present reg=home error=ok" (also <code>sim-lock=</code>, <code>pin-action=</code>, <code>apn-action=</code>, <code>operator=</code>, <code>mcc-mnc=</code>, <code>roaming=</code>, <code>reg-fail=</code>)</li>
+</ul>
+<p>GPS events:</p>
+<ul>
+<li>"Waiting for valid GPS fix..."</li>
+<li>"GPS fix established"</li>
+<li>"gps state=fix-established fix=3d eph=4.2m hdop=0.8 vdop=1.2 pdop=1.4 snr=38.0dBHz sats=9/14" (GPS diagnostics, logged every 90 seconds; the eph/DOP fields are dropped while still searching)</li>
+<li>"GPS configuration attempt N failed: ..."</li>
+<li>"Successfully connected to gpsd"</li>
+</ul>
+<p>Recovery events:</p>
+<ul>
+<li>"Modem failure detected: probe_failed/link_layer_failure/sgs_refresh/gps_stuck_after_gps_recovery: ..."</li>
+<li>"Attempting modem recovery (attempt N/5)"</li>
+<li>"Attempting to reset the modem via D-Bus"</li>
+<li>"Attempting USB recovery (unbind/bind)..."</li>
+<li>"Attempting modem restart (GPIO with D-Bus fallback)..."</li>
+<li>"Modem recovery successful via [method]"</li>
+<li>"GPS health check failed: gps_no_data: no GPS stanzas received for ..."</li>
+<li>"GPS health check failed: gps_fix_timeout: no GPS fix established for ..."</li>
+<li>"Attempting GPS-specific recovery for: ..."</li>
+</ul>
+<p>Startup:</p>
+<ul>
+<li>"modem-service v0.13.0" (the version string is injected at build time from <code>git describe --tags</code>)</li>
+<li>"Modem interface wwan0 is already present"</li>
+<li>"Starting modem service on interface wwan0"</li>
+</ul>
 <p>Use <code>journalctl -u librescoot-modem</code> or <code>journalctl -u modem-service</code> to view logs.</p>
 <h2 id="dependencies">Dependencies<a class="headerlink" href="#dependencies" title="Permanent link">&para;</a></h2>
 <h3 id="runtime-dependencies">Runtime Dependencies<a class="headerlink" href="#runtime-dependencies" title="Permanent link">&para;</a></h3>
 <ul>
 <li><strong>SimCom SIM7100E modem</strong> - Must be connected via USB</li>
-<li><strong>ModemManager</strong> - For modem control and status (mmcli command)</li>
+<li><strong>ModemManager</strong> - For modem control and status (via D-Bus, not the <code>mmcli</code> binary)</li>
 <li><strong>gpsd</strong> - For GPS data streaming (default: localhost:2947)</li>
 <li><strong>Redis server</strong> - At specified URL (default: redis://127.0.0.1:6379)</li>
 <li><strong>systemctl</strong> - For managing gpsd service during GPS recovery</li>
-<li><strong>GPIO access</strong> - /sys/class/gpio for hardware modem control (pin 110)</li>
+<li><strong>GPIO character device</strong> - /dev/gpiochip3 line 14 (GPIO4.14, pin 110) for hardware modem power control</li>
 <li><strong>USB sysfs</strong> - /sys/bus/usb/drivers/usb for USB recovery (device 1-1)</li>
 </ul>
 <h3 id="go-dependencies">Go Dependencies<a class="headerlink" href="#go-dependencies" title="Permanent link">&para;</a></h3>
-<p>From go.mod:
-- <strong>github.com/redis/go-redis/v9</strong> v9.7.0 - Redis client
-- <strong>github.com/rescoot/go-mmcli</strong> v0.5.0 - ModemManager interface
-- <strong>github.com/stratoberry/go-gpsd</strong> v1.3.0 - GPSD client
-- <strong>gonum.org/v1/gonum</strong> v0.15.0 - Kalman filter for GPS
-- <strong>github.com/pkg/errors</strong> v0.9.1 - Error handling</p>
+<p>From go.mod:</p>
+<ul>
+<li><strong>github.com/godbus/dbus/v5</strong> v5.2.2 - D-Bus client (ModemManager, NetworkManager)</li>
+<li><strong>github.com/librescoot/redis-ipc</strong> v0.14.0 - Redis IPC wrapper (pulls github.com/redis/go-redis/v9 v9.18.0 indirectly)</li>
+<li><strong>github.com/pkg/errors</strong> v0.9.1 - Error handling</li>
+<li><strong>github.com/stratoberry/go-gpsd</strong> v1.3.0 - GPSD client</li>
+<li><strong>github.com/warthog618/go-gpiocdev</strong> v0.9.1 - GPIO character-device access for modem power control</li>
+</ul>
 <h2 id="related-documentation">Related Documentation<a class="headerlink" href="#related-documentation" title="Permanent link">&para;</a></h2>
 <ul>
 <li><a href="../../redis/">Redis Operations</a> - Internet and GPS hash fields</li>
@@ -2928,7 +3036,7 @@ drops the inhibitor after <code>PowerOffModem</code>, and the suspend proceeds.<
       <script id="__config" type="application/json">{"annotate":null,"base":"../..","features":["content.action.edit","content.code.copy","content.code.select","content.tooltips","navigation.footer","navigation.indexes","navigation.instant","navigation.instant.prefetch","navigation.path","navigation.sections","navigation.top","navigation.tracking","search.highlight","toc.follow"],"search":"../../assets/javascripts/workers/search.7d14d953.min.js","tags":null,"translations":{"clipboard.copied":"Copied to clipboard","clipboard.copy":"Copy to clipboard","search.result.more.one":"1 more on this page","search.result.more.other":"# more on this page","search.result.none":"No matching documents","search.result.one":"1 matching document","search.result.other":"# matching documents","search.result.placeholder":"Type to start searching","search.result.term.missing":"Missing","select.version":"Select version"},"version":{"provider":"mike"}}</script>
     
     
-      <script src="../../assets/javascripts/bundle.e886cdf1.min.js"></script>
+      <script src="../../assets/javascripts/bundle.49251538.min.js"></script>
       
     
   </body>

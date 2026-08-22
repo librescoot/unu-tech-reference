@@ -23,7 +23,7 @@
       
       
       <link rel="icon" href="../../assets/images/favicon.png">
-      <meta name="generator" content="zensical-0.0.56">
+      <meta name="generator" content="zensical-0.0.57">
     
     
       
@@ -34,12 +34,12 @@
       
         
       
-      <link rel="stylesheet" href="../../assets/stylesheets/modern/main.20815dad.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/modern/main.5da3a30f.min.css">
       
         
           
         
-        <link rel="stylesheet" href="../../assets/stylesheets/modern/palette.dfe2e883.min.css">
+        <link rel="stylesheet" href="../../assets/stylesheets/modern/palette.812a03bb.min.css">
       
       
 
@@ -1060,6 +1060,10 @@
       
         
       
+        
+      
+        
+      
     
     
     
@@ -1127,6 +1131,33 @@
     
   
   Services
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../service-interactions/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Service Interactions
 
     
   </span>
@@ -1235,6 +1266,33 @@
     
   
   ecu-service
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../services/librescoot-events/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  event-service
 
     
   </span>
@@ -2310,7 +2368,7 @@
 </tr>
 <tr>
 <td><code>0x02</code></td>
-<td>Pending reboot — install done; the scooter reboots itself after 3 minutes of sustained stand-by</td>
+<td>Pending reboot: install done. The MDB reboots itself after 3 minutes of sustained stand-by; a DBC bundle applies on the DBC's next power-on</td>
 </tr>
 <tr>
 <td><code>0x03</code></td>
@@ -2330,7 +2388,7 @@
 </tr>
 </tbody>
 </table>
-<p>Phases <code>0x02</code>, <code>0x04</code>, <code>0x05</code> are terminal. The last phase is retained after the install finishes, so a phone that reconnects later can still fetch the outcome via STATUS_REQ.</p>
+<p>Phases <code>0x02</code>, <code>0x04</code>, <code>0x05</code> are terminal. Only a successful outcome (<code>0x02</code> or <code>0x04</code>) is retained, and only until the component's status in the <code>ota</code> hash clears back to idle, at which point the receiver latches <code>0x06</code> and pushes an idle frame. Failures and stalled installs are cleared to idle immediately so they cannot block a later transfer, and an idle receiver with no pending outcome answers STATUS_REQ with idle rather than the stale last phase.</p>
 <h4 id="error-codes">ERROR codes<a class="headerlink" href="#error-codes" title="Permanent link">&para;</a></h4>
 <table>
 <thead>
@@ -2605,7 +2663,7 @@
       <script id="__config" type="application/json">{"annotate":null,"base":"../..","features":["content.action.edit","content.code.copy","content.code.select","content.tooltips","navigation.footer","navigation.indexes","navigation.instant","navigation.instant.prefetch","navigation.path","navigation.sections","navigation.top","navigation.tracking","search.highlight","toc.follow"],"search":"../../assets/javascripts/workers/search.7d14d953.min.js","tags":null,"translations":{"clipboard.copied":"Copied to clipboard","clipboard.copy":"Copy to clipboard","search.result.more.one":"1 more on this page","search.result.more.other":"# more on this page","search.result.none":"No matching documents","search.result.one":"1 matching document","search.result.other":"# matching documents","search.result.placeholder":"Type to start searching","search.result.term.missing":"Missing","select.version":"Select version"},"version":{"provider":"mike"}}</script>
     
     
-      <script src="../../assets/javascripts/bundle.e886cdf1.min.js"></script>
+      <script src="../../assets/javascripts/bundle.49251538.min.js"></script>
       
     
   </body>

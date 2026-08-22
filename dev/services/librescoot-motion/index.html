@@ -23,7 +23,7 @@
       
       
       <link rel="icon" href="../../assets/images/favicon.png">
-      <meta name="generator" content="zensical-0.0.56">
+      <meta name="generator" content="zensical-0.0.57">
     
     
       
@@ -34,12 +34,12 @@
       
         
       
-      <link rel="stylesheet" href="../../assets/stylesheets/modern/main.20815dad.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/modern/main.5da3a30f.min.css">
       
         
           
         
-        <link rel="stylesheet" href="../../assets/stylesheets/modern/palette.dfe2e883.min.css">
+        <link rel="stylesheet" href="../../assets/stylesheets/modern/palette.812a03bb.min.css">
       
       
 
@@ -758,6 +758,10 @@
       
         
       
+        
+      
+        
+      
     
     
     
@@ -825,6 +829,33 @@
     
   
   Services
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../service-interactions/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Service Interactions
 
     
   </span>
@@ -933,6 +964,33 @@
     
   
   ecu-service
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../librescoot-events/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  event-service
 
     
   </span>
@@ -2046,6 +2104,10 @@
       
         
       
+        
+      
+        
+      
     
     
     
@@ -2089,7 +2151,7 @@
 <h2 id="command-line-options">Command-Line Options<a class="headerlink" href="#command-line-options" title="Permanent link">&para;</a></h2>
 <div class="language-text highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>--i2c-bus=/dev/i2c-3                                    I2C bus device path for BMX055
 </span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>--redis=localhost:6379                                  Redis address
-</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>--polling-rate=10                                       Sensor polling rate (Hz)
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>--polling-rate=5                                        Sensor polling rate (Hz)
 </span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>--evdev-device=/dev/input/by-path/platform-gpio-keys-event   gpio-keys input for the BMX INT line (empty -&gt; poller-only)
 </span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>--evdev-keycode=43                                      Keycode for the BMX INT line on the gpio-keys device
 </span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>--log-level=info                                        Log level (debug, info, warn, error)
@@ -2105,31 +2167,34 @@
 <p>motion-service unbinds the kernel driver at startup and drives all three over <code>/dev/i2c-3</code> directly. The chip is mounted on the underside of the MDB; magnetometer readings are remapped (axis order + signs) into a vehicle NED frame and tilt-compensated using the accelerometer.</p>
 <h2 id="redis-operations">Redis Operations<a class="headerlink" href="#redis-operations" title="Permanent link">&para;</a></h2>
 <h3 id="hash-motion">Hash: <code>motion</code><a class="headerlink" href="#hash-motion" title="Permanent link">&para;</a></h3>
-<p><strong>Fields written:</strong>
-- <code>initialized</code> — <code>true</code> once sensors are up
-- <code>streaming</code> — <code>enabled</code>/<code>disabled</code>
-- <code>polling-rate-hz</code> — current sensor poll rate
-- <code>current-profile</code> — profile name applied to chip (<code>idle</code>, <code>armed-awake</code>, <code>armed-hibernation</code>, <code>level1</code>, <code>waiting</code>)
-- <code>interrupt</code>, <code>pin</code>, <code>mode</code>, <code>bandwidth</code>, <code>threshold</code>, <code>duration</code> — motion-engine config as programmed. Written by the profile controller on every apply, so they describe the chip rather than the last manual command. The old <code>sensitivity</code> field is gone (it is a property of the profile); motion-service deletes it at startup on upgraded units.
-- <code>last-interrupt-timestamp</code> — unix-ms of last interrupt
-- <code>error-count</code>, <code>last-error</code> — diagnostic counters
-- <code>wake-cause</code> — unix-ms timestamp written <strong>once on startup</strong> if INT_STATUS_0 had a latched bit at boot. Durable backstop for the wake-from-hibernation indicator. alarm-service reads + deletes this on its own startup.
-- Heading fields (refreshed from each magnetometer publish):
-  - <code>heading</code> — 0–359 degrees, integer
-  - <code>heading-deg</code> — float, medium-EMA-smoothed
-  - <code>heading-accuracy</code> — heuristic 1-σ degrees
-  - <code>heading-tilt</code> — angle from level
-  - <code>heading-tilt-comp</code> — <code>true</code> if accel-based tilt compensation was applied to this sample</p>
-<p><strong>Published channel:</strong> <code>motion</code></p>
+<p><strong>Fields written:</strong></p>
+<ul>
+<li><code>initialized</code> — <code>true</code> once sensors are up</li>
+<li><code>streaming</code> — <code>enabled</code>/<code>disabled</code></li>
+<li><code>polling-rate-hz</code> — current sensor poll rate</li>
+<li><code>current-profile</code> — profile name applied to chip (<code>idle</code>, <code>armed-awake</code>, <code>armed-hibernation</code>, <code>level1</code>, <code>waiting</code>)</li>
+<li><code>interrupt</code>, <code>pin</code>, <code>mode</code>, <code>bandwidth</code>, <code>threshold</code>, <code>duration</code> — motion-engine config as programmed. Written by the profile controller on every apply, so they describe the chip rather than the last manual command. The old <code>sensitivity</code> field is gone (it is a property of the profile); motion-service deletes it at startup on upgraded units.</li>
+<li><code>last-interrupt-timestamp</code> — unix-ms of last interrupt</li>
+<li><code>error-count</code>, <code>last-error</code> — diagnostic counters</li>
+<li><code>wake-cause</code> — unix-ms timestamp written <strong>once on startup</strong> if INT_STATUS_0 had a latched bit at boot. Durable backstop for the wake-from-hibernation indicator. alarm-service reads + deletes this on its own startup.</li>
+<li>Heading fields (refreshed from each magnetometer publish):</li>
+<li><code>heading</code> — 0–359 degrees, integer</li>
+<li><code>heading-deg</code> — float, medium-EMA-smoothed</li>
+<li><code>heading-accuracy</code> — heuristic 1-σ degrees</li>
+<li><code>heading-tilt</code> — angle from level</li>
+<li><code>heading-tilt-comp</code> — <code>true</code> if accel-based tilt compensation was applied to this sample</li>
+</ul>
+<p><strong>Pub/sub on hash writes:</strong> none. Every <code>motion</code> hash write goes out with <code>NoPublish</code>, so consumers must poll the hash; live data streams on the <code>motion:*</code> channels below.</p>
 <h3 id="subscribed-hashes-hashwatcher-with-50-ms-debounce-startwithsync">Subscribed Hashes (HashWatcher with 50 ms debounce + StartWithSync)<a class="headerlink" href="#subscribed-hashes-hashwatcher-with-50-ms-debounce-startwithsync" title="Permanent link">&para;</a></h3>
 <ul>
 <li><code>alarm</code> — field <code>status</code>. Drives chip profile derivation.</li>
 <li><code>power-manager</code> — field <code>state</code>. Hibernation-imminent states route armed → armed-hibernation profile.</li>
+<li><code>vehicle</code>, field <code>state</code>: sets the telemetry poll rate on both pollers (5 Hz in <code>parked</code> / <code>ready-to-drive</code>, 1 Hz otherwise).</li>
 </ul>
 <h3 id="pubsub-channels">Pub/Sub Channels<a class="headerlink" href="#pubsub-channels" title="Permanent link">&para;</a></h3>
 <ul>
-<li><strong><code>motion:sensors</code></strong> (10 Hz) — JSON <code>SensorReading</code> with <code>timestamp</code>, <code>accel</code>, <code>gyro</code>, optional <code>mag</code>, each as <code>{x, y, z, magnitude, unit}</code>.</li>
-<li><strong><code>motion:heading</code></strong> (5 Hz) — JSON <code>HeadingReading</code>:
+<li><strong><code>motion:sensors</code></strong> (5 Hz in <code>parked</code> / <code>ready-to-drive</code>, 1 Hz otherwise) — JSON <code>SensorReading</code> with <code>timestamp</code>, <code>accel</code>, <code>gyro</code>, optional <code>mag</code>, each as <code>{x, y, z, magnitude, unit}</code>.</li>
+<li><strong><code>motion:heading</code></strong> (5 Hz in <code>parked</code> / <code>ready-to-drive</code>, 1 Hz otherwise) — JSON <code>HeadingReading</code>:
   <div class="language-json highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="p">{</span>
 </span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="w">  </span><span class="nt">"timestamp"</span><span class="p">:</span><span class="w"> </span><span class="mi">1777996408778</span><span class="p">,</span>
 </span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="w">  </span><span class="nt">"heading_deg"</span><span class="p">:</span><span class="w"> </span><span class="mf">192.5</span><span class="p">,</span><span class="w">        </span><span class="c1">// medium EMA, canonical "smoothed" value</span>
@@ -2264,8 +2329,8 @@
 <td>slow-motion</td>
 <td>7.81 Hz</td>
 <td>0x06 (~23 mg)</td>
-<td>3</td>
-<td>none, interrupt off</td>
+<td>4</td>
+<td>INT1, interrupt on</td>
 </tr>
 </tbody>
 </table>
@@ -2287,7 +2352,7 @@
 <p><strong>Two redundant sources, one envelope shape:</strong></p>
 <ul>
 <li><strong>Fast path: <code>InterruptWatcher</code></strong> — reads the gpio-keys input device for the BMX055 INT line (<code>/dev/input/by-path/platform-gpio-keys-event</code>, keycode 43 by default). Wakes within milliseconds of the GPIO edge.</li>
-<li><strong>Watchdog path: <code>InterruptPoller</code></strong> — 100 ms polling of <code>INT_STATUS_0</code>. Catches anything the watcher missed (e.g. evdev unavailable, kernel tick delays).</li>
+<li><strong>Watchdog path: <code>InterruptPoller</code></strong> — 1 s polling of <code>INT_STATUS_0</code>. Catches anything the watcher missed (e.g. evdev unavailable, kernel tick delays).</li>
 </ul>
 <p>Both publish identical <code>MotionEvent</code> JSON envelopes on <code>motion:interrupt</code> and clear the chip latch. They're enabled in lockstep with the profile (gated by <code>controller.Apply</code>).</p>
 <h2 id="startup-invariants">Startup Invariants<a class="headerlink" href="#startup-invariants" title="Permanent link">&para;</a></h2>
@@ -2314,7 +2379,7 @@
 <p>The chip is mounted face-down on the MDB underside, rotated 90°. The compensation transforms readings into vehicle NED (North=X, East=Y, Down=Z). Heading is computed as <code>atan2(-magY_NED, magX_NED)</code> after tilt compensation using accelerometer roll/pitch.</p>
 <p>For long-term accuracy, an ellipsoid fit (accounting for soft-iron from the chassis steel) would be preferable; deferred to a future calibration capture.</p>
 <h2 id="magnetometer-operating-mode">Magnetometer Operating Mode<a class="headerlink" href="#magnetometer-operating-mode" title="Permanent link">&para;</a></h2>
-<p>BMM150 in <code>forced</code> mode at 5 Hz with <code>high-accuracy</code> REPXY/REPZ presets (47/83 reps). The trim compensation is the full Bosch BMM050 reference port (int64 to avoid the integer-truncation pitfall).</p>
+<p>BMM150 in <code>normal</code> mode at ODR 10 Hz with the <code>regular</code> REPXY/REPZ presets (9/15 reps), polled by the host at the sensor-poller rate (5 Hz in <code>parked</code> / <code>ready-to-drive</code>, 1 Hz otherwise). The trim compensation is the full Bosch BMM050 reference port (int64 to avoid the integer-truncation pitfall).</p>
 <h2 id="systemd-unit">systemd Unit<a class="headerlink" href="#systemd-unit" title="Permanent link">&para;</a></h2>
 <p><code>librescoot-motion.service</code>:
 <div class="language-text highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>[Unit]
@@ -2326,7 +2391,7 @@
 </span><span id="__span-4-7"><a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a>ExecStart=/usr/bin/motion-service \
 </span><span id="__span-4-8"><a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a>    --i2c-bus=/dev/i2c-3 \
 </span><span id="__span-4-9"><a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a>    --redis=localhost:6379 \
-</span><span id="__span-4-10"><a id="__codelineno-4-10" name="__codelineno-4-10" href="#__codelineno-4-10"></a>    --polling-rate=10 \
+</span><span id="__span-4-10"><a id="__codelineno-4-10" name="__codelineno-4-10" href="#__codelineno-4-10"></a>    --polling-rate=5 \
 </span><span id="__span-4-11"><a id="__codelineno-4-11" name="__codelineno-4-11" href="#__codelineno-4-11"></a>    --log-level=info
 </span><span id="__span-4-12"><a id="__codelineno-4-12" name="__codelineno-4-12" href="#__codelineno-4-12"></a>Restart=always
 </span><span id="__span-4-13"><a id="__codelineno-4-13" name="__codelineno-4-13" href="#__codelineno-4-13"></a>RestartSec=5
@@ -2342,7 +2407,7 @@
 </span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="c1"># Live heading at 5 Hz</span>
 </span><span id="__span-5-5"><a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a>redis-cli<span class="w"> </span>SUBSCRIBE<span class="w"> </span>motion:heading
 </span><span id="__span-5-6"><a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a>
-</span><span id="__span-5-7"><a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a><span class="c1"># Live IMU stream at 10 Hz</span>
+</span><span id="__span-5-7"><a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a><span class="c1"># Live IMU stream (5 Hz parked / ready-to-drive, 1 Hz otherwise)</span>
 </span><span id="__span-5-8"><a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a>redis-cli<span class="w"> </span>SUBSCRIBE<span class="w"> </span>motion:sensors
 </span><span id="__span-5-9"><a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a>
 </span><span id="__span-5-10"><a id="__codelineno-5-10" name="__codelineno-5-10" href="#__codelineno-5-10"></a><span class="c1"># Watch motion edges</span>
@@ -2515,7 +2580,7 @@
       <script id="__config" type="application/json">{"annotate":null,"base":"../..","features":["content.action.edit","content.code.copy","content.code.select","content.tooltips","navigation.footer","navigation.indexes","navigation.instant","navigation.instant.prefetch","navigation.path","navigation.sections","navigation.top","navigation.tracking","search.highlight","toc.follow"],"search":"../../assets/javascripts/workers/search.7d14d953.min.js","tags":null,"translations":{"clipboard.copied":"Copied to clipboard","clipboard.copy":"Copy to clipboard","search.result.more.one":"1 more on this page","search.result.more.other":"# more on this page","search.result.none":"No matching documents","search.result.one":"1 matching document","search.result.other":"# matching documents","search.result.placeholder":"Type to start searching","search.result.term.missing":"Missing","select.version":"Select version"},"version":{"provider":"mike"}}</script>
     
     
-      <script src="../../assets/javascripts/bundle.e886cdf1.min.js"></script>
+      <script src="../../assets/javascripts/bundle.49251538.min.js"></script>
       
     
   </body>

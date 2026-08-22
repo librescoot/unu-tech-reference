@@ -13,7 +13,7 @@
         <link rel="canonical" href="https://reference.librescoot.org/dev/services/librescoot-alarm/">
       
       
-        <link rel="prev" href="../">
+        <link rel="prev" href="../../service-interactions/">
       
       
         <link rel="next" href="../librescoot-battery/">
@@ -23,7 +23,7 @@
       
       
       <link rel="icon" href="../../assets/images/favicon.png">
-      <meta name="generator" content="zensical-0.0.56">
+      <meta name="generator" content="zensical-0.0.57">
     
     
       
@@ -34,12 +34,12 @@
       
         
       
-      <link rel="stylesheet" href="../../assets/stylesheets/modern/main.20815dad.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/modern/main.5da3a30f.min.css">
       
         
           
         
-        <link rel="stylesheet" href="../../assets/stylesheets/modern/palette.dfe2e883.min.css">
+        <link rel="stylesheet" href="../../assets/stylesheets/modern/palette.812a03bb.min.css">
       
       
 
@@ -758,6 +758,10 @@
       
         
       
+        
+      
+        
+      
     
     
     
@@ -825,6 +829,33 @@
     
   
   Services
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../service-interactions/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Service Interactions
 
     
   </span>
@@ -1362,6 +1393,33 @@
     
   
   ecu-service
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../librescoot-events/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  event-service
 
     
   </span>
@@ -2268,6 +2326,10 @@
       
         
       
+        
+      
+        
+      
     
     
     
@@ -2310,35 +2372,39 @@
 <h2 id="command-line-options">Command-Line Options<a class="headerlink" href="#command-line-options" title="Permanent link">&para;</a></h2>
 <div class="language-text highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>--redis=localhost:6379         Redis address
 </span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>--log-level=info               Log level (debug, info, warn, error)
-</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>--alarm-enabled=false          Enable alarm system (writes to Redis on startup)
-</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>--alarm-duration=10            Alarm duration in seconds
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>--alarm-enabled=true           Enable alarm system (writes to Redis on startup)
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>--alarm-duration=30            Alarm duration in seconds
 </span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>--horn-enabled=false           Enable horn during alarm (overrides Redis setting)
 </span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>--seatbox-trigger=true         Trigger alarm on unauthorized seatbox opening
 </span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>--hair-trigger=false           Enable hair trigger mode (immediate short alarm on first motion)
 </span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>--hair-trigger-duration=3      Hair trigger alarm duration in seconds
-</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>--l1-cooldown=5                Level 1 cooldown duration in seconds
+</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>--l1-cooldown=15               Level 1 cooldown duration in seconds
 </span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>--version                      Print version and exit
 </span></code></pre></div>
 <p><code>--i2c-bus</code>, <code>--evdev-device</code>, <code>--evdev-keycode</code>, <code>--poller-interval-ms</code> are gone. motion-service owns the chip.</p>
-<p>These flags only take effect when explicitly passed; each one then writes its value to the <code>settings</code> hash on startup. The production unit passes none of them, so the settings-service schema defaults apply (notably <code>alarm.duration</code> defaults to <strong>30</strong>, not the compiled-in flag default of 10).</p>
+<p>These flags only take effect when explicitly passed; each one then writes its value to the <code>settings</code> hash on startup. The production unit passes none of them, so the settings-service schema defaults apply; the compiled-in flag defaults now match the schema (<code>alarm.duration</code> 30, <code>alarm.l1-cooldown</code> 15).</p>
 <h2 id="redis-operations">Redis Operations<a class="headerlink" href="#redis-operations" title="Permanent link">&para;</a></h2>
 <h3 id="hash-alarm">Hash: <code>alarm</code><a class="headerlink" href="#hash-alarm" title="Permanent link">&para;</a></h3>
-<p><strong>Fields written:</strong>
-- <code>status</code> — current alarm status:
-  - <code>disabled</code> — alarm system is disabled
-  - <code>disarmed</code> — alarm enabled but not armed (vehicle not in stand-by)
-  - <code>delay-armed</code> — 5 s arming delay
-  - <code>armed</code> — armed and monitoring
-  - <code>level-1-triggered</code> — Level 1 (cooldown + verification window)
-  - <code>level-2-triggered</code> — Level 2 (horn + hazards)
-  - <code>seatbox-access</code> — temporarily disabled while authorized seatbox opening is active</p>
+<p><strong>Fields written:</strong></p>
+<ul>
+<li><code>status</code> — current alarm status:</li>
+<li><code>disabled</code> — alarm system is disabled</li>
+<li><code>disarmed</code> — alarm enabled but not armed (vehicle not in stand-by)</li>
+<li><code>delay-armed</code> — 5 s arming delay</li>
+<li><code>armed</code> — armed and monitoring</li>
+<li><code>level-1-triggered</code> — Level 1 (cooldown + verification window)</li>
+<li><code>level-2-triggered</code> — Level 2 (horn + hazards)</li>
+<li><code>seatbox-access</code> — temporarily disabled while authorized seatbox opening is active</li>
+</ul>
 <p><strong>Published channel:</strong> <code>alarm</code></p>
 <p><strong>motion-service watches this hash.</strong> A change on <code>alarm.status</code> triggers a profile re-derivation in motion-service via <code>(alarm.status, power-manager.state)</code>. See <a href="../librescoot-motion/#chip-profile-derivation">librescoot-motion</a> for the full mapping table.</p>
 <h3 id="hash-settings">Hash: <code>settings</code><a class="headerlink" href="#hash-settings" title="Permanent link">&para;</a></h3>
-<p><strong>Fields read:</strong>
-- <code>alarm.enabled</code>, <code>alarm.honk</code>, <code>alarm.duration</code>, <code>alarm.seatbox-trigger</code>
-- <code>alarm.hairtrigger</code>, <code>alarm.hairtrigger-duration</code>, <code>alarm.l1-cooldown</code>
-- <code>alarm.trigger.motion</code>, <code>alarm.trigger.buttons</code>, <code>alarm.trigger.handlebar</code> (per-source trigger gates, see <a href="#trigger-sources">Trigger Sources</a>)</p>
+<p><strong>Fields read:</strong></p>
+<ul>
+<li><code>alarm.enabled</code>, <code>alarm.honk</code>, <code>alarm.duration</code>, <code>alarm.seatbox-trigger</code></li>
+<li><code>alarm.hairtrigger</code>, <code>alarm.hairtrigger-duration</code>, <code>alarm.l1-cooldown</code></li>
+<li><code>alarm.trigger.motion</code>, <code>alarm.trigger.buttons</code>, <code>alarm.trigger.handlebar</code> (per-source trigger gates, see <a href="#trigger-sources">Trigger Sources</a>)</li>
+</ul>
 <p><strong>Fields written (if CLI flags set):</strong> same fields, overrides Redis values on startup.</p>
 <p><strong>Subscribed channels:</strong> <code>settings</code></p>
 <h3 id="hash-power-manager">Hash: <code>power-manager</code><a class="headerlink" href="#hash-power-manager" title="Permanent link">&para;</a></h3>
@@ -2347,12 +2413,14 @@
 <h3 id="hash-motion">Hash: <code>motion</code><a class="headerlink" href="#hash-motion" title="Permanent link">&para;</a></h3>
 <p><strong>Fields read on startup:</strong> <code>wake-cause</code> (deleted after consumption). Durable backstop for the wake-from-hibernation indicator across the startup-ordering race with motion-service's pub/sub.</p>
 <h3 id="pubsub-channels">Pub/Sub Channels<a class="headerlink" href="#pubsub-channels" title="Permanent link">&para;</a></h3>
-<p><strong>Subscribes to:</strong>
-- <code>vehicle</code> — state, seatbox:opened event, seatbox:lock, handlebar:lock-sensor, handlebar:position
-- <code>settings</code> — alarm.* changes
-- <code>power-manager</code> — state field
-- <code>motion:interrupt</code> — JSON envelope <code>{type, timestamp, engine}</code> from motion-service. <code>type</code> becomes <code>BMXInterruptEvent.Data</code> (the FSM discriminates <code>wake-hibernation</code> from regular edges).
-- <code>buttons</code>: raw input edges from vehicle-service (<code>brake:left:{on,off}</code>, <code>brake:right:{on,off}</code>, <code>horn:{on,off}</code>, <code>seatbox:{on,off}</code>). Blinker edges share the channel and are ignored.</p>
+<p><strong>Subscribes to:</strong></p>
+<ul>
+<li><code>vehicle</code> — state, seatbox:opened event, seatbox:lock, handlebar:lock-sensor, handlebar:position</li>
+<li><code>settings</code> — alarm.* changes</li>
+<li><code>power-manager</code> — state field</li>
+<li><code>motion:interrupt</code> — JSON envelope <code>{type, timestamp, engine}</code> from motion-service. <code>type</code> becomes <code>BMXInterruptEvent.Data</code> (the FSM discriminates <code>wake-hibernation</code> from regular edges).</li>
+<li><code>buttons</code>: raw input edges from vehicle-service (<code>brake:left:{on,off}</code>, <code>brake:right:{on,off}</code>, <code>horn:{on,off}</code>, <code>seatbox:{on,off}</code>). Blinker edges share the channel and are ignored.</li>
+</ul>
 <h3 id="rpc-calls-synchronous-via-redis-ipc-callmethod">RPC Calls (synchronous, via redis-ipc CallMethod)<a class="headerlink" href="#rpc-calls-synchronous-via-redis-ipc-callmethod" title="Permanent link">&para;</a></h3>
 <ul>
 <li><strong><code>motion:rpc/prepare-hibernation</code></strong> — called when <code>power-manager.state</code> flips to <code>hibernating-imminent</code> while in <code>StateArmed</code>, OR on entry to <code>StateArmed</code> if <code>hibernationImminent</code> is already true. Blocks until motion-service confirms the chip is in <code>armed-hibernation</code> profile. ~180 ms round-trip. On failure: alarm-service holds the suspend inhibitor and pm-service stays blocked rather than hibernating with an unverified chip profile.</li>
@@ -2369,6 +2437,7 @@
 <ul>
 <li><code>scooter:horn</code> — <code>on</code>, <code>off</code></li>
 <li><code>scooter:blinker</code> — <code>both</code>, <code>off</code></li>
+<li><code>scooter:power</code> (<code>hibernate-manual</code>, sent 5 minutes after a wake from hibernation if nothing triggers again)</li>
 </ul>
 <h2 id="trigger-sources">Trigger Sources<a class="headerlink" href="#trigger-sources" title="Permanent link">&para;</a></h2>
 <p>Four inputs escalate the alarm out of <code>armed</code>. Each has its own settings gate.</p>
@@ -2405,8 +2474,8 @@
 </table>
 <p>The defaults are the settings-service schema values, which settings-service
 writes into the <code>settings</code> hash at startup. Without settings-service the
-compiled-in fallbacks apply, and those are <code>true</code> for all three
-<code>alarm.trigger.*</code> flags.</p>
+compiled-in fallbacks apply: <code>true</code> for <code>alarm.trigger.motion</code> and
+<code>alarm.trigger.buttons</code>, <code>false</code> for <code>alarm.trigger.handlebar</code>.</p>
 <p>Button and handlebar edges are filtered in the Redis subscriber, so a source
 that is switched off never reaches the FSM. Motion is filtered in the FSM
 instead: a motion event also carries the wake-from-hibernation stamp that the
@@ -2480,7 +2549,7 @@ tamper path throughout.</p>
 <li><code>armed</code> → <code>trigger_level_1_wait</code></li>
 <li>Hazards blink once</li>
 <li>If hair trigger enabled: short horn pulse (skipped if this edge was the wake-from-hibernation edge — <code>wakeFromHibernation</code> flag gates it)</li>
-<li>Cooldown (default 5s, configurable) → <code>trigger_level_1</code></li>
+<li>Cooldown (default 15s, configurable) → <code>trigger_level_1</code></li>
 <li>5s verification window → if another trigger arrives: <code>trigger_level_2</code>; else: back through <code>delay_armed</code> to <code>armed</code></li>
 </ul>
 <h3 id="disarming">Disarming<a class="headerlink" href="#disarming" title="Permanent link">&para;</a></h3>
@@ -2503,10 +2572,12 @@ tamper path throughout.</p>
 <p>This is the only synchronous call alarm-service makes. All other chip-config flows reactively through the <code>alarm</code> hash that motion-service watches.</p>
 <h2 id="wake-from-hibernation-detection">Wake-from-Hibernation Detection<a class="headerlink" href="#wake-from-hibernation-detection" title="Permanent link">&para;</a></h2>
 <p>When motion-service starts up after a hibernation wake AND finds <code>INT_STATUS_0</code> already latched, it publishes a one-shot <code>motion:interrupt {type: "wake-hibernation", ...}</code> AND writes <code>motion.wake-cause = &lt;unix-ms&gt;</code> to its hash. The hash field is durable across the startup-ordering race.</p>
-<p>alarm-service on startup:
-1. Calls <code>MotionClient.ConsumeWakeCause(ctx)</code> — HGET + HDEL on <code>motion.wake-cause</code>. If the timestamp is within 30 s of now, returns true.
-2. If true: sends <code>BMXInterruptEvent{Data:"wake-hibernation"}</code> to the FSM at <code>StateInit</code>. Sets <code>wakeFromHibernation=true</code>.
-3. FSM init checks the flag at <code>InitCompleteEvent</code>: if alarm-enabled + standby + wakeFromHibernation, transitions directly to <code>StateTriggerLevel1Wait</code> (treats the wake-edge as the L1 trigger). Hair trigger is skipped on this entry — the wake-edge isn't a tampering event by itself.</p>
+<p>alarm-service on startup:</p>
+<ol>
+<li>Calls <code>MotionClient.ConsumeWakeCause(ctx)</code> — HGET + HDEL on <code>motion.wake-cause</code>. If the timestamp is within 30 s of now, returns true.</li>
+<li>If true: sends <code>BMXInterruptEvent{Data:"wake-hibernation"}</code> to the FSM at <code>StateInit</code>. Sets <code>wakeFromHibernation=true</code>.</li>
+<li>FSM init checks the flag at <code>InitCompleteEvent</code>: if alarm-enabled + standby + wakeFromHibernation, transitions directly to <code>StateTriggerLevel1Wait</code> (treats the wake-edge as the L1 trigger). Hair trigger is skipped on this entry — the wake-edge isn't a tampering event by itself.</li>
+</ol>
 <h2 id="suspend-inhibitor-management">Suspend Inhibitor Management<a class="headerlink" href="#suspend-inhibitor-management" title="Permanent link">&para;</a></h2>
 <p>A <code>block</code> inhibitor in pm-service's <code>power:inhibits</code> hash (id <code>alarm-active</code>, who <code>librescoot-alarm</code>, what <code>power-state-change</code>) keeps pm-service from suspending or hibernating the MDB while the alarm is delaying or triggered. pm-service's suspend gate reads its own registry (<code>power:inhibits</code> + the <code>/tmp/suspend_inhibitor</code> socket). The <code>who</code> is deliberately not <code>librescoot-modem</code>, so pm-service's <code>hasOnlyModemBlockingInhibitors</code> does not let it suspend through. alarm-service clears any stale <code>alarm-active</code> entry on startup so a crash mid-alarm can't wedge power management.</p>
 <p>Held in:</p>
@@ -2618,7 +2689,7 @@ tamper path throughout.</p>
       <nav class="md-footer__inner md-grid" aria-label="Footer" >
         
           
-          <a href="../" class="md-footer__link md-footer__link--prev" aria-label="Previous: Services">
+          <a href="../../service-interactions/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Service Interactions">
             <div class="md-footer__button md-icon">
               
               <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-arrow-left" viewBox="0 0 24 24"><path d="m12 19-7-7 7-7M19 12H5"/></svg>
@@ -2628,7 +2699,7 @@ tamper path throughout.</p>
                 Previous
               </span>
               <div class="md-ellipsis">
-                Services
+                Service Interactions
               </div>
             </div>
           </a>
@@ -2712,7 +2783,7 @@ tamper path throughout.</p>
       <script id="__config" type="application/json">{"annotate":null,"base":"../..","features":["content.action.edit","content.code.copy","content.code.select","content.tooltips","navigation.footer","navigation.indexes","navigation.instant","navigation.instant.prefetch","navigation.path","navigation.sections","navigation.top","navigation.tracking","search.highlight","toc.follow"],"search":"../../assets/javascripts/workers/search.7d14d953.min.js","tags":null,"translations":{"clipboard.copied":"Copied to clipboard","clipboard.copy":"Copy to clipboard","search.result.more.one":"1 more on this page","search.result.more.other":"# more on this page","search.result.none":"No matching documents","search.result.one":"1 matching document","search.result.other":"# matching documents","search.result.placeholder":"Type to start searching","search.result.term.missing":"Missing","select.version":"Select version"},"version":{"provider":"mike"}}</script>
     
     
-      <script src="../../assets/javascripts/bundle.e886cdf1.min.js"></script>
+      <script src="../../assets/javascripts/bundle.49251538.min.js"></script>
       
     
   </body>

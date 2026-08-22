@@ -23,7 +23,7 @@
       
       
       <link rel="icon" href="../../assets/images/favicon.png">
-      <meta name="generator" content="zensical-0.0.56">
+      <meta name="generator" content="zensical-0.0.57">
     
     
       
@@ -34,12 +34,12 @@
       
         
       
-      <link rel="stylesheet" href="../../assets/stylesheets/modern/main.20815dad.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/modern/main.5da3a30f.min.css">
       
         
           
         
-        <link rel="stylesheet" href="../../assets/stylesheets/modern/palette.dfe2e883.min.css">
+        <link rel="stylesheet" href="../../assets/stylesheets/modern/palette.812a03bb.min.css">
       
       
 
@@ -758,6 +758,10 @@
       
         
       
+        
+      
+        
+      
     
     
     
@@ -825,6 +829,33 @@
     
   
   Services
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../service-interactions/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Service Interactions
 
     
   </span>
@@ -933,6 +964,33 @@
     
   
   ecu-service
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../librescoot-events/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  event-service
 
     
   </span>
@@ -2124,6 +2182,10 @@
       
         
       
+        
+      
+        
+      
     
     
     
@@ -2189,7 +2251,7 @@
 <h3 id="navigation">Navigation<a class="headerlink" href="#navigation" title="Permanent link">&para;</a></h3>
 <ul>
 <li>Offline vector map support (MBTiles via QMapLibre)</li>
-<li>Online map tiles (CartoDB) as alternative</li>
+<li>Online map tiles (VersaTiles OSM) as alternative</li>
 <li>Valhalla routing (on-device or remote)</li>
 <li>Speed limit indicators from vector tiles</li>
 <li>Auto-rotating map with heading tracking</li>
@@ -2485,9 +2547,9 @@
 </tr>
 <tr>
 <td><code>dashboard.show-clock</code></td>
-<td><code>true</code>/<code>false</code></td>
-<td><code>true</code></td>
-<td>Clock visibility</td>
+<td><code>always</code>/<code>date-time</code>/<code>alternate</code>/<code>never</code></td>
+<td><code>always</code></td>
+<td>Clock format and visibility</td>
 </tr>
 <tr>
 <td><code>dashboard.theme</code></td>
@@ -2509,7 +2571,7 @@
 </tr>
 <tr>
 <td><code>dashboard.battery-display-mode</code></td>
-<td><code>percentage</code>/<code>range</code></td>
+<td><code>percentage</code>/<code>range</code>/<code>icon</code></td>
 <td><code>percentage</code></td>
 <td>Battery display</td>
 </tr>
@@ -2521,7 +2583,7 @@
 </tr>
 <tr>
 <td><code>dashboard.mode</code></td>
-<td><code>speedometer</code>/<code>navigation</code></td>
+<td><code>speedometer</code>/<code>navigation</code>/<code>debug</code></td>
 <td><code>speedometer</code></td>
 <td>Default screen</td>
 </tr>
@@ -2534,7 +2596,7 @@
 <tr>
 <td><code>dashboard.map.render-mode</code></td>
 <td><code>vector</code>/<code>raster</code></td>
-<td><code>raster</code></td>
+<td><code>vector</code></td>
 <td>Offline map rendering</td>
 </tr>
 <tr>
@@ -2552,7 +2614,7 @@
 <tr>
 <td><code>dashboard.maps.check-for-updates</code></td>
 <td><code>true</code>/<code>false</code></td>
-<td><code>true</code></td>
+<td><code>false</code></td>
 <td>Auto-check for map updates</td>
 </tr>
 <tr>
@@ -2615,15 +2677,17 @@ confirming writes the setting and pushes <code>check-now</code> to both componen
 connectivity there is nothing to preview and nothing that could download, so the same
 screen instead explains that the target channel's <code>.mender</code> can be installed over
 Update Mode. See <a href="../librescoot-update/">update-service</a> for the preview protocol.</p>
-<p>When <code>dashboard.theme</code> is <code>auto</code>, AutoThemeService drives light/dark switching from the <code>dashboard</code> hash field <code>brightness</code> (lux). It listens on the <code>dashboard</code> pub/sub channel and also polls every 1 s, smooths the value, and switches with hysteresis (dark below 15 lux, light above 25 lux).</p>
+<p>When <code>dashboard.theme</code> is <code>auto</code>, AutoThemeService drives light/dark switching from the <code>dashboard</code> hash field <code>brightness</code> (lux). It listens on the <code>dashboard</code> pub/sub channel and also polls every 1 s, and switches with hysteresis (dark below 8 lux, light above 20 lux) after the reading has held past the threshold for 2.5 s, then locks out the reverse flip for 10 s.</p>
 <h2 id="hardware-interfaces">Hardware Interfaces<a class="headerlink" href="#hardware-interfaces" title="Permanent link">&para;</a></h2>
 <h3 id="serial-number">Serial Number<a class="headerlink" href="#serial-number" title="Permanent link">&para;</a></h3>
 <p>Primary: <code>/sys/devices/soc0/serial_number</code></p>
 <p>Fallback (OTP fuses): <code>/sys/fsl_otp/HW_OCOTP_CFG0</code> + <code>HW_OCOTP_CFG1</code></p>
 <h3 id="boot-animation">Boot Animation<a class="headerlink" href="#boot-animation" title="Permanent link">&para;</a></h3>
-<p>On Linux startup:
-1. Fades in framebuffer overlay: <code>imx-overlay-alpha fade 0 255 1000</code> (skipped on kernel 6.6 imx-drm)
-2. Stops boot animation: <code>systemctl stop boot-animation.service</code></p>
+<p>On Linux startup:</p>
+<ol>
+<li>Fades in framebuffer overlay: <code>imx-overlay-alpha fade 0 255 1000</code> (skipped on kernel 6.6 imx-drm)</li>
+<li>Stops boot animation: <code>systemctl stop boot-animation.service</code></li>
+</ol>
 <h3 id="shutdown">Shutdown<a class="headerlink" href="#shutdown" title="Permanent link">&para;</a></h3>
 <p>On SIGTERM or <code>vehicle state</code> → <code>shutting-down</code>: <code>ShutdownStore::forceBlackout()</code> blacks out the display.</p>
 <h2 id="map-tiles">Map Tiles<a class="headerlink" href="#map-tiles" title="Permanent link">&para;</a></h2>
@@ -2646,7 +2710,6 @@ Update Mode. See <a href="../librescoot-update/">update-service</a> for the prev
 </span><span id="__span-5-12"><a id="__codelineno-5-12" name="__codelineno-5-12" href="#__codelineno-5-12"></a>  widgets/        Reusable UI components
 </span><span id="__span-5-13"><a id="__codelineno-5-13" name="__codelineno-5-13" href="#__codelineno-5-13"></a>  overlays/       Modal overlays (menu, toast, ...)
 </span><span id="__span-5-14"><a id="__codelineno-5-14" name="__codelineno-5-14" href="#__codelineno-5-14"></a>  simulator/      Simulator panel (desktop mode only)
-</span><span id="__span-5-15"><a id="__codelineno-5-15" name="__codelineno-5-15" href="#__codelineno-5-15"></a>  theme/          Theme definitions
 </span></code></pre></div>
 <h2 id="dependencies">Dependencies<a class="headerlink" href="#dependencies" title="Permanent link">&para;</a></h2>
 <ul>
@@ -2794,7 +2857,7 @@ Update Mode. See <a href="../librescoot-update/">update-service</a> for the prev
       <script id="__config" type="application/json">{"annotate":null,"base":"../..","features":["content.action.edit","content.code.copy","content.code.select","content.tooltips","navigation.footer","navigation.indexes","navigation.instant","navigation.instant.prefetch","navigation.path","navigation.sections","navigation.top","navigation.tracking","search.highlight","toc.follow"],"search":"../../assets/javascripts/workers/search.7d14d953.min.js","tags":null,"translations":{"clipboard.copied":"Copied to clipboard","clipboard.copy":"Copy to clipboard","search.result.more.one":"1 more on this page","search.result.more.other":"# more on this page","search.result.none":"No matching documents","search.result.one":"1 matching document","search.result.other":"# matching documents","search.result.placeholder":"Type to start searching","search.result.term.missing":"Missing","select.version":"Select version"},"version":{"provider":"mike"}}</script>
     
     
-      <script src="../../assets/javascripts/bundle.e886cdf1.min.js"></script>
+      <script src="../../assets/javascripts/bundle.49251538.min.js"></script>
       
     
   </body>

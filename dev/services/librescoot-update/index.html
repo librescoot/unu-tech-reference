@@ -23,7 +23,7 @@
       
       
       <link rel="icon" href="../../assets/images/favicon.png">
-      <meta name="generator" content="zensical-0.0.56">
+      <meta name="generator" content="zensical-0.0.57">
     
     
       
@@ -34,12 +34,12 @@
       
         
       
-      <link rel="stylesheet" href="../../assets/stylesheets/modern/main.20815dad.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/modern/main.5da3a30f.min.css">
       
         
           
         
-        <link rel="stylesheet" href="../../assets/stylesheets/modern/palette.dfe2e883.min.css">
+        <link rel="stylesheet" href="../../assets/stylesheets/modern/palette.812a03bb.min.css">
       
       
 
@@ -758,6 +758,10 @@
       
         
       
+        
+      
+        
+      
     
     
     
@@ -825,6 +829,33 @@
     
   
   Services
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../service-interactions/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Service Interactions
 
     
   </span>
@@ -933,6 +964,33 @@
     
   
   ecu-service
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../librescoot-events/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  event-service
 
     
   </span>
@@ -2012,6 +2070,10 @@
       
         
       
+        
+      
+        
+      
     
     
     
@@ -2052,7 +2114,7 @@
 <h2 id="command-line-options">Command-Line Options<a class="headerlink" href="#command-line-options" title="Permanent link">&para;</a></h2>
 <div class="language-text highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>  --component string         Component to update: mdb or dbc (required)
 </span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>  --redis-addr string        Redis server address (default: localhost:6379)
-</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>  --channel string           Update channel: stable, testing, nightly (default: nightly; auto-detected from installed version)
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>  --channel string           Update channel: stable, testing, nightly (no default; inferred from the installed version, and the service exits if none can be determined)
 </span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>  --releases-url string      Release index base URL (default: https://downloads.librescoot.org/releases)
 </span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>  --check-interval duration  Interval between update checks; 0 to disable (default: 6h)
 </span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>  --download-dir string      OTA file download directory (default: /data/ota/{component})
@@ -2060,8 +2122,7 @@
 </span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>  --boot-update              Enable boot partition updates
 </span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>  --boot-mount string        Boot partition mount point (default: /uboot)
 </span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>  --boot-device string       U-Boot device path (auto-detected if empty)
-</span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>  --boot-dtb string          DTB filename (default: librescoot-{component}.dtb)
-</span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>  --boot-uboot-seek int64    512-byte blocks to seek before writing U-Boot (default: 2)
+</span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>  --boot-uboot-seek int64    512-byte blocks to seek before writing U-Boot (default: 2)
 </span></code></pre></div>
 <p>CLI flags override Redis settings. <code>--component</code> and <code>--redis-addr</code> are CLI-only.</p>
 <h2 id="systemd-units">Systemd Units<a class="headerlink" href="#systemd-units" title="Permanent link">&para;</a></h2>
@@ -2186,8 +2247,10 @@ than one board:</p>
 </tr>
 </tbody>
 </table>
-<p><strong>Published channel:</strong> <code>ota</code>
-- All field updates are published atomically on state transitions</p>
+<p><strong>Published channel:</strong> <code>ota</code></p>
+<ul>
+<li>All field updates are published atomically on state transitions</li>
+</ul>
 <h4 id="flat-status">Flat status<a class="headerlink" href="#flat-status" title="Permanent link">&para;</a></h4>
 <p><code>status</code> and <code>update-type</code> mirror the per-component state into the non-namespaced
 convention used by stock, for consumers that do not know about <code>status:mdb</code> and
@@ -2343,20 +2406,26 @@ only as a one-way capability flag: once it has seen one, it shortens that timer 
 15 minutes to 3. The on-vehicle threshold is therefore 3 minutes of total field
 silence, not 90 seconds of heartbeat age.</p>
 <h3 id="hash-settings-readwritten">Hash: <code>settings</code> (read/written)<a class="headerlink" href="#hash-settings-readwritten" title="Permanent link">&para;</a></h3>
-<p><strong>Fields read:</strong>
-- <code>updates.{component}.channel</code> — update channel (<code>stable</code>, <code>testing</code>, <code>nightly</code>)
-- <code>updates.{component}.check-interval</code> — check interval (e.g. <code>6h</code>, <code>30m</code>)
-- <code>updates.{component}.releases-url</code> — release index base URL
-- <code>updates.{component}.dry-run</code> — dry-run mode (<code>true</code>/<code>false</code>)
-- <code>updates.{component}.download-max-duration</code> - wall-clock cap on a single download attempt (default <code>60m</code>, <code>0</code> disables)
-- <code>updates.{component}.download-stall-window</code> - rolling window the download throughput floor is measured over (default <code>2m</code>, <code>0</code> disables)
-- <code>updates.{component}.download-stall-min-bytes</code> - bytes that must arrive within each stall window (default <code>65536</code>)
-- <code>updates.{component}.method</code> — update method (<code>full</code> or <code>delta</code>)
-- <code>updates.mdb.orchestrate-dbc</code> — MDB-only: whether MDB orchestrates DBC updates</p>
-<p><strong>Fields written:</strong>
-- <code>updates.{component}.last-check-time</code> — RFC3339 timestamp of last update check</p>
-<p><strong>Subscribed channel:</strong> <code>settings</code>
-- All <code>updates.{component}.*</code> field changes are applied at runtime</p>
+<p><strong>Fields read:</strong></p>
+<ul>
+<li><code>updates.{component}.channel</code> — update channel (<code>stable</code>, <code>testing</code>, <code>nightly</code>)</li>
+<li><code>updates.{component}.check-interval</code> — check interval (e.g. <code>6h</code>, <code>30m</code>)</li>
+<li><code>updates.{component}.releases-url</code> — release index base URL</li>
+<li><code>updates.{component}.dry-run</code> — dry-run mode (<code>true</code>/<code>false</code>)</li>
+<li><code>updates.{component}.download-max-duration</code> - wall-clock cap on a single download attempt (default <code>60m</code>, <code>0</code> disables)</li>
+<li><code>updates.{component}.download-stall-window</code> - rolling window the download throughput floor is measured over (default <code>2m</code>, <code>0</code> disables)</li>
+<li><code>updates.{component}.download-stall-min-bytes</code> - bytes that must arrive within each stall window (default <code>65536</code>)</li>
+<li><code>updates.{component}.method</code> — update method (<code>full</code> or <code>delta</code>)</li>
+<li><code>updates.mdb.orchestrate-dbc</code> — MDB-only: whether MDB orchestrates DBC updates</li>
+</ul>
+<p><strong>Fields written:</strong></p>
+<ul>
+<li><code>updates.{component}.last-check-time</code> — RFC3339 timestamp of last update check</li>
+</ul>
+<p><strong>Subscribed channel:</strong> <code>settings</code></p>
+<ul>
+<li>All <code>updates.{component}.*</code> field changes are applied at runtime</li>
+</ul>
 <h3 id="hash-versioncomponent-read">Hash: <code>version:{component}</code> (read)<a class="headerlink" href="#hash-versioncomponent-read" title="Permanent link">&para;</a></h3>
 <ul>
 <li><code>version_id</code> — installed version string (used to detect channel and for delta base)</li>
@@ -2635,7 +2704,7 @@ before prompting the rider to confirm.</p>
       <script id="__config" type="application/json">{"annotate":null,"base":"../..","features":["content.action.edit","content.code.copy","content.code.select","content.tooltips","navigation.footer","navigation.indexes","navigation.instant","navigation.instant.prefetch","navigation.path","navigation.sections","navigation.top","navigation.tracking","search.highlight","toc.follow"],"search":"../../assets/javascripts/workers/search.7d14d953.min.js","tags":null,"translations":{"clipboard.copied":"Copied to clipboard","clipboard.copy":"Copy to clipboard","search.result.more.one":"1 more on this page","search.result.more.other":"# more on this page","search.result.none":"No matching documents","search.result.one":"1 matching document","search.result.other":"# matching documents","search.result.placeholder":"Type to start searching","search.result.term.missing":"Missing","select.version":"Select version"},"version":{"provider":"mike"}}</script>
     
     
-      <script src="../../assets/javascripts/bundle.e886cdf1.min.js"></script>
+      <script src="../../assets/javascripts/bundle.49251538.min.js"></script>
       
     
   </body>

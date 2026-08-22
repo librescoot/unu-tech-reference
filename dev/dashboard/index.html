@@ -23,7 +23,7 @@
       
       
       <link rel="icon" href="../assets/images/favicon.png">
-      <meta name="generator" content="zensical-0.0.56">
+      <meta name="generator" content="zensical-0.0.57">
     
     
       
@@ -34,12 +34,12 @@
       
         
       
-      <link rel="stylesheet" href="../assets/stylesheets/modern/main.20815dad.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/modern/main.5da3a30f.min.css">
       
         
           
         
-        <link rel="stylesheet" href="../assets/stylesheets/modern/palette.dfe2e883.min.css">
+        <link rel="stylesheet" href="../assets/stylesheets/modern/palette.812a03bb.min.css">
       
       
 
@@ -758,6 +758,10 @@
       
         
       
+        
+      
+        
+      
     
     
     
@@ -825,6 +829,33 @@
     
   
   Services
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../service-interactions/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Service Interactions
 
     
   </span>
@@ -933,6 +964,33 @@
     
   
   ecu-service
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../services/librescoot-events/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  event-service
 
     
   </span>
@@ -2280,6 +2338,10 @@
       
         
       
+        
+      
+        
+      
     
     
     
@@ -2318,16 +2380,18 @@
 <h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">&para;</a></h2>
 <p>The Dashboard Controller (DBC) provides the primary user interface for the scooter, displaying critical information such as speed, battery status, and navigation. It runs a Qt/QML-based UI application that communicates with other system components via Redis.</p>
 <h2 id="implementation">Implementation<a class="headerlink" href="#implementation" title="Permanent link">&para;</a></h2>
-<p>The dashboard UI is implemented as a Qt/QML application (unu-dashboard-ui) that:
-- Runs on the DBC (Dashboard Controller)
-- Connects to Redis at 192.168.7.1:6379 in production (defaults to 127.0.0.1:6379, configurable via command-line options)
-- Subscribes to Redis pub/sub channels for real-time updates
-- Monitors vehicle state, battery status, engine ECU, GPS, and internet connectivity
-- Renders the user interface on the integrated display
-- Reads hardware serial number from <code>/sys/fsl_otp/HW_OCOTP_CFG0</code> and <code>/sys/fsl_otp/HW_OCOTP_CFG1</code>
-- Reads OS version from <code>/etc/os-release</code> and sets <code>system dbc-version</code> to VERSION_ID+BUILD_ID
-- Sets <code>dashboard ready true</code> only after successfully reading serial number
-- Stores hardware serial number in <code>dashboard serial-number</code> Redis key</p>
+<p>The dashboard UI is implemented as a Qt/QML application (scootui-qt) that:</p>
+<ul>
+<li>Runs on the DBC (Dashboard Controller)</li>
+<li>Connects to Redis at 192.168.7.1:6379 in production (defaults to 127.0.0.1:6379, configurable via command-line options)</li>
+<li>Subscribes to Redis pub/sub channels for real-time updates</li>
+<li>Monitors vehicle state, battery status, engine ECU, GPS, and internet connectivity</li>
+<li>Renders the user interface on the integrated display</li>
+<li>Reads hardware serial number from <code>/sys/fsl_otp/HW_OCOTP_CFG0</code> and <code>/sys/fsl_otp/HW_OCOTP_CFG1</code></li>
+<li>Reads OS version from <code>/etc/os-release</code> and sets <code>system dbc-version</code> to VERSION_ID+BUILD_ID</li>
+<li>Sets <code>dashboard ready true</code> only after successfully reading serial number</li>
+<li>Stores hardware serial number in <code>dashboard serial-number</code> Redis key</li>
+</ul>
 <h2 id="display-modes">Display Modes<a class="headerlink" href="#display-modes" title="Permanent link">&para;</a></h2>
 <p>The dashboard operates in three primary modes, controlled via the <code>dashboard mode</code> Redis key:</p>
 <table>
@@ -2368,10 +2432,12 @@
 <li>System version information</li>
 </ul>
 <h3 id="activating-debug-mode">Activating Debug Mode<a class="headerlink" href="#activating-debug-mode" title="Permanent link">&para;</a></h3>
-<p>Debug mode can be activated by:
-1. Push to the command list: <code>LPUSH scooter:dashboard-mode debug</code>
-2. The dashboard uses BLPOP to read from this list and switches to debug view
-3. The dashboard then writes the mode to <code>dashboard:mode</code> as confirmation</p>
+<p>Debug mode can be activated by:</p>
+<ol>
+<li>Push to the command list: <code>LPUSH scooter:dashboard-mode debug</code></li>
+<li>The dashboard uses BLPOP to read from this list and switches to debug view</li>
+<li>The dashboard then writes the mode to <code>dashboard:mode</code> as confirmation</li>
+</ol>
 <h3 id="debug-data-structure">Debug Data Structure<a class="headerlink" href="#debug-data-structure" title="Permanent link">&para;</a></h3>
 <p>The debug data is stored in a Redis sorted set:
 <div class="language-text highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>ZRANGE dashboard:debug 0 -1 WITHSCORES
@@ -2411,22 +2477,28 @@ The scores indicate the priority. As many values as possible are fit on the scre
 </tbody>
 </table>
 <h3 id="speedometer-display">Speedometer Display<a class="headerlink" href="#speedometer-display" title="Permanent link">&para;</a></h3>
-<p>The speedometer shows:
-- Current speed (km/h or mph based on user settings)
-- Energy recuperation status during braking
-- Throttle status indicators
-- Battery charge levels</p>
+<p>The speedometer shows:</p>
+<ul>
+<li>Current speed (km/h or mph based on user settings)</li>
+<li>Energy recuperation status during braking</li>
+<li>Throttle status indicators</li>
+<li>Battery charge levels</li>
+</ul>
 <p>Speed display can adapt to the user's preferred unit system (metric/imperial), but only metric is used in shipped scooters.</p>
 <h3 id="navigation-view">Navigation View<a class="headerlink" href="#navigation-view" title="Permanent link">&para;</a></h3>
-<p>The navigation interface includes:
-- Interactive map with route visualization
-- Turn-by-turn instruction banners
-- Distance to destination
-- Estimated arrival information</p>
-<p>The view adapts based on vehicle state:
-- Parked: Route overview mode
-- Driving: Tracking mode with upcoming instructions
-- Rerouting: Rerouting status display</p>
+<p>The navigation interface includes:</p>
+<ul>
+<li>Interactive map with route visualization</li>
+<li>Turn-by-turn instruction banners</li>
+<li>Distance to destination</li>
+<li>Estimated arrival information</li>
+</ul>
+<p>The view adapts based on vehicle state:</p>
+<ul>
+<li>Parked: Route overview mode</li>
+<li>Driving: Tracking mode with upcoming instructions</li>
+<li>Rerouting: Rerouting status display</li>
+</ul>
 <h3 id="status-bar">Status Bar<a class="headerlink" href="#status-bar" title="Permanent link">&para;</a></h3>
 <p>The top status bar has three zones in a single row: a battery display on the left, a clock centered, and status indicators on the right. Total distance/odometer is not part of the top bar; it lives in the bottom bar alongside the speedometer.</p>
 <p>Both side widgets measure their own width at every "degrade level" (see below) and a coordinator in the top bar hands each side the most detailed level that still fits next to the clock. When the clock is hidden (<code>showClock</code> setting is <code>never</code>), the two sides share the whole row width instead of a fixed half each.</p>
@@ -2539,11 +2611,13 @@ The scores indicate the priority. As many values as possible are fit on the scre
 </span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>HGET internet access-tech  # Network type (LTE, UMTS, etc.)
 </span></code></pre></div>
 <h3 id="notification-system">Notification System<a class="headerlink" href="#notification-system" title="Permanent link">&para;</a></h3>
-<p>The dashboard displays various notifications for:
-- Battery status (low charge warnings, charging status)
-- System warnings (faults, errors)
-- Navigation events
-- Vehicle state changes</p>
+<p>The dashboard displays various notifications for:</p>
+<ul>
+<li>Battery status (low charge warnings, charging status)</li>
+<li>System warnings (faults, errors)</li>
+<li>Navigation events</li>
+<li>Vehicle state changes</li>
+</ul>
 <h2 id="redis-interface">Redis Interface<a class="headerlink" href="#redis-interface" title="Permanent link">&para;</a></h2>
 <h3 id="dashboard-service-keys">Dashboard Service Keys<a class="headerlink" href="#dashboard-service-keys" title="Permanent link">&para;</a></h3>
 <div class="language-text highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>HGETALL dashboard
@@ -2617,14 +2691,16 @@ The scores indicate the priority. As many values as possible are fit on the scre
 </tbody>
 </table>
 <h3 id="theme-adaptation">Theme Adaptation<a class="headerlink" href="#theme-adaptation" title="Permanent link">&para;</a></h3>
-<p>The dashboard automatically switches between:
-- Dark theme (Speedometer mode)
-- Light theme (Navigation mode)</p>
+<p>The dashboard automatically switches between:</p>
+<ul>
+<li>Dark theme (Speedometer mode)</li>
+<li>Light theme (Navigation mode)</li>
+</ul>
 <p>Theme transitions include animation timing for smooth visual changes.</p>
 <h2 id="behavior-patterns">Behavior Patterns<a class="headerlink" href="#behavior-patterns" title="Permanent link">&para;</a></h2>
 <h3 id="startup-sequence">Startup Sequence<a class="headerlink" href="#startup-sequence" title="Permanent link">&para;</a></h3>
 <ol>
-<li>Dashboard application starts (unu-dashboard-ui)</li>
+<li>Dashboard application starts (scootui-qt)</li>
 <li>Connects to Redis (192.168.7.1:6379 in production, defaults to 127.0.0.1:6379, configurable via <code>-b</code> and <code>-p</code> options)</li>
 <li>Subscribes to all service Redis pub/sub channels</li>
 <li>Reads OS version from <code>/etc/os-release</code> and sets <code>system dbc-version</code> to VERSION_ID+BUILD_ID</li>
@@ -2635,16 +2711,20 @@ The scores indicate the priority. As many values as possible are fit on the scre
 <li>Starts periodic polling timer for non-published properties</li>
 </ol>
 <h3 id="mode-switching-logic">Mode Switching Logic<a class="headerlink" href="#mode-switching-logic" title="Permanent link">&para;</a></h3>
-<p>Mode switching occurs when:
-- Navigation is started/stopped (via <code>LPUSH scooter:navigation start/stop</code>)
-- Debug mode is explicitly enabled/disabled (via <code>LPUSH scooter:dashboard-mode debug</code>)
-- Dashboard reads mode commands from Redis lists using BLPOP with infinite timeout</p>
+<p>Mode switching occurs when:</p>
+<ul>
+<li>Navigation is started/stopped (via <code>LPUSH scooter:navigation start/stop</code>)</li>
+<li>Debug mode is explicitly enabled/disabled (via <code>LPUSH scooter:dashboard-mode debug</code>)</li>
+<li>Dashboard reads mode commands from Redis lists using BLPOP with infinite timeout</li>
+</ul>
 <h3 id="navigation-behavior">Navigation Behavior<a class="headerlink" href="#navigation-behavior" title="Permanent link">&para;</a></h3>
-<p>The navigation system responds to several states:
-- Navigation triggered by <code>LPUSH scooter:navigation start</code> (using the Mapbox API - doesn't work anymore)
-- Navigation stopped by <code>LPUSH scooter:navigation stop</code>
-- Automatic rerouting when deviating from route (doesn't seem work)
-- Trip summary displayed upon arrival (assumed from decompilation, could not trigger)</p>
+<p>The navigation system responds to several states:</p>
+<ul>
+<li>Navigation triggered by <code>LPUSH scooter:navigation start</code> (using the Mapbox API - doesn't work anymore)</li>
+<li>Navigation stopped by <code>LPUSH scooter:navigation stop</code></li>
+<li>Automatic rerouting when deviating from route (doesn't seem work)</li>
+<li>Trip summary displayed upon arrival (assumed from decompilation, could not trigger)</li>
+</ul>
 <h2 id="notification-types">Notification Types<a class="headerlink" href="#notification-types" title="Permanent link">&para;</a></h2>
 <p>The dashboard displays various notification types:</p>
 <table>
@@ -2921,7 +3001,7 @@ The scores indicate the priority. As many values as possible are fit on the scre
       <script id="__config" type="application/json">{"annotate":null,"base":"..","features":["content.action.edit","content.code.copy","content.code.select","content.tooltips","navigation.footer","navigation.indexes","navigation.instant","navigation.instant.prefetch","navigation.path","navigation.sections","navigation.top","navigation.tracking","search.highlight","toc.follow"],"search":"../assets/javascripts/workers/search.7d14d953.min.js","tags":null,"translations":{"clipboard.copied":"Copied to clipboard","clipboard.copy":"Copy to clipboard","search.result.more.one":"1 more on this page","search.result.more.other":"# more on this page","search.result.none":"No matching documents","search.result.one":"1 matching document","search.result.other":"# matching documents","search.result.placeholder":"Type to start searching","search.result.term.missing":"Missing","select.version":"Select version"},"version":{"provider":"mike"}}</script>
     
     
-      <script src="../assets/javascripts/bundle.e886cdf1.min.js"></script>
+      <script src="../assets/javascripts/bundle.49251538.min.js"></script>
       
     
   </body>
