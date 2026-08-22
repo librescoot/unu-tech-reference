@@ -60,22 +60,60 @@ jobs:
           [ -d stylesheets ] && cp -r stylesheets docs/stylesheets || true
 
       # main's nav lists pages that older snapshots legitimately do not have
-      # (event-service, motion-service, the BLE OTA page). Drop those entries
-      # rather than letting the build fail or emit dead links.
+      # (event-service, motion-service, the BLE OTA page). Drop those entries,
+      # and any section left with no pages, rather than emitting dead links.
       - name: Drop nav entries this version does not have
         run: |
           python3 - <<'PY'
-          import os, re
-          src = open("zensical.toml", encoding="utf-8").read()
-          kept, dropped = [], []
-          for line in src.split("\n"):
-              m = re.search(r'=\s*"([^"]+\.md)"\s*\}', line)
-              if m and not os.path.exists(os.path.join("docs", m.group(1))):
-                  dropped.append(m.group(1))
-                  continue
-              kept.append(line)
-          open("zensical.toml", "w", encoding="utf-8").write("\n".join(kept))
-          print("dropped %d nav entries not present in this version:" % len(dropped))
+          import os, sys, tomllib
+
+          cfg = "zensical.toml"
+          raw = open(cfg, encoding="utf-8").read()
+          nav = tomllib.loads(raw).get("project", {}).get("nav")
+          if not nav:
+              print("no nav to prune"); sys.exit(0)
+
+          dropped = []
+
+          def keep(entry):
+              (title, val), = entry.items()
+              if isinstance(val, str):
+                  if os.path.exists(os.path.join("docs", val)):
+                      return {title: val}
+                  dropped.append(val)
+                  return None
+              kids = [k for k in (keep(c) for c in val) if k]
+              if not kids:
+                  dropped.append(title + " (section, no remaining pages)")
+                  return None
+              return {title: kids}
+
+          pruned = [e for e in (keep(x) for x in nav) if e]
+
+          def emit(entries, indent=4):
+              pad = " " * indent
+              out = []
+              for e in entries:
+                  (title, val), = e.items()
+                  if isinstance(val, str):
+                      out.append(pad + '{ "' + title + '" = "' + val + '" },')
+                  else:
+                      out.append(pad + '{ "' + title + '" = [')
+                      out.extend(emit(val, indent + 4))
+                      out.append(pad + "]},")
+              return out
+
+          start = raw.index("nav = [")
+          depth, i = 0, raw.index("[", start)
+          while True:
+              if raw[i] == "[": depth += 1
+              elif raw[i] == "]": depth -= 1
+              if depth == 0: break
+              i += 1
+          open(cfg, "w", encoding="utf-8").write(
+              raw[:start] + "nav = [\n" + "\n".join(emit(pruned)) + "\n]" + raw[i+1:])
+
+          print("pruned %d nav entries not present in this version:" % len(dropped))
           for d in dropped:
               print("  -", d)
           PY
