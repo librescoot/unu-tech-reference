@@ -46,6 +46,7 @@ Payloads are encoded using CBOR (Concise Binary Object Representation) format vi
 ### Payload Structure
 
 Each payload contains a nested CBOR map:
+
 - **Outer map**: Single key = Message Type (16-bit integer, e.g., 0x0060)
 - **Inner map**: Keys = Sub-types (16-bit integers, e.g., 0x0061), Values = Data (int, string, array, etc.)
 
@@ -57,6 +58,7 @@ Example:
 ### Data Types
 
 CBOR supports multiple data types observed in the protocol:
+
 - **Integers**: CBOR integers (int64/uint64)
 - **Strings**: CBOR text strings (UTF-8)
 - **Arrays**: CBOR arrays (e.g., `[0x12345678, 42]` for reset info)
@@ -98,6 +100,7 @@ Messages use 16-bit type identifiers organized hierarchically:
 Each message type contains sub-types as CBOR map keys:
 
 **CB Battery (0x0060):**
+
 - 0x0061: Charge (%)
 - 0x0062: Current (µA)
 - 0x0063: Remaining Capacity (mAh)
@@ -106,26 +109,31 @@ Each message type contains sub-types as CBOR map keys:
 - 0x0072: Charge Status
 
 **Vehicle State (0x0020):**
+
 - 0x0021: Vehicle state (0=stand-by, 1=parked, 2=ready-to-drive, 3=shutting-down, 4=updating, 5=off, 6=hop-on)
   - **6 (hop-on)** uses parked-equivalent power rails (`POWER_MODE_ACTIVE`, PMIC_EN2 on, AUX battery) but advertises whitelist-only and presents the 9a590021 BLE state-string as `stand-by` so mobile apps that don't know about hop-on still see a "locked" scooter. `hop-on-learning` collapses to `1 (parked)` on the wire — externally parked-equivalent.
 - 0x0022: Seatbox lock (0=closed, 1=open)
 - 0x0023: Handlebar lock (0=locked, 1=unlocked)
 
 **Battery Status (0x00E0):**
+
 - 0x00E2/0x00EE: Battery 0/1 state (0=unknown, 1=asleep, 2=idle, 3=active)
 - 0x00E3/0x00EF: Battery 0/1 presence (boolean)
 - 0x00E6/0x00F2: Battery 0/1 cycle count
 - 0x00E9/0x00F5: Battery 0/1 remaining charge (%)
 
 **Power Management (0x0800):**
+
 - 0x0801: PM State (0=suspending, 1=running, 2=hibernating, 3=suspending-imminent, 4=hibernating-imminent, 5=reboot)
 - 0x0802: Power Request (hibernation level: 0=L1, 1=L2)
 - 0x0803: Hibernation Request (0=automatic, 1=manual)
 
 **Power Mux (0x0100):**
+
 - 0x0101: Power Mux State (0=AUX battery, 1=CB battery)
 
 **Scooter Info (0xA040):**
+
 - 0xA041: Software version (string, iMX → nRF)
 - 0xA042: Mileage/odometer (int32, iMX → nRF)
 - 0xA043: System time (string, phone → nRF → iMX)
@@ -133,20 +141,24 @@ Each message type contains sub-types as CBOR map keys:
 - 0xA045: UMS status (uint8: 0=normal, 1=ums, iMX → nRF)
 
 **Accelerometer (0x0200):**
+
 - 0x0201: Wake-up from suspend (nRF → iMX, sent immediately)
 - 0x0202: Wake-up from hibernation (nRF → iMX, sent after VERSION handshake on next boot)
 
 **Extended Commands (0x0400):**
+
 - 0x0401: Command (string, phone → nRF → iMX, up to 128 bytes)
 - 0x0402: Response (string, iMX → nRF → phone, up to 512 bytes, bypasses proto_t 128-byte limit via direct CBOR parsing)
 
 **Reset Information (0xA020):**
+
 - 0xA021: Reset Info array `[reason, count]` - reason is Nordic RESETREAS register value
 - 0xA023: Reset ACK (acknowledgment from iMX6)
 
 ## Initialization Sequence
 
 Observable startup sequence from iMX6 to nRF:
+
 1. Disable Data Streaming
 2. Request BLE Firmware Version
 3. Request BLE MAC Address

@@ -177,6 +177,7 @@ Fallback (OTP fuses): `/sys/fsl_otp/HW_OCOTP_CFG0` + `HW_OCOTP_CFG1`
 ### Boot Animation
 
 On Linux startup:
+
 1. Fades in framebuffer overlay: `imx-overlay-alpha fade 0 255 1000` (skipped on kernel 6.6 imx-drm)
 2. Stops boot animation: `systemctl stop boot-animation.service`
 

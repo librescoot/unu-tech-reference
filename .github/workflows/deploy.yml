@@ -59,6 +59,14 @@ jobs:
           pip install zensical
           pip install git+https://github.com/squidfunk/mike
 
+      # Site chrome is not a release fact. Nav, theme and stylesheets come from
+      # main for every version, so fixing them is one commit instead of one per
+      # snapshot branch. Only the .md content below is version-specific.
+      - name: Take site config and theme from main
+        run: |
+          git fetch origin main
+          git checkout origin/main -- zensical.toml stylesheets
+
       - name: Prepare docs/ tree
         run: |
           mkdir -p docs
@@ -70,6 +78,27 @@ jobs:
             [ -d "$d" ] && cp -r "$d" "docs/$d"
           done
           [ -d stylesheets ] && cp -r stylesheets docs/stylesheets || true
+
+      # main's nav lists pages that older snapshots legitimately do not have
+      # (event-service, motion-service, the BLE OTA page). Drop those entries
+      # rather than letting the build fail or emit dead links.
+      - name: Drop nav entries this version does not have
+        run: |
+          python3 - <<'PY'
+          import os, re
+          src = open("zensical.toml", encoding="utf-8").read()
+          kept, dropped = [], []
+          for line in src.split("\n"):
+              m = re.search(r'=\s*"([^"]+\.md)"\s*\}', line)
+              if m and not os.path.exists(os.path.join("docs", m.group(1))):
+                  dropped.append(m.group(1))
+                  continue
+              kept.append(line)
+          open("zensical.toml", "w", encoding="utf-8").write("\n".join(kept))
+          print("dropped %d nav entries not present in this version:" % len(dropped))
+          for d in dropped:
+              print("  -", d)
+          PY
 
       - name: Configure git for mike
         run: |

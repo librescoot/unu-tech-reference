@@ -3,6 +3,7 @@
 ## Connection Details
 
 The scooter runs a Redis instance on the MDB accessible at:
+
 - Host: 192.168.7.1  
 - Port: 6379
 
@@ -211,6 +212,7 @@ redis-cli -h 192.168.7.1 LPUSH scooter:bluetooth "command-name"
 ```
 
 Available commands:
+
 - `advertising-start-with-whitelisting` - Start BLE advertising with whitelist filtering (only paired devices can connect)
 - `advertising-restart-no-whitelisting` - Restart advertising without whitelist restrictions (any device can connect)
 - `advertising-stop` - Stop BLE advertising completely
@@ -221,11 +223,13 @@ Available commands:
 The Bluetooth service subscribes to several Redis channels and automatically updates the nRF52 module when values change:
 
 **Vehicle State Updates:**
+
 - `vehicle:state` - Vehicle operating state changes
 - `vehicle:seatbox:lock` - Seatbox lock status changes
 - `vehicle:handlebar:lock-sensor` - Handlebar lock status changes
 
 **Battery Status Updates:**
+
 - `battery:0:state` - Main battery 0 state changes
 - `battery:0:present` - Main battery 0 presence detection
 - `battery:0:charge` - Main battery 0 charge level
@@ -234,6 +238,7 @@ The Bluetooth service subscribes to several Redis channels and automatically upd
 - `battery:1:charge` - Main battery 1 charge level
 
 **Power Management Updates:**
+
 - `power-manager:state` - Power state changes trigger automatic data stream management
 
 #### Bluetooth-Triggered Redis Requests
@@ -241,11 +246,13 @@ The Bluetooth service subscribes to several Redis channels and automatically upd
 The Bluetooth service can write requests to Redis when receiving commands via BLE:
 
 **Scooter Control:**
+
 - `scooter:state` → `unlock` / `lock` / `lock-hibernate`
 - `scooter:seatbox` → `open`
 - `scooter:blinker` → `right` / `left` / `both` / `off`
 
 **Power Management:**
+
 - `scooter:power` → `hibernate` / `hibernate-manual`
 
 ### Keycard Authentication (`keycard`)
@@ -383,6 +390,7 @@ hgetall alarm
 | status | string | Current alarm status | "armed" |
 
 **Possible status values:**
+
 - `disabled` - Alarm system is disabled
 - `disarmed` - Alarm enabled but not armed (vehicle not in stand-by)
 - `armed` - Alarm is armed and monitoring for motion
@@ -430,6 +438,7 @@ LibreScoot adds GPS state tracking:
 | state | string | GPS state | "fix-established" |
 
 **GPS states:**
+
 - `off` - GPS is disabled
 - `searching` - Actively searching for GPS signal
 - `fix-established` - Valid GPS fix obtained (2D or 3D)
@@ -461,6 +470,7 @@ LibreScoot adds modem health tracking:
 | sim-imsi | string | SIM IMSI | "262010123456789" |
 
 **Modem health states:**
+
 - `normal` - Modem operating normally
 - `recovering` - Attempting recovery
 - `recovery-failed-waiting-reboot` - Recovery failed, waiting for reboot
@@ -522,6 +532,7 @@ XREAD STREAMS events:faults 0
 ```
 
 Each entry contains:
+
 - `group` - Component group (e.g., "cb-battery", "modem")
 - `code` - Fault code
 - `description` - Human-readable fault description

@@ -23,6 +23,7 @@ REDIS_ADDR=localhost:6379             Redis server address (environment variable
 ### Hash: `settings`
 
 **Fields read and written:**
+
 - Any field with format `<section>.<key>` (e.g., `scooter.speed_limit`, `cellular.apn`)
 
 The service syncs all fields in the `settings` hash with the TOML file.
@@ -30,6 +31,7 @@ The service syncs all fields in the `settings` hash with the TOML file.
 **Subscribed channel:** `settings`
 
 When a field is published to the `settings` channel, the service:
+
 1. Reads the new value from Redis
 2. Updates the TOML file
 3. Performs special handling for certain fields (e.g., APN updates)
@@ -39,6 +41,7 @@ When a field is published to the `settings` channel, the service:
 Settings are organized by section. Examples:
 
 **Alarm settings:**
+
 - `alarm.enabled` - Alarm system enabled ("true"/"false")
 - `alarm.honk` - Horn enabled during alarm ("true"/"false")
 - `alarm.duration` - Alarm duration in seconds
@@ -54,10 +57,12 @@ Settings are organized by section. Examples:
 - `scooter.enable-horn` - Horn enable mode ("true"/"false"/"in-drive"; default: "true")
 
 **Cellular settings:**
+
 - `cellular.apn` - Cellular APN for data connection
 - `cellular.sim-pin` - PIN for SIM unlock and lock-enable (4-8 digits, empty = leave SIM as-is)
 
 **Power management settings:**
+
 - `pm.hibernation-timer` - Hibernation timeout in seconds (0=disabled; default 259200)
 - `pm.scheduled-hibernate-enabled` - Enable cron-driven scheduled hibernation ("true"/"false", default false)
 - `pm.scheduled-hibernate-cron` - 5-field cron expression (minute hour day-of-month month day-of-week); empty disables
@@ -68,10 +73,12 @@ Settings are organized by section. Examples:
 These keys are present in the v1.0.5 settings schema, but pm-service in this release does not yet act on them (scheduled hibernation and the wake-timer handshake land in a later release).
 
 **Scooter settings:**
+
 - `scooter.auto-standby-seconds` - Auto-lock timeout when parked in seconds (default: 900; 0 = disabled; no upper clamp). The last 60 s are shown as a cancellable countdown on the dashboard; any user input (brake, kickstand, seatbox button) resets the timer.
 - `scooter.brake-hibernation` - Enable brake lever hibernation ("enabled"/"disabled")
 
 **Update settings:**
+
 - `updates.mdb.channel` - MDB update channel (stable/testing/nightly)
 - `updates.mdb.check-interval` - Update check interval as Go duration ("6h", "24h", "never")
 - `updates.mdb.method` - Update method (full/delta)
@@ -87,6 +94,7 @@ These keys are present in the v1.0.5 settings schema, but pm-service in this rel
 - `updates.mdb.orchestrate-dbc` - Auto power-on DBC and trigger update check when newer DBC release available (default: false)
 
 **Dashboard settings:**
+
 - `dashboard.show-raw-speed` - Show raw uncorrected speed ("true"/"false")
 - `dashboard.show-clock` - Clock visibility (always/never)
 - `dashboard.show-gps` - GPS indicator visibility (always/active-or-error/error/never)
@@ -110,6 +118,7 @@ These keys are present in the v1.0.5 settings schema, but pm-service in this rel
 - `dashboard.navigation-available` - Full navigation available (system-managed; default: false)
 
 **ECU settings:**
+
 - `engine-ecu.kers` - KERS enable/disable ("enabled"/"disabled"; default: "enabled")
 - `engine-ecu.kers-power` - KERS regenerative braking current in mA
 - `engine-ecu.boost` - Enable motor boost mode (default: false)
@@ -159,6 +168,7 @@ When `cellular.apn` is updated, the service automatically updates:
 **File:** `/etc/NetworkManager/system-connections/wwan.nmconnection`
 
 The service:
+
 1. Reads the existing nmconnection file
 2. Updates the `apn=` field in the `[gsm]` section
 3. Writes the updated file
@@ -207,6 +217,7 @@ redis-cli PUBLISH settings scooter.speed_limit
 ```
 
 The service:
+
 1. Receives the publish notification
 2. Reads the new value from Redis
 3. Parses the section and key (e.g., "scooter" and "speed_limit")
@@ -216,6 +227,7 @@ The service:
 #### TOML to Redis Sync (Startup Only)
 
 On startup, if `/data/settings.toml` exists:
+
 1. Entire file is read
 2. All sections and keys are converted to Redis format
 3. Redis `settings` hash is flushed
@@ -231,6 +243,7 @@ On startup, the service publishes the raw schema JSON to this string key so othe
 #### APN Special Handling
 
 When `cellular.apn` is updated:
+
 1. TOML file is updated (normal behavior)
 2. Service checks if `/etc/NetworkManager/system-connections/wwan.nmconnection` exists
 3. If exists:
@@ -244,6 +257,7 @@ When `cellular.apn` is updated:
 #### Empty Config Handling
 
 If the TOML file is missing or empty:
+
 - The Redis `settings` hash is populated from the schema defaults alone
 - There is no special-case handling for an empty `[scooter]` section
 - Services see the schema defaults, not an empty hash
@@ -268,6 +282,7 @@ PersistentKeepalive = 25
 ```
 
 **Management process:**
+
 1. On startup: Service deletes all existing WireGuard connections
 2. Waits for internet connectivity (event-driven; falls back to 120s timeout)
 3. Scans `/data/wireguard/` for `*.conf` files
@@ -385,6 +400,7 @@ WantedBy=multi-user.target
 ## Log Output
 
 The service logs to stdout/stderr (captured by systemd):
+
 - TOML file read/write operations
 - Redis synchronization events
 - APN configuration updates
@@ -409,6 +425,7 @@ All LibreScoot services can use the settings system:
 - **modem-service**: APN is configured via NetworkManager
 
 Services should:
+
 1. Subscribe to `settings` channel
 2. Read from `settings` hash when notified
 3. Apply new settings immediately
