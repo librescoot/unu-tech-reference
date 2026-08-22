@@ -1,0 +1,3369 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Hardware and software reference for the Librescoot electric scooter platform">
+      
+      
+      
+        <link rel="canonical" href="https://reference.librescoot.org/v1.2.0/service-interactions/">
+      
+      
+        <link rel="prev" href="../services/">
+      
+      
+        <link rel="next" href="../services/librescoot-alarm/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="zensical-0.0.57">
+    
+    
+      
+        <title>Librescoot Service Interaction Map - Librescoot Tech Reference</title>
+      
+    
+    
+      
+        
+      
+      <link rel="stylesheet" href="../assets/stylesheets/modern/main.5da3a30f.min.css">
+      
+        
+          
+        
+        <link rel="stylesheet" href="../assets/stylesheets/modern/palette.812a03bb.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter:300,300i,400,400i,500,500i,700,700i%7CJetBrains+Mono:400,400i,700,700i&amp;display=fallback">
+        <style>:root{--md-text-font:"Inter";--md-code-font:"JetBrains Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../stylesheets/extra.css">
+    
+    <script>__md_scope=new URL("..",location),__md_scope.pathname.endsWith("/")||(__md_scope=new URL(__md_scope.pathname+"/",location)),__md_hash=e=>[...e].reduce(((e,t)=>(e<<5)-e+t.charCodeAt(0)),0),__md_get=(e,t=localStorage,_=__md_scope)=>JSON.parse(t.getItem(_.pathname+"."+e)),__md_set=(e,t,_=localStorage,a=__md_scope)=>{try{_.setItem(a.pathname+"."+e,JSON.stringify(t))}catch(e){}},document.documentElement.setAttribute("data-platform",navigator.platform)</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="slate" data-md-color-primary="custom" data-md-color-accent="cyan">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer" aria-label="Navigation"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#librescoot-service-interaction-map" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+      <div data-md-color-scheme="default" data-md-component="outdated" hidden>
+        
+      </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="./.." title="Librescoot Tech Reference" class="md-header__button md-logo" aria-label="Librescoot Tech Reference" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-book-open" viewBox="0 0 24 24"><path d="M12 5v16M20.001 19A2 2 0 0 0 22 17V5a2 2 0 0 0-1.999-2L16 3.002A5 5 0 0 0 12 5a5 5 0 0 0-4-2H4a2 2 0 0 0-2 2v12a2 2 0 0 0 1.999 2H8a5 5 0 0 1 4 2 5 5 0 0 1 4-2z"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer" aria-label="Navigation">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-menu" viewBox="0 0 24 24"><path d="M4 5h16M4 12h16M4 19h16"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Librescoot Tech Reference
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Librescoot Service Interaction Map
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="none" data-md-color-scheme="slate" data-md-color-primary="custom" data-md-color-accent="cyan"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="none" data-md-color-scheme="default" data-md-color-primary="custom" data-md-color-accent="cyan"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-moon" viewBox="0 0 24 24"><path d="M20.985 12.486a9 9 0 1 1-9.473-9.472c.405-.022.617.46.402.803a6 6 0 0 0 8.268 8.268c.344-.215.825-.004.803.401"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search" aria-label="Search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-search" viewBox="0 0 24 24"><path d="m21 21-4.34-4.34"/><circle cx="11" cy="11" r="8"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog" aria-label="Search">
+  <button type="button" class="md-search__button">
+    Search
+  </button>
+</div>
+      
+    
+    <div class="md-header__source">
+      
+        <a href="https://github.com/librescoot/unu-tech-reference" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.3.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2026 Fonticons, Inc.--><path fill="currentColor" d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    librescoot/unu-tech-reference
+  </div>
+</a>
+      
+    </div>
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="./.." title="Librescoot Tech Reference" class="md-nav__button md-logo" aria-label="Librescoot Tech Reference" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-book-open" viewBox="0 0 24 24"><path d="M12 5v16M20.001 19A2 2 0 0 0 22 17V5a2 2 0 0 0-1.999-2L16 3.002A5 5 0 0 0 12 5a5 5 0 0 0-4-2H4a2 2 0 0 0-2 2v12a2 2 0 0 0 1.999 2H8a5 5 0 0 1 4 2 5 5 0 0 1 4-2z"/></svg>
+
+    </a>
+    Librescoot Tech Reference
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/librescoot/unu-tech-reference" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.3.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2026 Fonticons, Inc.--><path fill="currentColor" d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    librescoot/unu-tech-reference
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="./.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Home
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../electronic/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Hardware
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_2" id="__nav_2_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+  Hardware
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../mechanical/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Mechanical
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../wiring/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Wiring & Connectors
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../battery/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Power
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_3" id="__nav_3_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+  Power
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../battery-charger/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Battery Charger
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../bluetooth/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Communication
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_4" id="__nav_4_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+  Communication
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../bluetooth/ota-transfer/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  BLE OTA Transfer
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../redis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Redis
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../nrf/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  nRF52840
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../nrf/UART/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  UART Protocol
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../nrf/power-management/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Power Management
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" checked>
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../states/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Software
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_5" id="__nav_5_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+  Software
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../services/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Services
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Service Interactions
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="././" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Service Interactions
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+
+<nav class="md-nav md-nav--secondary" aria-label="On this page">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      On this page
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#architecture-overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Architecture Overview
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#per-service-detail" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Per-Service Detail
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Per-Service Detail">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#vehicle-service" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        vehicle-service
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#battery-service" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        battery-service
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ecu-service" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        ecu-service
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#keycard-service" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        keycard-service
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#bluetooth-service" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        bluetooth-service
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pm-service" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        pm-service
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#update-service" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        update-service
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#modem-service" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        modem-service
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#version-service" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        version-service
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#settings-service" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        settings-service
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#alarm-service" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        alarm-service
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dbc-backlight-service" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        dbc-backlight-service
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#scootui-flutter-dashboard" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        scootui (Flutter dashboard)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#uplink-service" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        uplink-service
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ums-service" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        ums-service
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#lsc-cli-tool" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        lsc (CLI tool)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#complete-redis-key-inventory" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Complete Redis Key Inventory
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Complete Redis Key Inventory">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#hash-keys" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Hash Keys
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#set-keys" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Set Keys
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#stream-keys" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Stream Keys
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#list-keys-command-queues" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        List Keys (Command Queues)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#identified-gaps-and-issues" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Identified Gaps and Issues
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Identified Gaps and Issues">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#gap-1-ecu-service-publishes-to-wrong-channel-names-critical-bug" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        GAP-1: ecu-service publishes to wrong channel names (Critical Bug)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#gap-2-settings-service-does-not-publish-when-loading-settings-at-boot-high-bug" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        GAP-2: settings-service does not PUBLISH when loading settings at boot (High Bug)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#gap-3-version-service-writes-to-os-release-but-no-service-reads-it-normal" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        GAP-3: version-service writes to <code>os-release</code> but no service reads it (Normal)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#gap-4-versioncomponent-hash-written-by-nobody-read-by-update-service-normal" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        GAP-4: <code>version:&lt;component&gt;</code> hash written by nobody, read by update-service (Normal)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#gap-5-eventsfaults-stream-is-written-correctly-but-consumed-incorrectly-normal" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        GAP-5: <code>events:faults</code> stream is written correctly but consumed incorrectly (Normal)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#gap-6-battery-service-subscribes-to-vehicle-channel-but-misses-seatboxopened-event-normal" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        GAP-6: battery-service subscribes to <code>vehicle</code> channel but misses <code>seatbox:opened</code> event (Normal)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#gap-7-pm-service-reads-battery0-only-ignores-battery1-state-normal" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        GAP-7: pm-service reads <code>battery:0</code> only — ignores battery:1 state (Normal)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#gap-8-startup-race-vehicle-service-subscribes-after-reading-initial-dashboard-state-low" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        GAP-8: Startup race — vehicle-service subscribes after reading initial dashboard state (Low)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#gap-9-ecu-service-uses-go-redis-v8-all-others-use-v9-low" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        GAP-9: ecu-service uses go-redis v8, all others use v9 (Low)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#gap-10-system-hash-has-two-conflicting-writers-for-cpugovernor-low" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        GAP-10: <code>system</code> hash has two conflicting writers for <code>cpu:governor</code> (Low)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#gap-11-keycard-hash-has-10s-ttl-no-consumer-handles-key-expiry-low" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        GAP-11: keycard hash has 10s TTL — no consumer handles key expiry (Low)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#summary-of-critical-issues" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Summary of Critical Issues
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../services/librescoot-alarm/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  alarm-service
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../services/librescoot-battery/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  battery-service
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../services/librescoot-bluetooth/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  bluetooth-service
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../services/librescoot-ecu/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  ecu-service
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../services/librescoot-keycard/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  keycard-service
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../services/librescoot-modem/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  modem-service
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../services/librescoot-motion/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  motion-service
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../services/librescoot-pm/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  pm-service
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../services/librescoot-scootui/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  scootui-qt
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../services/librescoot-settings/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  settings-service
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../services/librescoot-ums/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  ums-service
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../services/librescoot-update/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  update-service
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../services/librescoot-vehicle/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  vehicle-service
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../dashboard/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Dashboard
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../dashboard/REDIS/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Dashboard Redis
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Tools
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+  Tools
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tools/lsc/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  lsc CLI
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  
+                    
+                    
+                    
+                      
+                    
+                    
+                      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+                      <div class="md-sidebar-button__wrapper">
+                        <label class="md-sidebar-button" for="__toc"></label>
+                      </div>
+                    
+                  
+                  <div class="md-sidebar__inner">
+                    
+
+
+<nav class="md-nav md-nav--secondary" aria-label="On this page">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      On this page
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#architecture-overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Architecture Overview
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#per-service-detail" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Per-Service Detail
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Per-Service Detail">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#vehicle-service" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        vehicle-service
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#battery-service" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        battery-service
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ecu-service" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        ecu-service
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#keycard-service" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        keycard-service
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#bluetooth-service" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        bluetooth-service
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pm-service" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        pm-service
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#update-service" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        update-service
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#modem-service" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        modem-service
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#version-service" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        version-service
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#settings-service" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        settings-service
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#alarm-service" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        alarm-service
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dbc-backlight-service" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        dbc-backlight-service
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#scootui-flutter-dashboard" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        scootui (Flutter dashboard)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#uplink-service" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        uplink-service
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ums-service" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        ums-service
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#lsc-cli-tool" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        lsc (CLI tool)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#complete-redis-key-inventory" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Complete Redis Key Inventory
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Complete Redis Key Inventory">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#hash-keys" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Hash Keys
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#set-keys" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Set Keys
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#stream-keys" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Stream Keys
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#list-keys-command-queues" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        List Keys (Command Queues)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#identified-gaps-and-issues" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Identified Gaps and Issues
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Identified Gaps and Issues">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#gap-1-ecu-service-publishes-to-wrong-channel-names-critical-bug" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        GAP-1: ecu-service publishes to wrong channel names (Critical Bug)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#gap-2-settings-service-does-not-publish-when-loading-settings-at-boot-high-bug" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        GAP-2: settings-service does not PUBLISH when loading settings at boot (High Bug)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#gap-3-version-service-writes-to-os-release-but-no-service-reads-it-normal" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        GAP-3: version-service writes to <code>os-release</code> but no service reads it (Normal)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#gap-4-versioncomponent-hash-written-by-nobody-read-by-update-service-normal" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        GAP-4: <code>version:&lt;component&gt;</code> hash written by nobody, read by update-service (Normal)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#gap-5-eventsfaults-stream-is-written-correctly-but-consumed-incorrectly-normal" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        GAP-5: <code>events:faults</code> stream is written correctly but consumed incorrectly (Normal)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#gap-6-battery-service-subscribes-to-vehicle-channel-but-misses-seatboxopened-event-normal" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        GAP-6: battery-service subscribes to <code>vehicle</code> channel but misses <code>seatbox:opened</code> event (Normal)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#gap-7-pm-service-reads-battery0-only-ignores-battery1-state-normal" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        GAP-7: pm-service reads <code>battery:0</code> only — ignores battery:1 state (Normal)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#gap-8-startup-race-vehicle-service-subscribes-after-reading-initial-dashboard-state-low" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        GAP-8: Startup race — vehicle-service subscribes after reading initial dashboard state (Low)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#gap-9-ecu-service-uses-go-redis-v8-all-others-use-v9-low" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        GAP-9: ecu-service uses go-redis v8, all others use v9 (Low)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#gap-10-system-hash-has-two-conflicting-writers-for-cpugovernor-low" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        GAP-10: <code>system</code> hash has two conflicting writers for <code>cpu:governor</code> (Low)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#gap-11-keycard-hash-has-10s-ttl-no-consumer-handles-key-expiry-low" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        GAP-11: keycard hash has 10s TTL — no consumer handles key expiry (Low)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#summary-of-critical-issues" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Summary of Critical Issues
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+                
+
+
+
+  
+
+
+  <nav class="md-path" aria-label="Navigation" >
+    <ol class="md-path__list">
+      
+        
+  
+  
+    <li class="md-path__item">
+      <a href="./.." class="md-path__link">
+        
+  
+  <span class="md-ellipsis">
+    Home
+  </span>
+
+      </a>
+    </li>
+  
+
+      
+      
+        
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+    
+      <li class="md-path__item">
+        <a href="../states/" class="md-path__link">
+          
+  
+  <span class="md-ellipsis">
+    Software
+  </span>
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ol>
+  </nav>
+
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+  
+    <a href="https://github.com/librescoot/unu-tech-reference/edit/master/docs/service-interactions.md" title="Edit this page" class="md-content__button md-icon" rel="edit">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-file-pen" viewBox="0 0 24 24"><path d="M12.659 22H18a2 2 0 0 0 2-2V8a2.4 2.4 0 0 0-.706-1.706l-3.588-3.588A2.4 2.4 0 0 0 14 2H6a2 2 0 0 0-2 2v9.34"/><path d="M14 2v5a1 1 0 0 0 1 1h5M10.378 12.622a1 1 0 0 1 3 3.003L8.36 20.637a2 2 0 0 1-.854.506l-2.867.837a.5.5 0 0 1-.62-.62l.836-2.869a2 2 0 0 1 .506-.853z"/></svg>
+    </a>
+  
+  
+
+
+<h1 id="librescoot-service-interaction-map">Librescoot Service Interaction Map<a class="headerlink" href="#librescoot-service-interaction-map" title="Permanent link">&para;</a></h1>
+<p>Generated from source analysis of all service repositories.</p>
+<h2 id="architecture-overview">Architecture Overview<a class="headerlink" href="#architecture-overview" title="Permanent link">&para;</a></h2>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>                                    Redis (192.168.7.1:6379)
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>                                    ========================
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>                    Hashes (state storage + pub/sub notification)
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>                    ─────────────────────────────────────────────
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a> vehicle-service ──writes──&gt; vehicle, system, ota, dashboard, buttons, vehicle:fault, events:faults
+</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a> battery-service ──writes──&gt; battery:0, battery:1, battery:N:fault
+</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a> ecu-service ────writes──&gt; engine-ecu  (WARNING: publishes to broken channels, see gaps)
+</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a> keycard-service ─writes──&gt; keycard  (with 10s TTL)
+</span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a> bluetooth-service writes──&gt; ble, ble:fault, system (mdb-version, nrf-fw-version), engine-ecu (odometer)
+</span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a> pm-service ─────writes──&gt; power-manager, power-manager:busy-services, system (cpu:governor)
+</span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a> modem-service ──writes──&gt; internet, modem, gps, internet:fault, events:faults
+</span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a> dbc-backlight ──writes──&gt; dashboard (backlight, brightness, from the OPT3001)
+</span><span id="__span-0-14"><a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a> alarm-service ──writes──&gt; alarm
+</span><span id="__span-0-15"><a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a> version-service  writes──&gt; os-release  (one-shot at boot, no pub/sub notification)
+</span><span id="__span-0-16"><a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a> settings-service writes──&gt; settings  (WARNING: no PUBLISH on initial load, see gaps)
+</span><span id="__span-0-17"><a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a> update-service ──writes──&gt; ota  (status:*, update-version:*, download-progress:*, etc.)
+</span><span id="__span-0-18"><a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a> ums-service ────writes──&gt; usb
+</span><span id="__span-0-19"><a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a> scootui ────────writes──&gt; dashboard (ready, serial-number)
+</span><span id="__span-0-20"><a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a>
+</span><span id="__span-0-21"><a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a>                    Lists (command queues, LPUSH/BRPOP)
+</span><span id="__span-0-22"><a id="__codelineno-0-22" name="__codelineno-0-22" href="#__codelineno-0-22"></a>                    ────────────────────────────────────
+</span><span id="__span-0-23"><a id="__codelineno-0-23" name="__codelineno-0-23" href="#__codelineno-0-23"></a> scooter:state   ── vehicle-service reads ── lsc, scootui, uplink-service, alarm-service write
+</span><span id="__span-0-24"><a id="__codelineno-0-24" name="__codelineno-0-24" href="#__codelineno-0-24"></a> scooter:seatbox ── vehicle-service reads ── lsc, scootui, uplink-service write
+</span><span id="__span-0-25"><a id="__codelineno-0-25" name="__codelineno-0-25" href="#__codelineno-0-25"></a> scooter:horn    ── vehicle-service reads ── lsc, scootui, uplink-service, alarm-service write
+</span><span id="__span-0-26"><a id="__codelineno-0-26" name="__codelineno-0-26" href="#__codelineno-0-26"></a> scooter:blinker ── vehicle-service reads ── lsc, scootui, uplink-service, alarm-service write
+</span><span id="__span-0-27"><a id="__codelineno-0-27" name="__codelineno-0-27" href="#__codelineno-0-27"></a> scooter:led:cue ── vehicle-service reads ── lsc writes
+</span><span id="__span-0-28"><a id="__codelineno-0-28" name="__codelineno-0-28" href="#__codelineno-0-28"></a> scooter:led:fade── vehicle-service reads ── lsc writes
+</span><span id="__span-0-29"><a id="__codelineno-0-29" name="__codelineno-0-29" href="#__codelineno-0-29"></a> scooter:update  ── vehicle-service reads ── update-service writes (start-dbc, complete-dbc)
+</span><span id="__span-0-30"><a id="__codelineno-0-30" name="__codelineno-0-30" href="#__codelineno-0-30"></a> scooter:hardware── vehicle-service reads ── lsc, scootui, uplink-service write
+</span><span id="__span-0-31"><a id="__codelineno-0-31" name="__codelineno-0-31" href="#__codelineno-0-31"></a> scooter:power   ── pm-service reads      ── lsc, update-service, uplink-service write
+</span><span id="__span-0-32"><a id="__codelineno-0-32" name="__codelineno-0-32" href="#__codelineno-0-32"></a> scooter:governor── pm-service reads      ── vehicle-service writes
+</span><span id="__span-0-33"><a id="__codelineno-0-33" name="__codelineno-0-33" href="#__codelineno-0-33"></a> scooter:modem   ── modem-service reads   ── pm-service writes ("disable")
+</span><span id="__span-0-34"><a id="__codelineno-0-34" name="__codelineno-0-34" href="#__codelineno-0-34"></a> scooter:bluetooth─ bluetooth-service reads─ (firmware-update and BLE commands)
+</span><span id="__span-0-35"><a id="__codelineno-0-35" name="__codelineno-0-35" href="#__codelineno-0-35"></a> scooter:alarm   ── alarm-service reads   ── lsc writes
+</span><span id="__span-0-36"><a id="__codelineno-0-36" name="__codelineno-0-36" href="#__codelineno-0-36"></a> settings:overlay── settings-service reads ── lsc writes (apply:service, clear:service)
+</span><span id="__span-0-37"><a id="__codelineno-0-37" name="__codelineno-0-37" href="#__codelineno-0-37"></a> scooter:update:&lt;component&gt; ── update-service reads ── update-service writes (check-now)
+</span><span id="__span-0-38"><a id="__codelineno-0-38" name="__codelineno-0-38" href="#__codelineno-0-38"></a> power:inhibits  ── pm-service inhibitor redis listener reads ── (external inhibitors write)
+</span><span id="__span-0-39"><a id="__codelineno-0-39" name="__codelineno-0-39" href="#__codelineno-0-39"></a>
+</span><span id="__span-0-40"><a id="__codelineno-0-40" name="__codelineno-0-40" href="#__codelineno-0-40"></a>                    Pub/Sub channels (notifications only; consumers HGET after receiving)
+</span><span id="__span-0-41"><a id="__codelineno-0-41" name="__codelineno-0-41" href="#__codelineno-0-41"></a>                    ──────────────────────────────────────────────────────────────────────
+</span><span id="__span-0-42"><a id="__codelineno-0-42" name="__codelineno-0-42" href="#__codelineno-0-42"></a> vehicle       ← published by vehicle-service (payload = field name changed)
+</span><span id="__span-0-43"><a id="__codelineno-0-43" name="__codelineno-0-43" href="#__codelineno-0-43"></a> battery:0     ← published by battery-service (payload = field name or "fault")
+</span><span id="__span-0-44"><a id="__codelineno-0-44" name="__codelineno-0-44" href="#__codelineno-0-44"></a> battery:1     ← published by battery-service
+</span><span id="__span-0-45"><a id="__codelineno-0-45" name="__codelineno-0-45" href="#__codelineno-0-45"></a> engine-ecu    ← published by bluetooth-service (odometer), NOT by ecu-service (see gaps)
+</span><span id="__span-0-46"><a id="__codelineno-0-46" name="__codelineno-0-46" href="#__codelineno-0-46"></a> keycard       ← published by keycard-service
+</span><span id="__span-0-47"><a id="__codelineno-0-47" name="__codelineno-0-47" href="#__codelineno-0-47"></a> dashboard     ← published by scootui (ready, serial-number, backlight-enabled), dbc-backlight
+</span><span id="__span-0-48"><a id="__codelineno-0-48" name="__codelineno-0-48" href="#__codelineno-0-48"></a> power-manager ← published by pm-service
+</span><span id="__span-0-49"><a id="__codelineno-0-49" name="__codelineno-0-49" href="#__codelineno-0-49"></a> system        ← published by vehicle-service (cpu:governor), bluetooth-service (mdb-version, nrf-fw-version)
+</span><span id="__span-0-50"><a id="__codelineno-0-50" name="__codelineno-0-50" href="#__codelineno-0-50"></a> ota           ← published by update-service
+</span><span id="__span-0-51"><a id="__codelineno-0-51" name="__codelineno-0-51" href="#__codelineno-0-51"></a> internet      ← published by modem-service
+</span><span id="__span-0-52"><a id="__codelineno-0-52" name="__codelineno-0-52" href="#__codelineno-0-52"></a> modem         ← published by modem-service
+</span><span id="__span-0-53"><a id="__codelineno-0-53" name="__codelineno-0-53" href="#__codelineno-0-53"></a> gps           ← published by modem-service
+</span><span id="__span-0-54"><a id="__codelineno-0-54" name="__codelineno-0-54" href="#__codelineno-0-54"></a> alarm         ← published by alarm-service
+</span><span id="__span-0-55"><a id="__codelineno-0-55" name="__codelineno-0-55" href="#__codelineno-0-55"></a> ble           ← published by bluetooth-service
+</span><span id="__span-0-56"><a id="__codelineno-0-56" name="__codelineno-0-56" href="#__codelineno-0-56"></a> usb           ← published by ums-service
+</span><span id="__span-0-57"><a id="__codelineno-0-57" name="__codelineno-0-57" href="#__codelineno-0-57"></a> settings      ← published externally (scootui, UMS updates); NOT by settings-service on load
+</span><span id="__span-0-58"><a id="__codelineno-0-58" name="__codelineno-0-58" href="#__codelineno-0-58"></a> motion:sensors    ← published by motion-service (10 Hz IMU stream)
+</span><span id="__span-0-59"><a id="__codelineno-0-59" name="__codelineno-0-59" href="#__codelineno-0-59"></a> motion:heading    ← published by motion-service (5 Hz tilt-compensated mag heading)
+</span><span id="__span-0-60"><a id="__codelineno-0-60" name="__codelineno-0-60" href="#__codelineno-0-60"></a> motion:interrupt  ← published by motion-service (motion-engine edges + wake-hibernation)
+</span><span id="__span-0-61"><a id="__codelineno-0-61" name="__codelineno-0-61" href="#__codelineno-0-61"></a> motion:ready      ← published by motion-service on startup
+</span><span id="__span-0-62"><a id="__codelineno-0-62" name="__codelineno-0-62" href="#__codelineno-0-62"></a> motion:rpc        ← request channel for motion-service RPC (alarm-service Calls prepare-hibernation)
+</span><span id="__span-0-63"><a id="__codelineno-0-63" name="__codelineno-0-63" href="#__codelineno-0-63"></a> buttons           ← published by vehicle-service (physical button events)
+</span><span id="__span-0-64"><a id="__codelineno-0-64" name="__codelineno-0-64" href="#__codelineno-0-64"></a>
+</span><span id="__span-0-65"><a id="__codelineno-0-65" name="__codelineno-0-65" href="#__codelineno-0-65"></a>                    Sets (fault tracking)
+</span><span id="__span-0-66"><a id="__codelineno-0-66" name="__codelineno-0-66" href="#__codelineno-0-66"></a>                    ─────────────────────
+</span><span id="__span-0-67"><a id="__codelineno-0-67" name="__codelineno-0-67" href="#__codelineno-0-67"></a> vehicle:fault  ── written by vehicle-service
+</span><span id="__span-0-68"><a id="__codelineno-0-68" name="__codelineno-0-68" href="#__codelineno-0-68"></a> battery:0:fault── written by battery-service
+</span><span id="__span-0-69"><a id="__codelineno-0-69" name="__codelineno-0-69" href="#__codelineno-0-69"></a> battery:1:fault── written by battery-service
+</span><span id="__span-0-70"><a id="__codelineno-0-70" name="__codelineno-0-70" href="#__codelineno-0-70"></a> internet:fault ── written by modem-service
+</span><span id="__span-0-71"><a id="__codelineno-0-71" name="__codelineno-0-71" href="#__codelineno-0-71"></a> ble:fault      ── written by bluetooth-service
+</span><span id="__span-0-72"><a id="__codelineno-0-72" name="__codelineno-0-72" href="#__codelineno-0-72"></a>
+</span><span id="__span-0-73"><a id="__codelineno-0-73" name="__codelineno-0-73" href="#__codelineno-0-73"></a>                    Streams (event log)
+</span><span id="__span-0-74"><a id="__codelineno-0-74" name="__codelineno-0-74" href="#__codelineno-0-74"></a>                    ───────────────────
+</span><span id="__span-0-75"><a id="__codelineno-0-75" name="__codelineno-0-75" href="#__codelineno-0-75"></a> events:faults  ── written by vehicle-service, modem-service; read by uplink-service (HGetAll)
+</span></code></pre></div>
+<h2 id="per-service-detail">Per-Service Detail<a class="headerlink" href="#per-service-detail" title="Permanent link">&para;</a></h2>
+<h3 id="vehicle-service">vehicle-service<a class="headerlink" href="#vehicle-service" title="Permanent link">&para;</a></h3>
+<p><strong>Writes (hash → pub/sub channel):</strong>
+| Hash | Fields | Channel |
+|------|--------|---------|
+| <code>vehicle</code> | <code>state</code>, <code>state:timestamp</code>, <code>blinker:switch</code>, <code>blinker:state</code>, <code>brake:left</code>, <code>brake:right</code>, <code>seatbox:lock</code>, <code>kickstand</code>, <code>handlebar:lock-sensor</code>, <code>handlebar:position</code>, <code>dashboard:power</code>, <code>dbc-updating</code>, <code>update:status</code>, <code>auto-standby-remaining</code> (deprecated), <code>auto-standby-deadline</code> | <code>vehicle</code> |
+| <code>system</code> | <code>cpu:governor</code> | <code>system</code> |
+| <code>ota</code> | <code>standby-timer-start</code> | <code>ota</code> |
+| <code>dashboard</code> | <code>ready</code> (deletes on standby) | <code>dashboard</code> |
+| <code>buttons</code> | <code>horn:on</code>, <code>horn:off</code>, <code>seatbox:on</code>, <code>seatbox:off</code> | <code>buttons</code> |
+| <code>vehicle:fault</code> | fault codes (Redis Set) | <code>vehicle</code> (payload: "fault") |
+| <code>events:faults</code> | fault events (Redis Stream) | — |</p>
+<p><strong>Reads:</strong>
+- <code>vehicle/state</code> (self-reads for restart recovery)
+- <code>vehicle/dbc-updating</code>, <code>vehicle/dashboard:power</code> (self-reads)
+- <code>dashboard/ready</code> (from scootui)
+- <code>keycard/authentication</code> (from keycard-service)
+- <code>settings/*</code> (any field, for scooter.*, alarm settings via watch)
+- <code>ota/status:mdb</code>, <code>ota/status:dbc</code> (checks OTA status on update commands)
+- <code>ota/standby-timer-start</code> (indirectly via update-service)</p>
+<p><strong>Consumes queues (BRPOP):</strong>
+- <code>scooter:state</code> → "unlock", "lock", "lock-hibernate", "force-lock"
+- <code>scooter:seatbox</code> → "open"
+- <code>scooter:horn</code> → "on", "off"
+- <code>scooter:blinker</code> → "off", "left", "right", "both"
+- <code>scooter:led:cue</code> → integer cue index
+- <code>scooter:led:fade</code> → "channel:index" string
+- <code>scooter:update</code> → "start", "complete", "start-dbc", "complete-dbc"
+- <code>scooter:hardware</code> → "dashboard:on", "dashboard:off", "engine:on", "engine:off", "handlebar:lock", "handlebar:unlock" (and :force variants)</p>
+<p><strong>DBC update power hold.</strong> <code>start-dbc</code> makes vehicle-service keep dashboard power up and
+defer the power cut that entering stand-by would normally perform, until <code>complete-dbc</code>
+arrives. A single watchdog bounds that hold: it expires 15 minutes after the last change to any
+<code>ota</code> hash field ending in <code>:dbc</code>, and then clears the stuck state. There is no
+heartbeat-driven short timeout in this release.</p>
+<p><strong>Produces queues (LPUSH):</strong>
+- <code>scooter:governor</code> → "ondemand"/"powersave" (send to pm-service via intermediate; actually uses its own queue handler — see note)</p>
+<p><strong>Hardware access:</strong> GPIO via <code>/dev/gpiochip*</code>, PWM LED via kernel driver</p>
+<hr />
+<h3 id="battery-service">battery-service<a class="headerlink" href="#battery-service" title="Permanent link">&para;</a></h3>
+<p><strong>Writes:</strong>
+| Hash | Fields | Channel |
+|------|--------|---------|
+| <code>battery:0</code> | <code>present</code>, <code>state</code>, <code>voltage</code>, <code>current</code>, <code>charge</code>, <code>temperature:0</code>–<code>3</code>, <code>temperature-state</code>, <code>cycle-count</code>, <code>state-of-health</code>, <code>serial-number</code>, <code>manufacturing-date</code>, <code>fw-version</code> | <code>battery:0</code> (on change: <code>present</code>, <code>state</code>, <code>charge</code>, <code>temperature-state</code>, <code>fault</code>) |
+| <code>battery:1</code> | same fields | <code>battery:1</code> |
+| <code>battery:N:fault</code> | fault codes (Redis Set) | <code>battery:N</code> (payload: "fault") |</p>
+<p><strong>Reads:</strong>
+- <code>vehicle/state</code> (vehicle state for active/standby mode)
+- <code>vehicle/seatbox:lock</code> (seatbox state for enabling battery readers)
+- <code>settings/scooter.battery-keep-active-on-seatbox-open</code>
+- <code>settings/scooter.dual-battery</code></p>
+<p><strong>Subscribes to:</strong>
+- <code>vehicle</code> channel (payload: "state", "seatbox:lock")
+- <code>settings</code> channel (payload: "scooter.battery-keep-active-on-seatbox-open", "scooter.dual-battery")</p>
+<p><strong>Hardware access:</strong> NFC via <code>/dev/i2c-*</code>, PN7150 controller</p>
+<hr />
+<h3 id="ecu-service">ecu-service<a class="headerlink" href="#ecu-service" title="Permanent link">&para;</a></h3>
+<p><strong>Writes:</strong>
+| Hash | Fields | Channel |
+|------|--------|---------|
+| <code>engine-ecu</code> | <code>motor:voltage</code>, <code>motor:current</code>, <code>rpm</code>, <code>speed</code>, <code>raw-speed</code>, <code>throttle</code>, <code>brake</code>, <code>power</code>, <code>energy:consumed</code>, <code>energy:recovered</code> | (broken: see gaps) |
+| <code>engine-ecu</code> | <code>temperature</code>, <code>fault:code</code>, <code>fault:description</code> | (no publish) |
+| <code>engine-ecu</code> | <code>odometer</code> | (broken: see gaps) |
+| <code>engine-ecu</code> | <code>kers</code>, <code>boost</code> | (broken: see gaps) |
+| <code>engine-ecu</code> | <code>kers-reason-off</code> | (broken: see gaps) |
+| <code>engine-ecu</code> | <code>gear</code>, <code>fw-version</code> | (no publish) |</p>
+<p><strong>Reads:</strong>
+- <code>vehicle/state</code> (for engine ready state)
+- <code>battery:0/state</code>, <code>battery:0/temperature-state</code>
+- <code>battery:1/state</code>, <code>battery:1/temperature-state</code>
+- <code>settings/engine-ecu.boost</code></p>
+<p><strong>Subscribes to:</strong>
+- <code>vehicle</code> channel (payload: "state")
+- <code>battery:0</code>, <code>battery:1</code> channels (all fields → HGETALL)
+- <code>settings</code> channel (payload: "engine-ecu.boost")</p>
+<p><strong>Hardware access:</strong> CAN bus via <code>/dev/can*</code></p>
+<hr />
+<h3 id="keycard-service">keycard-service<a class="headerlink" href="#keycard-service" title="Permanent link">&para;</a></h3>
+<p><strong>Writes:</strong>
+| Hash | Fields | Channel |
+|------|--------|---------|
+| <code>keycard</code> | <code>authentication</code> ("passed"), <code>type</code> ("scooter"), <code>uid</code> | <code>keycard</code> (payload: "authentication") |</p>
+<p>Note: Sets 10-second TTL on <code>keycard</code> hash after publish.</p>
+<p><strong>Reads:</strong> None (hardware-driven)</p>
+<p><strong>Hardware access:</strong> NFC via PN7150, I2C LED controller LP5562</p>
+<hr />
+<h3 id="bluetooth-service">bluetooth-service<a class="headerlink" href="#bluetooth-service" title="Permanent link">&para;</a></h3>
+<p><strong>Writes:</strong>
+| Hash | Fields | Channel |
+|------|--------|---------|
+| <code>system</code> | <code>mdb-version</code> (from nRF), <code>nrf-fw-version</code> | <code>system</code> |
+| <code>engine-ecu</code> | <code>odometer</code> (from nRF) | <code>engine-ecu</code> |
+| <code>ble</code> | status fields, <code>pin-code</code>, <code>firmware-update-status</code> | <code>ble</code> |
+| <code>ble:fault</code> | fault codes (Redis Set) | <code>ble</code> (payload: "fault") |</p>
+<p><strong>Reads:</strong>
+- <code>vehicle/state</code>, <code>vehicle/seatbox:lock</code>, <code>vehicle/handlebar:lock-sensor</code>
+- <code>battery:0/state</code>, <code>battery:0/present</code>, <code>battery:0/charge</code>, <code>battery:0/cycle-count</code>
+- <code>battery:1/state</code>, <code>battery:1/present</code>, <code>battery:1/charge</code>, <code>battery:1/cycle-count</code>
+- <code>power-manager/state</code>
+- <code>engine-ecu/odometer</code>
+- <code>system/mdb-version</code>
+- <code>ble/pin-code</code></p>
+<p><strong>Subscribes to:</strong>
+- <code>vehicle</code>, <code>battery:0</code>, <code>battery:1</code>, <code>power-manager</code>, <code>engine-ecu</code>, <code>system</code>, <code>ble</code> channels</p>
+<p><strong>Consumes queues:</strong>
+- <code>scooter:bluetooth</code> → BLE commands ("advertising-start-with-whitelisting", "advertising-restart-no-whitelisting", "advertising-stop", "delete-bond", "delete-all-bonds", "remove", "firmware-update")</p>
+<p><strong>Hardware access:</strong> UART via usock to nRF52 at <code>/var/run/bluetooth-service.sock</code> or similar</p>
+<hr />
+<h3 id="pm-service">pm-service<a class="headerlink" href="#pm-service" title="Permanent link">&para;</a></h3>
+<p><strong>Writes:</strong>
+| Hash | Fields | Channel |
+|------|--------|---------|
+| <code>power-manager</code> | <code>state</code> ("running", "suspending", "hibernating", etc.), <code>wakeup-source</code> | <code>power-manager</code> |
+| <code>power-manager:busy-services</code> | inhibitor entries (field = "who why what", value = type) | <code>power-manager:busy-services</code> (payload: "replaced"/"cleared") |
+| <code>system</code> | <code>cpu:governor</code> | <code>system</code> |</p>
+<p><strong>Reads:</strong>
+- <code>vehicle/state</code> (watches for standby/parked/ready-to-drive transitions)
+- <code>battery:0/state</code> (watches for active/inactive)
+- <code>settings/hibernation-timer</code></p>
+<p><strong>Subscribes to:</strong>
+- <code>vehicle</code> channel via HashWatcher
+- <code>battery:0</code> channel via HashWatcher
+- <code>settings</code> channel (for hibernation-timer)
+- <code>power:inhibits</code> hash (inhibitor redis listener)</p>
+<p><strong>Consumes queues:</strong>
+- <code>scooter:power</code> → "run", "suspend", "hibernate", "hibernate-manual", "hibernate-timer", "reboot"
+- <code>scooter:governor</code> → "ondemand", "powersave", "performance"</p>
+<p><strong>Produces queues:</strong>
+- <code>scooter:modem</code> → "disable" (to disable modem before power state change)</p>
+<p><strong>Hardware access:</strong> <code>/sys/power/pm_wakeup_irq</code>, <code>/sys/class/tty/*/power/wakeup</code>, systemd D-Bus</p>
+<hr />
+<h3 id="update-service">update-service<a class="headerlink" href="#update-service" title="Permanent link">&para;</a></h3>
+<p><strong>Writes:</strong>
+| Hash | Fields | Channel |
+|------|--------|---------|
+| <code>ota</code> | <code>status:&lt;component&gt;</code>, <code>update-version:&lt;component&gt;</code>, <code>download-progress:&lt;component&gt;</code>, <code>download-bytes:&lt;component&gt;</code>, <code>download-total:&lt;component&gt;</code>, <code>install-progress:&lt;component&gt;</code>, <code>error:&lt;component&gt;</code>, <code>error-message:&lt;component&gt;</code>, <code>update-method:&lt;component&gt;</code> | <code>ota</code> |
+| <code>settings</code> | <code>updates.&lt;component&gt;.last-check-time</code> | <code>settings</code> |</p>
+<p><strong>Reads:</strong>
+- <code>vehicle/state</code> (watches; state-based update triggering)
+- <code>vehicle/state:timestamp</code> (for standby duration check)
+- <code>ota/standby-timer-start</code> (from vehicle-service, for timing)
+- <code>ota/status:&lt;component&gt;</code> (self-read)
+- <code>ota/update-version:&lt;component&gt;</code>, <code>ota/update-method:&lt;component&gt;</code>
+- <code>version:&lt;component&gt;/version_id</code>, <code>version:&lt;component&gt;/variant_id</code>
+- <code>settings/updates.&lt;component&gt;.method</code>
+- <code>settings/updates.&lt;component&gt;.last-check-time</code></p>
+<p><strong>Subscribes to:</strong>
+- <code>vehicle</code> channel (via HashWatcher)
+- <code>ota</code> channel (via HashWatcher)
+- <code>settings</code> channel (via HashWatcher)</p>
+<p><strong>Consumes queues:</strong>
+- <code>scooter:update:&lt;component&gt;</code> → "check-now"</p>
+<p><strong>Produces queues:</strong>
+- <code>scooter:update</code> → "start-dbc", "complete-dbc" (to vehicle-service)
+- <code>scooter:power</code> → "reboot" (after MDB update)</p>
+<p><strong>External:</strong> GitHub Releases API, Mender</p>
+<hr />
+<h3 id="modem-service">modem-service<a class="headerlink" href="#modem-service" title="Permanent link">&para;</a></h3>
+<p><strong>Writes:</strong>
+| Hash | Fields | Channel |
+|------|--------|---------|
+| <code>internet</code> | connectivity fields | <code>internet</code> |
+| <code>modem</code> | modem status fields | <code>modem</code> |
+| <code>gps</code> | location data (<code>lat</code>, <code>lon</code>, <code>accuracy</code>, <code>speed</code>, <code>heading</code>, <code>altitude</code>, <code>updated</code>, <code>timestamp</code>) | <code>gps</code> (payload: "timestamp" on recovery, no publish on regular update) |
+| <code>internet:fault</code> | fault codes (Redis Set) | <code>internet</code> (payload: "fault") |
+| <code>events:faults</code> | modem fault events (Redis Stream) | — |</p>
+<p><strong>Reads:</strong>
+- <code>vehicle/state</code> (via HashWatcher, for hibernation behavior)</p>
+<p><strong>Consumes queues:</strong>
+- <code>scooter:modem</code> → "disable", "enable"</p>
+<p><strong>Hardware access:</strong> ModemManager via D-Bus, GPIO modem power, USB</p>
+<hr />
+<h3 id="version-service">version-service<a class="headerlink" href="#version-service" title="Permanent link">&para;</a></h3>
+<p><strong>Writes (one-shot at boot, no pub/sub publish):</strong>
+| Hash | Fields |
+|------|--------|
+| <code>os-release</code> | All fields from <code>/etc/os-release</code> (lowercase), <code>serial_number</code>, <code>serial_number_real</code> |</p>
+<p>Note: version-service does NOT publish to the <code>os-release</code> channel. It runs once at boot via systemd (Type=oneshot) and exits. The <code>system</code> hash for <code>mdb-version</code> is written by bluetooth-service (from nRF).</p>
+<p><strong>Hardware access:</strong> <code>/sys/bus/nvmem/devices/imx-ocotp0/nvmem</code>, <code>/sys/fsl_otp/HW_OCOTP_CFG0</code>/<code>CFG1</code></p>
+<hr />
+<h3 id="settings-service">settings-service<a class="headerlink" href="#settings-service" title="Permanent link">&para;</a></h3>
+<p><strong>Writes:</strong>
+| Hash | Fields | Channel |
+|------|--------|---------|
+| <code>settings</code> | All TOML fields: <code>scooter.*</code>, <code>cellular.*</code>, <code>updates.*</code>, <code>dashboard.*</code>, <code>alarm.*</code>; overlay-injected values (in-memory only, not persisted); <code>dashboard.service-mode-active</code> status field | NONE (critical gap — see gaps section) |</p>
+<p><strong>Reads:</strong>
+- <code>settings/*</code> (all fields, to save back to TOML)</p>
+<p><strong>Subscribes to:</strong>
+- <code>settings</code> channel (to detect changes and flush to TOML)
+- <code>internet</code> channel (for WireGuard manager)</p>
+<p><strong>Consumes queues (BRPOP):</strong>
+- <code>settings:overlay</code> → <code>apply:service</code>, <code>clear:service</code> — owns the overlay command list; the <code>service</code> overlay fans out to pm-service, vehicle-service, alarm-service, and scootui purely via existing <code>settings</code>-channel reactions</p>
+<p><strong>Hardware access:</strong> <code>/data/settings.toml</code>, NetworkManager D-Bus</p>
+<hr />
+<h3 id="alarm-service">alarm-service<a class="headerlink" href="#alarm-service" title="Permanent link">&para;</a></h3>
+<p><strong>Writes:</strong>
+| Hash | Fields | Channel |
+|------|--------|---------|
+| <code>alarm</code> | <code>status</code> ("disabled", "disarmed", "armed", "level-1-triggered", "level-2-triggered") | <code>alarm</code> |</p>
+<p><strong>Produces queues (LPUSH):</strong>
+- <code>scooter:horn</code> → "on", "off"
+- <code>scooter:blinker</code> → "both", "off"</p>
+<p><strong>Publishes:</strong>
+- <code>alarm</code> hash <code>status</code> field — motion-service watches this and reactively re-derives the BMX055 chip profile</p>
+<p><strong>Calls (synchronous RPC via redis-ipc CallMethod):</strong>
+- <code>motion:rpc/prepare-hibernation</code> — gates pm-service's hibernation entry on motion-service confirming the chip is in armed-hibernation profile</p>
+<p><strong>Reads:</strong>
+- <code>vehicle/state</code> (via HashWatcher)
+- <code>vehicle/seatbox:lock</code> (via HashWatcher)
+- <code>settings/alarm.enabled</code>, <code>settings/alarm.honk</code>, <code>settings/alarm.duration</code>
+- <code>settings/alarm.seatbox-trigger</code>, <code>settings/alarm.hairtrigger</code>, <code>settings/alarm.hairtrigger-duration</code>
+- <code>settings/alarm.l1-cooldown</code>
+- <code>motion/wake-cause</code> (once on startup — durable backstop for wake-from-hibernation indicator)</p>
+<p><strong>Subscribes to:</strong>
+- <code>vehicle</code> channel (state, seatbox:opened event, seatbox:lock)
+- <code>settings</code> channel
+- <code>power-manager</code> channel (state field — drives hibernation handshake)
+- <code>motion:interrupt</code> channel (JSON envelope <code>{type, timestamp, engine}</code>)</p>
+<p><strong>Consumes queues:</strong>
+- <code>scooter:alarm</code> → "enable", "disable", "start:N", "stop"</p>
+<p><strong>Hardware access:</strong> I2C BMX055 accelerometer/gyroscope at <code>/dev/i2c-3</code></p>
+<hr />
+<h3 id="dbc-backlight-service">dbc-backlight-service<a class="headerlink" href="#dbc-backlight-service" title="Permanent link">&para;</a></h3>
+<p><strong>Writes:</strong>
+| Hash | Fields | Channel |
+|------|--------|---------|
+| <code>dashboard</code> | <code>backlight</code> (int 0-10240), <code>brightness</code> (float lux) | <code>dashboard</code> |</p>
+<p><strong>Reads:</strong>
+- <code>dashboard/backlight-enabled</code> (override; absent means enabled)
+- <code>settings/dashboard.backlight-mode</code> (auto, low, medium, high; absent means auto)</p>
+<p><strong>Subscribes:</strong> <code>dashboard</code> (payload <code>backlight-enabled</code>), <code>settings</code> (payload <code>dashboard.backlight-mode</code>)</p>
+<p><strong>Hardware access:</strong> OPT3001 ambient light sensor via IIO, and <code>/sys/class/backlight/backlight/brightness</code></p>
+<p>The service reads the sensor itself; there is no separate illumination service on
+the DBC. It publishes the reading as <code>dashboard/brightness</code> for scootui-qt's auto
+light/dark theme, which is why the field keeps updating even when the backlight is
+overridden off or pinned to a fixed level.</p>
+<hr />
+<h3 id="scootui-flutter-dashboard">scootui (Flutter dashboard)<a class="headerlink" href="#scootui-flutter-dashboard" title="Permanent link">&para;</a></h3>
+<p><strong>Writes:</strong>
+| Hash | Fields | Channel |
+|------|--------|---------|
+| <code>dashboard</code> | <code>ready</code> ("true"), <code>serial-number</code> | <code>dashboard</code> |</p>
+<p><strong>Reads (HGETALL / HGET):</strong>
+- <code>vehicle</code>, <code>battery:0</code>, <code>battery:1</code>, <code>engine-ecu</code>, <code>power-manager</code>, <code>internet</code>, <code>modem</code>, <code>gps</code>, <code>keycard</code>, <code>ble</code>, <code>dashboard</code>, <code>system</code></p>
+<p><strong>Subscribes to (pub/sub):</strong>
+- Multiple channels for real-time updates (subscription details in app UI layers)</p>
+<p><strong>Produces queues (LPUSH):</strong>
+- <code>scooter:state</code> → "lock", "unlock", "lock-hibernate"
+- <code>scooter:seatbox</code> → "open"
+- <code>scooter:horn</code> → "on", "off"
+- <code>scooter:hardware</code> → various
+- (via <code>push()</code> method)</p>
+<p><strong>Publishes:</strong>
+- <code>buttons</code> channel (button events)</p>
+<p><strong>Hardware access:</strong> Display via Flutter framebuffer/DRM backend</p>
+<hr />
+<h3 id="uplink-service">uplink-service<a class="headerlink" href="#uplink-service" title="Permanent link">&para;</a></h3>
+<p><strong>Reads (telemetry, HGETALL):</strong>
+- <code>vehicle</code>, <code>battery:0</code>, <code>battery:1</code>, <code>aux-battery</code>, <code>cb-battery</code>, <code>engine-ecu</code>, <code>power-manager</code>, <code>internet</code>, <code>modem</code>, <code>gps</code>, <code>keycard</code>, <code>ble</code>, <code>dashboard</code>, <code>system</code></p>
+<p><strong>Produces queues (LPUSH) — from remote server commands:</strong>
+- <code>scooter:state</code> → "unlock", "lock", "lock-hibernate", "force-lock"
+- <code>scooter:seatbox</code> → "open"
+- <code>scooter:horn</code> → "on", "off"
+- <code>scooter:blinker</code> → "left", "right", "both", "off"
+- <code>scooter:hardware</code> → "dashboard:on/off", "engine:on/off", "handlebar:lock/unlock"
+- <code>scooter:power</code> → "reboot", "hibernate", "hibernate-manual"</p>
+<hr />
+<h3 id="ums-service">ums-service<a class="headerlink" href="#ums-service" title="Permanent link">&para;</a></h3>
+<p><strong>Writes:</strong>
+| Hash | Fields | Channel |
+|------|--------|---------|
+| <code>usb</code> | <code>mode</code> ("normal", "ums", "ums-by-dbc") | <code>usb</code> |</p>
+<p><strong>Reads:</strong>
+- <code>usb/mode</code> (via HashWatcher, to trigger mode changes)</p>
+<p><strong>Hardware access:</strong> USB gadget via configfs, <code>/data/dbc/</code></p>
+<hr />
+<h3 id="lsc-cli-tool">lsc (CLI tool)<a class="headerlink" href="#lsc-cli-tool" title="Permanent link">&para;</a></h3>
+<p><strong>Reads (HGETALL / HGET):</strong> All state hashes for display</p>
+<p><strong>Produces queues (LPUSH):</strong>
+- <code>scooter:state</code>, <code>scooter:seatbox</code>, <code>scooter:horn</code>, <code>scooter:blinker</code>, <code>scooter:hardware</code>, <code>scooter:power</code>, <code>scooter:alarm</code>, <code>scooter:led:cue</code>, <code>scooter:led:fade</code>, <code>settings:overlay</code> (<code>apply:service</code>, <code>clear:service</code> via <code>lsc service-mode on|off</code>)</p>
+<hr />
+<h2 id="complete-redis-key-inventory">Complete Redis Key Inventory<a class="headerlink" href="#complete-redis-key-inventory" title="Permanent link">&para;</a></h2>
+<h3 id="hash-keys">Hash Keys<a class="headerlink" href="#hash-keys" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>Owner (Writer)</th>
+<th>Primary Readers</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>vehicle</code></td>
+<td>vehicle-service</td>
+<td>battery-service, ecu-service, pm-service, bluetooth-service, modem-service, alarm-service, update-service, uplink-service, scootui, lsc</td>
+</tr>
+<tr>
+<td><code>battery:0</code></td>
+<td>battery-service</td>
+<td>ecu-service, pm-service, bluetooth-service, uplink-service, scootui</td>
+</tr>
+<tr>
+<td><code>battery:1</code></td>
+<td>battery-service</td>
+<td>ecu-service, bluetooth-service, uplink-service, scootui</td>
+</tr>
+<tr>
+<td><code>engine-ecu</code></td>
+<td>ecu-service (data), bluetooth-service (odometer)</td>
+<td>bluetooth-service, uplink-service, scootui</td>
+</tr>
+<tr>
+<td><code>keycard</code></td>
+<td>keycard-service (10s TTL)</td>
+<td>vehicle-service</td>
+</tr>
+<tr>
+<td><code>ble</code></td>
+<td>bluetooth-service</td>
+<td>scootui, uplink-service</td>
+</tr>
+<tr>
+<td><code>dashboard</code></td>
+<td>scootui (ready/serial-number/backlight-enabled), dbc-backlight (backlight/brightness), vehicle-service (backlight-enabled)</td>
+<td>vehicle-service (ready), dbc-backlight (backlight-enabled), scootui (brightness)</td>
+</tr>
+<tr>
+<td><code>power-manager</code></td>
+<td>pm-service</td>
+<td>bluetooth-service, scootui, uplink-service</td>
+</tr>
+<tr>
+<td><code>power-manager:busy-services</code></td>
+<td>pm-service</td>
+<td>monitoring only</td>
+</tr>
+<tr>
+<td><code>system</code></td>
+<td>vehicle-service (cpu:governor), bluetooth-service (mdb-version, nrf-fw-version), pm-service (cpu:governor)</td>
+<td>bluetooth-service, uplink-service, scootui</td>
+</tr>
+<tr>
+<td><code>ota</code></td>
+<td>update-service</td>
+<td>vehicle-service (reads status), update-service (self), scootui</td>
+</tr>
+<tr>
+<td><code>internet</code></td>
+<td>modem-service</td>
+<td>scootui, uplink-service, pm-service</td>
+</tr>
+<tr>
+<td><code>modem</code></td>
+<td>modem-service</td>
+<td>scootui, uplink-service</td>
+</tr>
+<tr>
+<td><code>gps</code></td>
+<td>modem-service</td>
+<td>scootui, uplink-service</td>
+</tr>
+<tr>
+<td><code>alarm</code></td>
+<td>alarm-service</td>
+<td>lsc, monitoring</td>
+</tr>
+<tr>
+<td><code>settings</code></td>
+<td>settings-service (from TOML), update-service (last-check-time)</td>
+<td>vehicle-service, battery-service, ecu-service, alarm-service, pm-service</td>
+</tr>
+<tr>
+<td><code>os-release</code></td>
+<td>version-service (one-shot)</td>
+<td>Nothing (dead key — see gaps)</td>
+</tr>
+<tr>
+<td><code>usb</code></td>
+<td>ums-service</td>
+<td>ums-service (self), scootui</td>
+</tr>
+<tr>
+<td><code>motion</code></td>
+<td>motion-service</td>
+<td>alarm-service (wake-cause), scootui (heading), monitoring</td>
+</tr>
+</tbody>
+</table>
+<h3 id="set-keys">Set Keys<a class="headerlink" href="#set-keys" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>Owner</th>
+<th>Readers</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>vehicle:fault</code></td>
+<td>vehicle-service</td>
+<td>scootui, uplink-service</td>
+</tr>
+<tr>
+<td><code>battery:0:fault</code></td>
+<td>battery-service</td>
+<td>scootui</td>
+</tr>
+<tr>
+<td><code>battery:1:fault</code></td>
+<td>battery-service</td>
+<td>scootui</td>
+</tr>
+<tr>
+<td><code>internet:fault</code></td>
+<td>modem-service</td>
+<td>scootui</td>
+</tr>
+<tr>
+<td><code>ble:fault</code></td>
+<td>bluetooth-service</td>
+<td>scootui</td>
+</tr>
+</tbody>
+</table>
+<h3 id="stream-keys">Stream Keys<a class="headerlink" href="#stream-keys" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>Writers</th>
+<th>Readers</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>events:faults</code></td>
+<td>vehicle-service, modem-service</td>
+<td>uplink-service (via HGetAll — see gaps)</td>
+</tr>
+</tbody>
+</table>
+<h3 id="list-keys-command-queues">List Keys (Command Queues)<a class="headerlink" href="#list-keys-command-queues" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>Consumer</th>
+<th>Producers</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>scooter:state</code></td>
+<td>vehicle-service</td>
+<td>lsc, scootui, uplink-service</td>
+</tr>
+<tr>
+<td><code>scooter:seatbox</code></td>
+<td>vehicle-service</td>
+<td>lsc, scootui, uplink-service</td>
+</tr>
+<tr>
+<td><code>scooter:horn</code></td>
+<td>vehicle-service</td>
+<td>lsc, scootui, uplink-service, alarm-service</td>
+</tr>
+<tr>
+<td><code>scooter:blinker</code></td>
+<td>vehicle-service</td>
+<td>lsc, scootui, uplink-service, alarm-service</td>
+</tr>
+<tr>
+<td><code>scooter:led:cue</code></td>
+<td>vehicle-service</td>
+<td>lsc</td>
+</tr>
+<tr>
+<td><code>scooter:led:fade</code></td>
+<td>vehicle-service</td>
+<td>lsc</td>
+</tr>
+<tr>
+<td><code>scooter:update</code></td>
+<td>vehicle-service</td>
+<td>update-service</td>
+</tr>
+<tr>
+<td><code>scooter:update:&lt;component&gt;</code></td>
+<td>update-service</td>
+<td>update-service (self check-now)</td>
+</tr>
+<tr>
+<td><code>scooter:hardware</code></td>
+<td>vehicle-service</td>
+<td>lsc, scootui, uplink-service</td>
+</tr>
+<tr>
+<td><code>scooter:power</code></td>
+<td>pm-service</td>
+<td>lsc, update-service, uplink-service</td>
+</tr>
+<tr>
+<td><code>scooter:governor</code></td>
+<td>pm-service</td>
+<td>vehicle-service (sends cpu governor changes)</td>
+</tr>
+<tr>
+<td><code>scooter:modem</code></td>
+<td>modem-service</td>
+<td>pm-service</td>
+</tr>
+<tr>
+<td><code>scooter:bluetooth</code></td>
+<td>bluetooth-service</td>
+<td>external/lsc</td>
+</tr>
+<tr>
+<td><code>scooter:alarm</code></td>
+<td>alarm-service</td>
+<td>lsc</td>
+</tr>
+<tr>
+<td><code>settings:overlay</code></td>
+<td>settings-service</td>
+<td>lsc</td>
+</tr>
+<tr>
+<td><code>power:inhibits</code></td>
+<td>pm-service inhibitor manager</td>
+<td>update-service, vehicle-service, modem-service (hold pm inhibitors)</td>
+</tr>
+</tbody>
+</table>
+<p>Inhibitor ids worth knowing, because fleet tooling matches on their prefixes:</p>
+<table>
+<thead>
+<tr>
+<th>id</th>
+<th>type</th>
+<th>held by</th>
+<th>while</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>download:{component}</code>, <code>preparing:{component}</code>, <code>install:{component}</code></td>
+<td>delay</td>
+<td>update-service</td>
+<td>the corresponding update phase (advisory only, see below)</td>
+</tr>
+<tr>
+<td><code>dbc-update</code></td>
+<td>suspend-only</td>
+<td>vehicle-service</td>
+<td>a DBC update holds dashboard power</td>
+</tr>
+<tr>
+<td>It is <code>suspend-only</code> rather than <code>block</code> so a</td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>hibernate is never obstructed, and it is bounded by the download's own wall-clock cap.</td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>update-service declines to take it at all when that cap is disabled</td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>(<code>download-max-duration</code> set to <code>0</code>), since an unbounded suspend hold is the battery</td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>drain the cap exists to prevent.</td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p>Its release needs three owners, because the holder is not always alive to release it.
+The DBC writes <code>download-transfer:dbc</code> into the <strong>MDB's</strong> Redis, and pm-service applies
+no TTL to Redis inhibitors, so a DBC that loses power mid-transfer would otherwise
+orphan a suspend inhibit that nothing ever clears:</p>
+<table>
+<thead>
+<tr>
+<th>who releases it</th>
+<th>when</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>update-service</td>
+<td>normally, on every exit path of the transfer</td>
+</tr>
+<tr>
+<td>update-service</td>
+<td>at startup, clearing a stale one left by a crash or power cut</td>
+</tr>
+<tr>
+<td>vehicle-service</td>
+<td>whenever it cuts dashboard power, since that is what orphans it</td>
+</tr>
+</tbody>
+</table>
+<p>The <code>delay</code>-typed inhibits are advisory: pm-service's blocking check honours only
+<code>block</code> and <code>suspend-only</code>, and the duration carried in the JSON is not read. They
+appear in <code>power-manager:busy-services</code> for observability and have no effect on power
+transitions.</p>
+<hr />
+<h2 id="identified-gaps-and-issues">Identified Gaps and Issues<a class="headerlink" href="#identified-gaps-and-issues" title="Permanent link">&para;</a></h2>
+<h3 id="gap-1-ecu-service-publishes-to-wrong-channel-names-critical-bug">GAP-1: ecu-service publishes to wrong channel names (Critical Bug)<a class="headerlink" href="#gap-1-ecu-service-publishes-to-wrong-channel-names-critical-bug" title="Permanent link">&para;</a></h3>
+<p><strong>File:</strong> <code>ecu-service/ipc_tx.go</code></p>
+<p>The ecu-service publishes notifications using channel names with <strong>spaces</strong> embedded:
+<div class="language-go highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="nx">tx</span><span class="p">.</span><span class="nx">redis</span><span class="p">.</span><span class="nx">Publish</span><span class="p">(</span><span class="nx">tx</span><span class="p">.</span><span class="nx">ctx</span><span class="p">,</span><span class="w"> </span><span class="s">"engine-ecu throttle"</span><span class="p">,</span><span class="w"> </span><span class="kc">nil</span><span class="p">)</span><span class="w">  </span><span class="c1">// line 53</span>
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="nx">tx</span><span class="p">.</span><span class="nx">redis</span><span class="p">.</span><span class="nx">Publish</span><span class="p">(</span><span class="nx">tx</span><span class="p">.</span><span class="nx">ctx</span><span class="p">,</span><span class="w"> </span><span class="s">"engine-ecu odometer"</span><span class="p">,</span><span class="w"> </span><span class="kc">nil</span><span class="p">)</span><span class="w">  </span><span class="c1">// line 94</span>
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="nx">tx</span><span class="p">.</span><span class="nx">redis</span><span class="p">.</span><span class="nx">Publish</span><span class="p">(</span><span class="nx">tx</span><span class="p">.</span><span class="nx">ctx</span><span class="p">,</span><span class="w"> </span><span class="s">"engine-ecu kers"</span><span class="p">,</span><span class="w"> </span><span class="kc">nil</span><span class="p">)</span><span class="w">      </span><span class="c1">// line 116</span>
+</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="nx">tx</span><span class="p">.</span><span class="nx">redis</span><span class="p">.</span><span class="nx">Publish</span><span class="p">(</span><span class="nx">tx</span><span class="p">.</span><span class="nx">ctx</span><span class="p">,</span><span class="w"> </span><span class="s">"engine-ecu kers-reason-off"</span><span class="p">,</span><span class="w"> </span><span class="kc">nil</span><span class="p">)</span><span class="w"> </span><span class="c1">// line 165</span>
+</span></code></pre></div></p>
+<p>The correct pattern (used everywhere else) is: publish to <code>"engine-ecu"</code> with payload being the field name (e.g., <code>"throttle"</code>, <code>"odometer"</code>, <code>"kers"</code>). Instead, ecu-service publishes to channels named <code>"engine-ecu throttle"</code> etc., which no subscriber listens to.</p>
+<p>Additionally, the message payload is <code>nil</code>. Other services send the field name as the payload.</p>
+<p><strong>Impact:</strong> bluetooth-service subscribes to <code>"engine-ecu"</code> watching for <code>"odometer"</code> field updates. It won't receive notifications from ecu-service's own data. Bluetooth-service works around this by writing odometer itself (from nRF UART). But any future subscriber watching <code>"engine-ecu"</code> for throttle, kers, or speed data changes will never receive notifications.</p>
+<p><strong>Severity:</strong> High — all throttle/kers/speed pub/sub notifications from ecu-service are silently dropped.</p>
+<h3 id="gap-2-settings-service-does-not-publish-when-loading-settings-at-boot-high-bug">GAP-2: settings-service does not PUBLISH when loading settings at boot (High Bug)<a class="headerlink" href="#gap-2-settings-service-does-not-publish-when-loading-settings-at-boot-high-bug" title="Permanent link">&para;</a></h3>
+<p><strong>File:</strong> <code>settings-service/internal/redis/client.go</code></p>
+<p><code>ReplaceSettings()</code> and <code>SetSettings()</code> use DEL + HSET in a pipeline but never call PUBLISH. Services that subscribe to <code>settings</code> for startup configuration (vehicle-service, battery-service, ecu-service, alarm-service, pm-service) won't receive notifications when settings-service loads the TOML on boot.</p>
+<p>The services handle this by reading settings on startup directly (HGET), so they don't miss the initial values. However, if settings-service starts <strong>after</strong> these services (due to race or restart), the services will miss any new settings values because there's no PUBLISH to trigger a re-read.</p>
+<p><strong>Severity:</strong> High — services may silently use stale or default settings if settings-service restarts after them.</p>
+<h3 id="gap-3-version-service-writes-to-os-release-but-no-service-reads-it-normal">GAP-3: version-service writes to <code>os-release</code> but no service reads it (Normal)<a class="headerlink" href="#gap-3-version-service-writes-to-os-release-but-no-service-reads-it-normal" title="Permanent link">&para;</a></h3>
+<p><strong>File:</strong> <code>version-service/cmd/version-service/main.go</code></p>
+<p>version-service writes OS release data to the <code>os-release</code> Redis hash. The hash name is configurable (<code>--hash</code> flag, default <code>"os-release"</code>). No other service in the codebase reads <code>HGET os-release</code> or subscribes to an <code>os-release</code> channel.</p>
+<p>The <code>bluetooth-service</code> looks for <code>"system"</code> hash with field <code>"mdb-version"</code> (written by nRF via UART). The <code>uplink-service</code> telemetry reads <code>"system"</code> but not <code>"os-release"</code>. <code>lsc</code> does not appear to read it either.</p>
+<p><strong>Impact:</strong> The version information is lost. Intended consumer not implemented.</p>
+<p><strong>Severity:</strong> Normal — the data is written but never consumed; functionality gap.</p>
+<h3 id="gap-4-versioncomponent-hash-written-by-nobody-read-by-update-service-normal">GAP-4: <code>version:&lt;component&gt;</code> hash written by nobody, read by update-service (Normal)<a class="headerlink" href="#gap-4-versioncomponent-hash-written-by-nobody-read-by-update-service-normal" title="Permanent link">&para;</a></h3>
+<p><strong>File:</strong> <code>update-service/internal/redis/client.go</code> lines 113–130</p>
+<p>update-service reads <code>version:&lt;component&gt;/version_id</code> and <code>version/&lt;component&gt;/variant_id</code> to check if an update is needed. Nothing in the analyzed codebase writes these hashes. The hash appears intended to be populated by the Mender boot updater or an init script, not a running service.</p>
+<p>If the <code>version:*</code> hashes are absent (new device, or after factory reset), update-service falls back gracefully (returns empty string, treats it as "no version installed" → always updates). This is documented behavior but creates unnecessary update cycles.</p>
+<p><strong>Severity:</strong> Normal — by-design but undocumented dependency on external init scripts.</p>
+<h3 id="gap-5-eventsfaults-stream-is-written-correctly-but-consumed-incorrectly-normal">GAP-5: <code>events:faults</code> stream is written correctly but consumed incorrectly (Normal)<a class="headerlink" href="#gap-5-eventsfaults-stream-is-written-correctly-but-consumed-incorrectly-normal" title="Permanent link">&para;</a></h3>
+<p><strong>File:</strong> <code>uplink-service/internal/telemetry/collector.go</code></p>
+<p>The <code>events:faults</code> key is a Redis <strong>Stream</strong> (written via XADD by vehicle-service and modem-service). The uplink-service telemetry collector does <code>HGetAll("events:faults")</code> which is a <strong>hash</strong> operation against a stream key. This will always return empty and silently fail — HGETALL on a stream returns nothing.</p>
+<p><strong>Impact:</strong> Fault event history is never included in telemetry snapshots sent to the uplink server.</p>
+<p><strong>Severity:</strong> Normal — telemetry data is incomplete, faults not forwarded to fleet management.</p>
+<h3 id="gap-6-battery-service-subscribes-to-vehicle-channel-but-misses-seatboxopened-event-normal">GAP-6: battery-service subscribes to <code>vehicle</code> channel but misses <code>seatbox:opened</code> event (Normal)<a class="headerlink" href="#gap-6-battery-service-subscribes-to-vehicle-channel-but-misses-seatboxopened-event-normal" title="Permanent link">&para;</a></h3>
+<p><strong>File:</strong> <code>battery-service/battery/service.go</code> lines 145–148</p>
+<p>battery-service handles <code>msg.Payload == "seatbox:lock"</code> (the field update) but not <code>"seatbox:opened"</code> (the event from <code>vehicle-service/PublishSeatboxOpened</code>). The alarm-service correctly handles the <code>"seatbox:opened"</code> event via its <code>OnEvent()</code> handler. Battery-service uses <code>seatbox:lock</code> field changes instead.</p>
+<p>This is mostly fine in practice since <code>seatbox:lock</code> changes from "closed" to "open" on the same operation. But the battery-service will see the lock change <strong>after</strong> the opened event, potentially creating a small timing window.</p>
+<p><strong>Severity:</strong> Low — functional but subtly different timing from intended protocol.</p>
+<h3 id="gap-7-pm-service-reads-battery0-only-ignores-battery1-state-normal">GAP-7: pm-service reads <code>battery:0</code> only — ignores battery:1 state (Normal)<a class="headerlink" href="#gap-7-pm-service-reads-battery0-only-ignores-battery1-state-normal" title="Permanent link">&para;</a></h3>
+<p><strong>File:</strong> <code>pm-service/internal/service/service.go</code> line 134</p>
+<p>pm-service only subscribes to <code>battery:0</code> state changes. For dual-battery configurations, if battery:0 becomes inactive but battery:1 is still active, pm-service will believe "battery is inactive" and may allow suspend. This is a potential data integrity risk in dual-battery setups.</p>
+<p><strong>Severity:</strong> Normal — relevant only for dual-battery mode, but could cause data loss on incorrect suspend.</p>
+<h3 id="gap-8-startup-race-vehicle-service-subscribes-after-reading-initial-dashboard-state-low">GAP-8: Startup race — vehicle-service subscribes after reading initial dashboard state (Low)<a class="headerlink" href="#gap-8-startup-race-vehicle-service-subscribes-after-reading-initial-dashboard-state-low" title="Permanent link">&para;</a></h3>
+<p><strong>File:</strong> <code>vehicle-service/internal/messaging/redis.go</code> lines 102–115</p>
+<p>vehicle-service reads <code>dashboard/ready</code> in <code>Connect()</code> and then starts the <code>dashboardWatcher</code> later in <code>StartListening()</code>. There is a window between the initial read and the subscription where <code>dashboard/ready</code> could change (scootui publishes) without vehicle-service noticing.</p>
+<p>This is not critical because scootui publishes <code>ready=true</code> only once at startup, and vehicle-service's <code>Connect()</code> runs very early. But if scootui restarts after vehicle-service has already initialized, vehicle-service subscribes correctly via <code>dashboardWatcher</code> and will catch the new publication.</p>
+<p><strong>Severity:</strong> Low — timing window is small and consequences are benign (vehicle would need a keycard auth to advance state anyway).</p>
+<h3 id="gap-9-ecu-service-uses-go-redis-v8-all-others-use-v9-low">GAP-9: ecu-service uses go-redis v8, all others use v9 (Low)<a class="headerlink" href="#gap-9-ecu-service-uses-go-redis-v8-all-others-use-v9-low" title="Permanent link">&para;</a></h3>
+<p><strong>File:</strong> <code>ecu-service/ipc_rx.go</code>, <code>ipc_tx.go</code></p>
+<div class="language-go highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="kn">import</span><span class="w"> </span><span class="s">"github.com/go-redis/redis/v8"</span>
+</span></code></pre></div>
+<p>All other services use <code>github.com/redis/go-redis/v9</code> (the renamed, actively maintained version). v8 uses a different import path and context handling. This creates a maintenance burden and prevents ecu-service from using the shared redis-ipc library.</p>
+<p><strong>Severity:</strong> Low — functional but creates maintenance debt.</p>
+<h3 id="gap-10-system-hash-has-two-conflicting-writers-for-cpugovernor-low">GAP-10: <code>system</code> hash has two conflicting writers for <code>cpu:governor</code> (Low)<a class="headerlink" href="#gap-10-system-hash-has-two-conflicting-writers-for-cpugovernor-low" title="Permanent link">&para;</a></h3>
+<p>Both <code>vehicle-service</code> (<code>redis.go:576</code>) and <code>pm-service</code> (<code>service.go:812</code>) write to <code>system/cpu:governor</code>. If they write different values concurrently, or if one doesn't know about the other's write, the hash value could be misleading. Currently pm-service handles the actual sysfs write and publishes to the hash; vehicle-service also writes to the hash when it sends the governor command to pm-service via <code>scooter:governor</code>. This double-write is redundant at best.</p>
+<p><strong>Severity:</strong> Low — the value in Redis may be briefly inconsistent between the command send and the pm-service processing it.</p>
+<h3 id="gap-11-keycard-hash-has-10s-ttl-no-consumer-handles-key-expiry-low">GAP-11: keycard hash has 10s TTL — no consumer handles key expiry (Low)<a class="headerlink" href="#gap-11-keycard-hash-has-10s-ttl-no-consumer-handles-key-expiry-low" title="Permanent link">&para;</a></h3>
+<p><strong>File:</strong> <code>keycard-service/keycard/redis.go</code> line 51</p>
+<p>keycard-service sets a 10-second TTL on the <code>keycard</code> hash. vehicle-service subscribes to <code>keycard/authentication</code> changes. When the key expires, there is no TTL expiry notification in the pub/sub protocol used (keyspace notifications are not enabled by default in Redis). If vehicle-service somehow reads <code>keycard/authentication</code> after expiry, it would get a redis.Nil error, which it handles gracefully. But a consumer polling this value could be confused.</p>
+<p><strong>Severity:</strong> Low — edge case, current usage (event-driven) is safe.</p>
+<hr />
+<h2 id="summary-of-critical-issues">Summary of Critical Issues<a class="headerlink" href="#summary-of-critical-issues" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>Severity</th>
+<th>Service</th>
+<th>Issue</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>High</td>
+<td>ecu-service</td>
+<td>Publishes to broken channel names with spaces — all throttle/kers/speed notifications silently dropped</td>
+</tr>
+<tr>
+<td>2</td>
+<td>High</td>
+<td>settings-service</td>
+<td>No PUBLISH when loading settings from TOML — services miss initial settings on settings-service restart</td>
+</tr>
+<tr>
+<td>3</td>
+<td>Normal</td>
+<td>version-service</td>
+<td><code>os-release</code> hash written but never read — intended consumer not implemented</td>
+</tr>
+<tr>
+<td>4</td>
+<td>Normal</td>
+<td>update-service</td>
+<td>Reads <code>version:&lt;component&gt;</code> hash that nothing writes — depends on undocumented external init</td>
+</tr>
+<tr>
+<td>5</td>
+<td>Normal</td>
+<td>uplink-service</td>
+<td>Uses HGETALL on <code>events:faults</code> stream — always returns empty, fault history never telemetrized</td>
+</tr>
+<tr>
+<td>6</td>
+<td>Normal</td>
+<td>pm-service</td>
+<td>Only tracks <code>battery:0</code> state — dual-battery suspend guard incomplete</td>
+</tr>
+<tr>
+<td>7</td>
+<td>Low</td>
+<td>vehicle-service</td>
+<td>Tiny startup race between initial dashboard state read and subscription</td>
+</tr>
+<tr>
+<td>8</td>
+<td>Low</td>
+<td>ecu-service</td>
+<td>Uses go-redis v8 while all others use v9 — maintenance burden</td>
+</tr>
+<tr>
+<td>9</td>
+<td>Low</td>
+<td>vehicle+pm</td>
+<td>Double-write to <code>system/cpu:governor</code> — minor inconsistency window</td>
+</tr>
+<tr>
+<td>10</td>
+<td>Low</td>
+<td>keycard-service</td>
+<td>10s TTL with no keyspace notification support for expiry</td>
+</tr>
+</tbody>
+</table>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-circle-arrow-up" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="m16 12-4-4-4 4M12 16V8"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+    
+      
+      <nav class="md-footer__inner md-grid" aria-label="Footer" >
+        
+          
+          <a href="../services/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Services">
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-arrow-left" viewBox="0 0 24 24"><path d="m12 19-7-7 7-7M19 12H5"/></svg>
+            </div>
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Previous
+              </span>
+              <div class="md-ellipsis">
+                Services
+              </div>
+            </div>
+          </a>
+        
+        
+          
+          <a href="../services/librescoot-alarm/" class="md-footer__link md-footer__link--next" aria-label="Next: alarm-service">
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Next
+              </span>
+              <div class="md-ellipsis">
+                alarm-service
+              </div>
+            </div>
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-arrow-right" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+            </div>
+          </a>
+        
+      </nav>
+    
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+    <div class="md-copyright__highlight">
+      Copyright &copy; 2025-2026 Librescoot contributors
+    </div>
+  
+  
+    Made with
+    <a href="https://zensical.org/" target="_blank" rel="noopener">
+      Zensical
+    </a>
+  
+</div>
+      
+        
+<div class="md-social">
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://github.com/librescoot" target="_blank" rel="noopener" title="github.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.3.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2026 Fonticons, Inc.--><path fill="currentColor" d="M216.5 362.5c-66-8-112.5-55.5-112.5-117 0-25 9-52 24-70-6.5-16.5-5.5-51.5 2-66 20-2.5 47 8 63 22.5 19-6 39-9 63.5-9s44.5 3 62.5 8.5c15.5-14 43-24.5 63-22 7 13.5 8 48.5 1.5 65.5 16 19 24.5 44.5 24.5 70.5 0 61.5-46.5 108-113.5 116.5 17 11 28.5 35 28.5 62.5v52c0 15 12.5 23.5 27.5 17.5C441 459.5 512 369 512 257 512 115.5 397 0 255.5 0S0 115.5 0 257c0 111 70.5 203 165.5 237.5 13.5 5 26.5-4 26.5-17.5v-40c-7 3-16 5-24 5-33 0-52.5-18-66.5-51.5-5.5-13.5-11.5-21.5-23-23-6-.5-8-3-8-6 0-6 10-10.5 20-10.5 14.5 0 27 9 40 27.5 10 14.5 20.5 21 33 21s20.5-4.5 32-16c8.5-8.5 15-16 21-21"/></svg>
+    </a>
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://discord.gg/VrumFruSzJ" target="_blank" rel="noopener" title="discord.gg" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512"><!--! Font Awesome Free 7.3.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2026 Fonticons, Inc.--><path fill="currentColor" d="M492.5 69.8c-.2-.3-.4-.6-.8-.7-38.1-17.5-78.4-30-119.7-37.1-.4-.1-.8 0-1.1.1s-.6.4-.8.8c-5.5 9.9-10.5 20.2-14.9 30.6-44.6-6.8-89.9-6.8-134.4 0-4.5-10.5-9.5-20.7-15.1-30.6-.2-.3-.5-.6-.8-.8s-.7-.2-1.1-.2C162.5 39 122.2 51.5 84.1 69c-.3.1-.6.4-.8.7C7.1 183.5-13.8 294.6-3.6 404.2c0 .3.1.5.2.8s.3.4.5.6c44.4 32.9 94 58 146.8 74.2.4.1.8.1 1.1 0s.7-.4.9-.7c11.3-15.4 21.4-31.8 30-48.8.1-.2.2-.5.2-.8s0-.5-.1-.8-.2-.5-.4-.6-.4-.3-.7-.4c-15.8-6.1-31.2-13.4-45.9-21.9-.3-.2-.5-.4-.7-.6s-.3-.6-.3-.9 0-.6.2-.9.3-.5.6-.7c3.1-2.3 6.2-4.7 9.1-7.1.3-.2.6-.4.9-.4s.7 0 1 .1c96.2 43.9 200.4 43.9 295.5 0 .3-.1.7-.2 1-.2s.7.2.9.4c2.9 2.4 6 4.9 9.1 7.2.2.2.4.4.6.7s.2.6.2.9-.1.6-.3.9-.4.5-.6.6c-14.7 8.6-30 15.9-45.9 21.8-.2.1-.5.2-.7.4s-.3.4-.4.7-.1.5-.1.8.1.5.2.8c8.8 17 18.8 33.3 30 48.8.2.3.6.6.9.7s.8.1 1.1 0c52.9-16.2 102.6-41.3 147.1-74.2.2-.2.4-.4.5-.6s.2-.5.2-.8c12.3-126.8-20.5-236.9-86.9-334.5zm-302 267.7c-29 0-52.8-26.6-52.8-59.2s23.4-59.2 52.8-59.2c29.7 0 53.3 26.8 52.8 59.2 0 32.7-23.4 59.2-52.8 59.2m195.4 0c-29 0-52.8-26.6-52.8-59.2s23.4-59.2 52.8-59.2c29.7 0 53.3 26.8 52.8 59.2 0 32.7-23.2 59.2-52.8 59.2"/></svg>
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate":null,"base":"..","features":["content.action.edit","content.code.copy","content.code.select","content.tooltips","navigation.footer","navigation.indexes","navigation.instant","navigation.instant.prefetch","navigation.path","navigation.sections","navigation.top","navigation.tracking","search.highlight","toc.follow"],"search":"../assets/javascripts/workers/search.7d14d953.min.js","tags":null,"translations":{"clipboard.copied":"Copied to clipboard","clipboard.copy":"Copy to clipboard","search.result.more.one":"1 more on this page","search.result.more.other":"# more on this page","search.result.none":"No matching documents","search.result.one":"1 matching document","search.result.other":"# matching documents","search.result.placeholder":"Type to start searching","search.result.term.missing":"Missing","select.version":"Select version"},"version":{"provider":"mike"}}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.49251538.min.js"></script>
+      
+    
+  </body>
+</html>
