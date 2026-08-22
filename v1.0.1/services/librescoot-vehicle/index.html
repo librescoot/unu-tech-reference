@@ -1,0 +1,3159 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Hardware and software reference for the Librescoot electric scooter platform">
+      
+      
+      
+        <link rel="canonical" href="https://reference.librescoot.org/v1.0.1/services/librescoot-vehicle/">
+      
+      
+        <link rel="prev" href="../librescoot-update/">
+      
+      
+        <link rel="next" href="../../dashboard/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="zensical-0.0.57">
+    
+    
+      
+        <title>librescoot-vehicle (vehicle-service) - Librescoot Tech Reference</title>
+      
+    
+    
+      
+        
+      
+      <link rel="stylesheet" href="../../assets/stylesheets/modern/main.5da3a30f.min.css">
+      
+        
+          
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/modern/palette.812a03bb.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter:300,300i,400,400i,500,500i,700,700i%7CJetBrains+Mono:400,400i,700,700i&amp;display=fallback">
+        <style>:root{--md-text-font:"Inter";--md-code-font:"JetBrains Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../stylesheets/extra.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_scope.pathname.endsWith("/")||(__md_scope=new URL(__md_scope.pathname+"/",location)),__md_hash=e=>[...e].reduce(((e,t)=>(e<<5)-e+t.charCodeAt(0)),0),__md_get=(e,t=localStorage,_=__md_scope)=>JSON.parse(t.getItem(_.pathname+"."+e)),__md_set=(e,t,_=localStorage,a=__md_scope)=>{try{_.setItem(a.pathname+"."+e,JSON.stringify(t))}catch(e){}},document.documentElement.setAttribute("data-platform",navigator.platform)</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="slate" data-md-color-primary="custom" data-md-color-accent="cyan">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer" aria-label="Navigation"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#librescoot-vehicle-vehicle-service" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+      <div data-md-color-scheme="default" data-md-component="outdated" hidden>
+        
+      </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="Librescoot Tech Reference" class="md-header__button md-logo" aria-label="Librescoot Tech Reference" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-book-open" viewBox="0 0 24 24"><path d="M12 5v16M20.001 19A2 2 0 0 0 22 17V5a2 2 0 0 0-1.999-2L16 3.002A5 5 0 0 0 12 5a5 5 0 0 0-4-2H4a2 2 0 0 0-2 2v12a2 2 0 0 0 1.999 2H8a5 5 0 0 1 4 2 5 5 0 0 1 4-2z"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer" aria-label="Navigation">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-menu" viewBox="0 0 24 24"><path d="M4 5h16M4 12h16M4 19h16"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Librescoot Tech Reference
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              librescoot-vehicle (vehicle-service)
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="none" data-md-color-scheme="slate" data-md-color-primary="custom" data-md-color-accent="cyan"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="none" data-md-color-scheme="default" data-md-color-primary="custom" data-md-color-accent="cyan"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-moon" viewBox="0 0 24 24"><path d="M20.985 12.486a9 9 0 1 1-9.473-9.472c.405-.022.617.46.402.803a6 6 0 0 0 8.268 8.268c.344-.215.825-.004.803.401"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search" aria-label="Search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-search" viewBox="0 0 24 24"><path d="m21 21-4.34-4.34"/><circle cx="11" cy="11" r="8"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog" aria-label="Search">
+  <button type="button" class="md-search__button">
+    Search
+  </button>
+</div>
+      
+    
+    <div class="md-header__source">
+      
+        <a href="https://github.com/librescoot/unu-tech-reference" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.3.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2026 Fonticons, Inc.--><path fill="currentColor" d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    librescoot/unu-tech-reference
+  </div>
+</a>
+      
+    </div>
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="Librescoot Tech Reference" class="md-nav__button md-logo" aria-label="Librescoot Tech Reference" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-book-open" viewBox="0 0 24 24"><path d="M12 5v16M20.001 19A2 2 0 0 0 22 17V5a2 2 0 0 0-1.999-2L16 3.002A5 5 0 0 0 12 5a5 5 0 0 0-4-2H4a2 2 0 0 0-2 2v12a2 2 0 0 0 1.999 2H8a5 5 0 0 1 4 2 5 5 0 0 1 4-2z"/></svg>
+
+    </a>
+    Librescoot Tech Reference
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/librescoot/unu-tech-reference" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.3.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2026 Fonticons, Inc.--><path fill="currentColor" d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    librescoot/unu-tech-reference
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Home
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../electronic/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Hardware
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_2" id="__nav_2_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+  Hardware
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../mechanical/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Mechanical
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../wiring/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Wiring & Connectors
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../battery/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Power
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_3" id="__nav_3_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+  Power
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../battery-charger/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Battery Charger
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../bluetooth/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Communication
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_4" id="__nav_4_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+  Communication
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../redis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Redis
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../nrf/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  nRF52840
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../nrf/UART/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  UART Protocol
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../nrf/power-management/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Power Management
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" checked>
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../states/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Software
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_5" id="__nav_5_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+  Software
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Services
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../librescoot-alarm/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  alarm-service
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../librescoot-battery/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  battery-service
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../librescoot-bluetooth/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  bluetooth-service
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../librescoot-ecu/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  ecu-service
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../librescoot-keycard/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  keycard-service
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../librescoot-modem/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  modem-service
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../librescoot-pm/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  pm-service
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../librescoot-scootui/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  scootui-qt
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../librescoot-settings/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  settings-service
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../librescoot-ums/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  ums-service
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../librescoot-update/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  update-service
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  vehicle-service
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="././" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  vehicle-service
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+
+<nav class="md-nav md-nav--secondary" aria-label="On this page">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      On this page
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#description" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Description
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#command-line-options" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Command-Line Options
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#redis-operations" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Redis Operations
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Redis Operations">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#hash-vehicle" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Hash: <code>vehicle</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#lists-consumed-brpop" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Lists consumed (BRPOP)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hashes-read" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Hashes read
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#channels-subscribed-pubsub" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Channels subscribed (PUBSUB)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#channels-published" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Channels published
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#commands-sent-to-other-services" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Commands sent to other services
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#vehicle-states" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Vehicle States
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Vehicle States">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#hibernation-state-machine" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Hibernation State Machine
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#hardware-interfaces" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Hardware Interfaces
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Hardware Interfaces">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#gpio-inputs-via-devinput" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        GPIO Inputs (via /dev/input)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#gpio-outputs-via-gpiocdev" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        GPIO Outputs (via gpiocdev)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pwm-led-system" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        PWM LED System
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Configuration
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Configuration">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#systemd-unit" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Systemd Unit
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#observable-behavior" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Observable Behavior
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Observable Behavior">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#startup-sequence" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Startup Sequence
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#state-machine-behavior" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        State Machine Behavior
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="State Machine Behavior">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#ready-to-drive-conditions" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Ready-to-Drive Conditions
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#lockunlock-handling" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Lock/Unlock Handling
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hibernation-sequence" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Hibernation Sequence
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#blinker-control" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Blinker Control
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#seatbox-control" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Seatbox Control
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#brake-control" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Brake Control
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#command-processing" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Command Processing
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#fault-detection" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Fault Detection
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#log-output" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Log Output
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dependencies" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Dependencies
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#librescoot-implementation-details" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        LibreScoot Implementation Details
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="LibreScoot Implementation Details">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#technical-implementation" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Technical Implementation
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#key-features" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Key Features
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#led-channel-mapping" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        LED Channel Mapping
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#led-channel-modes" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        LED Channel Modes
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#special-features" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Special Features
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#architecture" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Architecture
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#building" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Building
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#compatibility" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Compatibility
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#integration-points" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Integration Points
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#related-documentation" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Related Documentation
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../dashboard/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Dashboard
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../dashboard/REDIS/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Dashboard Redis
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Tools
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+  Tools
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tools/lsc/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  lsc CLI
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  
+                    
+                    
+                    
+                      
+                    
+                    
+                      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+                      <div class="md-sidebar-button__wrapper">
+                        <label class="md-sidebar-button" for="__toc"></label>
+                      </div>
+                    
+                  
+                  <div class="md-sidebar__inner">
+                    
+
+
+<nav class="md-nav md-nav--secondary" aria-label="On this page">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      On this page
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#description" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Description
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#command-line-options" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Command-Line Options
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#redis-operations" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Redis Operations
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Redis Operations">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#hash-vehicle" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Hash: <code>vehicle</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#lists-consumed-brpop" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Lists consumed (BRPOP)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hashes-read" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Hashes read
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#channels-subscribed-pubsub" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Channels subscribed (PUBSUB)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#channels-published" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Channels published
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#commands-sent-to-other-services" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Commands sent to other services
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#vehicle-states" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Vehicle States
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Vehicle States">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#hibernation-state-machine" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Hibernation State Machine
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#hardware-interfaces" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Hardware Interfaces
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Hardware Interfaces">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#gpio-inputs-via-devinput" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        GPIO Inputs (via /dev/input)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#gpio-outputs-via-gpiocdev" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        GPIO Outputs (via gpiocdev)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pwm-led-system" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        PWM LED System
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Configuration
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Configuration">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#systemd-unit" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Systemd Unit
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#observable-behavior" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Observable Behavior
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Observable Behavior">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#startup-sequence" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Startup Sequence
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#state-machine-behavior" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        State Machine Behavior
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="State Machine Behavior">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#ready-to-drive-conditions" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Ready-to-Drive Conditions
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#lockunlock-handling" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Lock/Unlock Handling
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hibernation-sequence" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Hibernation Sequence
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#blinker-control" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Blinker Control
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#seatbox-control" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Seatbox Control
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#brake-control" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Brake Control
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#command-processing" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Command Processing
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#fault-detection" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Fault Detection
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#log-output" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Log Output
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dependencies" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Dependencies
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#librescoot-implementation-details" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        LibreScoot Implementation Details
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="LibreScoot Implementation Details">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#technical-implementation" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Technical Implementation
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#key-features" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Key Features
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#led-channel-mapping" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        LED Channel Mapping
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#led-channel-modes" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        LED Channel Modes
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#special-features" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Special Features
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#architecture" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Architecture
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#building" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Building
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#compatibility" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Compatibility
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#integration-points" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Integration Points
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#related-documentation" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Related Documentation
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+                
+
+
+
+  
+
+
+  <nav class="md-path" aria-label="Navigation" >
+    <ol class="md-path__list">
+      
+        
+  
+  
+    <li class="md-path__item">
+      <a href="../.." class="md-path__link">
+        
+  
+  <span class="md-ellipsis">
+    Home
+  </span>
+
+      </a>
+    </li>
+  
+
+      
+      
+        
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+    
+      <li class="md-path__item">
+        <a href="../../states/" class="md-path__link">
+          
+  
+  <span class="md-ellipsis">
+    Software
+  </span>
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ol>
+  </nav>
+
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+  
+    <a href="https://github.com/librescoot/unu-tech-reference/edit/master/docs/services/librescoot-vehicle.md" title="Edit this page" class="md-content__button md-icon" rel="edit">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-file-pen" viewBox="0 0 24 24"><path d="M12.659 22H18a2 2 0 0 0 2-2V8a2.4 2.4 0 0 0-.706-1.706l-3.588-3.588A2.4 2.4 0 0 0 14 2H6a2 2 0 0 0-2 2v9.34"/><path d="M14 2v5a1 1 0 0 0 1 1h5M10.378 12.622a1 1 0 0 1 3 3.003L8.36 20.637a2 2 0 0 1-.854.506l-2.867.837a.5.5 0 0 1-.62-.62l.836-2.869a2 2 0 0 1 .506-.853z"/></svg>
+    </a>
+  
+  
+
+
+<h1 id="librescoot-vehicle-vehicle-service">librescoot-vehicle (vehicle-service)<a class="headerlink" href="#librescoot-vehicle-vehicle-service" title="Permanent link">&para;</a></h1>
+<h2 id="description">Description<a class="headerlink" href="#description" title="Permanent link">&para;</a></h2>
+<p>The vehicle service implements the vehicle state machine, managing transitions between states like stand-by, parked, ready-to-drive, and shutting-down. It monitors GPIO inputs (kickstand, brakes, blinker switch, seatbox button, handlebar sensors), controls PWM outputs (8-channel LED system, blinker LEDs, seatbox lock, handlebar lock), and coordinates with other services via Redis to determine when the vehicle is ready to drive.</p>
+<h2 id="command-line-options">Command-Line Options<a class="headerlink" href="#command-line-options" title="Permanent link">&para;</a></h2>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>Usage of vehicle-service:
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>  -log int
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>        Service log level (0=NONE, 1=ERROR, 2=WARN, 3=INFO, 4=DEBUG) (default 3)
+</span></code></pre></div>
+<p><strong>Note:</strong> vehicle-service has minimal command-line options. Redis host and port are hardcoded to 127.0.0.1:6379. Most configuration is done via Redis and hardware interfaces.</p>
+<h2 id="redis-operations">Redis Operations<a class="headerlink" href="#redis-operations" title="Permanent link">&para;</a></h2>
+<h3 id="hash-vehicle">Hash: <code>vehicle</code><a class="headerlink" href="#hash-vehicle" title="Permanent link">&para;</a></h3>
+<p><strong>Fields written:</strong></p>
+<ul>
+<li><code>state</code> - Vehicle state (see States section below)</li>
+<li><code>brake:left</code> - Left brake state ("on", "off")</li>
+<li><code>brake:right</code> - Right brake state ("on", "off")</li>
+<li><code>blinker:state</code> - Blinker active state ("off", "left", "right", "both")</li>
+<li><code>blinker:start_nanos</code> - Monotonic start time of current blinker cycle (for UI sync)</li>
+<li><code>blinker:switch</code> - Blinker switch position ("left", "right", "both", "off")</li>
+<li>(no <code>horn:button</code> field: horn button presses are written to the <code>buttons</code> hash as <code>horn:on</code> / <code>horn:off</code>, not to the <code>vehicle</code> hash)</li>
+<li>(no <code>seatbox:button</code> field: seatbox button presses are written to the <code>buttons</code> hash as <code>seatbox:on</code> / <code>seatbox:off</code>, not to the <code>vehicle</code> hash)</li>
+<li><code>seatbox:lock</code> - Seatbox lock state ("open", "closed")</li>
+<li><code>kickstand</code> - Kickstand position ("up", "down")</li>
+<li><code>handlebar:position</code> - Handlebar position ("on-place", "off-place")</li>
+<li><code>handlebar:lock-sensor</code> - Handlebar lock sensor ("locked", "unlocked")</li>
+<li><code>dbc-updating</code> - DBC update in progress flag</li>
+<li><code>dashboard:power</code> - Dashboard power state ("on", "off")</li>
+<li><code>update:status</code> - Aggregated update status surface for UI</li>
+<li><code>auto-standby-remaining</code> - Seconds remaining until auto-standby (absent when timer not running)</li>
+<li><code>auto-standby-deadline</code> - Unix timestamp of auto-standby deadline (absent when timer not running)</li>
+</ul>
+<p><strong>Published channel:</strong> <code>vehicle</code></p>
+<h3 id="lists-consumed-brpop">Lists consumed (BRPOP)<a class="headerlink" href="#lists-consumed-brpop" title="Permanent link">&para;</a></h3>
+<ul>
+<li><code>scooter:state</code> - State change commands ("lock", "unlock", "lock-hibernate", "force-lock")</li>
+<li><code>scooter:seatbox</code> - Seatbox commands ("open")</li>
+<li><code>scooter:horn</code> - Horn commands ("on", "off")</li>
+<li><code>scooter:blinker</code> - Blinker commands ("left", "right", "both", "off")</li>
+<li><code>scooter:hop-on</code> - Hop-on mode commands:</li>
+<li><code>engage</code> - Enter the locked hop-on state (lock screen, LED cue, opportunistic steering lock; publishes <code>state=hop-on</code>)</li>
+<li><code>engage-learning</code> - Enter combo-learning state quietly (no LED cue, no steering lock, no lock screen; publishes <code>state=hop-on-learning</code>)</li>
+<li><code>release</code> - Exit either hop-on sub-state back to <code>parked</code></li>
+<li><code>scooter:led:cue</code> - LED cue playback commands (integer cue index)</li>
+<li><code>scooter:led:fade</code> - LED fade playback commands ("channel:fadeIndex")</li>
+<li><code>scooter:update</code> - Update commands ("start", "complete", "start-dbc", "complete-dbc"). Anything else, including "cycle-dashboard-power", is rejected by the list handler before it reaches the state machine.</li>
+<li><code>scooter:hardware</code> - Hardware control commands ("dashboard:on", "dashboard:off", "engine:on", "engine:off", "handlebar:lock", "handlebar:unlock")</li>
+</ul>
+<h3 id="hashes-read">Hashes read<a class="headerlink" href="#hashes-read" title="Permanent link">&para;</a></h3>
+<ul>
+<li><code>dashboard</code> - Reads <code>ready</code> field to check if dashboard initialized</li>
+<li><code>settings</code> - Reads behavior settings (e.g., <code>scooter.brake-hibernation</code>)</li>
+<li><code>ota</code> - Reads OTA status for DBC updates (<code>status:dbc</code>)</li>
+</ul>
+<h3 id="channels-subscribed-pubsub">Channels subscribed (PUBSUB)<a class="headerlink" href="#channels-subscribed-pubsub" title="Permanent link">&para;</a></h3>
+<ul>
+<li><code>dashboard</code> - Dashboard ready notifications (payload: "ready")</li>
+<li><code>keycard</code> - Keycard authentication events (payload: "authentication")</li>
+<li><code>ota</code> - OTA update notifications</li>
+<li><code>power-manager</code> - Power manager events</li>
+<li><code>settings</code> - Settings update notifications (payload: setting key that changed)</li>
+</ul>
+<h3 id="channels-published">Channels published<a class="headerlink" href="#channels-published" title="Permanent link">&para;</a></h3>
+<ul>
+<li><code>vehicle</code> - All vehicle state changes and sensor updates</li>
+<li><code>buttons</code> - Button press events for immediate UI response (horn, seatbox, brakes, blinkers)</li>
+</ul>
+<h3 id="commands-sent-to-other-services">Commands sent to other services<a class="headerlink" href="#commands-sent-to-other-services" title="Permanent link">&para;</a></h3>
+<ul>
+<li><code>scooter:power</code> - Hibernation command ("hibernate-manual")</li>
+</ul>
+<h2 id="vehicle-states">Vehicle States<a class="headerlink" href="#vehicle-states" title="Permanent link">&para;</a></h2>
+<p>The service implements the canonical vehicle state machine with these states:</p>
+<ul>
+<li><code>init</code> - Initial/uninitialized state</li>
+<li><code>stand-by</code> - Powered but motor disabled</li>
+<li><code>parked</code> - Unlocked with kickstand down</li>
+<li><code>ready-to-drive</code> - All conditions met, motor enabled</li>
+<li><code>waiting-seatbox</code> - Waiting for seatbox to close</li>
+<li><code>shutting-down</code> - Transitioning to power down (5s)</li>
+<li><code>updating</code> - OTA firmware update in progress</li>
+<li><code>hibernation</code> - Manual hibernation super-state (entered via brake-lever hold from <code>parked</code>). FSM-internal id; <code>vehicle:state</code> reads <code>waiting-hibernation</code> here.</li>
+<li><code>hibernation-initial-hold</code> - 15-second initial brake hold phase. FSM-internal id; <code>vehicle:state</code> keeps reading <code>parked</code> throughout.</li>
+<li><code>hibernation-awaiting-confirm</code> - Confirmation phase. A 30s state timeout runs from entry regardless of brake state and falls back to <code>parked</code>; a separate 15s timer auto-confirms if both brakes are still held when it fires. FSM-internal id; published as <code>waiting-hibernation</code>.</li>
+<li><code>hibernation-seatbox</code> - Confirmation blocked by open seatbox; prompts user to close it. FSM-internal id; published as <code>waiting-hibernation-seatbox</code>.</li>
+<li><code>hibernation-confirm</code> - Final 3-second non-abortable hibernation confirmation. FSM-internal id; published as <code>waiting-hibernation-confirm</code>.</li>
+<li><code>at-rest</code> - Parent state grouping <code>parked</code>, <code>hop-on</code>, <code>hop-on-learning</code>. Owns the auto-standby timer; sibling transitions inside the group don't disturb it. Never the leaf, so <code>vehicle:state</code> never reads <code>at-rest</code>.</li>
+<li><code>hop-on</code> - Hop-on/hop-off mode (rider briefly off, motor disabled, optional steering lock, lock screen rendered by dashboard). Physical inputs are gated declaratively via <code>BlockedEvents</code> on the FSM state.</li>
+<li><code>hop-on-learning</code> - Combo-learning sibling of <code>hop-on</code>: same input gating (no horn / blinker / brake LED / seatbox open / hibernation hold) but no LED cue, no steering-lock attempt, no lock screen. The dashboard renders its own learn overlay.</li>
+</ul>
+<h3 id="hibernation-state-machine">Hibernation State Machine<a class="headerlink" href="#hibernation-state-machine" title="Permanent link">&para;</a></h3>
+<p>The manual hibernation sequence works as follows:</p>
+<ol>
+<li><strong>parked</strong> → <strong>hibernation-initial-hold</strong> (15s): Both brakes pressed continuously</li>
+<li><strong>hibernation-initial-hold</strong> → <strong>hibernation-awaiting-confirm</strong>: After 15s, enter confirmation phase</li>
+<li><strong>hibernation-awaiting-confirm</strong>: User can release brakes or keep holding</li>
+<li>A 30s timeout runs from entry into this phase (not from brake release) and is not reset by further brake activity; on expiry the vehicle returns to <code>parked</code></li>
+<li>If brakes held continuously for 30s total: auto-confirm (skip seatbox check)</li>
+<li>Re-pressing the brakes does not restart the force timer: it is armed once on entry to <code>hibernation-awaiting-confirm</code> and only samples the levers when it expires 15s later</li>
+<li><strong>Keycard tap</strong> or <strong>continuous hold timeout</strong>: Check safety conditions (kickstand down, seatbox closed)</li>
+<li>If seatbox open: transition to <code>hibernation-seatbox</code> and wait for user to close it</li>
+<li><strong>hibernation-confirm</strong>: 3-second final countdown before hibernation</li>
+</ol>
+<p>See <a href="../../states/">States Documentation</a> for complete state machine.</p>
+<h2 id="hardware-interfaces">Hardware Interfaces<a class="headerlink" href="#hardware-interfaces" title="Permanent link">&para;</a></h2>
+<h3 id="gpio-inputs-via-devinput">GPIO Inputs (via /dev/input)<a class="headerlink" href="#gpio-inputs-via-devinput" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Input device:</strong> <code>/dev/input/by-path/platform-gpio-keys-event</code></li>
+</ul>
+<p><strong>Monitored inputs:</strong></p>
+<ul>
+<li><code>kickstand</code> - Kickstand position sensor (true = down, false = up)</li>
+<li><code>brake_left</code> - Left brake lever sensor (true = pressed)</li>
+<li><code>brake_right</code> - Right brake lever sensor (true = pressed)</li>
+<li><code>blinker_left</code> - Left blinker button</li>
+<li><code>blinker_right</code> - Right blinker button</li>
+<li><code>horn_button</code> - Horn button</li>
+<li><code>seatbox_button</code> - Seatbox unlock button</li>
+<li><code>seatbox_lock_sensor</code> - Seatbox lock position sensor (true = closed, false = open)</li>
+<li><code>handlebar_position</code> - Handlebar position sensor (true = on-place, false = off-place)</li>
+<li><code>handlebar_lock_sensor</code> - Handlebar lock sensor (true = unlocked, false = locked)</li>
+<li><code>48v_detect</code> - 48V power detection</li>
+</ul>
+<h3 id="gpio-outputs-via-gpiocdev">GPIO Outputs (via gpiocdev)<a class="headerlink" href="#gpio-outputs-via-gpiocdev" title="Permanent link">&para;</a></h3>
+<p><strong>Digital outputs:</strong></p>
+<ul>
+<li><code>seatbox_lock</code> - Seatbox lock solenoid (GPIO chip 2, line 10) - pulsed for 200ms</li>
+<li><code>horn</code> - Horn control (GPIO chip 2, line 9)</li>
+<li><code>engine_brake</code> - Motor brake control (GPIO chip 2, line 11)</li>
+<li><code>handlebar_lock_close</code> - Handlebar lock motor close (GPIO chip 4, line 6) - pulsed for 1100ms</li>
+<li><code>handlebar_lock_open</code> - Handlebar lock motor open (GPIO chip 4, line 7) - pulsed for 1100ms</li>
+<li><code>dashboard_power</code> - Dashboard power enable (GPIO chip 1, line 18)</li>
+<li><code>engine_power</code> - Motor controller power enable (GPIO chip 2, line 17)</li>
+</ul>
+<h3 id="pwm-led-system">PWM LED System<a class="headerlink" href="#pwm-led-system" title="Permanent link">&para;</a></h3>
+<p>The service controls 8 PWM LED channels via the <code>imx_pwm_led</code> kernel module:</p>
+<p><strong>LED device paths:</strong> <code>/dev/pwm_led0</code> through <code>/dev/pwm_led7</code></p>
+<p><strong>PWM Configuration:</strong></p>
+<ul>
+<li>Period: 12000 ticks</li>
+<li>Prescaler: 0 (default)</li>
+<li>Invert: 0 (default)</li>
+<li>Repeat: 3</li>
+</ul>
+<p><strong>LED patterns:</strong></p>
+<ul>
+<li>Fades: <code>/usr/share/led-curves/fades/fade*</code> (up to 4096 samples per fade)</li>
+<li>Cues: <code>/usr/share/led-curves/cues/cue*</code> (up to 16 cues)</li>
+</ul>
+<p><strong>Blinker timing:</strong></p>
+<ul>
+<li>Blinker interval: 800ms</li>
+</ul>
+<h2 id="configuration">Configuration<a class="headerlink" href="#configuration" title="Permanent link">&para;</a></h2>
+<h3 id="systemd-unit">Systemd Unit<a class="headerlink" href="#systemd-unit" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Unit file:</strong> <code>/usr/lib/systemd/system/librescoot-vehicle.service</code></li>
+<li><strong>Binary:</strong> <code>/usr/bin/vehicle-service</code></li>
+<li><strong>Started by:</strong> systemd at boot (after redis.service)</li>
+<li><strong>Restart policy:</strong> Always</li>
+<li><strong>Priority:</strong> Nice value -10</li>
+<li><strong>User:</strong> root</li>
+<li><strong>Type:</strong> idle</li>
+</ul>
+<h2 id="observable-behavior">Observable Behavior<a class="headerlink" href="#observable-behavior" title="Permanent link">&para;</a></h2>
+<h3 id="startup-sequence">Startup Sequence<a class="headerlink" href="#startup-sequence" title="Permanent link">&para;</a></h3>
+<ol>
+<li>Connects to Redis at 127.0.0.1:6379</li>
+<li>Reads saved vehicle state from Redis (if any)</li>
+<li>Reads brake hibernation setting from Redis (<code>settings</code> hash, <code>scooter.brake-hibernation</code>)</li>
+<li>Checks if DBC update is in progress (restores <code>dbcUpdating</code> flag if needed)</li>
+<li>Reloads PWM LED kernel module (<code>rmmod imx_pwm_led &amp;&amp; modprobe imx_pwm_led</code>)</li>
+<li>Waits for <code>/dev/pwm_led0</code> to appear (up to 1 second)</li>
+<li>Initializes hardware:</li>
+<li>Opens all 8 LED device files (<code>/dev/pwm_led0</code> through <code>/dev/pwm_led7</code>)</li>
+<li>Configures PWM parameters for each channel</li>
+<li>Sets adaptive mode for non-blinker LEDs (channels 0, 1, 2, 5)</li>
+<li>Activates all LED channels</li>
+<li>Loads LED fades and cues from <code>/usr/share/led-curves/</code></li>
+<li>Plays initial LED cue (cue 0)</li>
+<li>Opens GPIO input device</li>
+<li>Opens GPIO output lines</li>
+<li>Checks initial handlebar lock sensor state</li>
+<li>Registers input callbacks for all monitored inputs</li>
+<li>Publishes initial sensor states to Redis</li>
+<li>Restores LED state based on saved vehicle state (if parked or ready-to-drive)</li>
+<li>Marks system as initialized</li>
+<li>Handles initial dashboard ready state (if dashboard was already ready)</li>
+<li>Publishes initial vehicle state to Redis</li>
+<li>Transitions from <code>init</code> to <code>stand-by</code> if still in init state</li>
+<li>Starts Redis listeners (PUBSUB and BRPOP)</li>
+</ol>
+<h3 id="state-machine-behavior">State Machine Behavior<a class="headerlink" href="#state-machine-behavior" title="Permanent link">&para;</a></h3>
+<h4 id="ready-to-drive-conditions">Ready-to-Drive Conditions<a class="headerlink" href="#ready-to-drive-conditions" title="Permanent link">&para;</a></h4>
+<p>Vehicle enters <code>ready-to-drive</code> when ALL are true:</p>
+<ul>
+<li>Dashboard ready (<code>dashboard</code> hash <code>ready</code> field = "true")</li>
+<li>Kickstand up</li>
+<li>Handlebar unlocked (has been unlocked at least once this power cycle)</li>
+<li>Current state is <code>parked</code></li>
+</ul>
+<p><strong>Manual Ready-to-Drive Activation:</strong>
+In <code>parked</code> state, if dashboard is not ready, pressing the seatbox button while:</p>
+<ul>
+<li>Kickstand is up</li>
+<li>Both brakes are held</li>
+</ul>
+<p>Will manually transition to <code>ready-to-drive</code> and blink the main light once for confirmation.</p>
+<h4 id="lockunlock-handling">Lock/Unlock Handling<a class="headerlink" href="#lockunlock-handling" title="Permanent link">&para;</a></h4>
+<p><strong>Lock command</strong> (<code>LPUSH scooter:state lock</code>):</p>
+<ol>
+<li>Must be in <code>parked</code> state</li>
+<li>Transitions to <code>shutting-down</code></li>
+<li>After 5 seconds, transitions to <code>stand-by</code></li>
+<li>Power manager then suspends/hibernates</li>
+</ol>
+<p><strong>Unlock command</strong> (<code>LPUSH scooter:state unlock</code>):</p>
+<ol>
+<li>Reads kickstand state</li>
+<li>If dashboard ready and kickstand up: transitions to <code>ready-to-drive</code></li>
+<li>Otherwise: transitions to <code>parked</code> (if currently in <code>stand-by</code>)</li>
+</ol>
+<p><strong>Lock-Hibernate command</strong> (<code>LPUSH scooter:state lock-hibernate</code>):</p>
+<ol>
+<li>Must be in <code>parked</code> state</li>
+<li>Sets hibernation request flag</li>
+<li>Transitions to <code>shutting-down</code></li>
+<li>Sends "hibernate-manual" command to power manager via <code>scooter:power</code> list</li>
+</ol>
+<p><strong>Force-Lock command</strong> (<code>LPUSH scooter:state force-lock</code>):</p>
+<ol>
+<li>Sets <code>forceStandbyNoLock</code> flag</li>
+<li>Immediately transitions to <code>stand-by</code> without handlebar locking</li>
+<li>Used for emergency shutdown or special cases (e.g., DBC update)</li>
+</ol>
+<h4 id="hibernation-sequence">Hibernation Sequence<a class="headerlink" href="#hibernation-sequence" title="Permanent link">&para;</a></h4>
+<p><strong>Brake-lever hibernation</strong> (can be disabled via <code>settings</code> hash <code>scooter.brake-hibernation</code> = "disabled"):</p>
+<ol>
+<li><strong>Trigger:</strong> Both brakes pressed in <code>parked</code> state for 15 seconds</li>
+<li><strong>Initial Hold (15s):</strong> Brakes must be held continuously</li>
+<li>If brakes released: sequence cancelled, return to <code>parked</code></li>
+<li>After 15s: transition to <code>waiting-hibernation</code> state</li>
+<li><strong>Confirmation Phase:</strong></li>
+<li>User can release brakes or keep holding</li>
+<li>If brakes released: 30-second timeout starts<ul>
+<li>The 30s timeout is armed on entry into the confirmation phase, not on brake release, and touching the brakes again does not reset it</li>
+<li>If timeout expires: cancel hibernation, return to <code>parked</code></li>
+</ul>
+</li>
+<li>If brakes held continuously for 30s total from start: auto-confirm (warehouse mode)</li>
+<li>Re-pressing the brakes does not restart the force timer: it is armed once on entry to the confirmation phase and only samples the levers when it expires 15s later</li>
+<li><strong>Keycard tap during confirmation:</strong> triggers immediate safety check and confirmation</li>
+<li><strong>Safety Checks:</strong></li>
+<li>Kickstand must be down (always required)</li>
+<li>Seatbox must be closed (skipped for auto-confirm scenarios)</li>
+<li>If seatbox open: transition to <code>waiting-hibernation-seatbox</code> state to notify user</li>
+<li><strong>Final Confirmation:</strong></li>
+<li>Transition to <code>waiting-hibernation-confirm</code> state</li>
+<li>3-second countdown (abortable: the seatbox button cancels it back to <code>parked</code>, and an unlock command or raising the kickstand also leaves hibernation)</li>
+<li>Then transition to <code>shutting-down</code> with hibernation flag</li>
+<li>Send "hibernate-manual" command to power manager</li>
+</ol>
+<p><strong>Keycard force-standby:</strong></p>
+<ul>
+<li>Tap keycard 3 times while holding brake lever</li>
+<li>Immediately transitions to <code>stand-by</code> without handlebar lock</li>
+<li>Useful for emergency situations or servicing</li>
+</ul>
+<h4 id="blinker-control">Blinker Control<a class="headerlink" href="#blinker-control" title="Permanent link">&para;</a></h4>
+<p>The service implements automatic blinker logic:</p>
+<ul>
+<li>Blink interval: 800ms</li>
+<li>Physical blinker switches only work in active states (parked, ready-to-drive, waiting states)</li>
+<li>In other states, blinker control comes from software commands only</li>
+<li>LED cues used:</li>
+<li>Cue 9: LED_BLINK_NONE (blinkers off)</li>
+<li>Cue 10: LED_BLINK_LEFT (left blinker)</li>
+<li>Cue 11: LED_BLINK_RIGHT (right blinker)</li>
+<li>Cue 12: LED_BLINK_BOTH (hazard lights)</li>
+<li>Publishes blinker switch and state changes to Redis</li>
+<li>Publishes immediate button events to <code>buttons</code> channel for UI response</li>
+</ul>
+<h4 id="seatbox-control">Seatbox Control<a class="headerlink" href="#seatbox-control" title="Permanent link">&para;</a></h4>
+<p><strong>Open command</strong> (<code>LPUSH scooter:seatbox open</code>):</p>
+<ol>
+<li>Pulses seatbox lock solenoid for 200ms</li>
+<li>Publishes seatbox opened event to <code>vehicle</code> channel (payload: "seatbox:opened")</li>
+</ol>
+<p><strong>Button press:</strong></p>
+<ul>
+<li>In <code>parked</code> state: pressing seatbox button opens seatbox</li>
+<li>In other states: button press is logged but no action taken</li>
+<li>Button events published to <code>buttons</code> channel for UI feedback</li>
+<li>Pressing seatbox button cancels any active hibernation sequence</li>
+</ul>
+<h4 id="brake-control">Brake Control<a class="headerlink" href="#brake-control" title="Permanent link">&para;</a></h4>
+<p><strong>Brake state handling:</strong></p>
+<ul>
+<li>Brake pressed: plays LED cue 4 (LED_BRAKE_OFF_TO_BRAKE_ON)</li>
+<li>Brake released: plays LED cue 5 (LED_BRAKE_ON_TO_BRAKE_OFF)</li>
+<li>Engine brake logic:</li>
+<li>In <code>ready-to-drive</code>: engine brake follows brake levers (engaged if either pressed)</li>
+<li>In all other states: engine brake always engaged (motor disabled)</li>
+<li>Brake state published to Redis (<code>vehicle</code> hash, <code>brake:left</code> and <code>brake:right</code>)</li>
+<li>Button events published to <code>buttons</code> channel for immediate UI response</li>
+</ul>
+<p><strong>Park debounce:</strong></p>
+<ul>
+<li>After entering <code>ready-to-drive</code>, kickstand down events are ignored for 1 second</li>
+<li>Prevents accidental transition to parked during kickstand retraction</li>
+</ul>
+<h3 id="command-processing">Command Processing<a class="headerlink" href="#command-processing" title="Permanent link">&para;</a></h3>
+<p>Commands are consumed via BRPOP with 5-second timeout:</p>
+<ul>
+<li><code>scooter:state</code> - State change commands</li>
+<li><code>scooter:seatbox</code> - Seatbox control</li>
+<li><code>scooter:horn</code> - Horn control</li>
+<li><code>scooter:blinker</code> - Blinker control</li>
+<li><code>scooter:led:cue</code> - LED cue playback</li>
+<li><code>scooter:led:fade</code> - LED fade playback</li>
+<li><code>scooter:update</code> - Update coordination</li>
+<li><code>scooter:hardware</code> - Direct hardware control</li>
+</ul>
+<h3 id="fault-detection">Fault Detection<a class="headerlink" href="#fault-detection" title="Permanent link">&para;</a></h3>
+<p>The service supports fault reporting via Redis:</p>
+<ul>
+<li>Faults are added to the <code>vehicle:fault</code> set (using SADD)</li>
+<li>Fault events are logged to the <code>events:faults</code> stream (using XADD)</li>
+<li>Fault notifications published to <code>vehicle</code> channel (payload: "fault")</li>
+<li>Fault codes are numeric identifiers</li>
+<li>Cleared faults are reported with negative code values</li>
+</ul>
+<p>Current implementation does not actively monitor for faults, but the infrastructure is in place for future fault detection.</p>
+<h2 id="log-output">Log Output<a class="headerlink" href="#log-output" title="Permanent link">&para;</a></h2>
+<p>The service logs to journald. Common log patterns:</p>
+<ul>
+<li>State transitions (e.g., "Transitioning from PARKED to READY_TO_DRIVE")</li>
+<li>Input events (e.g., "Input kickstand =&gt; true")</li>
+<li>Command processing (e.g., "Received command from scooter:state: lock")</li>
+<li>Redis operations (e.g., "Publishing vehicle state: parked")</li>
+<li>Hardware operations (e.g., "Seatbox lock toggled for 0.2s")</li>
+<li>LED operations (e.g., "Playing LED cue 4")</li>
+<li>Hibernation sequence events</li>
+<li>Button events published to UI</li>
+<li>Settings updates</li>
+</ul>
+<p><strong>Log levels:</strong></p>
+<ul>
+<li>0 = NONE: No logging</li>
+<li>1 = ERROR: Fatal errors only</li>
+<li>2 = WARN: Warnings and errors</li>
+<li>3 = INFO: Informational messages (default)</li>
+<li>4 = DEBUG: Detailed debugging output</li>
+</ul>
+<p><strong>View logs:</strong>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>journalctl<span class="w"> </span>-u<span class="w"> </span>librescoot-vehicle.service
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>journalctl<span class="w"> </span>-u<span class="w"> </span>librescoot-vehicle.service<span class="w"> </span>-f<span class="w">  </span><span class="c1"># Follow mode</span>
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>journalctl<span class="w"> </span>-u<span class="w"> </span>librescoot-vehicle.service<span class="w"> </span>--since<span class="w"> </span><span class="s2">"10 minutes ago"</span>
+</span></code></pre></div></p>
+<h2 id="dependencies">Dependencies<a class="headerlink" href="#dependencies" title="Permanent link">&para;</a></h2>
+<p><strong>Required:</strong></p>
+<ul>
+<li><strong>Redis server</strong> - Must be running at 127.0.0.1:6379</li>
+<li><strong>GPIO input device</strong> - <code>/dev/input/by-path/platform-gpio-keys-event</code></li>
+<li><strong>GPIO chip devices</strong> - For digital outputs (gpiochip1, gpiochip2, gpiochip4)</li>
+<li><strong>PWM LED kernel module</strong> - <code>imx_pwm_led</code> must be loadable</li>
+<li><strong>PWM LED device files</strong> - <code>/dev/pwm_led0</code> through <code>/dev/pwm_led7</code></li>
+<li><strong>LED curve files</strong> - <code>/usr/share/led-curves/fades/</code> and <code>/usr/share/led-curves/cues/</code></li>
+</ul>
+<p><strong>Optional:</strong></p>
+<ul>
+<li><strong>dashboard</strong> - Service waits for <code>dashboard ready</code> = "true" before allowing ready-to-drive</li>
+<li><strong>keycard</strong> - Authentication via keycard events</li>
+<li><strong>settings-service</strong> - For persistent settings like brake-hibernation</li>
+<li><strong>update-service</strong> - For OTA update coordination</li>
+<li><strong>power-manager</strong> - For hibernation execution</li>
+</ul>
+<h2 id="librescoot-implementation-details">LibreScoot Implementation Details<a class="headerlink" href="#librescoot-implementation-details" title="Permanent link">&para;</a></h2>
+<p>The LibreScoot <strong>vehicle-service</strong> is a Go-based implementation with the following architecture:</p>
+<h3 id="technical-implementation">Technical Implementation<a class="headerlink" href="#technical-implementation" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Language:</strong> Go (Golang)</li>
+<li><strong>Concurrency:</strong> Uses goroutines for parallel I/O handling</li>
+<li><strong>GPIO library:</strong> <code>github.com/warthog618/go-gpiocdev</code> for digital I/O</li>
+<li><strong>Redis library:</strong> <code>github.com/redis/go-redis/v9</code> for Redis operations</li>
+<li><strong>System calls:</strong> <code>golang.org/x/sys/unix</code> for low-level hardware access</li>
+<li><strong>Binary size:</strong> Optimized for ARM Cortex-A7 architecture</li>
+<li><strong>Cross-compilation:</strong> Supports AMD64 for development/testing</li>
+</ul>
+<h3 id="key-features">Key Features<a class="headerlink" href="#key-features" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Enhanced LED control:</strong> Full 8-channel PWM LED system with adaptive and active/inactive modes</li>
+<li><strong>Robust hibernation:</strong> Multi-stage hibernation state machine with safety checks</li>
+<li><strong>Settings integration:</strong> Dynamic settings updates via Redis PUBSUB</li>
+<li><strong>Update coordination:</strong> Handles DBC dashboard updates with power state management</li>
+<li><strong>Button feedback:</strong> Immediate button event publishing for responsive UI</li>
+<li><strong>State persistence:</strong> Saves and restores vehicle state across reboots</li>
+<li><strong>Graceful shutdown:</strong> Proper cleanup of hardware resources and timers</li>
+</ul>
+<h3 id="led-channel-mapping">LED Channel Mapping<a class="headerlink" href="#led-channel-mapping" title="Permanent link">&para;</a></h3>
+<p>LibreScoot vehicle-service controls 8 PWM LED channels:</p>
+<table>
+<thead>
+<tr>
+<th>Index</th>
+<th>LED Name</th>
+<th>Description</th>
+<th>Mode</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0</td>
+<td>Headlight</td>
+<td>Main front illumination</td>
+<td>Adaptive</td>
+</tr>
+<tr>
+<td>1</td>
+<td>Front ring</td>
+<td>Front accent lighting</td>
+<td>Adaptive</td>
+</tr>
+<tr>
+<td>2</td>
+<td>Brake light</td>
+<td>Rear brake indicator</td>
+<td>Adaptive</td>
+</tr>
+<tr>
+<td>3</td>
+<td>Blinker front left</td>
+<td>Left front turn signal</td>
+<td>Active/Inactive</td>
+</tr>
+<tr>
+<td>4</td>
+<td>Blinker front right</td>
+<td>Right front turn signal</td>
+<td>Active/Inactive</td>
+</tr>
+<tr>
+<td>5</td>
+<td>Number plates</td>
+<td>License plate illumination</td>
+<td>Adaptive</td>
+</tr>
+<tr>
+<td>6</td>
+<td>Blinker rear left</td>
+<td>Left rear turn signal</td>
+<td>Active/Inactive</td>
+</tr>
+<tr>
+<td>7</td>
+<td>Blinker rear right</td>
+<td>Right rear turn signal</td>
+<td>Active/Inactive</td>
+</tr>
+</tbody>
+</table>
+<h3 id="led-channel-modes">LED Channel Modes<a class="headerlink" href="#led-channel-modes" title="Permanent link">&para;</a></h3>
+<ul>
+<li>
+<p><strong>Adaptive Mode</strong> (channels 0,1,2,5): When enabled, the channel adapts fade playback by finding the first duty-cycle value in the fade that is nearest to the current duty-cycle, then starting the fade from that point. This prevents abrupt brightness jumps during transitions between different LED states. Non-blinker channels use adaptive mode for smooth transitions.</p>
+</li>
+<li>
+<p><strong>Active/Inactive Mode</strong> (channels 3,4,6,7): Controls whether fade values are actually output to the LED. When active, fade values are set as the channel's duty-cycle normally. When inactive, the output is forced to 0% regardless of the fade being played. Blinker channels rely on precise active/inactive control for their flashing patterns and do NOT use adaptive mode.</p>
+</li>
+</ul>
+<p><strong>Kernel module:</strong> The PWM LED system is implemented via the <code>imx_pwm_led</code> kernel module, which provides <code>/dev/pwm_led*</code> character devices for each channel. The service reloads this module on startup to ensure clean state.</p>
+<p>See <a href="https://github.com/unumotors/kernel-module-imx-pwm-led/blob/master/README.md">i.MX PWM LED kernel module documentation</a> for detailed mode specifications and ioctl interface.</p>
+<h3 id="special-features">Special Features<a class="headerlink" href="#special-features" title="Permanent link">&para;</a></h3>
+<p><strong>DBC Update Support:</strong>
+During DBC (Dashboard Controller) firmware updates:</p>
+<ul>
+<li>Dashboard power is kept on regardless of vehicle state</li>
+<li>Power state changes are deferred until update completes</li>
+<li>A dashboard power-cycle handler exists in the core, but it is unreachable in this release: the <code>scooter:update</code> list handler rejects "cycle-dashboard-power" before dispatching</li>
+<li>Service tracks update status via <code>ota</code> hash <code>status:dbc</code> field</li>
+</ul>
+<p><strong>Force Standby:</strong>
+Three keycard taps while holding brake lever triggers immediate transition to standby without handlebar lock. Useful for:</p>
+<ul>
+<li>Emergency situations</li>
+<li>Service/warehouse operations</li>
+<li>Forcing standby when handlebar lock is non-functional</li>
+</ul>
+<p><strong>Settings Integration:</strong>
+The service responds to settings changes via PUBSUB:</p>
+<ul>
+<li><code>scooter.brake-hibernation</code>: "enabled" or "disabled"</li>
+<li>Changes take effect immediately</li>
+<li>Active hibernation sequences are cancelled when disabled</li>
+</ul>
+<h3 id="architecture">Architecture<a class="headerlink" href="#architecture" title="Permanent link">&para;</a></h3>
+<p><strong>Package structure:</strong></p>
+<ul>
+<li><code>cmd/vehicle-service/</code> - Main entry point</li>
+<li><code>internal/core/</code> - Core system logic and state machine</li>
+<li><code>internal/hardware/</code> - Hardware I/O abstraction (GPIO, LED)</li>
+<li><code>internal/messaging/</code> - Redis communication layer</li>
+<li><code>internal/types/</code> - Shared type definitions</li>
+<li><code>internal/logger/</code> - Leveled logging implementation</li>
+</ul>
+<p><strong>Concurrency model:</strong></p>
+<ul>
+<li>Main goroutine handles system coordination</li>
+<li>Separate goroutines for:</li>
+<li>Redis PUBSUB listener</li>
+<li>9 Redis BRPOP command listeners (one per list, including <code>scooter:hop-on</code>)</li>
+<li>Blinker timer (when active)</li>
+<li>Various hardware timers (hibernation, shutdown, handlebar lock)</li>
+<li>Thread-safe state access via sync.RWMutex</li>
+</ul>
+<p><strong>Error handling:</strong></p>
+<ul>
+<li>Hardware errors are logged but don't crash the service</li>
+<li>Redis disconnection causes service exit (systemd will restart)</li>
+<li>Invalid commands are logged and rejected</li>
+<li>State transition errors are logged and may be retried</li>
+</ul>
+<h3 id="building">Building<a class="headerlink" href="#building" title="Permanent link">&para;</a></h3>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="c1"># Build for ARM Cortex-A7 (default target)</span>
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>make<span class="w"> </span>build
+</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>
+</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="c1"># Build for the host platform (development/testing)</span>
+</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>make<span class="w"> </span>build-host
+</span><span id="__span-2-6"><a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>
+</span><span id="__span-2-7"><a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="c1"># Output: bin/vehicle-service</span>
+</span></code></pre></div>
+<h3 id="compatibility">Compatibility<a class="headerlink" href="#compatibility" title="Permanent link">&para;</a></h3>
+<p>LibreScoot vehicle-service maintains Redis protocol compatibility:</p>
+<ul>
+<li>Same hash fields and structure as original implementation</li>
+<li>Same command interface (LPUSH to command lists)</li>
+<li>Same PUBSUB channel usage</li>
+<li>Compatible with any dashboard that follows the LibreScoot Redis protocol</li>
+<li>No changes required to other services</li>
+</ul>
+<h3 id="integration-points">Integration Points<a class="headerlink" href="#integration-points" title="Permanent link">&para;</a></h3>
+<p>LibreScoot vehicle-service integrates with:</p>
+<ul>
+<li><strong>Redis</strong> - Central message bus (required)</li>
+<li><strong>Dashboard service</strong> - Waits for ready signal before allowing drive</li>
+<li><strong>Settings service</strong> - Reads persistent behavior settings</li>
+<li><strong>Update service</strong> - Coordinates OTA firmware updates</li>
+<li><strong>Power manager</strong> - Sends hibernation commands</li>
+<li><strong>Keycard service</strong> - Receives authentication events</li>
+<li><strong>UI/HMI</strong> - Publishes button events for immediate feedback</li>
+</ul>
+<h2 id="related-documentation">Related Documentation<a class="headerlink" href="#related-documentation" title="Permanent link">&para;</a></h2>
+<ul>
+<li><a href="../../states/">Vehicle States</a> - Complete state machine documentation</li>
+<li><a href="../../redis/">Redis Operations</a> - Redis protocol and data structures</li>
+<li><a href="../">LibreScoot Services Overview</a> - All LibreScoot services</li>
+<li><a href="https://github.com/unumotors/kernel-module-imx-pwm-led">i.MX PWM LED kernel module</a> - LED hardware interface</li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-circle-arrow-up" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="m16 12-4-4-4 4M12 16V8"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+    
+      
+      <nav class="md-footer__inner md-grid" aria-label="Footer" >
+        
+          
+          <a href="../librescoot-update/" class="md-footer__link md-footer__link--prev" aria-label="Previous: update-service">
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-arrow-left" viewBox="0 0 24 24"><path d="m12 19-7-7 7-7M19 12H5"/></svg>
+            </div>
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Previous
+              </span>
+              <div class="md-ellipsis">
+                update-service
+              </div>
+            </div>
+          </a>
+        
+        
+          
+          <a href="../../dashboard/" class="md-footer__link md-footer__link--next" aria-label="Next: Dashboard">
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Next
+              </span>
+              <div class="md-ellipsis">
+                Dashboard
+              </div>
+            </div>
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-arrow-right" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+            </div>
+          </a>
+        
+      </nav>
+    
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+    <div class="md-copyright__highlight">
+      Copyright &copy; 2025-2026 Librescoot contributors
+    </div>
+  
+  
+    Made with
+    <a href="https://zensical.org/" target="_blank" rel="noopener">
+      Zensical
+    </a>
+  
+</div>
+      
+        
+<div class="md-social">
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://github.com/librescoot" target="_blank" rel="noopener" title="github.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.3.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2026 Fonticons, Inc.--><path fill="currentColor" d="M216.5 362.5c-66-8-112.5-55.5-112.5-117 0-25 9-52 24-70-6.5-16.5-5.5-51.5 2-66 20-2.5 47 8 63 22.5 19-6 39-9 63.5-9s44.5 3 62.5 8.5c15.5-14 43-24.5 63-22 7 13.5 8 48.5 1.5 65.5 16 19 24.5 44.5 24.5 70.5 0 61.5-46.5 108-113.5 116.5 17 11 28.5 35 28.5 62.5v52c0 15 12.5 23.5 27.5 17.5C441 459.5 512 369 512 257 512 115.5 397 0 255.5 0S0 115.5 0 257c0 111 70.5 203 165.5 237.5 13.5 5 26.5-4 26.5-17.5v-40c-7 3-16 5-24 5-33 0-52.5-18-66.5-51.5-5.5-13.5-11.5-21.5-23-23-6-.5-8-3-8-6 0-6 10-10.5 20-10.5 14.5 0 27 9 40 27.5 10 14.5 20.5 21 33 21s20.5-4.5 32-16c8.5-8.5 15-16 21-21"/></svg>
+    </a>
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://discord.gg/VrumFruSzJ" target="_blank" rel="noopener" title="discord.gg" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512"><!--! Font Awesome Free 7.3.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2026 Fonticons, Inc.--><path fill="currentColor" d="M492.5 69.8c-.2-.3-.4-.6-.8-.7-38.1-17.5-78.4-30-119.7-37.1-.4-.1-.8 0-1.1.1s-.6.4-.8.8c-5.5 9.9-10.5 20.2-14.9 30.6-44.6-6.8-89.9-6.8-134.4 0-4.5-10.5-9.5-20.7-15.1-30.6-.2-.3-.5-.6-.8-.8s-.7-.2-1.1-.2C162.5 39 122.2 51.5 84.1 69c-.3.1-.6.4-.8.7C7.1 183.5-13.8 294.6-3.6 404.2c0 .3.1.5.2.8s.3.4.5.6c44.4 32.9 94 58 146.8 74.2.4.1.8.1 1.1 0s.7-.4.9-.7c11.3-15.4 21.4-31.8 30-48.8.1-.2.2-.5.2-.8s0-.5-.1-.8-.2-.5-.4-.6-.4-.3-.7-.4c-15.8-6.1-31.2-13.4-45.9-21.9-.3-.2-.5-.4-.7-.6s-.3-.6-.3-.9 0-.6.2-.9.3-.5.6-.7c3.1-2.3 6.2-4.7 9.1-7.1.3-.2.6-.4.9-.4s.7 0 1 .1c96.2 43.9 200.4 43.9 295.5 0 .3-.1.7-.2 1-.2s.7.2.9.4c2.9 2.4 6 4.9 9.1 7.2.2.2.4.4.6.7s.2.6.2.9-.1.6-.3.9-.4.5-.6.6c-14.7 8.6-30 15.9-45.9 21.8-.2.1-.5.2-.7.4s-.3.4-.4.7-.1.5-.1.8.1.5.2.8c8.8 17 18.8 33.3 30 48.8.2.3.6.6.9.7s.8.1 1.1 0c52.9-16.2 102.6-41.3 147.1-74.2.2-.2.4-.4.5-.6s.2-.5.2-.8c12.3-126.8-20.5-236.9-86.9-334.5zm-302 267.7c-29 0-52.8-26.6-52.8-59.2s23.4-59.2 52.8-59.2c29.7 0 53.3 26.8 52.8 59.2 0 32.7-23.4 59.2-52.8 59.2m195.4 0c-29 0-52.8-26.6-52.8-59.2s23.4-59.2 52.8-59.2c29.7 0 53.3 26.8 52.8 59.2 0 32.7-23.2 59.2-52.8 59.2"/></svg>
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate":null,"base":"../..","features":["content.action.edit","content.code.copy","content.code.select","content.tooltips","navigation.footer","navigation.indexes","navigation.instant","navigation.instant.prefetch","navigation.path","navigation.sections","navigation.top","navigation.tracking","search.highlight","toc.follow"],"search":"../../assets/javascripts/workers/search.7d14d953.min.js","tags":null,"translations":{"clipboard.copied":"Copied to clipboard","clipboard.copy":"Copy to clipboard","search.result.more.one":"1 more on this page","search.result.more.other":"# more on this page","search.result.none":"No matching documents","search.result.one":"1 matching document","search.result.other":"# matching documents","search.result.placeholder":"Type to start searching","search.result.term.missing":"Missing","select.version":"Select version"},"version":{"provider":"mike"}}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.49251538.min.js"></script>
+      
+    
+  </body>
+</html>
