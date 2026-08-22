@@ -2136,20 +2136,22 @@
 <p>motion-service unbinds the kernel driver at startup and drives all three over <code>/dev/i2c-3</code> directly. The chip is mounted on the underside of the MDB; magnetometer readings are remapped (axis order + signs) into a vehicle NED frame and tilt-compensated using the accelerometer.</p>
 <h2 id="redis-operations">Redis Operations<a class="headerlink" href="#redis-operations" title="Permanent link">&para;</a></h2>
 <h3 id="hash-motion">Hash: <code>motion</code><a class="headerlink" href="#hash-motion" title="Permanent link">&para;</a></h3>
-<p><strong>Fields written:</strong>
-- <code>initialized</code> — <code>true</code> once sensors are up
-- <code>streaming</code> — <code>enabled</code>/<code>disabled</code>
-- <code>polling-rate-hz</code> — current sensor poll rate
-- <code>current-profile</code> — profile name applied to chip (<code>idle</code>, <code>armed-awake</code>, <code>armed-hibernation</code>, <code>level1</code>, <code>waiting</code>)
-- <code>interrupt</code>, <code>pin</code>, <code>threshold</code>, <code>duration</code>, <code>sensitivity</code> — motion-engine config, seeded by <code>publishInitialStatus</code> at startup and updated only by the <code>scooter:motion</code> command handlers. They describe the last manual command, not necessarily the chip: <code>controller.Apply</code> writes only <code>current-profile</code>, so these drift as soon as a profile is applied.
-- <code>last-interrupt-timestamp</code> — unix-ms of last interrupt
-- <code>error-count</code>, <code>last-error</code> — diagnostic counters
-- Heading fields (refreshed from each magnetometer publish):
-  - <code>heading</code> — 0–359 degrees, integer
-  - <code>heading-deg</code> — float, medium-EMA-smoothed
-  - <code>heading-accuracy</code> — heuristic 1-σ degrees
-  - <code>heading-tilt</code> — angle from level
-  - <code>heading-tilt-comp</code> — <code>true</code> if accel-based tilt compensation was applied to this sample</p>
+<p><strong>Fields written:</strong></p>
+<ul>
+<li><code>initialized</code> — <code>true</code> once sensors are up</li>
+<li><code>streaming</code> — <code>enabled</code>/<code>disabled</code></li>
+<li><code>polling-rate-hz</code> — current sensor poll rate</li>
+<li><code>current-profile</code> — profile name applied to chip (<code>idle</code>, <code>armed-awake</code>, <code>armed-hibernation</code>, <code>level1</code>, <code>waiting</code>)</li>
+<li><code>interrupt</code>, <code>pin</code>, <code>threshold</code>, <code>duration</code>, <code>sensitivity</code> — motion-engine config, seeded by <code>publishInitialStatus</code> at startup and updated only by the <code>scooter:motion</code> command handlers. They describe the last manual command, not necessarily the chip: <code>controller.Apply</code> writes only <code>current-profile</code>, so these drift as soon as a profile is applied.</li>
+<li><code>last-interrupt-timestamp</code> — unix-ms of last interrupt</li>
+<li><code>error-count</code>, <code>last-error</code> — diagnostic counters</li>
+<li>Heading fields (refreshed from each magnetometer publish):</li>
+<li><code>heading</code> — 0–359 degrees, integer</li>
+<li><code>heading-deg</code> — float, medium-EMA-smoothed</li>
+<li><code>heading-accuracy</code> — heuristic 1-σ degrees</li>
+<li><code>heading-tilt</code> — angle from level</li>
+<li><code>heading-tilt-comp</code> — <code>true</code> if accel-based tilt compensation was applied to this sample</li>
+</ul>
 <p><strong>Published channel:</strong> <code>motion</code></p>
 <h3 id="subscribed-hashes-hashwatcher-with-50-ms-debounce-startwithsync">Subscribed Hashes (HashWatcher with 50 ms debounce + StartWithSync)<a class="headerlink" href="#subscribed-hashes-hashwatcher-with-50-ms-debounce-startwithsync" title="Permanent link">&para;</a></h3>
 <ul>

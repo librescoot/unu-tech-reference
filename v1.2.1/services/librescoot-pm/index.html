@@ -2741,52 +2741,74 @@
 <p><strong>Note:</strong> The hibernation timer default is 72 hours (3 days). The systemd unit file typically overrides the default state to <code>run</code> to prevent automatic suspends during development.</p>
 <h2 id="redis-operations">Redis Operations<a class="headerlink" href="#redis-operations" title="Permanent link">&para;</a></h2>
 <h3 id="hash-power-manager">Hash: <code>power-manager</code><a class="headerlink" href="#hash-power-manager" title="Permanent link">&para;</a></h3>
-<p><strong>Fields written:</strong>
-- <code>state</code> - Power manager state (see States section below)
-- <code>wakeup-source</code> - IRQ number of wakeup source (e.g., "45" for RTC)
-- <code>wake-timer-seconds</code> - Requested wake-timer duration for the next nRF52 wake (decimal seconds; <code>0</code> disarms). Written when a <code>hibernate-for</code> flow enters <code>low-power-imminent</code>, before <code>EnterIssuingLowPower</code> blocks for the ACK.</p>
-<p><strong>Fields read:</strong>
-- <code>wake-timer-armed</code> - Set to <code>"true"</code> by bluetooth-service when the nRF52 acknowledges the wake-timer arm, <code>"false"</code> on disarm. pm-service blocks (up to <code>pm.wake-timer-ack-timeout</code>) on this field flipping to <code>true</code> in <code>EnterIssuingLowPower</code>; on timeout it aborts the hibernation rather than power off without a confirmed wake source.
-- <code>power-state-sent</code> - The nRF suspend-ACK, written by bluetooth-service when it confirms it forwarded a power state to the nRF52. Only the value <code>"suspending"</code> is acted on. Before suspending, pm-service publishes the <code>suspending</code> state and then blocks (up to <code>suspendQuiesceTimeout</code>, 3 s) in <code>EnterIssuingLowPower</code> for <code>power-state-sent=suspending</code>. The nRF must stop its USOCK TX before the iMX6 sleeps; otherwise routine traffic on the armed ttymxc1 wakeup pulls the iMX6 straight back out of suspend-to-RAM. On ACK it settles a 200 ms margin (so the nRF's reply to the suspending frame can drain) and then suspends; on timeout it aborts back to <code>running</code> rather than suspend into the wake loop. This gate applies only to the <code>suspend</code> target, not to hibernate/poweroff/reboot.</p>
-<p><strong>Published channel:</strong> <code>power-manager</code>
-- <code>state</code> - Published when power state changes
-- <code>wakeup-source</code> - Published when system wakes from suspend
-- <code>wake-timer-seconds</code> - Published when pm-service requests a wake-timer change
-- <code>wake-timer-armed</code> - Published by bluetooth-service when the nRF52 ACK arrives</p>
+<p><strong>Fields written:</strong></p>
+<ul>
+<li><code>state</code> - Power manager state (see States section below)</li>
+<li><code>wakeup-source</code> - IRQ number of wakeup source (e.g., "45" for RTC)</li>
+<li><code>wake-timer-seconds</code> - Requested wake-timer duration for the next nRF52 wake (decimal seconds; <code>0</code> disarms). Written when a <code>hibernate-for</code> flow enters <code>low-power-imminent</code>, before <code>EnterIssuingLowPower</code> blocks for the ACK.</li>
+</ul>
+<p><strong>Fields read:</strong></p>
+<ul>
+<li><code>wake-timer-armed</code> - Set to <code>"true"</code> by bluetooth-service when the nRF52 acknowledges the wake-timer arm, <code>"false"</code> on disarm. pm-service blocks (up to <code>pm.wake-timer-ack-timeout</code>) on this field flipping to <code>true</code> in <code>EnterIssuingLowPower</code>; on timeout it aborts the hibernation rather than power off without a confirmed wake source.</li>
+<li><code>power-state-sent</code> - The nRF suspend-ACK, written by bluetooth-service when it confirms it forwarded a power state to the nRF52. Only the value <code>"suspending"</code> is acted on. Before suspending, pm-service publishes the <code>suspending</code> state and then blocks (up to <code>suspendQuiesceTimeout</code>, 3 s) in <code>EnterIssuingLowPower</code> for <code>power-state-sent=suspending</code>. The nRF must stop its USOCK TX before the iMX6 sleeps; otherwise routine traffic on the armed ttymxc1 wakeup pulls the iMX6 straight back out of suspend-to-RAM. On ACK it settles a 200 ms margin (so the nRF's reply to the suspending frame can drain) and then suspends; on timeout it aborts back to <code>running</code> rather than suspend into the wake loop. This gate applies only to the <code>suspend</code> target, not to hibernate/poweroff/reboot.</li>
+</ul>
+<p><strong>Published channel:</strong> <code>power-manager</code></p>
+<ul>
+<li><code>state</code> - Published when power state changes</li>
+<li><code>wakeup-source</code> - Published when system wakes from suspend</li>
+<li><code>wake-timer-seconds</code> - Published when pm-service requests a wake-timer change</li>
+<li><code>wake-timer-armed</code> - Published by bluetooth-service when the nRF52 ACK arrives</li>
+</ul>
 <h3 id="hash-power-managerbusy-services">Hash: <code>power-manager:busy-services</code><a class="headerlink" href="#hash-power-managerbusy-services" title="Permanent link">&para;</a></h3>
-<p><strong>Fields written:</strong>
-- <code>&lt;who&gt; &lt;why&gt; &lt;what&gt;</code> = <code>&lt;type&gt;</code> — inhibitor entry
-- Example: <code>"pm-service delay default delay" = "delay"</code> (pm-service's own delay inhibitor)
-- Example: <code>"connection-based connection-based connection-based" = "block"</code> (active socket connection)</p>
+<p><strong>Fields written:</strong></p>
+<ul>
+<li><code>&lt;who&gt; &lt;why&gt; &lt;what&gt;</code> = <code>&lt;type&gt;</code> — inhibitor entry</li>
+<li>Example: <code>"pm-service delay default delay" = "delay"</code> (pm-service's own delay inhibitor)</li>
+<li>Example: <code>"connection-based connection-based connection-based" = "block"</code> (active socket connection)</li>
+</ul>
 <p>This hash tracks all active inhibitors. Socket-based connections always use <code>"connection-based"</code> for <code>who</code>, <code>why</code>, and <code>what</code>. Redis-based inhibitors use values from the <code>power:inhibits</code> hash entry.</p>
-<p><strong>Published channel:</strong> <code>power-manager:busy-services</code>
-- Updated atomically (DEL + HMSET + PUBLISH) when inhibitors change</p>
+<p><strong>Published channel:</strong> <code>power-manager:busy-services</code></p>
+<ul>
+<li>Updated atomically (DEL + HMSET + PUBLISH) when inhibitors change</li>
+</ul>
 <h3 id="hash-powerinhibits">Hash: <code>power:inhibits</code><a class="headerlink" href="#hash-powerinhibits" title="Permanent link">&para;</a></h3>
-<p><strong>Fields written/read:</strong>
-- <code>&lt;inhibit-id&gt;</code> — JSON data with inhibit request details
-- Format: <code>{"id": "...", "who": "...", "what": "...", "why": "...", "type": "block|delay|suspend-only", "duration": &lt;unix_ns&gt;, "created": &lt;unix_ns&gt;}</code></p>
+<p><strong>Fields written/read:</strong></p>
+<ul>
+<li><code>&lt;inhibit-id&gt;</code> — JSON data with inhibit request details</li>
+<li>Format: <code>{"id": "...", "who": "...", "what": "...", "why": "...", "type": "block|delay|suspend-only", "duration": &lt;unix_ns&gt;, "created": &lt;unix_ns&gt;}</code></li>
+</ul>
 <p>Used for programmatic inhibitor management (downloading, installing, etc.)</p>
 <p>pm-service subscribes to the <code>power:inhibits</code> channel and syncs entries into its inhibitor manager as manual inhibitors, so <code>update-service</code> power inhibits (e.g. during DBC boot partition writes) actually block suspend/hibernate/poweroff.</p>
 <h3 id="hash-settings">Hash: <code>settings</code><a class="headerlink" href="#hash-settings" title="Permanent link">&para;</a></h3>
-<p><strong>Fields read:</strong>
-- <code>pm.hibernation-timer</code> - Inactivity-based hibernation timer duration in seconds (0 = disabled)
-- <code>pm.default-state</code> - Default target power state when idle (<code>run</code> / <code>suspend</code>)
-- <code>pm.suspend-when-online</code> - Bool, default <code>true</code>. Only matters when no main battery is present: a pack present (or active) in either slot always blocks suspend (<code>Cannot enter suspend state: a main battery is present or active</code>), independent of this setting. With no main battery, the default (<code>true</code>) lets the scooter suspend even while online. Set <code>false</code> to keep an online scooter awake so cloud commands can still reach it, which blocks suspend with <code>Suspend blocked: no main battery but online and pm.suspend-when-online disabled</code>. The guard only applies to the <code>suspend</code> target (not hibernate/reboot). Present and active are read live from Redis at the decision point because pub/sub state is lost across a suspend freeze.
-- <code>pm.scheduled-hibernate-enabled</code> - Bool: enable cron-driven scheduled hibernation
-- <code>pm.scheduled-hibernate-cron</code> - 5-field cron expression (e.g. <code>0 22 * * *</code>)
-- <code>pm.scheduled-hibernate-duration</code> - Wake-by duration (Go duration syntax: <code>8h</code>, <code>30m</code>, ...)
-- <code>pm.wake-timer-max-seconds</code> - Safety cap on a single wake-timer arm (default 604800 = 1 week)
-- <code>pm.wake-timer-ack-timeout</code> - How long to wait for the nRF52 ACK before aborting (default <code>10s</code>)</p>
-<p><strong>Subscribed channel:</strong> <code>settings</code>
-- Each of the fields above triggers a re-read on change.</p>
+<p><strong>Fields read:</strong></p>
+<ul>
+<li><code>pm.hibernation-timer</code> - Inactivity-based hibernation timer duration in seconds (0 = disabled)</li>
+<li><code>pm.default-state</code> - Default target power state when idle (<code>run</code> / <code>suspend</code>)</li>
+<li><code>pm.suspend-when-online</code> - Bool, default <code>true</code>. Only matters when no main battery is present: a pack present (or active) in either slot always blocks suspend (<code>Cannot enter suspend state: a main battery is present or active</code>), independent of this setting. With no main battery, the default (<code>true</code>) lets the scooter suspend even while online. Set <code>false</code> to keep an online scooter awake so cloud commands can still reach it, which blocks suspend with <code>Suspend blocked: no main battery but online and pm.suspend-when-online disabled</code>. The guard only applies to the <code>suspend</code> target (not hibernate/reboot). Present and active are read live from Redis at the decision point because pub/sub state is lost across a suspend freeze.</li>
+<li><code>pm.scheduled-hibernate-enabled</code> - Bool: enable cron-driven scheduled hibernation</li>
+<li><code>pm.scheduled-hibernate-cron</code> - 5-field cron expression (e.g. <code>0 22 * * *</code>)</li>
+<li><code>pm.scheduled-hibernate-duration</code> - Wake-by duration (Go duration syntax: <code>8h</code>, <code>30m</code>, ...)</li>
+<li><code>pm.wake-timer-max-seconds</code> - Safety cap on a single wake-timer arm (default 604800 = 1 week)</li>
+<li><code>pm.wake-timer-ack-timeout</code> - How long to wait for the nRF52 ACK before aborting (default <code>10s</code>)</li>
+</ul>
+<p><strong>Subscribed channel:</strong> <code>settings</code></p>
+<ul>
+<li>Each of the fields above triggers a re-read on change.</li>
+</ul>
 <h3 id="hash-gps">Hash: <code>gps</code><a class="headerlink" href="#hash-gps" title="Permanent link">&para;</a></h3>
-<p><strong>Fields read:</strong>
-- <code>active</code> - Polled by pm-service (every 30 s, immediate first check) as the proxy for "the wall clock has been bootstrapped from GPS". modem-service calls <code>chronyc settime</code> in the same loop iteration that flips <code>gps.active</code> to <code>true</code> on a valid fix. The scheduler latches this signal — once observed <code>true</code>, the wall-clock validity gate stays open even if the GPS fix is later lost (chrony retains the bootstrap). NTP-only scooters with a broken or absent GPS receiver would never flip this; that's a documented limitation.</p>
+<p><strong>Fields read:</strong></p>
+<ul>
+<li><code>active</code> - Polled by pm-service (every 30 s, immediate first check) as the proxy for "the wall clock has been bootstrapped from GPS". modem-service calls <code>chronyc settime</code> in the same loop iteration that flips <code>gps.active</code> to <code>true</code> on a valid fix. The scheduler latches this signal — once observed <code>true</code>, the wall-clock validity gate stays open even if the GPS fix is later lost (chrony retains the bootstrap). NTP-only scooters with a broken or absent GPS receiver would never flip this; that's a documented limitation.</li>
+</ul>
 <h3 id="hash-system">Hash: <code>system</code><a class="headerlink" href="#hash-system" title="Permanent link">&para;</a></h3>
-<p><strong>Fields written:</strong>
-- <code>cpu:governor</code> - CPU governor setting (ondemand, powersave, performance)</p>
-<p><strong>Published channel:</strong> <code>system</code>
-- <code>cpu:governor</code> - Published when CPU governor changes</p>
+<p><strong>Fields written:</strong></p>
+<ul>
+<li><code>cpu:governor</code> - CPU governor setting (ondemand, powersave, performance)</li>
+</ul>
+<p><strong>Published channel:</strong> <code>system</code></p>
+<ul>
+<li><code>cpu:governor</code> - Published when CPU governor changes</li>
+</ul>
 <h3 id="lists-consumed-brpop-via-handlerequests">Lists consumed (BRPOP via HandleRequests)<a class="headerlink" href="#lists-consumed-brpop-via-handlerequests" title="Permanent link">&para;</a></h3>
 <ul>
 <li><code>scooter:power</code> - Power commands</li>
@@ -2904,13 +2926,17 @@
 <p>See <a href="../../states/">States Documentation</a> for complete state machine.</p>
 <h2 id="hardware-interfaces">Hardware Interfaces<a class="headerlink" href="#hardware-interfaces" title="Permanent link">&para;</a></h2>
 <h3 id="nrf52840-communication">nRF52840 Communication<a class="headerlink" href="#nrf52840-communication" title="Permanent link">&para;</a></h3>
-<p>The power manager interacts with nRF hardware indirectly via Redis:
-- Commands hibernation via <code>scooter:power</code> list (handled by vehicle-service)
-- nRF firmware handles actual hardware power control</p>
+<p>The power manager interacts with nRF hardware indirectly via Redis:</p>
+<ul>
+<li>Commands hibernation via <code>scooter:power</code> list (handled by vehicle-service)</li>
+<li>nRF firmware handles actual hardware power control</li>
+</ul>
 <h3 id="hibernation-levels">Hibernation Levels<a class="headerlink" href="#hibernation-levels" title="Permanent link">&para;</a></h3>
-<p>When hibernating, the nRF firmware selects between two levels based on CB battery charge:
-- <strong>L1:</strong> CB battery &gt;5%, periodic wakeup checks
-- <strong>L2:</strong> CB battery ≤5%, switches to AUX battery, minimal power</p>
+<p>When hibernating, the nRF firmware selects between two levels based on CB battery charge:</p>
+<ul>
+<li><strong>L1:</strong> CB battery &gt;5%, periodic wakeup checks</li>
+<li><strong>L2:</strong> CB battery ≤5%, switches to AUX battery, minimal power</li>
+</ul>
 <p>See <a href="../../nrf/power-management/">nRF Power Management</a> for details.</p>
 <h2 id="configuration">Configuration<a class="headerlink" href="#configuration" title="Permanent link">&para;</a></h2>
 <h3 id="systemd-unit">Systemd Unit<a class="headerlink" href="#systemd-unit" title="Permanent link">&para;</a></h3>
@@ -2922,25 +2948,31 @@
 <li><strong>User/Group:</strong> root (required for systemd power operations)</li>
 </ul>
 <h3 id="dry-run-mode">Dry-Run Mode<a class="headerlink" href="#dry-run-mode" title="Permanent link">&para;</a></h3>
-<p>When started with <code>--dry-run</code>, the service:
-- Operates normally
-- Does NOT actually suspend/hibernate the system
-- Logs all power state transitions
-- For suspend dry-run, simulates an immediate wakeup event</p>
+<p>When started with <code>--dry-run</code>, the service:</p>
+<ul>
+<li>Operates normally</li>
+<li>Does NOT actually suspend/hibernate the system</li>
+<li>Logs all power state transitions</li>
+<li>For suspend dry-run, simulates an immediate wakeup event</li>
+</ul>
 <h3 id="delay-configuration">Delay Configuration<a class="headerlink" href="#delay-configuration" title="Permanent link">&para;</a></h3>
-<p>Command-line flags control timing:
-- <strong>Pre-suspend delay</strong> (<code>-pre-suspend-delay</code>): Time after stand-by before entering imminent state on the natural suspend path (default: 1m)
-- <strong>Suspend imminent delay</strong> (<code>-suspend-imminent-delay</code>): Minimum duration in imminent state (default: 5s)
-- <strong>Inhibitor duration</strong> (<code>-inhibitor-duration</code>): How long system stays active after suspend request (default: 500ms)</p>
+<p>Command-line flags control timing:</p>
+<ul>
+<li><strong>Pre-suspend delay</strong> (<code>-pre-suspend-delay</code>): Time after stand-by before entering imminent state on the natural suspend path (default: 1m)</li>
+<li><strong>Suspend imminent delay</strong> (<code>-suspend-imminent-delay</code>): Minimum duration in imminent state (default: 5s)</li>
+<li><strong>Inhibitor duration</strong> (<code>-inhibitor-duration</code>): How long system stays active after suspend request (default: 500ms)</li>
+</ul>
 <p>These delays allow services to complete operations before power down.</p>
 <h3 id="default-power-state">Default Power State<a class="headerlink" href="#default-power-state" title="Permanent link">&para;</a></h3>
-<p>The <code>-default-state</code> option sets the target power state at startup:
-- <code>run</code> - No automatic power transitions
-- <code>suspend</code> - Allow suspend when vehicle is in stand-by (default)
-- <code>hibernate</code> - Target hibernation when conditions met
-- <code>hibernate-manual</code> - Manual hibernation mode
-- <code>hibernate-timer</code> - Timer-based hibernation
-- <code>reboot</code> - Reboot when conditions met</p>
+<p>The <code>-default-state</code> option sets the target power state at startup:</p>
+<ul>
+<li><code>run</code> - No automatic power transitions</li>
+<li><code>suspend</code> - Allow suspend when vehicle is in stand-by (default)</li>
+<li><code>hibernate</code> - Target hibernation when conditions met</li>
+<li><code>hibernate-manual</code> - Manual hibernation mode</li>
+<li><code>hibernate-timer</code> - Timer-based hibernation</li>
+<li><code>reboot</code> - Reboot when conditions met</li>
+</ul>
 <h3 id="hibernation-timer">Hibernation Timer<a class="headerlink" href="#hibernation-timer" title="Permanent link">&para;</a></h3>
 <ul>
 <li><strong>Configuration:</strong> Via <code>-hibernation-timer</code> option (duration) or <code>settings hibernation-timer</code> Redis field (seconds)</li>
@@ -2965,34 +2997,44 @@
 </ol>
 <h3 id="runtime-behavior">Runtime Behavior<a class="headerlink" href="#runtime-behavior" title="Permanent link">&para;</a></h3>
 <h4 id="suspend-trigger">Suspend Trigger<a class="headerlink" href="#suspend-trigger" title="Permanent link">&para;</a></h4>
-<p>When vehicle enters <code>stand-by</code> state with target=<code>suspend</code>:
-1. FSM transitions to <code>pre-suspend</code>; publishes <code>suspending-pending</code>
-2. Pre-suspend delay timer starts (default 1m)
-3. After pre-suspend delay, FSM transitions to <code>suspend-imminent</code>; publishes <code>suspending-imminent</code>
-4. Suspend-imminent timer starts (default 5s)
-5. After imminent timer, FSM enters <code>waiting-inhibitors</code>
-6. Once no blocking inhibitors remain, FSM enters <code>issuing-low-power</code>; publishes <code>suspending</code>
-7. Sends suspend command to systemd</p>
+<p>When vehicle enters <code>stand-by</code> state with target=<code>suspend</code>:</p>
+<ol>
+<li>FSM transitions to <code>pre-suspend</code>; publishes <code>suspending-pending</code></li>
+<li>Pre-suspend delay timer starts (default 1m)</li>
+<li>After pre-suspend delay, FSM transitions to <code>suspend-imminent</code>; publishes <code>suspending-imminent</code></li>
+<li>Suspend-imminent timer starts (default 5s)</li>
+<li>After imminent timer, FSM enters <code>waiting-inhibitors</code></li>
+<li>Once no blocking inhibitors remain, FSM enters <code>issuing-low-power</code>; publishes <code>suspending</code></li>
+<li>Sends suspend command to systemd</li>
+</ol>
 <p>Explicit <code>suspend</code> commands (LPUSH scooter:power suspend) skip the pre-suspend delay and go directly to <code>suspend-imminent</code>.</p>
 <h4 id="hibernation-trigger">Hibernation Trigger<a class="headerlink" href="#hibernation-trigger" title="Permanent link">&para;</a></h4>
-<p><strong>Explicit hibernate command:</strong>
-- <code>LPUSH scooter:power hibernate</code> (or <code>hibernate-manual</code>, <code>hibernate-timer</code>)
-- Skips pre-suspend delay; FSM goes directly to <code>hibernate-imminent</code></p>
-<p><strong>Hibernation timer:</strong>
-- After timer expires (default 3 days outside <code>ready-to-drive</code>)
-- FSM goes to <code>hibernate-imminent</code> with timer target</p>
+<p><strong>Explicit hibernate command:</strong></p>
+<ul>
+<li><code>LPUSH scooter:power hibernate</code> (or <code>hibernate-manual</code>, <code>hibernate-timer</code>)</li>
+<li>Skips pre-suspend delay; FSM goes directly to <code>hibernate-imminent</code></li>
+</ul>
+<p><strong>Hibernation timer:</strong></p>
+<ul>
+<li>After timer expires (default 3 days outside <code>ready-to-drive</code>)</li>
+<li>FSM goes to <code>hibernate-imminent</code> with timer target</li>
+</ul>
 <h4 id="inhibitor-system">Inhibitor System<a class="headerlink" href="#inhibitor-system" title="Permanent link">&para;</a></h4>
 <p>The pm-service implements two inhibitor mechanisms:</p>
-<p><strong>1. Unix Socket Inhibitors</strong>
-- Services connect to Unix domain socket (default: <code>/tmp/suspend_inhibitor</code>)
-- Connection-based: inhibitor active while socket connection open
-- All socket connections are <code>block</code> type
-- Service receives acknowledgment byte (0x00) upon connection
-- Automatically released when socket closes</p>
-<p><strong>2. Redis-based Inhibitors</strong>
-- Stored in <code>power:inhibits</code> hash as JSON
-- Synced into the inhibitor manager on startup and on channel notifications
-- Three types: <code>block</code> (blocks everything), <code>delay</code> (short delay), <code>suspend-only</code> (blocks suspend but not hibernate/poweroff/reboot)</p>
+<p><strong>1. Unix Socket Inhibitors</strong></p>
+<ul>
+<li>Services connect to Unix domain socket (default: <code>/tmp/suspend_inhibitor</code>)</li>
+<li>Connection-based: inhibitor active while socket connection open</li>
+<li>All socket connections are <code>block</code> type</li>
+<li>Service receives acknowledgment byte (0x00) upon connection</li>
+<li>Automatically released when socket closes</li>
+</ul>
+<p><strong>2. Redis-based Inhibitors</strong></p>
+<ul>
+<li>Stored in <code>power:inhibits</code> hash as JSON</li>
+<li>Synced into the inhibitor manager on startup and on channel notifications</li>
+<li>Three types: <code>block</code> (blocks everything), <code>delay</code> (short delay), <code>suspend-only</code> (blocks suspend but not hibernate/poweroff/reboot)</li>
+</ul>
 <p><strong>Example socket inhibitor connection:</strong>
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="c1"># Connect and hold connection to block suspend</span>
 </span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>nc<span class="w"> </span>-U<span class="w"> </span>/tmp/suspend_inhibitor
@@ -3092,28 +3134,38 @@
 </ol>
 <h2 id="log-output">Log Output<a class="headerlink" href="#log-output" title="Permanent link">&para;</a></h2>
 <p>The service logs to journald. Common log patterns:</p>
-<p><strong>Startup:</strong>
-- <code>Starting power management service &lt;version&gt;</code>
-- <code>Enabled wakeup on ttymxc0</code> / <code>ttymxc1</code>
-- <code>Initial vehicle state: stand-by</code>
-- <code>Initial battery:0 state: idle</code></p>
-<p><strong>Power state changes:</strong>
-- <code>Received power command: hibernate</code>
-- <code>FSM state transition: running -&gt; hibernate-imminent</code>
-- <code>Entering hibernate-imminent state</code>
-- <code>Issuing poweroff command</code></p>
-<p><strong>Inhibitors:</strong>
-- <code>Redis inhibitor added: update-service (block) by update-service — downloading</code>
-- <code>New inhibitor connected: @</code>
-- <code>Inhibitor disconnected: @</code></p>
-<p><strong>Wakeup:</strong>
-- <code>Wakeup detected with reason: 45</code>
-- <code>RTC wakeup detected, using fast path</code>
-- <code>Publishing wakeup source: 45</code></p>
-<p><strong>CPU governor:</strong>
-- <code>Received governor command: powersave</code>
-- <code>Setting CPU governor to: powersave</code>
-- <code>Successfully set CPU governor to powersave</code></p>
+<p><strong>Startup:</strong></p>
+<ul>
+<li><code>Starting power management service &lt;version&gt;</code></li>
+<li><code>Enabled wakeup on ttymxc0</code> / <code>ttymxc1</code></li>
+<li><code>Initial vehicle state: stand-by</code></li>
+<li><code>Initial battery:0 state: idle</code></li>
+</ul>
+<p><strong>Power state changes:</strong></p>
+<ul>
+<li><code>Received power command: hibernate</code></li>
+<li><code>FSM state transition: running -&gt; hibernate-imminent</code></li>
+<li><code>Entering hibernate-imminent state</code></li>
+<li><code>Issuing poweroff command</code></li>
+</ul>
+<p><strong>Inhibitors:</strong></p>
+<ul>
+<li><code>Redis inhibitor added: update-service (block) by update-service — downloading</code></li>
+<li><code>New inhibitor connected: @</code></li>
+<li><code>Inhibitor disconnected: @</code></li>
+</ul>
+<p><strong>Wakeup:</strong></p>
+<ul>
+<li><code>Wakeup detected with reason: 45</code></li>
+<li><code>RTC wakeup detected, using fast path</code></li>
+<li><code>Publishing wakeup source: 45</code></li>
+</ul>
+<p><strong>CPU governor:</strong></p>
+<ul>
+<li><code>Received governor command: powersave</code></li>
+<li><code>Setting CPU governor to: powersave</code></li>
+<li><code>Successfully set CPU governor to powersave</code></li>
+</ul>
 <p>Use <code>journalctl -u librescoot-pm.service</code> to view logs.</p>
 <h2 id="dependencies">Dependencies<a class="headerlink" href="#dependencies" title="Permanent link">&para;</a></h2>
 <ul>
@@ -3127,31 +3179,43 @@
 </ul>
 <h2 id="architecture-details">Architecture Details<a class="headerlink" href="#architecture-details" title="Permanent link">&para;</a></h2>
 <h3 id="key-components">Key Components<a class="headerlink" href="#key-components" title="Permanent link">&para;</a></h3>
-<p><strong>FSM (<code>internal/fsm/definition.go</code>, <code>internal/fsm/types.go</code>)</strong>
-- Defines all states, events, and transitions using librefsm
-- States: <code>running</code>, <code>pre-suspend</code>, <code>suspend-imminent</code>, <code>low-power-imminent</code>, <code>waiting-inhibitors</code>, <code>issuing-low-power</code>, <code>suspended</code>
-- Priority-based transition guards</p>
-<p><strong>Inhibitor Manager (<code>internal/inhibitor/inhibitor.go</code>)</strong>
-- Manages Unix socket for connection-based inhibitors (always <code>block</code> type)
-- Tracks programmatically-added inhibitors
-- Calls <code>onChange</code> callback on every change; FSM receives <code>EvInhibitorsChanged</code></p>
-<p><strong>Redis Inhibitor Listener (<code>internal/inhibitor/redis.go</code>)</strong>
-- Syncs <code>power:inhibits</code> hash entries into the inhibitor manager
-- Supports <code>block</code>, <code>delay</code>, and <code>suspend-only</code> types from JSON <code>type</code> field</p>
-<p><strong>Hibernation Timer (<code>internal/hibernation/timer.go</code>)</strong>
-- Tracks whether vehicle is in an idle state (not <code>ready-to-drive</code>)
-- Configurable timer duration (default 5 days); set to 0 to disable
-- Fires <code>EvHibernationTimerExpired</code> into the FSM on expiry</p>
-<p><strong>Hibernation Scheduler (<code>internal/hibernation/scheduler.go</code>)</strong>
-- Cron-driven scheduler for <code>pm.scheduled-hibernate-*</code> settings (uses <code>github.com/robfig/cron/v3</code>, standard 5-field parser)
-- Latches a wall-clock validity gate based on <code>gps.active</code>; suppresses fires until first observed <code>"true"</code>
-- Defers cron fires while the vehicle is not in <code>stand-by</code> and dispatches on the next standby transition with the remaining time until the original wake-by target
-- 30 s background monitor detects wall-clock jumps and rebuilds the cron entry / re-evaluates pending deferred wakes accordingly</p>
-<p><strong>Service Coordinator (<code>internal/service/service.go</code>)</strong>
-- Implements the FSM <code>Actions</code> interface
-- Coordinates all components (FSM, inhibitors, hibernation timer)
-- Handles Redis subscriptions and command lists
-- Processes vehicle and battery state changes</p>
+<p><strong>FSM (<code>internal/fsm/definition.go</code>, <code>internal/fsm/types.go</code>)</strong></p>
+<ul>
+<li>Defines all states, events, and transitions using librefsm</li>
+<li>States: <code>running</code>, <code>pre-suspend</code>, <code>suspend-imminent</code>, <code>low-power-imminent</code>, <code>waiting-inhibitors</code>, <code>issuing-low-power</code>, <code>suspended</code></li>
+<li>Priority-based transition guards</li>
+</ul>
+<p><strong>Inhibitor Manager (<code>internal/inhibitor/inhibitor.go</code>)</strong></p>
+<ul>
+<li>Manages Unix socket for connection-based inhibitors (always <code>block</code> type)</li>
+<li>Tracks programmatically-added inhibitors</li>
+<li>Calls <code>onChange</code> callback on every change; FSM receives <code>EvInhibitorsChanged</code></li>
+</ul>
+<p><strong>Redis Inhibitor Listener (<code>internal/inhibitor/redis.go</code>)</strong></p>
+<ul>
+<li>Syncs <code>power:inhibits</code> hash entries into the inhibitor manager</li>
+<li>Supports <code>block</code>, <code>delay</code>, and <code>suspend-only</code> types from JSON <code>type</code> field</li>
+</ul>
+<p><strong>Hibernation Timer (<code>internal/hibernation/timer.go</code>)</strong></p>
+<ul>
+<li>Tracks whether vehicle is in an idle state (not <code>ready-to-drive</code>)</li>
+<li>Configurable timer duration (default 5 days); set to 0 to disable</li>
+<li>Fires <code>EvHibernationTimerExpired</code> into the FSM on expiry</li>
+</ul>
+<p><strong>Hibernation Scheduler (<code>internal/hibernation/scheduler.go</code>)</strong></p>
+<ul>
+<li>Cron-driven scheduler for <code>pm.scheduled-hibernate-*</code> settings (uses <code>github.com/robfig/cron/v3</code>, standard 5-field parser)</li>
+<li>Latches a wall-clock validity gate based on <code>gps.active</code>; suppresses fires until first observed <code>"true"</code></li>
+<li>Defers cron fires while the vehicle is not in <code>stand-by</code> and dispatches on the next standby transition with the remaining time until the original wake-by target</li>
+<li>30 s background monitor detects wall-clock jumps and rebuilds the cron entry / re-evaluates pending deferred wakes accordingly</li>
+</ul>
+<p><strong>Service Coordinator (<code>internal/service/service.go</code>)</strong></p>
+<ul>
+<li>Implements the FSM <code>Actions</code> interface</li>
+<li>Coordinates all components (FSM, inhibitors, hibernation timer)</li>
+<li>Handles Redis subscriptions and command lists</li>
+<li>Processes vehicle and battery state changes</li>
+</ul>
 <h3 id="power-state-priority-system">Power State Priority System<a class="headerlink" href="#power-state-priority-system" title="Permanent link">&para;</a></h3>
 <p>Power state transitions follow strict priority rules (highest to lowest):</p>
 <ol>
@@ -3172,9 +3236,11 @@
 </span></code></pre></div>
 <p>Supported governors: <code>ondemand</code>, <code>powersave</code>, <code>performance</code>.</p>
 <h3 id="wakeup-source-management">Wakeup Source Management<a class="headerlink" href="#wakeup-source-management" title="Permanent link">&para;</a></h3>
-<p>The service enables wakeup on serial ports at startup:
-- <code>/sys/class/tty/ttymxc0/power/wakeup</code> → <code>enabled</code>
-- <code>/sys/class/tty/ttymxc1/power/wakeup</code> → <code>enabled</code></p>
+<p>The service enables wakeup on serial ports at startup:</p>
+<ul>
+<li><code>/sys/class/tty/ttymxc0/power/wakeup</code> → <code>enabled</code></li>
+<li><code>/sys/class/tty/ttymxc1/power/wakeup</code> → <code>enabled</code></li>
+</ul>
 <p>After wakeup, reads IRQ from <code>/sys/power/pm_wakeup_irq</code> and publishes to Redis.</p>
 <h3 id="building-and-testing">Building and Testing<a class="headerlink" href="#building-and-testing" title="Permanent link">&para;</a></h3>
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="c1"># Build for ARM target (armv7eabi)</span>
@@ -3202,21 +3268,31 @@
 </span><span id="__span-7-23"><a id="__codelineno-7-23" name="__codelineno-7-23" href="#__codelineno-7-23"></a>redis-cli<span class="w"> </span>LPUSH<span class="w"> </span>scooter:governor<span class="w"> </span>powersave
 </span></code></pre></div>
 <h3 id="integration-points">Integration Points<a class="headerlink" href="#integration-points" title="Permanent link">&para;</a></h3>
-<p><strong>With vehicle-service:</strong>
-- Monitors <code>vehicle state</code> for stand-by conditions
-- Triggers power transitions based on vehicle state changes</p>
-<p><strong>With battery-service:</strong>
-- Monitors <code>battery:0</code> and <code>battery:1</code> state
-- Derived aggregate: if either slot is <code>active</code>, suspend is blocked</p>
-<p><strong>With modem-service:</strong>
-- Sends <code>disable</code> command before hibernation when modem is the only blocker
-- Waits for modem to clear its blocking inhibitor</p>
-<p><strong>With settings-service:</strong>
-- Reads <code>settings hibernation-timer</code> for timer duration in seconds
-- Subscribes to settings changes for dynamic updates</p>
-<p><strong>With update-service:</strong>
-- Respects inhibitors written to <code>power:inhibits</code> hash
-- Type <code>suspend-only</code> delays suspend only; <code>block</code> blocks all low-power transitions</p>
+<p><strong>With vehicle-service:</strong></p>
+<ul>
+<li>Monitors <code>vehicle state</code> for stand-by conditions</li>
+<li>Triggers power transitions based on vehicle state changes</li>
+</ul>
+<p><strong>With battery-service:</strong></p>
+<ul>
+<li>Monitors <code>battery:0</code> and <code>battery:1</code> state</li>
+<li>Derived aggregate: if either slot is <code>active</code>, suspend is blocked</li>
+</ul>
+<p><strong>With modem-service:</strong></p>
+<ul>
+<li>Sends <code>disable</code> command before hibernation when modem is the only blocker</li>
+<li>Waits for modem to clear its blocking inhibitor</li>
+</ul>
+<p><strong>With settings-service:</strong></p>
+<ul>
+<li>Reads <code>settings hibernation-timer</code> for timer duration in seconds</li>
+<li>Subscribes to settings changes for dynamic updates</li>
+</ul>
+<p><strong>With update-service:</strong></p>
+<ul>
+<li>Respects inhibitors written to <code>power:inhibits</code> hash</li>
+<li>Type <code>suspend-only</code> delays suspend only; <code>block</code> blocks all low-power transitions</li>
+</ul>
 <h2 id="related-documentation">Related Documentation<a class="headerlink" href="#related-documentation" title="Permanent link">&para;</a></h2>
 <ul>
 <li><a href="../../states/">Power Management States</a> - Power manager state machine</li>
