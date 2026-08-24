@@ -218,6 +218,8 @@ On SIGTERM or `vehicle state` → `shutting-down`: `ShutdownStore::forceBlackout
 
 Offline tiles expected at `/data/maps/map.mbtiles` on the DBC. The app watches `/data/maps/` via inotify and reloads map services when the file appears or changes.
 
+What is installed is recorded in `/data/maps/metadata.json` (region slug, per-artifact SHA-256, upstream publication time, last update check) and mirrored into the [`maps`](../redis/README.md#installed-maps-maps---librescoot-only) Redis hash on the MDB. scootui-qt republishes the hash on every Redis reconnect, because the MDB's valkey keeps nothing across a reboot. The same values back the System > Info > Maps screen, so the dashboard and an MDB-side consumer cannot report different things.
+
 Routing tiles live separately at `/data/valhalla/tiles.tar`, which Valhalla mmaps as its `tile_extract` and which therefore has to stay an uncompressed seekable tar.
 
 `MapDownloadService` fetches both from the manifest at `downloads.librescoot.org/releases/tiles.json`, keyed by region slug. Each region's `valhalla` entry may carry an optional nested `compressed` object (`codec`, `url`, `size`, `sha256`); when it is present and the codec is `zstd`, the service downloads that instead, verifies its SHA256, and decompresses it into place at install. The parent `url`, `size` and `sha256` continue to describe the uncompressed tar, so a client that predates the compressed asset keeps working unchanged. Downloads resume via HTTP `Range` against the artifact actually being fetched; the compressed variant uses its own `.part` file.

@@ -235,8 +235,68 @@ hgetall dashboard
 | ready | "true"/"false" | Dashboard ready state | "false" |
 | mode | string | Current display mode | "speedometer" |
 | serial-number | string | Dashboard serial number | "379999993" |
+| maps-available | "true"/"false" | `/data/maps/map.mbtiles` is present on the DBC | "true" |
+| navigation-available | "true"/"false" | The on-device Valhalla endpoint answers | "true" |
 
 See [Dashboard](../dashboard/README.md).
+
+### Installed Maps (`maps`) - Librescoot Only
+
+```
+hgetall maps
+```
+
+Which offline map and routing tiles are installed on the DBC. The artifacts live
+on the DBC's `/data`, but the hash is on the MDB, so the installer, `lsc` and
+anything else on the MDB can read what a vehicle has without powering the
+dashboard up and going in over SSH.
+
+| Field | Type | Description | Example |
+|-------|------|-------------|----------|
+| region | string | Region slug, matching the keys in `tiles.json` and the published filenames | "berlin_brandenburg" |
+| region-name | string | Human-readable region. Absent until the dashboard has run | "Berlin & Brandenburg" |
+| map:sha256 | string | SHA-256 of the installed `map.mbtiles` | "78d1f829…" |
+| map:size | integer | Size in bytes | "208076800" |
+| map:published-at | string (ISO8601) | Upstream release time. Absent when the tiles did not come from a release | "2026-08-12T16:26:27Z" |
+| map:mtime | string (ISO8601) | When the file was written on the DBC | "2026-08-13T09:12:00Z" |
+| routing:sha256 | string | SHA-256 of the installed `tiles.tar` | "02f5fd5b…" |
+| routing:size | integer | Size in bytes | "202055680" |
+| routing:published-at | string (ISO8601) | Upstream release time | "2026-08-09T21:30:13Z" |
+| routing:mtime | string (ISO8601) | When the file was written on the DBC | "2026-08-13T09:20:00Z" |
+| last-update-check | string (ISO8601) | When the dashboard last consulted the release manifest | "2026-08-20T07:00:00Z" |
+| update-available | "true"/"false" | Whether that check found newer tiles | "false" |
+| updated-at | string (ISO8601) | When this hash was last written | "2026-08-24T11:00:00Z" |
+
+Reading it:
+
+- A `<prefix>:size` field is the presence test for that artifact. An artifact
+  that is not on disk has none of its four fields, so `map:size` absent means no
+  display tiles, whatever else the hash says.
+- `sha256` and `published-at` can be absent while `size` and `mtime` are
+  present. That is a vehicle whose tiles were flashed or copied in by hand: they
+  are installed, but nothing recorded where they came from. The dashboard
+  computes the digest in the background on its next run and fills it in.
+- `region` is absent when no install path could name it. The dashboard
+  re-identifies it by matching the installed digests against the release
+  manifest, which needs connectivity.
+- Only one region can be installed, because the paths are fixed
+  (`/data/maps/map.mbtiles`, `/data/valhalla/tiles.tar`).
+
+Writers, in the order a given vehicle sees them:
+
+- The **installer** writes it while provisioning, so a freshly flashed vehicle
+  reports its region before the dashboard has ever started.
+- **ums-service** rewrites the half it just replaced after a USB map update.
+- **scootui-qt** is the authority once the dashboard runs: it republishes the
+  whole hash on every Redis reconnect and after every install and update check.
+
+Like every other DBC-sourced fact (`version:dbc`, `dashboard[serial-number]`),
+this survives only as long as the MDB's valkey does. valkey runs with `save ""`
+and `appendonly no`, so an MDB reboot clears it and it comes back when the
+dashboard next boots.
+
+The on-disk source of truth is `/data/maps/metadata.json` on the DBC, written by
+all three writers in the shape scootui-qt's `MapMetadata` defines.
 
 ### Bluetooth Interface (`ble`)
 ```
