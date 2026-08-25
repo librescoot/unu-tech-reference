@@ -4711,8 +4711,26 @@ all three writers in the shape scootui-qt's <code>MapMetadata</code> defines.</p
 <td>Current alarm status</td>
 <td>"armed"</td>
 </tr>
+<tr>
+<td>trigger:source</td>
+<td>string</td>
+<td>Input that last set the alarm off</td>
+<td>"handlebar_position"</td>
+</tr>
+<tr>
+<td>trigger:timestamp</td>
+<td>RFC3339 (UTC)</td>
+<td>When that trigger fired</td>
+<td>"2026-08-25T14:13:56Z"</td>
+</tr>
 </tbody>
 </table>
+<p><strong>Possible trigger sources:</strong></p>
+<p><code>motion</code>, <code>seatbox</code>, <code>handlebar_position</code>, <code>handlebar_lock</code>, <code>brake_left</code>,
+<code>brake_right</code>, <code>horn_button</code>, <code>seatbox_button</code></p>
+<p>Only a trigger that actually moved the state machine is recorded, so a
+suppressed edge never claims the field. Neither field is cleared when the alarm
+disarms: they describe the most recent trigger, not the current state.</p>
 <p><strong>Possible status values:</strong></p>
 <ul>
 <li><code>disabled</code> - Alarm system is disabled</li>

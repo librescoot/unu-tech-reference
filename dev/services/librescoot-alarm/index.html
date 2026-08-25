@@ -1105,6 +1105,17 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#handlebar-position-dwell" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Handlebar Position Dwell
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -2036,6 +2047,17 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#handlebar-position-dwell" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Handlebar Position Dwell
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -2395,7 +2417,19 @@
 <li><code>level-1-triggered</code> — Level 1 (cooldown + verification window)</li>
 <li><code>level-2-triggered</code> — Level 2 (horn + hazards)</li>
 <li><code>seatbox-access</code> — temporarily disabled while authorized seatbox opening is active</li>
+<li><code>trigger:source</code> - the input that last set the alarm off: <code>motion</code>, <code>seatbox</code>,
+  <code>handlebar_position</code>, <code>handlebar_lock</code>, <code>brake_left</code>, <code>brake_right</code>,
+  <code>horn_button</code>, <code>seatbox_button</code></li>
+<li><code>trigger:timestamp</code> - when that trigger fired, RFC3339 UTC</li>
 </ul>
+<p>Both trigger fields are written together in one round trip with a single
+notification, so a consumer watching the hash never sees a source paired with
+the previous timestamp.</p>
+<p>Only a trigger that actually moved the state machine is recorded. An edge
+dropped by the settling window, the position dwell or a disabled source never
+claims the field. Neither field is cleared on disarm: they name the most recent
+trigger, not the current state, which is what makes them useful for working out
+after the fact why a parked scooter sounded its horn.</p>
 <p><strong>Published channel:</strong> <code>alarm</code></p>
 <p><strong>motion-service watches this hash.</strong> A change on <code>alarm.status</code> triggers a profile re-derivation in motion-service via <code>(alarm.status, power-manager.state)</code>. See <a href="../librescoot-motion/#chip-profile-derivation">librescoot-motion</a> for the full mapping table.</p>
 <h3 id="hash-settings">Hash: <code>settings</code><a class="headerlink" href="#hash-settings" title="Permanent link">&para;</a></h3>
@@ -2512,6 +2546,29 @@ minute ago. The timer keeps running when <code>armed</code> is left, so an escal
 cannot strand the sources muted, and a disarm/rearm cycle opens a fresh window.
 Motion, buttons and the seatbox are never muted, so the vehicle keeps a live
 tamper path throughout.</p>
+<h3 id="handlebar-position-dwell">Handlebar Position Dwell<a class="headerlink" href="#handlebar-position-dwell" title="Permanent link">&para;</a></h3>
+<p><code>vehicle[handlebar:position]</code> must read <code>off-place</code> continuously for
+<strong>1 second</strong> (<code>defaultHandlebarPositionDwell</code> in <code>internal/redis/subscribers.go</code>)
+before it counts as tampering. The off-place edge starts a timer instead of
+firing; returning to <code>on-place</code> cancels it, and a fresh off-place edge restarts
+it, so a chattering sensor never accumulates a full window.</p>
+<p><code>handlebar:position</code> and <code>handlebar:lock-sensor</code> are separate sensors, and a
+parked vehicle can report a brief <code>off-place</code> without the bars having been
+turned. The dwell exists to filter those. A real tamper leaves the bars
+off-place, so the only cost is delaying the alarm by that second.</p>
+<p>The dwell deliberately does <strong>not</strong> consult <code>handlebar:lock-state</code>. A <code>locked</code>
+reading is not proof the bars are held: a forced or broken lock pin can leave
+that sensor reading <code>locked</code> while the bars turn freely, which is a hallmark of
+a theft attempt rather than a reason to suppress the trigger.</p>
+<p>Note the dwell only filters brief excursions. If the bars come to rest outside
+the <code>on-place</code> zone, the reading stays <code>off-place</code>, the dwell expires and the
+trigger stands, which is correct: at that point it is indistinguishable from
+bars that someone has actually turned.</p>
+<p>Suppressed excursions are logged at info with how long they lasted
+(<code>off_place_ms</code>), so the constant can be retuned from what the sensor and the
+weather actually do rather than guessed at again.</p>
+<p>The lock sensor has no dwell. <code>locked</code> -&gt; <code>unlocked</code> is unambiguous and fires as
+soon as the baseline and settling-window guards allow.</p>
 <h2 id="alarm-state-machine">Alarm State Machine<a class="headerlink" href="#alarm-state-machine" title="Permanent link">&para;</a></h2>
 <div class="language-text highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>init → waiting_enabled → disarmed → delay_armed (5s) → armed
 </span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>                                         ↑                ↓ motion detected (motion:interrupt)
