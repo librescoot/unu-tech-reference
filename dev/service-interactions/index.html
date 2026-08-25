@@ -1184,10 +1184,10 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#gap-1-ecu-service-publishes-to-wrong-channel-names-critical-bug" class="md-nav__link">
+  <a href="#gap-1-ecu-service-published-to-wrong-channel-names-resolved" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
-        GAP-1: ecu-service publishes to wrong channel names (Critical Bug)
+        GAP-1: ecu-service published to wrong channel names (Resolved)
       </span>
     </span>
   </a>
@@ -2141,10 +2141,10 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#gap-1-ecu-service-publishes-to-wrong-channel-names-critical-bug" class="md-nav__link">
+  <a href="#gap-1-ecu-service-published-to-wrong-channel-names-resolved" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
-        GAP-1: ecu-service publishes to wrong channel names (Critical Bug)
+        GAP-1: ecu-service published to wrong channel names (Resolved)
       </span>
     </span>
   </a>
@@ -3153,18 +3153,16 @@ appear in <code>power-manager:busy-services</code> for observability and have no
 transitions.</p>
 <hr />
 <h2 id="identified-gaps-and-issues">Identified Gaps and Issues<a class="headerlink" href="#identified-gaps-and-issues" title="Permanent link">&para;</a></h2>
-<h3 id="gap-1-ecu-service-publishes-to-wrong-channel-names-critical-bug">GAP-1: ecu-service publishes to wrong channel names (Critical Bug)<a class="headerlink" href="#gap-1-ecu-service-publishes-to-wrong-channel-names-critical-bug" title="Permanent link">&para;</a></h3>
+<h3 id="gap-1-ecu-service-published-to-wrong-channel-names-resolved">GAP-1: ecu-service published to wrong channel names (Resolved)<a class="headerlink" href="#gap-1-ecu-service-published-to-wrong-channel-names-resolved" title="Permanent link">&para;</a></h3>
 <p><strong>File:</strong> <code>ecu-service/ipc_tx.go</code></p>
-<p>The ecu-service publishes notifications using channel names with <strong>spaces</strong> embedded:
-<div class="language-go highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="nx">tx</span><span class="p">.</span><span class="nx">redis</span><span class="p">.</span><span class="nx">Publish</span><span class="p">(</span><span class="nx">tx</span><span class="p">.</span><span class="nx">ctx</span><span class="p">,</span><span class="w"> </span><span class="s">"engine-ecu throttle"</span><span class="p">,</span><span class="w"> </span><span class="kc">nil</span><span class="p">)</span><span class="w">  </span><span class="c1">// line 53</span>
-</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="nx">tx</span><span class="p">.</span><span class="nx">redis</span><span class="p">.</span><span class="nx">Publish</span><span class="p">(</span><span class="nx">tx</span><span class="p">.</span><span class="nx">ctx</span><span class="p">,</span><span class="w"> </span><span class="s">"engine-ecu odometer"</span><span class="p">,</span><span class="w"> </span><span class="kc">nil</span><span class="p">)</span><span class="w">  </span><span class="c1">// line 94</span>
-</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="nx">tx</span><span class="p">.</span><span class="nx">redis</span><span class="p">.</span><span class="nx">Publish</span><span class="p">(</span><span class="nx">tx</span><span class="p">.</span><span class="nx">ctx</span><span class="p">,</span><span class="w"> </span><span class="s">"engine-ecu kers"</span><span class="p">,</span><span class="w"> </span><span class="kc">nil</span><span class="p">)</span><span class="w">      </span><span class="c1">// line 116</span>
-</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="nx">tx</span><span class="p">.</span><span class="nx">redis</span><span class="p">.</span><span class="nx">Publish</span><span class="p">(</span><span class="nx">tx</span><span class="p">.</span><span class="nx">ctx</span><span class="p">,</span><span class="w"> </span><span class="s">"engine-ecu kers-reason-off"</span><span class="p">,</span><span class="w"> </span><span class="kc">nil</span><span class="p">)</span><span class="w"> </span><span class="c1">// line 165</span>
-</span></code></pre></div></p>
-<p>The correct pattern (used everywhere else) is: publish to <code>"engine-ecu"</code> with payload being the field name (e.g., <code>"throttle"</code>, <code>"odometer"</code>, <code>"kers"</code>). Instead, ecu-service publishes to channels named <code>"engine-ecu throttle"</code> etc., which no subscriber listens to.</p>
-<p>Additionally, the message payload is <code>nil</code>. Other services send the field name as the payload.</p>
-<p><strong>Impact:</strong> bluetooth-service subscribes to <code>"engine-ecu"</code> watching for <code>"odometer"</code> field updates. It won't receive notifications from ecu-service's own data. Bluetooth-service works around this by writing odometer itself (from nRF UART). But any future subscriber watching <code>"engine-ecu"</code> for throttle, kers, or speed data changes will never receive notifications.</p>
-<p><strong>Severity:</strong> High — all throttle/kers/speed pub/sub notifications from ecu-service are silently dropped.</p>
+<p>ecu-service published its hash change notifications to channel names with a
+space embedded, <code>"engine-ecu throttle"</code> and friends, with an empty payload. The
+convention is channel = hash name, payload = field name, so nothing subscribing
+to <code>"engine-ecu"</code> ever saw them.</p>
+<p>Corrected once in <code>b4066e5</code>, reintroduced by the flat-package rewrite <code>d89a036</code>,
+and corrected again in <code>e32d9db</code> (ecu-service v0.8.2). All five notifications
+now publish the field name on the <code>engine-ecu</code> channel, and there is a comment
+on the channel constant recording the convention.</p>
 <h3 id="gap-2-settings-service-does-not-publish-when-loading-settings-at-boot-high-bug">GAP-2: settings-service does not PUBLISH when loading settings at boot (High Bug)<a class="headerlink" href="#gap-2-settings-service-does-not-publish-when-loading-settings-at-boot-high-bug" title="Permanent link">&para;</a></h3>
 <p><strong>File:</strong> <code>settings-service/internal/redis/client.go</code></p>
 <p><code>ReplaceSettings()</code> and <code>SetSettings()</code> use DEL + HSET in a pipeline but never call PUBLISH. Services that subscribe to <code>settings</code> for startup configuration (vehicle-service, battery-service, ecu-service, alarm-service, pm-service) won't receive notifications when settings-service loads the TOML on boot.</p>
@@ -3186,7 +3184,7 @@ transitions.</p>
 <p><strong>Severity:</strong> Low — timing window is small and consequences are benign (vehicle would need a keycard auth to advance state anyway).</p>
 <h3 id="gap-6-ecu-service-uses-go-redis-v8-all-others-use-v9-low">GAP-6: ecu-service uses go-redis v8, all others use v9 (Low)<a class="headerlink" href="#gap-6-ecu-service-uses-go-redis-v8-all-others-use-v9-low" title="Permanent link">&para;</a></h3>
 <p><strong>File:</strong> <code>ecu-service/ipc_rx.go</code>, <code>ipc_tx.go</code></p>
-<div class="language-go highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="kn">import</span><span class="w"> </span><span class="s">"github.com/go-redis/redis/v8"</span>
+<div class="language-go highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="kn">import</span><span class="w"> </span><span class="s">"github.com/go-redis/redis/v8"</span>
 </span></code></pre></div>
 <p>All other services use <code>github.com/redis/go-redis/v9</code> (the renamed, actively maintained version). v8 uses a different import path and context handling. This creates a maintenance burden and prevents ecu-service from using the shared redis-ipc library.</p>
 <p><strong>Severity:</strong> Low — functional but creates maintenance debt.</p>

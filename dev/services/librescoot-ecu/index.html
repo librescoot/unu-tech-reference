@@ -2275,12 +2275,15 @@
 </ul>
 <p>The <code>config:*</code> fields are deleted from the hash rather than written as 0 while the ECU has not reported them, so a missing field means "not reported" and not a real zero.</p>
 <p><strong>Published channels:</strong></p>
+<p>All notifications go out on the <code>engine-ecu</code> channel, with the name of the field
+that changed as the payload:</p>
 <ul>
-<li><code>engine-ecu throttle</code> - Published when throttle state changes</li>
-<li><code>engine-ecu kers</code> - Published when KERS state changes</li>
-<li><code>engine-ecu odometer</code> - Published when odometer updates</li>
-<li><code>engine-ecu kers-reason-off</code> - Published when KERS disable reason changes</li>
-<li><code>engine-ecu regen-available</code> - Published when derived regen availability or reason changes</li>
+<li><code>throttle</code> - Published when throttle state changes</li>
+<li><code>kers</code> - Published when KERS state changes</li>
+<li><code>odometer</code> - Published when odometer updates</li>
+<li><code>kers-reason-off</code> - Published when KERS disable reason changes</li>
+<li><code>regen-available</code> - Published when derived regen availability or reason changes</li>
+<li><code>fault</code> - Published when a fault is raised or cleared</li>
 </ul>
 <h3 id="hash-settings">Hash: <code>settings</code><a class="headerlink" href="#hash-settings" title="Permanent link">&para;</a></h3>
 <p><strong>Fields read:</strong></p>
@@ -2307,7 +2310,7 @@
 </ul>
 <p><strong>Stream:</strong> <code>events:faults</code></p>
 <ul>
-<li>Publishes fault events with group="engine-ecu"; a raised fault carries <code>code</code>, <code>description</code> and <code>severity</code>, a cleared fault carries <code>code</code> 0</li>
+<li>Publishes fault events with group="engine-ecu"; a raised fault carries <code>code</code>, <code>description</code> and <code>severity</code>, a cleared fault carries the same <code>code</code> negated, so the two can be paired up</li>
 <li>Limited to 1000 entries (MAXLEN)</li>
 </ul>
 <p><strong>Published channel for faults:</strong> <code>engine-ecu</code> with payload "fault"</p>
@@ -2468,7 +2471,7 @@
 <li>Active faults added to <code>engine-ecu:fault</code> set</li>
 <li>Fault events published to <code>events:faults</code> stream</li>
 <li>Notification published to <code>engine-ecu</code> channel with "fault" payload</li>
-<li>When the fault clears, the <code>engine-ecu:fault</code> key is deleted and a <code>code</code> 0 entry is logged to the stream</li>
+<li>When the fault clears, the <code>engine-ecu:fault</code> key is deleted and the raised code is logged to the stream negated (a fault to fault transition removes the outgoing code from the set and logs its clear before the new raise)</li>
 </ul>
 <h4 id="power-metrics">Power Metrics<a class="headerlink" href="#power-metrics" title="Permanent link">&para;</a></h4>
 <p>The service calculates and tracks power consumption and recovery:</p>
