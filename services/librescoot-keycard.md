@@ -76,7 +76,9 @@ Transient per-tap progress events during teach-in flows, for real-time subscribe
 
 - I2C bus 2, address `0x30`
 - Enabled with `--led-device /dev/i2c-2`
-- Green: authorized card; Red: unauthorized; Amber: lookup in progress; Blinking: master learning mode
+- Green: authorized card; Red: unauthorized; Amber: lookup in progress and for the duration of learn mode; Blinking: master learning mode
+- **Shared chip.** vehicle-service writes the same LP5562 (also via `I2C_SLAVE_FORCE` on `/dev/i2c-2`, address `0x30`) as the DBC blinker indicator when `settings[scooter.dbc-blinker-led]` is enabled. There is no arbitration: last writer wins, and blinker activity repaints whatever colour keycard-service left on the LED. keycard-service re-asserts the operating-mode, clock, enable and drive-current registers before every colour change, because vehicle-service leaves the chip on a lower drive current.
+- A kernel `lp5562` driver is also bound to the chip and exposes `/sys/class/leds/{R,G,B,W}`. Both services bypass it deliberately.
 
 **PWM LEDs (learn mode):**
 
@@ -111,12 +113,12 @@ Activated at startup when no master UID is loaded (file missing or empty):
 
 Activated by presenting master UID or via `learn:start`:
 
-1. PWM LEDs 3 + 7 turn on
-2. Each new card presented: added to session queue, Green LED flash
+1. PWM LEDs 3 + 7 turn on; the RGB LED stays amber for the whole session when learn mode was entered by a card tap
+2. Each new card presented: added to session queue, Green LED flash, then back to amber
 3. Present master UID again or `learn:stop` to exit
 4. Learned cards are **appended** to the authorized list in `authorized_uids.txt` (additive)
 5. If no cards learned: existing list unchanged
-6. PWM LEDs 3 + 7 turn off
+6. PWM LEDs 3 + 7 turn off, RGB LED turns off (a green flash first if cards were added)
 
 ## File Locations
 
