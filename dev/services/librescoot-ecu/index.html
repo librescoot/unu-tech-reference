@@ -2259,7 +2259,7 @@
 <li><code>boost-status</code> - Boost enable state ("enabled"/"disabled"), same Status4 signal as <code>boost</code></li>
 <li><code>gear-mode</code> - Gear-mode enable state ("enabled"/"disabled"), from Status4</li>
 <li><code>fw-version</code> - ECU firmware identification word, 8 hex digits (written once the ECU has reported it)</li>
-<li><code>warranty-date</code> - Companion identification word from the same frame, 8 hex digits (written once the ECU has reported it)</li>
+<li><code>warranty-date</code> - Unknown word from the same frame, 8 hex digits. Always zero on every controller observed so far, and the key is only written when it is non-zero, so in practice it does not appear.</li>
 <li><code>motor:rated-power-kw</code> - Motor rated power in kW</li>
 <li><code>motor:max-speed-kmh</code> - Motor maximum speed in km/h</li>
 <li><code>fw:base-version</code> - Base software version (e.g. "4.0")</li>
