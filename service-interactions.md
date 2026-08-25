@@ -621,25 +621,19 @@ transitions.
 
 ## Identified Gaps and Issues
 
-### GAP-1: ecu-service publishes to wrong channel names (Critical Bug)
+### GAP-1: ecu-service published to wrong channel names (Resolved)
 
 **File:** `ecu-service/ipc_tx.go`
 
-The ecu-service publishes notifications using channel names with **spaces** embedded:
-```go
-tx.redis.Publish(tx.ctx, "engine-ecu throttle", nil)  // line 53
-tx.redis.Publish(tx.ctx, "engine-ecu odometer", nil)  // line 94
-tx.redis.Publish(tx.ctx, "engine-ecu kers", nil)      // line 116
-tx.redis.Publish(tx.ctx, "engine-ecu kers-reason-off", nil) // line 165
-```
+ecu-service published its hash change notifications to channel names with a
+space embedded, `"engine-ecu throttle"` and friends, with an empty payload. The
+convention is channel = hash name, payload = field name, so nothing subscribing
+to `"engine-ecu"` ever saw them.
 
-The correct pattern (used everywhere else) is: publish to `"engine-ecu"` with payload being the field name (e.g., `"throttle"`, `"odometer"`, `"kers"`). Instead, ecu-service publishes to channels named `"engine-ecu throttle"` etc., which no subscriber listens to.
-
-Additionally, the message payload is `nil`. Other services send the field name as the payload.
-
-**Impact:** bluetooth-service subscribes to `"engine-ecu"` watching for `"odometer"` field updates. It won't receive notifications from ecu-service's own data. Bluetooth-service works around this by writing odometer itself (from nRF UART). But any future subscriber watching `"engine-ecu"` for throttle, kers, or speed data changes will never receive notifications.
-
-**Severity:** High — all throttle/kers/speed pub/sub notifications from ecu-service are silently dropped.
+Corrected once in `b4066e5`, reintroduced by the flat-package rewrite `d89a036`,
+and corrected again in `e32d9db` (ecu-service v0.8.2). All five notifications
+now publish the field name on the `engine-ecu` channel, and there is a comment
+on the channel constant recording the convention.
 
 ### GAP-2: settings-service does not PUBLISH when loading settings at boot (High Bug)
 

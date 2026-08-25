@@ -73,11 +73,15 @@ The `config:*` fields are deleted from the hash rather than written as 0 while t
 
 **Published channels:**
 
-- `engine-ecu throttle` - Published when throttle state changes
-- `engine-ecu kers` - Published when KERS state changes
-- `engine-ecu odometer` - Published when odometer updates
-- `engine-ecu kers-reason-off` - Published when KERS disable reason changes
-- `engine-ecu regen-available` - Published when derived regen availability or reason changes
+All notifications go out on the `engine-ecu` channel, with the name of the field
+that changed as the payload:
+
+- `throttle` - Published when throttle state changes
+- `kers` - Published when KERS state changes
+- `odometer` - Published when odometer updates
+- `kers-reason-off` - Published when KERS disable reason changes
+- `regen-available` - Published when derived regen availability or reason changes
+- `fault` - Published when a fault is raised or cleared
 
 ### Hash: `settings`
 
@@ -108,7 +112,7 @@ The service subscribes to the following channels to monitor system state:
 
 **Stream:** `events:faults`
 
-- Publishes fault events with group="engine-ecu"; a raised fault carries `code`, `description` and `severity`, a cleared fault carries `code` 0
+- Publishes fault events with group="engine-ecu"; a raised fault carries `code`, `description` and `severity`, a cleared fault carries the same `code` negated, so the two can be paired up
 - Limited to 1000 entries (MAXLEN)
 
 **Published channel for faults:** `engine-ecu` with payload "fault"
@@ -275,7 +279,7 @@ The service monitors ECU fault codes and manages them through Redis. Faults are 
 - Active faults added to `engine-ecu:fault` set
 - Fault events published to `events:faults` stream
 - Notification published to `engine-ecu` channel with "fault" payload
-- When the fault clears, the `engine-ecu:fault` key is deleted and a `code` 0 entry is logged to the stream
+- When the fault clears, the `engine-ecu:fault` key is deleted and the raised code is logged to the stream negated (a fault to fault transition removes the outgoing code from the set and logs its clear before the new raise)
 
 #### Power Metrics
 
