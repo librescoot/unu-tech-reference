@@ -41,6 +41,20 @@ These flags only take effect when explicitly passed; each one then writes its va
   - `level-1-triggered` — Level 1 (cooldown + verification window)
   - `level-2-triggered` — Level 2 (horn + hazards)
   - `seatbox-access` — temporarily disabled while authorized seatbox opening is active
+- `trigger:source` - the input that last set the alarm off: `motion`, `seatbox`,
+  `handlebar_position`, `handlebar_lock`, `brake_left`, `brake_right`,
+  `horn_button`, `seatbox_button`
+- `trigger:timestamp` - when that trigger fired, RFC3339 UTC
+
+Both trigger fields are written together in one round trip with a single
+notification, so a consumer watching the hash never sees a source paired with
+the previous timestamp.
+
+Only a trigger that actually moved the state machine is recorded. An edge
+dropped by the settling window, the position dwell or a disabled source never
+claims the field. Neither field is cleared on disarm: they name the most recent
+trigger, not the current state, which is what makes them useful for working out
+after the fact why a parked scooter sounded its horn.
 
 **Published channel:** `alarm`
 
@@ -156,6 +170,36 @@ minute ago. The timer keeps running when `armed` is left, so an escalation
 cannot strand the sources muted, and a disarm/rearm cycle opens a fresh window.
 Motion, buttons and the seatbox are never muted, so the vehicle keeps a live
 tamper path throughout.
+
+### Handlebar Position Dwell
+
+`vehicle[handlebar:position]` must read `off-place` continuously for
+**1 second** (`defaultHandlebarPositionDwell` in `internal/redis/subscribers.go`)
+before it counts as tampering. The off-place edge starts a timer instead of
+firing; returning to `on-place` cancels it, and a fresh off-place edge restarts
+it, so a chattering sensor never accumulates a full window.
+
+`handlebar:position` and `handlebar:lock-sensor` are separate sensors, and a
+parked vehicle can report a brief `off-place` without the bars having been
+turned. The dwell exists to filter those. A real tamper leaves the bars
+off-place, so the only cost is delaying the alarm by that second.
+
+The dwell deliberately does **not** consult `handlebar:lock-state`. A `locked`
+reading is not proof the bars are held: a forced or broken lock pin can leave
+that sensor reading `locked` while the bars turn freely, which is a hallmark of
+a theft attempt rather than a reason to suppress the trigger.
+
+Note the dwell only filters brief excursions. If the bars come to rest outside
+the `on-place` zone, the reading stays `off-place`, the dwell expires and the
+trigger stands, which is correct: at that point it is indistinguishable from
+bars that someone has actually turned.
+
+Suppressed excursions are logged at info with how long they lasted
+(`off_place_ms`), so the constant can be retuned from what the sensor and the
+weather actually do rather than guessed at again.
+
+The lock sensor has no dwell. `locked` -> `unlocked` is unambiguous and fires as
+soon as the baseline and settling-window guards allow.
 
 ## Alarm State Machine
 

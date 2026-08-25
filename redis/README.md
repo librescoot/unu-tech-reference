@@ -571,6 +571,17 @@ hgetall alarm
 | Field | Type | Description | Example |
 |-------|------|-------------|----------|
 | status | string | Current alarm status | "armed" |
+| trigger:source | string | Input that last set the alarm off | "handlebar_position" |
+| trigger:timestamp | RFC3339 (UTC) | When that trigger fired | "2026-08-25T14:13:56Z" |
+
+**Possible trigger sources:**
+
+`motion`, `seatbox`, `handlebar_position`, `handlebar_lock`, `brake_left`,
+`brake_right`, `horn_button`, `seatbox_button`
+
+Only a trigger that actually moved the state machine is recorded, so a
+suppressed edge never claims the field. Neither field is cleared when the alarm
+disarms: they describe the most recent trigger, not the current state.
 
 **Possible status values:**
 
