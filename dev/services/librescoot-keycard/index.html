@@ -2111,7 +2111,9 @@
 <ul>
 <li>I2C bus 2, address <code>0x30</code></li>
 <li>Enabled with <code>--led-device /dev/i2c-2</code></li>
-<li>Green: authorized card; Red: unauthorized; Amber: lookup in progress; Blinking: master learning mode</li>
+<li>Green: authorized card; Red: unauthorized; Amber: lookup in progress and for the duration of learn mode; Blinking: master learning mode</li>
+<li><strong>Shared chip.</strong> vehicle-service writes the same LP5562 (also via <code>I2C_SLAVE_FORCE</code> on <code>/dev/i2c-2</code>, address <code>0x30</code>) as the DBC blinker indicator when <code>settings[scooter.dbc-blinker-led]</code> is enabled. There is no arbitration: last writer wins, and blinker activity repaints whatever colour keycard-service left on the LED. keycard-service re-asserts the operating-mode, clock, enable and drive-current registers before every colour change, because vehicle-service leaves the chip on a lower drive current.</li>
+<li>A kernel <code>lp5562</code> driver is also bound to the chip and exposes <code>/sys/class/leds/{R,G,B,W}</code>. Both services bypass it deliberately.</li>
 </ul>
 <p><strong>PWM LEDs (learn mode):</strong></p>
 <ul>
@@ -2162,12 +2164,12 @@
 <h3 id="learn-mode">Learn Mode<a class="headerlink" href="#learn-mode" title="Permanent link">&para;</a></h3>
 <p>Activated by presenting master UID or via <code>learn:start</code>:</p>
 <ol>
-<li>PWM LEDs 3 + 7 turn on</li>
-<li>Each new card presented: added to session queue, Green LED flash</li>
+<li>PWM LEDs 3 + 7 turn on; the RGB LED stays amber for the whole session when learn mode was entered by a card tap</li>
+<li>Each new card presented: added to session queue, Green LED flash, then back to amber</li>
 <li>Present master UID again or <code>learn:stop</code> to exit</li>
 <li>Learned cards are <strong>appended</strong> to the authorized list in <code>authorized_uids.txt</code> (additive)</li>
 <li>If no cards learned: existing list unchanged</li>
-<li>PWM LEDs 3 + 7 turn off</li>
+<li>PWM LEDs 3 + 7 turn off, RGB LED turns off (a green flash first if cards were added)</li>
 </ol>
 <h2 id="file-locations">File Locations<a class="headerlink" href="#file-locations" title="Permanent link">&para;</a></h2>
 <table>
