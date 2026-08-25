@@ -55,7 +55,7 @@ Usage of ecu-service:
 - `boost-status` - Boost enable state ("enabled"/"disabled"), same Status4 signal as `boost`
 - `gear-mode` - Gear-mode enable state ("enabled"/"disabled"), from Status4
 - `fw-version` - ECU firmware identification word, 8 hex digits (written once the ECU has reported it)
-- `warranty-date` - Companion identification word from the same frame, 8 hex digits (written once the ECU has reported it)
+- `warranty-date` - Unknown word from the same frame, 8 hex digits. Always zero on every controller observed so far, and the key is only written when it is non-zero, so in practice it does not appear.
 - `motor:rated-power-kw` - Motor rated power in kW
 - `motor:max-speed-kmh` - Motor maximum speed in km/h
 - `fw:base-version` - Base software version (e.g. "4.0")
