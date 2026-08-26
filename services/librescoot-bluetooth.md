@@ -212,6 +212,13 @@ Ways to clear bonds, most convenient first:
 | Phone app: forget this scooter | Forgets the phone doing the forgetting, both halves at once, over `ble:forget` |
 | `redis-cli lpush scooter:bluetooth delete-bond` / `delete-all-bonds` | The underlying commands |
 
+Clearing every bond needs nRF firmware v2.7.2-ls or v2.9.0-ls and later. The
+builds in between reset the chip when the last bond goes while the vehicle is
+parked, which is the state both of the routes above run in: the per-peer handler
+re-arms advertising and the all-peers whitelist reload then trips over it. No
+released image carried those builds, so this only matters on a board flashed by
+hand.
+
 Every phone has to pair again afterwards, including the one that issued the
 command. Pairing needs the dashboard to display the six digit passkey, which is
 why the dashboard entry is offered only while parked: clearing bonds somewhere
