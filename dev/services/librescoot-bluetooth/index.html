@@ -1198,6 +1198,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#clearing-paired-phones" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Clearing paired phones
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#lists-produced-lpush" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
@@ -2213,6 +2224,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#clearing-paired-phones" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Clearing paired phones
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#lists-produced-lpush" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
@@ -2793,8 +2815,8 @@
 <li><code>advertising-start-with-whitelisting</code> - Start advertising with whitelist</li>
 <li><code>advertising-restart-no-whitelisting</code> - Restart advertising without whitelist</li>
 <li><code>advertising-stop</code> - Stop BLE advertising</li>
-<li><code>delete-bond</code> - Delete current bond</li>
-<li><code>delete-all-bonds</code> - Delete all bonded devices</li>
+<li><code>delete-bond</code> - Forget the phone that is connected right now, leaving other bonds alone. Does nothing when nothing is connected: there is no way to name a bond other than the one in front of the scooter. Requires nRF firmware v2.8.0-ls or later; earlier firmware accepted the command and silently did nothing.</li>
+<li><code>delete-all-bonds</code> - Forget every paired phone. Disconnects whatever is connected in order to do it.</li>
 <li><code>remove</code> - Remove pairing PIN from display</li>
 <li><code>ltc-enable</code> - Enable LTC4020 aux charger (safe mode)</li>
 <li><code>ltc-disable</code> - Disable LTC4020 aux charger</li>
@@ -2803,6 +2825,49 @@
 <li><code>ltc-status</code> - Query LTC4020 charger status</li>
 <li><code>firmware-update</code> - Trigger immediate nRF firmware update</li>
 </ul>
+<h3 id="clearing-paired-phones">Clearing paired phones<a class="headerlink" href="#clearing-paired-phones" title="Permanent link">&para;</a></h3>
+<p>A scooter keeps a bond for every phone that has ever paired with it, and the
+radio whitelist holds far fewer entries than flash holds bonds. Past the
+whitelist size the extra phones still pair and still work while the scooter is
+parked, but are not answered in states that advertise whitelist-only, so a
+phone can appear to work at the scooter and be ignored everywhere else.
+Firmware v2.8.0-ls onwards gives the slots to the peers that connected most
+recently rather than the first ones created.</p>
+<p>Three ways to clear bonds, in order of how likely you are to want them:</p>
+<table>
+<thead>
+<tr>
+<th>Route</th>
+<th>Effect</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>lsc bluetooth forget</code></td>
+<td>Forgets the phone connected right now</td>
+</tr>
+<tr>
+<td><code>lsc bluetooth forget-all</code></td>
+<td>Forgets every paired phone, after a confirmation</td>
+</tr>
+<tr>
+<td>Dashboard: Settings &gt; System &gt; Clear Paired Phones</td>
+<td>Forgets every paired phone. Parked only</td>
+</tr>
+<tr>
+<td><code>redis-cli lpush scooter:bluetooth delete-bond</code> / <code>delete-all-bonds</code></td>
+<td>The underlying commands</td>
+</tr>
+</tbody>
+</table>
+<p>Every phone has to pair again afterwards, including the one issuing the
+command. Pairing needs the dashboard, which displays the six digit passkey, so
+do this while the scooter is parked rather than mid-ride.</p>
+<p>The dashboard entry is offered only while parked, for the same reason: the
+passkey has to be readable to pair again, and offering it in a state where the
+rider could not immediately re-pair would strand them.</p>
+<p>Note that a phone's own "forget this device" only clears the phone's half. The
+scooter keeps its bond until one of the above is used.</p>
 <h3 id="lists-produced-lpush">Lists produced (LPUSH)<a class="headerlink" href="#lists-produced-lpush" title="Permanent link">&para;</a></h3>
 <p>The service writes requests to:</p>
 <ul>
