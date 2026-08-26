@@ -2855,6 +2855,10 @@ recently rather than the first ones created.</p>
 <td>Forgets every paired phone. Parked only</td>
 </tr>
 <tr>
+<td>Phone app: forget this scooter</td>
+<td>Forgets the phone doing the forgetting, both halves at once, over <code>ble:forget</code></td>
+</tr>
+<tr>
 <td><code>redis-cli lpush scooter:bluetooth delete-bond</code> / <code>delete-all-bonds</code></td>
 <td>The underlying commands</td>
 </tr>
@@ -2864,8 +2868,9 @@ recently rather than the first ones created.</p>
 command. Pairing needs the dashboard to display the six digit passkey, which is
 why the dashboard entry is offered only while parked: clearing bonds somewhere
 the rider cannot immediately re-pair would strand them.</p>
-<p>A phone's own "forget this device" clears only the phone's half. The scooter
-keeps its bond until one of the routes above is used.</p>
+<p>A phone's own "forget this device", at the operating-system level, clears only
+the phone's half; the scooter keeps its bond until one of the routes above is
+used. An app that sends <code>ble:forget</code> before dropping its own bond clears both.</p>
 <h3 id="lists-produced-lpush">Lists produced (LPUSH)<a class="headerlink" href="#lists-produced-lpush" title="Permanent link">&para;</a></h3>
 <p>The service writes requests to:</p>
 <ul>
@@ -3125,6 +3130,44 @@ Messages are CBOR-encoded maps with structure:
 <li><code>ltc:status</code> — query charger state; responds with <code>ltc:status:on</code> or <code>ltc:status:off</code></li>
 </ul>
 <p>Response codes: <code>ltc:ok</code> (success), <code>ltc:error:unsafe</code> (rejected as unsafe), <code>ltc:error:invalid</code> (invalid state).</p>
+<p><strong>Bond management:</strong></p>
+<ul>
+<li><code>ble:forget</code> - the connected phone asks the scooter to forget it, so that a
+  "forget this scooter" in the app clears both halves of the bond instead of
+  only the phone's. The nRF resolves the peer from the live connection, so no
+  identity is sent and no phone can name anyone else's bond.</li>
+</ul>
+<p>Only the caller's own bond is reachable over BLE. <code>delete-all-bonds</code> is
+deliberately not exposed: one phone would unpair every other phone on the
+scooter, with no way to see who it is throwing off. That one stays with <code>lsc</code>
+and the dashboard.</p>
+<p>This command ends the connection it arrives on. The delete runs from the nRF's
+disconnect handler, since <code>pm_peer_delete</code> is undefined while the peer is
+connected, so the reply is sent first and the command follows 300 ms later,
+long enough for the notification to leave at the 75 ms connection interval.
+Afterwards the firmware rebuilds the whitelist and re-arms advertising.</p>
+<p>One case is worth knowing about: if that was the scooter's last bond and the
+vehicle is in any state that advertises whitelist-only (everything except
+parked), the rebuilt whitelist is empty and advertising stops altogether. The
+scooter is then invisible until it reaches parked, which advertises openly. This
+is the same rule a scooter with no bonds has always followed rather than
+something the delete breaks, and re-pairing needs the dashboard awake to show
+the passkey anyway, but a phone that forgets a scooter in stand-by will not see
+it again until someone wakes it.</p>
+<p>Nothing exposes the scooter's peer list, so <code>ble:forget:ok</code> cannot be checked
+against anything: it says the command was accepted, not that the bond is gone.
+The scooter dropping the link is the observable part, and a phone that pairs
+again and is asked for the passkey is the confirmation. A caller that tears the
+connection down itself instead of waiting has no way to tell the two apart, and
+worse, races the delete: the firmware resolves the peer from the live
+connection, so a disconnect landing first leaves the bond exactly where it was.</p>
+<p>Response codes: <code>ble:forget:ok</code> (accepted, link about to drop),
+<code>ble:error:unsupported</code> (nRF firmware predates v2.8.0-ls, where the single-bond
+delete was a silent no-op, or its version cannot be read),
+<code>ble:error:unknown command</code>.</p>
+<p>Because the answer depends on the nRF rather than on bluetooth-service, <code>cap:ble</code>
+tracks the attached firmware: it lists <code>forget</code> on v2.8.0-ls and later and
+answers <code>cap:ble:count:0</code> otherwise. An app should probe it rather than assume.</p>
 <p><strong>Status queries (read-only):</strong></p>
 <ul>
 <li><code>status:maps-available</code> → reads <code>dashboard:maps-available</code> (set by scootui-qt)</li>

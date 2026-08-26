@@ -2145,6 +2145,11 @@
 <td><code>status:navigation-available:true</code> or <code>false</code></td>
 </tr>
 <tr>
+<td><code>ble:forget</code></td>
+<td>Ask the scooter to forget the phone sending the command, so an app's "forget this scooter" clears both halves of the bond. Ends the connection it arrives on. Needs nRF v2.8.0-ls or later, so probe <code>cap:ble</code> first</td>
+<td><code>ble:forget:ok</code>, or <code>ble:error:unsupported</code></td>
+</tr>
+<tr>
 <td><code>cap:list</code></td>
 <td>Enumerate supported capability categories</td>
 <td><code>cap:count:&lt;n&gt;</code> then <code>cap:&lt;name&gt;</code> per category</td>
