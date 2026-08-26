@@ -182,8 +182,8 @@ The service consumes commands from:
 - `advertising-start-with-whitelisting` - Start advertising with whitelist
 - `advertising-restart-no-whitelisting` - Restart advertising without whitelist
 - `advertising-stop` - Stop BLE advertising
-- `delete-bond` - Delete current bond
-- `delete-all-bonds` - Delete all bonded devices
+- `delete-bond` - Forget the phone that is connected right now, leaving other bonds alone. Does nothing when nothing is connected: there is no way to name a bond other than the one in front of the scooter. Requires nRF firmware v2.8.0-ls or later; earlier firmware accepted the command and silently did nothing.
+- `delete-all-bonds` - Forget every paired phone. Disconnects whatever is connected in order to do it.
 - `remove` - Remove pairing PIN from display
 - `ltc-enable` - Enable LTC4020 aux charger (safe mode)
 - `ltc-disable` - Disable LTC4020 aux charger
@@ -191,6 +191,36 @@ The service consumes commands from:
 - `ltc-force-disable` - Force-disable LTC4020 aux charger
 - `ltc-status` - Query LTC4020 charger status
 - `firmware-update` - Trigger immediate nRF firmware update
+
+### Clearing paired phones
+
+A scooter keeps a bond for every phone that has ever paired with it, and the
+radio whitelist holds far fewer entries than flash holds bonds. Past the
+whitelist size the extra phones still pair and still work while the scooter is
+parked, but are not answered in states that advertise whitelist-only, so a
+phone can appear to work at the scooter and be ignored everywhere else.
+Firmware v2.8.0-ls onwards gives the slots to the peers that connected most
+recently rather than the first ones created.
+
+Three ways to clear bonds, in order of how likely you are to want them:
+
+| Route | Effect |
+|---|---|
+| `lsc bluetooth forget` | Forgets the phone connected right now |
+| `lsc bluetooth forget-all` | Forgets every paired phone, after a confirmation |
+| Dashboard: Settings > System > Clear Paired Phones | Forgets every paired phone. Parked only |
+| `redis-cli lpush scooter:bluetooth delete-bond` / `delete-all-bonds` | The underlying commands |
+
+Every phone has to pair again afterwards, including the one issuing the
+command. Pairing needs the dashboard, which displays the six digit passkey, so
+do this while the scooter is parked rather than mid-ride.
+
+The dashboard entry is offered only while parked, for the same reason: the
+passkey has to be readable to pair again, and offering it in a state where the
+rider could not immediately re-pair would strand them.
+
+Note that a phone's own "forget this device" only clears the phone's half. The
+scooter keeps its bond until one of the above is used.
 
 ### Lists produced (LPUSH)
 
