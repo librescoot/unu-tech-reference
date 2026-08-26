@@ -209,6 +209,7 @@ Ways to clear bonds, most convenient first:
 | `lsc bluetooth forget` | Forgets the phone connected right now |
 | `lsc bluetooth forget-all` | Forgets every paired phone, after a confirmation |
 | Dashboard: Settings > System > Clear Paired Phones | Forgets every paired phone. Parked only |
+| Phone app: forget this scooter | Forgets the phone doing the forgetting, both halves at once, over `ble:forget` |
 | `redis-cli lpush scooter:bluetooth delete-bond` / `delete-all-bonds` | The underlying commands |
 
 Every phone has to pair again afterwards, including the one that issued the
@@ -216,8 +217,9 @@ command. Pairing needs the dashboard to display the six digit passkey, which is
 why the dashboard entry is offered only while parked: clearing bonds somewhere
 the rider cannot immediately re-pair would strand them.
 
-A phone's own "forget this device" clears only the phone's half. The scooter
-keeps its bond until one of the routes above is used.
+A phone's own "forget this device", at the operating-system level, clears only
+the phone's half; the scooter keeps its bond until one of the routes above is
+used. An app that sends `ble:forget` before dropping its own bond clears both.
 
 ### Lists produced (LPUSH)
 
@@ -500,6 +502,50 @@ Responses via EXTENDED_RESPONSE (0x0402):
 - `ltc:status` — query charger state; responds with `ltc:status:on` or `ltc:status:off`
 
 Response codes: `ltc:ok` (success), `ltc:error:unsafe` (rejected as unsafe), `ltc:error:invalid` (invalid state).
+
+**Bond management:**
+
+- `ble:forget` - the connected phone asks the scooter to forget it, so that a
+  "forget this scooter" in the app clears both halves of the bond instead of
+  only the phone's. The nRF resolves the peer from the live connection, so no
+  identity is sent and no phone can name anyone else's bond.
+
+Only the caller's own bond is reachable over BLE. `delete-all-bonds` is
+deliberately not exposed: one phone would unpair every other phone on the
+scooter, with no way to see who it is throwing off. That one stays with `lsc`
+and the dashboard.
+
+This command ends the connection it arrives on. The delete runs from the nRF's
+disconnect handler, since `pm_peer_delete` is undefined while the peer is
+connected, so the reply is sent first and the command follows 300 ms later,
+long enough for the notification to leave at the 75 ms connection interval.
+Afterwards the firmware rebuilds the whitelist and re-arms advertising.
+
+One case is worth knowing about: if that was the scooter's last bond and the
+vehicle is in any state that advertises whitelist-only (everything except
+parked), the rebuilt whitelist is empty and advertising stops altogether. The
+scooter is then invisible until it reaches parked, which advertises openly. This
+is the same rule a scooter with no bonds has always followed rather than
+something the delete breaks, and re-pairing needs the dashboard awake to show
+the passkey anyway, but a phone that forgets a scooter in stand-by will not see
+it again until someone wakes it.
+
+Nothing exposes the scooter's peer list, so `ble:forget:ok` cannot be checked
+against anything: it says the command was accepted, not that the bond is gone.
+The scooter dropping the link is the observable part, and a phone that pairs
+again and is asked for the passkey is the confirmation. A caller that tears the
+connection down itself instead of waiting has no way to tell the two apart, and
+worse, races the delete: the firmware resolves the peer from the live
+connection, so a disconnect landing first leaves the bond exactly where it was.
+
+Response codes: `ble:forget:ok` (accepted, link about to drop),
+`ble:error:unsupported` (nRF firmware predates v2.8.0-ls, where the single-bond
+delete was a silent no-op, or its version cannot be read),
+`ble:error:unknown command`.
+
+Because the answer depends on the nRF rather than on bluetooth-service, `cap:ble`
+tracks the attached firmware: it lists `forget` on v2.8.0-ls and later and
+answers `cap:ble:count:0` otherwise. An app should probe it rather than assume.
 
 **Status queries (read-only):**
 

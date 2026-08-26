@@ -323,7 +323,7 @@ Available commands:
 - `advertising-start-with-whitelisting` - Start BLE advertising with whitelist filtering (only paired devices can connect)
 - `advertising-restart-no-whitelisting` - Restart advertising without whitelist restrictions (any device can connect)
 - `advertising-stop` - Stop BLE advertising completely
-- `delete-bond` - Remove a single paired/bonded device
+- `delete-bond` - Forget the phone connected right now, leaving other bonds alone; does nothing when nothing is connected. Needs nRF firmware v2.8.0-ls or later
 - `delete-all-bonds` - Remove all paired/bonded devices from the system
 - `remove` - Remove the currently connected device
 - `ltc-enable` / `ltc-disable` - Enable/disable the LTC4020 aux charger

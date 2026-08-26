@@ -145,6 +145,7 @@ Unified extensible command/response channel for phone app interaction
 | `pm:hibernate-cancel` | Cancel a pending hibernate-for and disarm the wake timer | `pm:ok` |
 | `status:maps-available` | Query if offline maps are installed | `status:maps-available:true` or `false` |
 | `status:navigation-available` | Query if routing engine is available | `status:navigation-available:true` or `false` |
+| `ble:forget` | Ask the scooter to forget the phone sending the command, so an app's "forget this scooter" clears both halves of the bond. Ends the connection it arrives on. Needs nRF v2.8.0-ls or later, so probe `cap:ble` first | `ble:forget:ok`, or `ble:error:unsupported` |
 | `cap:list` | Enumerate supported capability categories | `cap:count:<n>` then `cap:<name>` per category |
 | `cap:<category>` | List commands for a category | `cap:<category>:count:<n>` then `cap:<category>:<command>` per command |
 
