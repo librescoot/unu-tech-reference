@@ -202,7 +202,7 @@ phone can appear to work at the scooter and be ignored everywhere else.
 Firmware v2.8.0-ls onwards gives the slots to the peers that connected most
 recently rather than the first ones created.
 
-Three ways to clear bonds, in order of how likely you are to want them:
+Ways to clear bonds, most convenient first:
 
 | Route | Effect |
 |---|---|
@@ -211,16 +211,13 @@ Three ways to clear bonds, in order of how likely you are to want them:
 | Dashboard: Settings > System > Clear Paired Phones | Forgets every paired phone. Parked only |
 | `redis-cli lpush scooter:bluetooth delete-bond` / `delete-all-bonds` | The underlying commands |
 
-Every phone has to pair again afterwards, including the one issuing the
-command. Pairing needs the dashboard, which displays the six digit passkey, so
-do this while the scooter is parked rather than mid-ride.
+Every phone has to pair again afterwards, including the one that issued the
+command. Pairing needs the dashboard to display the six digit passkey, which is
+why the dashboard entry is offered only while parked: clearing bonds somewhere
+the rider cannot immediately re-pair would strand them.
 
-The dashboard entry is offered only while parked, for the same reason: the
-passkey has to be readable to pair again, and offering it in a state where the
-rider could not immediately re-pair would strand them.
-
-Note that a phone's own "forget this device" only clears the phone's half. The
-scooter keeps its bond until one of the above is used.
+A phone's own "forget this device" clears only the phone's half. The scooter
+keeps its bond until one of the routes above is used.
 
 ### Lists produced (LPUSH)
 
