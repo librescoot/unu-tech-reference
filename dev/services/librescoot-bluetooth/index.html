@@ -2833,7 +2833,7 @@ parked, but are not answered in states that advertise whitelist-only, so a
 phone can appear to work at the scooter and be ignored everywhere else.
 Firmware v2.8.0-ls onwards gives the slots to the peers that connected most
 recently rather than the first ones created.</p>
-<p>Three ways to clear bonds, in order of how likely you are to want them:</p>
+<p>Ways to clear bonds, most convenient first:</p>
 <table>
 <thead>
 <tr>
@@ -2860,14 +2860,12 @@ recently rather than the first ones created.</p>
 </tr>
 </tbody>
 </table>
-<p>Every phone has to pair again afterwards, including the one issuing the
-command. Pairing needs the dashboard, which displays the six digit passkey, so
-do this while the scooter is parked rather than mid-ride.</p>
-<p>The dashboard entry is offered only while parked, for the same reason: the
-passkey has to be readable to pair again, and offering it in a state where the
-rider could not immediately re-pair would strand them.</p>
-<p>Note that a phone's own "forget this device" only clears the phone's half. The
-scooter keeps its bond until one of the above is used.</p>
+<p>Every phone has to pair again afterwards, including the one that issued the
+command. Pairing needs the dashboard to display the six digit passkey, which is
+why the dashboard entry is offered only while parked: clearing bonds somewhere
+the rider cannot immediately re-pair would strand them.</p>
+<p>A phone's own "forget this device" clears only the phone's half. The scooter
+keeps its bond until one of the routes above is used.</p>
 <h3 id="lists-produced-lpush">Lists produced (LPUSH)<a class="headerlink" href="#lists-produced-lpush" title="Permanent link">&para;</a></h3>
 <p>The service writes requests to:</p>
 <ul>
