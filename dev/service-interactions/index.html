@@ -2778,11 +2778,13 @@ overridden off or pinned to a fixed level.</p>
 </ul>
 <p><strong>Produces queues (LPUSH):</strong></p>
 <ul>
-<li><code>scooter:state</code> → "lock", "unlock", "lock-hibernate"</li>
-<li><code>scooter:seatbox</code> → "open"</li>
-<li><code>scooter:horn</code> → "on", "off"</li>
-<li><code>scooter:hardware</code> → various</li>
-<li>(via <code>push()</code> method)</li>
+<li><code>scooter:state</code> → <code>lock</code></li>
+<li><code>scooter:blinker</code> → <code>off</code>, <code>left</code>, <code>right</code>, <code>both</code></li>
+<li><code>scooter:bluetooth</code> → <code>delete-all-bonds</code></li>
+<li><code>scooter:hop-on</code> → <code>engage-learning</code>, <code>engage</code>, <code>release</code></li>
+<li><code>scooter:dbc-hold</code> → <code>map-download</code>, <code>release</code></li>
+<li><code>scooter:update:mdb</code>, <code>scooter:update:dbc</code> → <code>check-now</code>, <code>preview-channel:&lt;channel&gt;</code></li>
+<li><code>settings:overlay</code> → <code>apply:service</code>, <code>clear:service</code></li>
 </ul>
 <p><strong>Publishes:</strong></p>
 <ul>

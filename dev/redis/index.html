@@ -4692,6 +4692,10 @@ all three writers in the shape scootui-qt's <code>MapMetadata</code> defines.</p
 <p><strong>Status field:</strong> <code>settings</code> hash field <code>dashboard.service-mode-active</code> = <code>"true"</code>/<code>"false"</code> (read-only; written by settings-service).</p>
 <p><strong>New setting <code>scooter.handlebar-unlocked</code></strong> (bool, transient - only set via overlay): vehicle-service releases the handlebar latch and suppresses auto re-lock while <code>"true"</code>.</p>
 <p><strong>CLI:</strong> <code>lsc service-mode on|off|status</code> (alias: <code>lsc servicemode</code>)</p>
+<p><strong>Dashboard:</strong> scootui-qt pushes the same commands. <code>apply:service</code> from the
+System menu, <code>clear:service</code> from the top-level <code>Disable Service Mode</code> entry or
+from a 3 s hold on the left brake while the debug screen is up. See
+<a href="../services/librescoot-settings/#service-mode-overlay-service">settings-service documentation</a>.</p>
 <h3 id="alarm-system-alarm-librescoot-only">Alarm System (<code>alarm</code>) - Librescoot Only<a class="headerlink" href="#alarm-system-alarm-librescoot-only" title="Permanent link">&para;</a></h3>
 <div class="language-text highlight"><pre><span></span><code><span id="__span-24-1"><a id="__codelineno-24-1" name="__codelineno-24-1" href="#__codelineno-24-1"></a>hgetall alarm
 </span></code></pre></div>

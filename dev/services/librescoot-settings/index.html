@@ -2641,6 +2641,39 @@
 </span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>lsc<span class="w"> </span>service-mode<span class="w"> </span>status<span class="w">  </span><span class="c1"># check dashboard.service-mode-active</span>
 </span></code></pre></div></p>
 <p><code>lsc servicemode</code> is accepted as an alias.</p>
+<p><strong>Dashboard:</strong> scootui-qt pushes the same two commands, so a technician with no
+shell can apply and clear the overlay from the handlebars.</p>
+<table>
+<thead>
+<tr>
+<th>Path</th>
+<th>Command</th>
+<th>Availability</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Menu &gt; System &gt; Service Mode</td>
+<td><code>apply:service</code></td>
+<td>Hidden while the overlay is active</td>
+</tr>
+<tr>
+<td>Menu root &gt; Disable Service Mode</td>
+<td><code>clear:service</code></td>
+<td>First top-level entry, shown only while the overlay is active</td>
+</tr>
+<tr>
+<td>Debug screen, 3 s hold on the left brake</td>
+<td><code>clear:service</code></td>
+<td>Shown only while the overlay is active</td>
+</tr>
+</tbody>
+</table>
+<p>The debug-screen hold matters because <code>dashboard.mode</code> is one of the overlaid
+keys. Leaving the debug screen writes <code>dashboard.mode</code>, settings-service sees a
+user edit to an overlaid key and re-asserts <code>debug</code>, and the dashboard lands
+back where it started. Until the overlay is cleared, the debug screen is where
+a scooter in service mode stays.</p>
 <p><strong>No-clobber invariant:</strong> <code>/data/settings.toml</code> always reflects the user's chosen values. Run <code>cat /data/settings.toml</code> while service mode is active to confirm the TOML is unchanged.</p>
 <h2 id="file-operations">File Operations<a class="headerlink" href="#file-operations" title="Permanent link">&para;</a></h2>
 <h3 id="settings-file-datasettingstoml">Settings File: <code>/data/settings.toml</code><a class="headerlink" href="#settings-file-datasettingstoml" title="Permanent link">&para;</a></h3>
