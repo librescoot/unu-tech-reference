@@ -562,6 +562,11 @@ Service mode persists across reboots until cleared. The base values in `/data/se
 
 **CLI:** `lsc service-mode on|off|status` (alias: `lsc servicemode`)
 
+**Dashboard:** scootui-qt pushes the same commands. `apply:service` from the
+System menu, `clear:service` from the top-level `Disable Service Mode` entry or
+from a 3 s hold on the left brake while the debug screen is up. See
+[settings-service documentation](../services/librescoot-settings.md#service-mode-overlay-service).
+
 ### Alarm System (`alarm`) - Librescoot Only
 
 ```

@@ -465,11 +465,13 @@ overridden off or pinned to a fixed level.
 
 **Produces queues (LPUSH):**
 
-- `scooter:state` → "lock", "unlock", "lock-hibernate"
-- `scooter:seatbox` → "open"
-- `scooter:horn` → "on", "off"
-- `scooter:hardware` → various
-- (via `push()` method)
+- `scooter:state` → `lock`
+- `scooter:blinker` → `off`, `left`, `right`, `both`
+- `scooter:bluetooth` → `delete-all-bonds`
+- `scooter:hop-on` → `engage-learning`, `engage`, `release`
+- `scooter:dbc-hold` → `map-download`, `release`
+- `scooter:update:mdb`, `scooter:update:dbc` → `check-now`, `preview-channel:<channel>`
+- `settings:overlay` → `apply:service`, `clear:service`
 
 **Publishes:**
 

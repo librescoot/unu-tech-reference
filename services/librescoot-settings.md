@@ -173,6 +173,21 @@ lsc service-mode status  # check dashboard.service-mode-active
 
 `lsc servicemode` is accepted as an alias.
 
+**Dashboard:** scootui-qt pushes the same two commands, so a technician with no
+shell can apply and clear the overlay from the handlebars.
+
+| Path | Command | Availability |
+|------|---------|--------------|
+| Menu > System > Service Mode | `apply:service` | Hidden while the overlay is active |
+| Menu root > Disable Service Mode | `clear:service` | First top-level entry, shown only while the overlay is active |
+| Debug screen, 3 s hold on the left brake | `clear:service` | Shown only while the overlay is active |
+
+The debug-screen hold matters because `dashboard.mode` is one of the overlaid
+keys. Leaving the debug screen writes `dashboard.mode`, settings-service sees a
+user edit to an overlaid key and re-asserts `debug`, and the dashboard lands
+back where it started. Until the overlay is cleared, the debug screen is where
+a scooter in service mode stays.
+
 **No-clobber invariant:** `/data/settings.toml` always reflects the user's chosen values. Run `cat /data/settings.toml` while service mode is active to confirm the TOML is unchanged.
 
 ## File Operations
