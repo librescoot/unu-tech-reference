@@ -2,7 +2,11 @@
 
 ## Description
 
-Handles NFC-based authentication for the scooter. Detects keycards via the PN7150 controller, checks UIDs against authorized and master lists, controls LED feedback, and publishes authentication events to Redis. Supports master learning mode on first boot, learn mode for replacing the authorized card set, and a Redis command interface for UID management.
+Handles NFC-based authentication for the scooter. Detects keycards via the PN7150 controller, checks UIDs against authorized and master lists, controls LED feedback, and publishes authentication events to Redis. Supports master bootstrap on first boot, learn mode for adding authorized cards, and a Redis command interface for UID management.
+
+Two card roles, and they do not overlap. An **authorized** card unlocks the vehicle. A **master** card starts learn mode and never unlocks anything. A UID can hold one role or the other, never both.
+
+**UID format.** Every UID entering the service, from a tag read, a command, or a UID file, is normalized to bare uppercase hex: `:`, `-`, `.` and spaces are stripped, and anything that is not 1-10 bytes of hex is rejected. Commands may therefore be written `add:04:A1:B2:C3` or `add:04a1b2c3` interchangeably. Malformed lines in the UID files are dropped at load and logged.
 
 ## Command-Line Options
 
@@ -30,7 +34,20 @@ A successful auth sets a 10-second TTL on the entire `keycard` key, so all three
 
 **Fields written on command response:**
 
-- `command-result` - Result of last management command (e.g. `ok`, `count:3`, `card:<uid>`, `error:<reason>`)
+- `command-result` - Result of last management command (e.g. `ok`, `count:3`, `card:<uid>`, `error:<code>`)
+
+Error codes are stable and kebab-case:
+
+| Code | Meaning |
+|------|---------|
+| `error:bad-uid` | Not 1-10 bytes of hex |
+| `error:already-authorized` | Already an authorized card |
+| `error:already-registered` | Already registered, in either role |
+| `error:not-found` | No such card |
+| `error:last-credential` | Would leave no card able to unlock the vehicle |
+| `error:save-failed` | Write to `/data/keycard` failed |
+| `error:wrong-mode:<mode>` | Command needs a different mode; `<mode>` is the current one (`idle`, `learn`, `master-teach-in`, `master-bootstrap`) |
+| `error:unknown-command` | Not a command this service knows |
 
 **Published channel:** `keycard`
 
@@ -44,24 +61,46 @@ Management commands via LPUSH:
 |---------|----------|
 | `list` | `count:<n>` then one `card:<uid>` per authorized card |
 | `count` | `count:<n>` |
-| `add:<uid>` | `ok` or `error:<reason>` |
-| `remove:<uid>` | `ok` or `error:<reason>` (cannot remove last card) |
-| `set-master:<uid>` | Replaces the master list with this single UID; `NONE` disables the physical master and leaves authorized cards intact; any other UID also clears the authorized list |
+| `add:<uid>` | `ok`, or `error:already-authorized` / `error:bad-uid` |
+| `remove:<uid>` | `ok`, or `error:not-found` / `error:last-credential` |
+| `master:list` | `count:<n>` then one `master:<uid>` per master |
+| `master:add:<uid>` | Append a master. `ok`, or `error:already-registered` |
+| `master:remove:<uid>` | Drop a master. `ok`, or `error:not-found`. Removing the last one is allowed |
+| `master:clear` | Empty the master list, keeping authorized cards. The next start re-arms bootstrap |
+| `master:bootstrap-cancel` | Leave master bootstrap without writing anything, so the next tap is not learned as master. Idempotent |
+| `set-master:<uid>` | Replace the master list with this single UID, or with `NONE` to record that this vehicle wants no physical master. Authorized cards are untouched |
 | `learn:start` | Enter learn mode programmatically |
 | `learn:stop` | Exit learn mode, saving learned cards (additive) |
-| `learn:master:start` | Enter master teach-in mode; next non-registered tap is appended as an additional master (authorized list untouched) |
+| `learn:master:start` | Enter master teach-in mode; next unregistered tap is appended as an additional master |
 | `learn:master:stop` | Exit master teach-in mode without committing |
 | `reset` | Reset all auth state (master + authorized cards) |
+
+`master:bootstrap-cancel` is what a caller that only wants to stop the next tap being learned as master should send. `set-master:NONE` persists a decision (no physical master on this vehicle, ever) and suppresses the bootstrap on later starts too; `master:bootstrap-cancel` applies to the current run only and writes nothing.
 
 Responses are written to `keycard command-result`.
 
 ### Channel: `keycard:events` (published)
 
-Transient per-tap progress events during teach-in flows, for real-time subscribers (installer, BLE bridge). Format `<event>` or `<event>:<uid>`:
+Every state change is published here, whether a command or a tap on the reader caused it, so a subscriber (installer, BLE bridge) can stay in step with the vehicle rather than only hearing about what it asked for itself.
 
-- Master teach-in: `mode-entered:master`, `mode-exited:master`, `master-learned:<uid>`, `rejected:already-authorized:<uid>`, `error:save-failed:<uid>`
-- Learn mode: `card-learned:<uid>` (queued for commit on `learn:stop`), `card-duplicate:<uid>`
-- Reset: `reset`
+Format is `<event>[:<uid>][:<trigger>]`, where trigger is `card`, `command`, `bootstrap` or `teach-in`.
+
+| Event | Meaning |
+|-------|---------|
+| `mode-entered:learn:<trigger>` / `mode-exited:learn:<trigger>` | Learn mode boundaries |
+| `mode-entered:master` / `mode-exited:master` | Master teach-in boundaries (no trigger suffix) |
+| `mode-entered:master-bootstrap:boot` | Boot-time bootstrap armed: the next card presented becomes master |
+| `mode-exited:master-bootstrap:<trigger>` | Bootstrap ended, by a tap or by a command |
+| `card-learned:<uid>` | Learn-mode tap, queued until `learn:stop` |
+| `card-duplicate:<uid>` | Already registered, or already seen this session |
+| `card-added:<uid>:command` / `card-removed:<uid>:command` | Authorized list changed by command |
+| `access-granted:<uid>` | An authorized card unlocked the vehicle |
+| `master-added:<uid>:<trigger>` / `master-removed:<uid>:command` | Master list changed |
+| `master-learned:<uid>` | Teach-in success; the same fact as `master-added:<uid>:teach-in` |
+| `masters-cleared` | Master list emptied |
+| `rejected:already-authorized:<uid>` | Teach-in tap refused, UID already registered |
+| `error:save-failed:<uid>` | Write to `/data/keycard` failed |
+| `reset` | Both lists wiped |
 
 ## Hardware
 
@@ -76,7 +115,7 @@ Transient per-tap progress events during teach-in flows, for real-time subscribe
 
 - I2C bus 2, address `0x30`
 - Enabled with `--led-device /dev/i2c-2`
-- Green: authorized card; Red: unauthorized; Amber: lookup in progress and for the duration of learn mode; Blinking: master learning mode
+- Green: authorized card; Red: unauthorized; Amber: lookup in progress and for the duration of learn mode; Blinking: master bootstrap or teach-in
 - **Shared chip.** vehicle-service writes the same LP5562 (also via `I2C_SLAVE_FORCE` on `/dev/i2c-2`, address `0x30`) as the DBC blinker indicator when `settings[scooter.dbc-blinker-led]` is enabled. There is no arbitration: last writer wins, and blinker activity repaints whatever colour keycard-service left on the LED. keycard-service re-asserts the operating-mode, clock, enable and drive-current registers before every colour change, because vehicle-service leaves the chip on a lower drive current.
 - A kernel `lp5562` driver is also bound to the chip and exposes `/sys/class/leds/{R,G,B,W}`. Both services bypass it deliberately.
 
@@ -92,21 +131,23 @@ Transient per-tap progress events during teach-in flows, for real-time subscribe
 
 ## Operational Modes
 
-### Master Learning Mode (first boot)
+### Master Bootstrap (first boot)
 
-Activated at startup when no master UID is loaded (file missing or empty):
+Activated at startup when the master file is missing or empty. Note that the `NONE` sentinel counts as an entry, so a vehicle that has recorded "no physical master" does not re-arm this.
 
-1. RGB LED blinks (500ms) — waiting for master card
-2. First card presented becomes master UID, saved to `master_uids.txt`
-3. Authorized list cleared; RGB LED flashes once to confirm
+1. `mode-entered:master-bootstrap:boot` is published, and the RGB LED blinks (500 ms)
+2. The **first card presented becomes the master**, saved to `master_uids.txt`
+3. RGB LED flashes once to confirm; `master-added:<uid>:bootstrap` and `mode-exited:master-bootstrap:card` are published
 4. Switches to normal operation
+
+Authorized cards are not touched at any point. To leave this mode without a card, send `master:bootstrap-cancel`; to leave it and record that this vehicle wants no physical master at all, send `set-master:NONE`.
 
 ### Normal Operation
 
 | Card type | LED | Redis |
 |-----------|-----|-------|
 | Authorized | Amber → Green flash | Publish auth, write UID |
-| Master | Amber → enter learn mode | — |
+| Master | Amber → enter learn mode | — (a master never unlocks) |
 | Unauthorized | Amber → Red flash | — |
 
 ### Learn Mode
@@ -125,9 +166,11 @@ Activated by presenting master UID or via `learn:start`:
 | Path | Purpose |
 |------|---------|
 | `/data/keycard/authorized_uids.txt` | Authorized keycard UIDs (one per line) |
-| `/data/keycard/master_uids.txt` | Master UIDs (one per line; multiple masters supported) |
+| `/data/keycard/master_uids.txt` | Master UIDs (one per line; multiple masters supported). A single line reading `NONE` records that this vehicle wants no physical master |
 
-Files are written atomically (write to `.tmp`, sync, rename).
+Files are written atomically (write to `.tmp`, sync, rename). UIDs are stored as bare uppercase hex, but any separator form is accepted on read, so hand-edited files work.
+
+Note that `lsc keycard` edits these files directly and restarts the service rather than going through the Redis command interface, so it races a running service and does not emit events.
 
 ## Systemd Unit
 
