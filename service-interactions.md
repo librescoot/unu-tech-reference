@@ -17,13 +17,10 @@ Generated from source analysis of all service repositories.
  bluetooth-service writes──> ble, ble:fault, system (mdb-version, nrf-fw-version), engine-ecu (odometer)
  pm-service ─────writes──> power-manager, power-manager:busy-services, system (cpu:governor)
  modem-service ──writes──> internet, modem, gps, internet:fault, events:faults
- radio-gaga + uplink-service ─writes──> remote-access (atomic per-provider convergence)
  dbc-backlight ──writes──> dashboard (backlight, brightness, from the OPT3001)
  alarm-service ──writes──> alarm
- event-service ──writes──> extensions, extensions:pending (MDB nightly packaging; not 1.3.1 stable)
  version-service  writes──> version:mdb (MDB), version:dbc (DBC)  (one-shot at boot, no pub/sub notification)
  settings-service writes──> settings  (publishes one notification per field at load too)
- trip-service ─────writes──> trip, trip:counter, trip:expunge; leases trip:ready
  update-service ──writes──> ota  (status:*, update-version:*, download-progress:*, etc.)
  ums-service ────writes──> usb
  scootui ────────writes──> dashboard (ready, serial-number)
@@ -42,7 +39,6 @@ Generated from source analysis of all service repositories.
  scooter:governor── pm-service reads      ── vehicle-service writes
  scooter:modem   ── modem-service reads   ── pm-service writes ("disable")
  scooter:bluetooth─ bluetooth-service reads─ (firmware-update and BLE commands)
- scooter:trip    ── trip-service reads ── bluetooth-service and local clients write JSON counter resets
  scooter:alarm   ── alarm-service reads   ── lsc writes
  settings:overlay── settings-service reads ── lsc writes (apply:service, clear:service)
  scooter:update:<component> ── update-service reads ── update-service writes (check-now)
@@ -59,17 +55,11 @@ Generated from source analysis of all service repositories.
  power-manager ← published by pm-service
  system        ← published by vehicle-service (cpu:governor), bluetooth-service (mdb-version, nrf-fw-version)
  ota           ← published by update-service
- internet      ← published by modem-service, radio-gaga, uplink-service (legacy unu-cloud)
- remote-access ← published by radio-gaga and uplink-service (payload = provider or status)
+ internet      ← published by modem-service
  modem         ← published by modem-service
  gps           ← published by modem-service
  alarm         ← published by alarm-service
  ble           ← published by bluetooth-service
- trip          ← published by trip-service (current-trip hash updates)
- trip:counter  ← published by trip-service (counter snapshot updates)
- trip:expunge  ← published by trip-service (retention status updates)
- trip:completed ← published by trip-service (completed trip notification)
- trip:command-result ← published by trip-service (correlated counter-reset JSON result)
  usb           ← published by ums-service
  settings      ← published by settings-service (one notification per field, including at boot), scootui, UMS updates
  motion:sensors    ← published by motion-service (10 Hz IMU stream)
@@ -78,12 +68,6 @@ Generated from source analysis of all service repositories.
  motion:ready      ← published by motion-service on startup
  motion:rpc        ← request channel for motion-service RPC (alarm-service Calls prepare-hibernation)
  buttons           ← published by vehicle-service (physical button events)
-
-                    Normalised events (JSON payload, not field notification)
-                    ─────────────────────────────────────────────────────────
- watched hashes + input-events + motion:interrupt + sms:received
-     ── event-service adapter ──> events stream + ev:<topic> channels
- ev:<topic> ── configured rules only ──> LPUSH to configured command lists / exec / CAN send
 
                     Sets (fault tracking)
                     ─────────────────────
@@ -99,48 +83,6 @@ Generated from source analysis of all service repositories.
 ```
 
 ## Per-Service Detail
-
-### event-service
-
-**Management:** `lsc ext` calls `extensions:rpc`; responses use
-`extensions:rpc:reply:<id>`. The service reads and writes desired rule
-configuration under `/data/extensions`; mutations require a service restart
-and do not dispatch actions. `test` only evaluates a snapshot. Disabling stops
-new triggers after restart, while valid saved tails can finish.
-
-Packaged for MDB nightly builds ahead of 1.4.0; not included in 1.3.1 stable.
-See [event-service](services/librescoot-events.md) for the adapter topic
-catalogue and rule configuration.
-
-**Reads and watches hashes:** `vehicle`, `battery:0`, `battery:1`,
-`aux-battery`, `cb-battery`, `power-manager`, `alarm`, `internet`, `ota`,
-`keycard`, `dashboard`. Startup `HGETALL` seeding emits no transitions;
-subsequent notifications update an in-memory shadow store. Keycard event
-metadata (`uid`, `type`) is read live.
-
-**Subscribes to raw channels:** `input-events`, `motion:interrupt`,
-`sms:received`. It does not watch raw `buttons` or high-rate sensor/GPS
-channels.
-
-**Writes:** `events` (stream fields `topic`, `e`), `ev:<topic>` (JSON Pub/Sub),
-`extensions` (polled counters), `extensions:pending` (internal pending-step
-records). It does not write the observed source hashes.
-
-**Conditional rule edges:** only loaded rules subscribe to their selected
-`ev:*` patterns. A `redis` step can `LPUSH` to any configured list, including
-vehicle command queues; an `exec` step starts a configured executable as root
-under the packaged unit. A `can` step sends a classic CAN frame through the
-configured interface without subscribing to CAN traffic. These are optional
-rule-driven edges, not built-in
-commands or hardware behaviour. Without rules there is no additional event
-subscription or rule-driven command production.
-
-Rules consume live Pub/Sub, not stream catch-up. Pending records recover
-positive `after` delays across service restarts while Valkey retains the hash;
-there is no vehicle-reboot or exactly-once guarantee. Cancellation drops a
-pending tail rather than undoing completed actions.
-
----
 
 ### vehicle-service
 
@@ -240,7 +182,7 @@ the rail.
 **Writes:**
 | Hash | Fields | Channel |
 |------|--------|---------|
-| `engine-ecu` | `motor:voltage`, `motor:current`, `rpm`, `speed`, `raw-speed`, `corrected-speed`, `throttle`, `brake`, `power`, `energy:consumed`, `energy:recovered` | (throttle publishes on `engine-ecu`; the rest of this row does not) |
+| `engine-ecu` | `motor:voltage`, `motor:current`, `rpm`, `speed`, `raw-speed`, `throttle`, `brake`, `power`, `energy:consumed`, `energy:recovered` | (throttle publishes on `engine-ecu`; the rest of this row does not) |
 | `engine-ecu` | `temperature`, `fault:code`, `fault:description` | (no publish) |
 | `engine-ecu` | `odometer` | `engine-ecu` |
 | `engine-ecu` | `kers`, `boost` | (kers publishes on `engine-ecu`; boost does not) |
@@ -325,36 +267,6 @@ Note: Sets 10-second TTL on `keycard` hash after publish.
 
 ---
 
-### trip-service
-
-**Writes (hash → pub/sub channel):**
-
-| Hash | Fields | Channel |
-|------|--------|---------|
-| `trip` | current recorder status, ID, profile ID, distance and duration | `trip` |
-| `trip:counter` | API-versioned vehicle-wide counter snapshot | `trip:counter` |
-| `trip:expunge` | API-versioned retention status and storage measurements | `trip:expunge` |
-
-**Writes (other):** `trip:ready` is a 90-second string lease refreshed every
-30 seconds. `trip:completed` publishes a completed-trip notification.
-`trip:command-result` publishes the JSON result of a `counter.reset` request,
-after a successful replacement `trip:counter` snapshot has been written.
-
-**Reads and watches:** `vehicle/state`; `engine-ecu/odometer` and `speed`; GPS;
-`profile/active.id`; `battery:0` and `battery:1` presence and serial; and
-`settings/trip.counter-reset`, `settings/trip.expunge`, and
-`scooter.dual-battery`. It synchronizes the watched snapshots at startup.
-
-**Consumes queue:** `scooter:trip` JSON requests with
-`op: "counter.reset"` and a required short Unix-millisecond `expires-at`
-deadline. bluetooth-service is the BLE producer; local trusted clients may also
-enqueue. trip-service rejects expired requests so queued resets cannot execute
-after a later service restart. The service persists trip history and counter state
-in its SQLite database. See [trip-service](services/librescoot-trip.md) for
-units, retention safety, and the command contract.
-
----
-
 ### pm-service
 
 **Writes:**
@@ -369,7 +281,6 @@ units, retention safety, and the command contract.
 - `vehicle/state` (watches for standby/parked/ready-to-drive transitions)
 - `battery:0/state` (watches for active/inactive)
 - `settings/hibernation-timer`
-- `remote-access/status` (live HGET at suspend decision; five-minute reconnect grace after boot/resume)
 
 **Subscribes to:**
 
@@ -479,7 +390,7 @@ Note: version-service does not publish on any channel. It runs once at boot via 
 **Writes:**
 | Hash | Fields | Channel |
 |------|--------|---------|
-| `settings` | All TOML fields including `scooter.*`, `cellular.*`, `updates.*`, `dashboard.*`, `alarm.*`, and `trip.*`; overlay-injected values (in-memory only, not persisted); `dashboard.service-mode-active` status field | `settings` |
+| `settings` | All TOML fields: `scooter.*`, `cellular.*`, `updates.*`, `dashboard.*`, `alarm.*`; overlay-injected values (in-memory only, not persisted); `dashboard.service-mode-active` status field | `settings` |
 
 **Reads:**
 
@@ -527,14 +438,12 @@ Note: version-service does not publish on any channel. It runs once at boot via 
 - `settings/alarm.seatbox-trigger`, `settings/alarm.hairtrigger`, `settings/alarm.hairtrigger-duration`
 - `settings/alarm.l1-cooldown`
 - `motion/wake-cause` (once on startup — durable backstop for wake-from-hibernation indicator)
-- `usb/mode` (via HashWatcher — "ums" / "ums-by-dbc" hold the FSM disarmed for the session)
 
 **Subscribes to:**
 
 - `vehicle` channel (state, seatbox:opened event, seatbox:lock)
 - `settings` channel
 - `power-manager` channel (state field — drives hibernation handshake)
-- `usb` channel (mode field — suppresses the alarm during mass-storage sessions)
 - `motion:interrupt` channel (JSON envelope `{type, timestamp, engine}`)
 - `buttons` channel (button events that can trigger the alarm)
 
@@ -578,7 +487,7 @@ overridden off or pinned to a fixed level.
 
 **Reads (HGETALL / HGET):**
 
-- `vehicle`, `battery:0`, `battery:1`, `engine-ecu`, `power-manager`, `internet`, `modem`, `gps`, `keycard`, `ble`, `dashboard`, `system`, `trip:counter`, `trip:expunge`
+- `vehicle`, `battery:0`, `battery:1`, `engine-ecu`, `power-manager`, `internet`, `modem`, `gps`, `keycard`, `ble`, `dashboard`, `system`
 
 **Subscribes to (pub/sub):**
 
@@ -631,6 +540,7 @@ overridden off or pinned to a fixed level.
 
 - `usb/mode` (via HashWatcher, to trigger mode changes)
 
+
 **Hardware access:** USB gadget via configfs, `/data/dbc/`
 
 ---
@@ -663,28 +573,14 @@ overridden off or pinned to a fixed level.
 | `system` | vehicle-service (cpu:governor, usb0-gate), bluetooth-service (mdb-version, nrf-fw-version), pm-service (cpu:governor), keycard-service (keycard counts) | bluetooth-service, uplink-service, scootui, vehicle-service |
 | `ota` | update-service (incl. `heartbeat:<component>`) | vehicle-service (reads status), update-service (self), scootui |
 | `internet` | modem-service; radio-gaga/uplink-service (`unu-cloud` legacy) | scootui, uplink-service |
-| `remote-access` | radio-gaga, uplink-service, optional providers | pm-service (live `status` read), diagnostics |
 | `modem` | modem-service | scootui, uplink-service |
 | `gps` | modem-service | scootui, uplink-service |
 | `alarm` | alarm-service | lsc, monitoring |
 | `maps` | scootui-qt (metadata), ums-service (tile transfer) | scootui, monitoring |
-| `settings` | settings-service (from TOML), update-service (last-check-time) | vehicle-service, battery-service, ecu-service, alarm-service, pm-service, trip-service |
-| `trip` | trip-service | scootui, monitoring |
-| `trip:counter` | trip-service | scootui, bluetooth-service, monitoring |
-| `trip:expunge` | trip-service | scootui, monitoring |
-| `trip:ready` | trip-service (90-second lease) | bluetooth-service capability discovery |
+| `settings` | settings-service (from TOML), update-service (last-check-time) | vehicle-service, battery-service, ecu-service, alarm-service, pm-service |
 | `os-release` | version-service (one-shot) | Nothing (dead key — see gaps) |
-| `usb` | ums-service | ums-service (self), scootui, alarm-service |
+| `usb` | ums-service | ums-service (self), scootui |
 | `motion` | motion-service | alarm-service (wake-cause), scootui (heading), monitoring |
-
-event-service additionally reads the watched hashes listed in its
-[per-service entry](#event-service), including `aux-battery` and `cb-battery`.
-Its own hash interfaces are:
-
-| Key | Owner (Writer) | Primary Readers |
-|-----|---------------|-----------------|
-| `extensions` | event-service | Monitoring (polling, no change publication) |
-| `extensions:pending` | event-service | event-service restart recovery |
 
 ### Set Keys
 
@@ -702,13 +598,8 @@ Its own hash interfaces are:
 | Key | Writers | Readers |
 |-----|---------|---------|
 | `events:faults` | vehicle-service, modem-service | uplink-service (via HGetAll — see gaps) |
-| `events` | event-service adapter | Event-history consumers; rules use live `ev:<topic>` Pub/Sub instead |
 
 ### List Keys (Command Queues)
-
-In addition to the producers below, event-service can write any list named
-by an installed `redis` rule. No command-list edge is enabled by the adapter
-alone; the destination and value are entirely rule configuration.
 
 | Key | Consumer | Producers |
 |-----|---------|---------|
@@ -725,7 +616,6 @@ alone; the destination and value are entirely rule configuration.
 | `scooter:governor` | pm-service | vehicle-service (sends cpu governor changes) |
 | `scooter:modem` | modem-service | pm-service, lsc |
 | `scooter:bluetooth` | bluetooth-service | external/lsc |
-| `scooter:trip` | trip-service | bluetooth-service, trusted local clients |
 | `scooter:alarm` | alarm-service | lsc, uplink-service |
 | `scooter:keycard` | keycard-service | lsc, bluetooth-service |
 | `scooter:hop-on` | vehicle-service | scootui |

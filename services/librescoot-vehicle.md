@@ -191,11 +191,10 @@ The service controls 8 PWM LED channels via the `imx_pwm_led` kernel module:
 
 1. Connects to Redis at 127.0.0.1:6379
 2. Reads saved vehicle state from Redis (if any)
-3. Publishes that saved state, or `stand-by` if there is none, to `vehicle[state]` right away. This lets BLE clients see a state before the hardware bring-up below rather than several seconds later; step 16 republishes whatever state the machine actually settled in
-4. Reads brake hibernation setting from Redis (`settings` hash, `scooter.brake-hibernation`)
-5. Checks if DBC update is in progress (restores `dbcUpdating` flag if needed)
-6. Prepares the PWM LED kernel module. If `imx_pwm_led` is already loaded (`/sys/module/imx_pwm_led` exists) and all eight `/dev/pwm_led0` through `/dev/pwm_led7` nodes are present as character devices, the loaded driver is reused as is. Otherwise it falls back to `rmmod imx_pwm_led && modprobe imx_pwm_led` and waits up to 1 second for `/dev/pwm_led0` to appear
-7. Initializes hardware:
+3. Reads brake hibernation setting from Redis (`settings` hash, `scooter.brake-hibernation`)
+4. Checks if DBC update is in progress (restores `dbcUpdating` flag if needed)
+5. Prepares the PWM LED kernel module. If `imx_pwm_led` is already loaded (`/sys/module/imx_pwm_led` exists) and all eight `/dev/pwm_led0` through `/dev/pwm_led7` nodes are present as character devices, the loaded driver is reused as is. Otherwise it falls back to `rmmod imx_pwm_led && modprobe imx_pwm_led` and waits up to 1 second for `/dev/pwm_led0` to appear
+6. Initializes hardware:
    - Opens all 8 LED device files (`/dev/pwm_led0` through `/dev/pwm_led7`)
    - Configures PWM parameters for each channel
    - Sets adaptive mode for non-blinker LEDs (channels 0, 1, 2, 5)
@@ -204,16 +203,16 @@ The service controls 8 PWM LED channels via the `imx_pwm_led` kernel module:
    - Plays initial LED cue (cue 0)
    - Opens GPIO input device
    - Opens GPIO output lines
-8. Resolves the usb0 gate (see below) and applies it, or starts waiting for the keycard counts
-9. Checks initial handlebar lock sensor state
-10. Registers input callbacks for all monitored inputs
-11. Publishes initial sensor states to Redis
-12. Restores LED state based on saved vehicle state (if parked or ready-to-drive)
-13. Marks system as initialized
-14. Handles initial dashboard ready state (if dashboard was already ready)
-15. Publishes the settled vehicle state to Redis (a repeat of step 3 when nothing changed)
-16. Transitions from `init` to `stand-by` if still in init state
-17. Starts Redis listeners (PUBSUB and BRPOP)
+7. Resolves the usb0 gate (see below) and applies it, or starts waiting for the keycard counts
+8. Checks initial handlebar lock sensor state
+9. Registers input callbacks for all monitored inputs
+10. Publishes initial sensor states to Redis
+11. Restores LED state based on saved vehicle state (if parked or ready-to-drive)
+12. Marks system as initialized
+13. Handles initial dashboard ready state (if dashboard was already ready)
+14. Publishes initial vehicle state to Redis
+15. Transitions from `init` to `stand-by` if still in init state
+16. Starts Redis listeners (PUBSUB and BRPOP)
 
 ### usb0 Link Gating
 
@@ -473,7 +472,7 @@ carries the raw edges; the `vehicle` hash carries the current level. See the
 
 ### Command Processing
 
-Commands are consumed via BRPOP with 5-second timeout:
+The service registers ten command queues:
 
 - `scooter:state` - State change commands
 - `scooter:seatbox` - Seatbox control
@@ -482,7 +481,18 @@ Commands are consumed via BRPOP with 5-second timeout:
 - `scooter:led:cue` - LED cue playback
 - `scooter:led:fade` - LED fade playback
 - `scooter:update` - Update coordination
+- `scooter:dbc-hold` - DBC power-off deferral
 - `scooter:hardware` - Direct hardware control
+- `scooter:hop-on` - Hop-on activation
+
+They are not polled one listener per list. redis-ipc (v0.15.2 at this revision)
+multiplexes all ten onto a single blocking `BRPOP` with a 30-second server-side
+timeout, so the whole set is served by one goroutine and one blocking call
+rather than ten. The key list is rotated between calls so a busy queue cannot
+starve the others, and it carries a private wake key first: registering or
+unregistering a consumer pushes a token onto that key, which returns the blocked
+call early so the key set can be rebuilt. A message is dispatched to exactly one
+handler for its queue.
 
 ### Fault Detection
 

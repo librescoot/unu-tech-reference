@@ -79,9 +79,8 @@ hgetall engine-ecu
 | energy:consumed | integer (mWh) | Cumulative energy consumed | "0" |
 | energy:recovered | integer (mWh) | Cumulative energy recovered via regen | "0" |
 | rpm | integer | Motor RPM | "0" |
-| speed | integer (km/h) | Vehicle speed after calibration and moving-average filtering | "0" |
-| raw-speed | integer (km/h) | Speed as reported by the ECU, before calibration or filtering | "0" |
-| corrected-speed | integer (km/h) | Calibrated speed from the latest ECU sample, without filtering | "0" |
+| speed | integer (km/h) | Vehicle speed (calibrated) | "0" |
+| raw-speed | integer (km/h) | Raw speed before calibration | "0" |
 | throttle | "on"/"off" | Throttle state | "off" |
 | brake | "on"/"off" | Brake state | "off" |
 | gear | integer | Current gear (1-3, 0 if unknown) | "1" |
@@ -110,10 +109,6 @@ Note: When battery is not present (`"present": "false"`), all fields will show d
 | temperature-state | string | Temperature status | "unknown" |
 | cycle-count | integer | Battery cycle count | "0" |
 | state-of-health | integer (%) | Battery health | "0" |
-| remaining-capacity | integer (mAh) | Remaining pack capacity | "0" |
-| full-capacity | integer (mAh) | Full pack capacity | "0" |
-| fault-code | integer | Pack fault code (0 when none) | "0" |
-| low-soc | "true"/"false" | Pack low-SOC flag | "false" |
 | serial-number | string | Battery serial number | "" |
 | manufacturing-date | string | Manufacturing date | "" |
 | fw-version | string | Firmware version | "" |
@@ -229,42 +224,13 @@ hgetall internet
 |-------|------|-------------|----------|
 | modem-state | string | Modem power state | "off" |
 | connectivity | string | Debounced connectivity classification (see below) | "connected" |
-| status | string | Layer-8 reachability (`connected` / `disconnected`). With modem-service TXT verification configured, `connected` requires an exact deployment-controlled TXT value; the empty default retains the legacy permissive DNS/TCP probe | "disconnected" |
-| unu-cloud | string | Legacy dashboard/fleet cloud status, dual-written alongside `remote-access`; last-writer-wins and diagnostic only. Field absent = no cloud client configured | "disconnected" |
+| status | string | Connection status | "disconnected" |
+| unu-cloud | string | Cloud connection status; written by whichever cloud client runs (`radio-gaga` or `uplink-service`). Field absent = no cloud client configured (de-clouded); the dashboard hides the cloud icon in that case | "disconnected" |
 | ip-address | string | IP address | "1.2.3.4" |
 | access-tech | string | Access technology | "LTE" |
 | signal-quality | integer | Signal strength (0-100) | "0" |
 | sim-imei | string | SIM IMEI | "" |
 | sim-iccid | string | SIM ICCID | "" |
-
-### Remote Access (`remote-access`)
-
-```
-hgetall remote-access
-```
-
-| Field | Type | Description | Example |
-|-------|------|-------------|----------|
-| status | `connected` / `disconnected` | Converged consumer contract: `connected` when any provider field is connected | "connected" |
-| radio-gaga | `connected` / `disconnected` | radio-gaga's live MQTT connection state | "connected" |
-| uplink-service | `connected` / `disconnected` | uplink-service's live connection state | "disconnected" |
-| *provider name* | `connected` / `disconnected` | Optional additional provider, for example a WireGuard hook | "connected" |
-
-Providers atomically write their own field and recompute `status` from every
-other field in the hash. The update is one Lua operation: if any provider is
-`connected`, `status` is `connected`; otherwise it is `disconnected`. This
-avoids both last-writer-wins collisions and the lost-update race of a client-side
-`HGETALL`/`HSET` recompute. Changed fields publish their field name on the
-`remote-access` channel. A direct writer of `status` still works alone, but a
-conforming provider may replace it with the recomputed value.
-
-Provider fields intentionally have no TTL. Clean shutdown writes
-`disconnected`; a crash may leave stale `connected`, which errs toward keeping
-the scooter awake. pm-service reads `status` live at the suspend decision point
-and gives providers five minutes after boot and each resume to reconnect.
-
-`internet[unu-cloud]` remains dual-written temporarily for existing dashboard
-and fleet telemetry consumers; it is not the reachability contract.
 
 ### Dashboard Interface (`dashboard`)
 ```
@@ -305,9 +271,7 @@ dashboard up and going in over SSH.
 | routing:published-at | string (ISO8601) | Upstream release time | "2026-08-09T21:30:13Z" |
 | routing:mtime | string (ISO8601) | When the file was written on the DBC | "2026-08-13T09:20:00Z" |
 | last-update-check | string (ISO8601) | When the dashboard last consulted the release manifest | "2026-08-20T07:00:00Z" |
-| update-available | "true"/"false" | Whether that check found newer tiles (either set) | "false" |
-| map:update-available | "true"/"false" | The check found a newer display tile set | "false" |
-| routing:update-available | "true"/"false" | The check found a newer routing tile set | "false" |
+| update-available | "true"/"false" | Whether that check found newer tiles | "false" |
 | updated-at | string (ISO8601) | When this hash was last written | "2026-08-24T11:00:00Z" |
 
 Reading it:
@@ -484,53 +448,6 @@ The hash is updated silently; a pub/sub notification on `timestamp` is published
 
 GPS has no commands; modem-service manages it automatically (see `scooter:modem` below). The legacy `gps:raw` and `gps:filtered` hashes no longer exist.
 
-### Clock Sync (`clock`)
-```
-hgetall clock
-```
-
-Written by modem-service after it successfully sets the system clock from an authoritative source. It is passed to chrony as a discrete step (`chronyc settime`), which does *not* register a chrony reference, so this hash — not `gps.active` and not `chronyc tracking` — is the evidence that the GPS clock path actually worked. Consumers poll it (the write is silent); pm-service uses it to gate scheduled hibernation.
-
-| Field | Type | Description | Example |
-|-------|------|-------------|---------|
-| source | string | Source the clock was set from | "gps" |
-| synced-at | string | Timestamp that was applied (RFC3339) | "2026-06-11T12:00:00Z" |
-| updated | string | When the hash was last written (RFC3339) | "2026-06-11T12:00:00Z" |
-
-Redis is not persistent on librescoot, so the presence of this hash always refers to the current boot.
-
-### Trip Service (`trip`, `trip:counter`, and `trip:expunge`) - Librescoot Only
-
-trip-service owns a durable vehicle-wide display counter and separate recorded
-trip history. See [trip-service](../services/librescoot-trip.md) for recovery,
-retention, and command details.
-
-`trip` remains the current trip recorder status. `trip:counter` is the complete
-counter snapshot, with `api-version` `"1"`, integer `distance-m` (m),
-`duration-s` (s), and `average-speed-kmh` (km/h); `reset-policy` (`ride`,
-`day`, `battery`, `manual`); `reset-at`, `generation`, `updated-at`; and
-`reset-reason` (`initial`, `ride`, `day`, `battery`, `manual`) plus `status`
-(`idle` or `recording`). `trip:ready` is a separate string liveness lease:
-value `"1"`, TTL 90 seconds, refreshed every 30 seconds. Do not use a stale or
-absent lease as evidence that the counter is available.
-
-`trip:expunge` reports the independent trip-history retention pass. Its
-`api-version` is `"1"`; `policy` is `never`, `age`, `count`, or `size`; and
-`value` is its operand (empty for `never`). `status` is `idle`, `running`,
-`deferred`, or `error`. `last-run` and `updated-at` are Unix seconds,
-`deleted-trips` is the latest pass count, `db-bytes` and `wal-bytes` are bytes,
-and `last-error` is a bounded diagnostic string.
-
-Counter commands use the `scooter:trip` list with JSON
-`{"id":"…","op":"counter.reset","source":"…","expires-at":<unix-ms>}`.
-The required deadline must be in the future and at most 60 seconds ahead when
-consumed, preventing queued resets from executing after a later service
-restart. Already-expired attempts are discarded without a stale result, which
-lets an ambiguous retry safely reuse its idempotency ID with a fresh deadline. The correlated `trip:command-result` channel publishes JSON with `id`,
-`op`, `status`, and `error`. A successful reset publishes its new `trip:counter` snapshot before
-its result. Resetting the counter never deletes history; expunging history
-never changes the counter.
-
 ### Over-the-Air Updates (`ota`)
 ```
 hgetall ota
@@ -573,8 +490,6 @@ Librescoot adds persistent settings managed by the settings-service:
 | alarm.hairtrigger-duration | integer (sec) | Hair trigger alarm duration in seconds | "3" |
 | alarm.l1-cooldown | integer (sec) | Level 1 cooldown duration in seconds | "15" |
 | scooter.battery-keep-active-on-seatbox-open | "true"/"false" | Keep a running battery powered across a seatbox open | "false" |
-| trip.counter-reset | enum | Vehicle-wide counter reset policy: `ride`, `day`, `battery`, or `manual` | "ride" |
-| trip.expunge | string | Atomic completed/abandoned trip-history retention policy: `never`, `age:<duration>`, `count:<trips>`, or `size:<bytes>` | "age:365d" |
 | cellular.apn | string | Cellular APN | "internet.provider.com" |
 | pm.hibernation-timer | integer (sec) | Hibernation timeout for idle-driven auto-hibernate (0=disabled) | "259200" |
 | pm.default-state | string | Default target power state when idle (run / suspend) | "suspend" |
@@ -600,11 +515,6 @@ Librescoot adds persistent settings managed by the settings-service:
 | updates.dbc.releases-url | string | Release index base URL for DBC | "https://downloads.librescoot.org/releases" |
 | updates.dbc.last-check-time | string (ISO8601) | Last DBC update check timestamp | "2025-01-15T10:30:00Z" |
 | dashboard.show-raw-speed | "true"/"false" | Show raw uncorrected speed from ECU | "false" |
-| dashboard.show-road-name | string | Road-name display (always/map/navigating/never) | "always" |
-| dashboard.show-speed-limit | string | Speed-limit indicator visibility (always/map/navigating/over-limit/never) | "always" |
-| dashboard.speedometer.max-speed | integer (km/h) | Full-scale value of the speedometer arc; labels and range follow it, the arc geometry does not change | "60" |
-| dashboard.speedometer.warn-speed | integer (km/h) | Speed from which the speedometer fill ramps from blue towards purple | "55" |
-| dashboard.speedometer.overspeed | integer (km/h) | Speed above which the speedometer fill pulses purple and pink | "60" |
 | dashboard.show-clock | string | Clock visibility (always/date-time/alternate/never) | "always" |
 | dashboard.show-gps | string | GPS indicator visibility (always/active-or-error/error/never) | "error" |
 | dashboard.show-bluetooth | string | Bluetooth indicator visibility | "active-or-error" |
@@ -729,7 +639,7 @@ motion-service owns the BMX055 9-axis IMU and publishes its state here. The lega
 
 The `sensitivity` field is gone. Sensitivity is a property of the applied profile, so `current-profile` plus `threshold` describe it. motion-service deletes the stale field at startup on units upgrading from an older build.
 
-Chip configuration is reactive: motion-service derives the profile from the `alarm` and `power-manager` hashes, consumers never write registers. motion-service is not the only publisher on `motion:interrupt`: bluetooth-service publishes there too, in the same JSON shape, when the nRF52 reports an accelerometer wake. A suspend wake is an `edge`; a hibernation wake is a `wake-hibernation`.
+Chip configuration is reactive: motion-service derives the profile from the `alarm` and `power-manager` hashes, consumers never write registers. bluetooth-service also publishes accelerometer wakes from the nRF52, on the legacy `bmx:interrupt` channel as a bare `wake-suspend` or `wake-hibernation` string rather than the `motion:interrupt` JSON envelope.
 
 See [motion-service documentation](../services/librescoot-motion.md) for profiles, payload schemas, and the hibernation handshake.
 
@@ -923,9 +833,7 @@ Librescoot adds per-component update tracking:
 | status | string | Flat status, not namespaced, stock convention | "downloading-updates" |
 | update-type | string | Whether the flat status blocks use of the vehicle | "blocking" |
 
-**Update status values:** `idle`, `downloading`, `preparing`, `installing`, `pending-reboot`, `staged-noop`, `error`
-
-`staged-noop` is terminal and not an error: an `apply-staged-updates` push found nothing applicable (the staged image is already the running version, or only unusable artifacts are staged), so nothing was installed and nothing needs rebooting. ums-service finishes the cycle on it without triggering a reboot.
+**Update status values:** `idle`, `downloading`, `preparing`, `installing`, `pending-reboot`, `error`
 
 `status` and `update-type` are the non-namespaced pair from the stock convention,
 describing the vehicle rather than one board. Both components feed them and the least
@@ -1098,53 +1006,6 @@ so a long press between two taps does not glue them into a `double-tap`.
 
 Unlike `buttons`, each gesture is emitted exactly once, which makes this the
 channel to use for anything that counts or reacts to discrete user actions.
-
-### Extension Event Interfaces - Librescoot Only
-
-[event-service](../services/librescoot-events.md) is packaged for MDB nightly
-builds ahead of 1.4.0, not included in 1.3.1 stable. It observes existing state
-traffic without writing those source hashes. Its event and runtime interfaces are:
-
-| Name | Type | Contents |
-|---|---|---|
-| `events` | Stream | Approximately 2000 entries (`MAXLEN ~`), each with `topic` and `e` (JSON envelope) fields |
-| `ev:<topic>` | Pub/Sub channel | JSON envelope: `id`, `ts`, `topic`, `src`, optional `from`, `to`, `data` |
-| `extensions` | Hash | Rule-engine counts: `rules`, `dispatched`, `dropped`, `refused`, `failed`, `pending`, `runs-active`, `can-sent`, `can-errors`, plus build `version` |
-| `extensions:pending` | Hash | Internal run ID → JSON durable pending-step record; not a command interface |
-
-```bash
-redis-cli XREVRANGE events + - COUNT 10
-redis-cli PSUBSCRIBE 'ev:*'
-redis-cli HGETALL extensions
-redis-cli HGETALL extensions:pending
-```
-
-The channel envelope contains the ID returned by the stream append. The
-stream's `e` JSON is encoded before that assignment, so stream readers use
-the outer entry ID. Adapter events use `src = "adapter"`.
-
-Counters reset on service restart. They are written asynchronously, field by
-field at startup, then only on change at the statistics interval (default
-10s), without Pub/Sub notifications. Early reads may be partial.
-
-Rules listen to live `ev:*` patterns selected by their configuration; they do
-not catch up from the stream after downtime. `extensions:pending` supports
-only service-restart recovery while Valkey retains its data, not guaranteed
-recovery across a datastore restart or vehicle reboot. Records cover positive
-`after` delays and remain through worker queuing until the action starts or
-the pending tail is cancelled. Execution is not exactly once. See the service
-reference for the topic catalogue, counter meanings and recovery limitations.
-
-### Extension Management RPC - Librescoot Only
-
-`extensions:rpc` is a bounded list-backed request queue for event-service
-management (`v1.list`, `v1.show`, `v1.add`, `v1.set-enabled`, `v1.test`,
-`v1.status`). Replies are published on `extensions:rpc:reply:<request-id>`.
-`lsc ext` uses this interface, so configuration always belongs to the remote
-MDB, not the CLI host. Mutations report pending restart; they never restart
-the service or dispatch actions. Dry-run events are not published to `ev:*`.
-See [rule management](../services/librescoot-events.md#rule-management) for
-request limits, revision checks, disabled-tail behavior and timeout handling.
 
 ### Event Streams
 
@@ -1338,36 +1199,14 @@ redis-cli -h 192.168.7.1 LPUSH scooter:update:mdb "update-from-url:https://examp
 # Ask what a switch to another channel would download (changes nothing)
 redis-cli -h 192.168.7.1 LPUSH scooter:update:mdb preview-channel:stable
 redis-cli -h 192.168.7.1 HMGET ota preview-status:mdb preview-version:mdb preview-size:mdb
-
-# Install whatever update files are staged for this component
-redis-cli -h 192.168.7.1 LPUSH scooter:update:mdb apply-staged-updates
 ```
 
-**Per-component commands** (`scooter:update:mdb` / `scooter:update:dbc`): `check-now`, `preview-channel:<channel>`, `update-from-file:<path>[#sha256=<hex>]`, `update-from-url:<url>[#sha256=<hex>]`, `apply-staged-updates`
+**Per-component commands** (`scooter:update:mdb` / `scooter:update:dbc`): `check-now`, `preview-channel:<channel>`, `update-from-file:<path>[#sha256=<hex>]`, `update-from-url:<url>[#sha256=<hex>]`
 
 `preview-channel:<channel>` reports the latest release on `<channel>` for this
 component's `variant_id` and the size of its `.mender` artifact, into the `ota` hash's
 `preview-*` fields. It sets nothing and downloads nothing; the dashboard uses it to
 price a channel switch before asking the rider to confirm.
-
-`apply-staged-updates` installs update files already present in the component's own
-download directory (`/data/ota/mdb` or `/data/ota/dbc`), which is how ums-service hands
-over files imported from the USB drive. Staged `.delta` files are applied as one
-contiguous chain from the running version and installed once, so a drop containing
-several deltas for one board needs a single install and a single reboot.
-
-A staged `.mender` that is **not newer** than the running version is the base image a
-delta is applied against, and is ignored rather than treated as an update. A newer
-`.mender` staged alongside any `.delta` that parses as a newer artifact on the running
-version's channel is refused as ambiguous, as are two or more newer `.mender` files, or
-deltas that do not resolve into one chain from the running version. A `.delta` the
-version test cannot judge (a cross-channel orphan, an unparsable name, a partial
-transfer) is ignored rather than counted, so it neither joins a chain nor blocks a
-legitimately staged image. A refused set installs nothing and is reported through
-`error:{component}` (`staged-updates-refused`, `staged-read-failed`,
-`no-running-version`). ums-service
-additionally reports its own refusals in `usb.last-result` and as an `error` event on
-`scootui:notification`.
 
 The shared `scooter:update` list is consumed by **vehicle-service**, not the updaters: update-service pushes the DBC lifecycle commands `start-dbc` and `complete-dbc` there to drive the vehicle's `updating` state. vehicle-service also accepts the legacy `start` and `complete`.
 
