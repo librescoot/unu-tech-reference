@@ -34,20 +34,26 @@ A successful auth sets a 10-second TTL on the entire `keycard` key, so all three
 
 **Fields written on command response:**
 
-- `command-result` - Result of last management command (e.g. `ok`, `count:3`, `card:<uid>`, `error:<code>`)
+- `command-result` - Result of the last management command, as prose (e.g. `ok`, `count:3`, `card:<uid>`, `error:not found`)
+- `command-error` - The same outcome as a machine-readable code, empty on success
 
-Error codes are stable and kebab-case:
+Both are written in one operation, with the notification on `command-result`, so a reader woken by that notification always sees the matching pair. Read `command-error` and fall back to `command-result` when the field is absent, which is what a keycard-service too old to write it looks like.
 
-| Code | Meaning |
-|------|---------|
-| `error:bad-uid` | Not 1-10 bytes of hex |
-| `error:already-authorized` | Already an authorized card |
-| `error:already-registered` | Already registered, in either role |
-| `error:not-found` | No such card |
-| `error:last-credential` | Would leave no card able to unlock the vehicle |
-| `error:save-failed` | Write to `/data/keycard` failed |
-| `error:wrong-mode:<mode>` | Command needs a different mode; `<mode>` is the current one (`idle`, `learn`, `master-teach-in`, `master-bootstrap`) |
-| `error:unknown-command` | Not a command this service knows |
+The prose in `command-result` is a compatibility surface and has not changed. Match on the code:
+
+| `command-error` | `command-result` |
+|-----------------|------------------|
+| `empty-uid` | `error:empty uid` |
+| `bad-uid` | `error:invalid uid` |
+| `already-authorized` | `error:already authorized` |
+| `already-registered` | `error:already registered as a master` |
+| `not-found` | `error:not found` |
+| `last-credential` | `error:cannot remove last authorized card` |
+| `save-failed` | `error:save failed` |
+| `unknown-command` | `error:unknown command` |
+| `wrong-mode:<mode>` | the wording that command used before, e.g. `error:not in learn mode` |
+
+`<mode>` is `idle`, `learn`, `master-teach-in` or `master-bootstrap`.
 
 **Published channel:** `keycard`
 
@@ -61,11 +67,11 @@ Management commands via LPUSH:
 |---------|----------|
 | `list` | `count:<n>` then one `card:<uid>` per authorized card |
 | `count` | `count:<n>` |
-| `add:<uid>` | `ok`, or `error:already-authorized` / `error:bad-uid` |
-| `remove:<uid>` | `ok`, or `error:not-found` / `error:last-credential` |
+| `add:<uid>` | `ok`, or `already-authorized` / `already-registered` / `bad-uid` |
+| `remove:<uid>` | `ok`, or `not-found` / `last-credential` |
 | `master:list` | `count:<n>` then one `master:<uid>` per master |
-| `master:add:<uid>` | Append a master. `ok`, or `error:already-registered` |
-| `master:remove:<uid>` | Drop a master. `ok`, or `error:not-found`. Removing the last one is allowed |
+| `master:add:<uid>` | Append a master. `ok`, or `already-registered` |
+| `master:remove:<uid>` | Drop a master. `ok`, or `not-found`. Removing the last one is allowed |
 | `master:clear` | Empty the master list, keeping authorized cards. The next start re-arms bootstrap |
 | `master:bootstrap-cancel` | Leave master bootstrap without writing anything, so the next tap is not learned as master. Idempotent |
 | `set-master:<uid>` | Replace the master list with this single UID, or with `NONE` to record that this vehicle wants no physical master. Authorized cards are untouched |
@@ -77,7 +83,7 @@ Management commands via LPUSH:
 
 `master:bootstrap-cancel` is what a caller that only wants to stop the next tap being learned as master should send. `set-master:NONE` persists a decision (no physical master on this vehicle, ever) and suppresses the bootstrap on later starts too; `master:bootstrap-cancel` applies to the current run only and writes nothing.
 
-Responses are written to `keycard command-result`.
+Responses are written to `keycard command-result` and `keycard command-error`; the error names in this table are `command-error` codes.
 
 ### Channel: `keycard:events` (published)
 
