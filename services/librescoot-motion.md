@@ -49,7 +49,10 @@ motion-service unbinds the kernel driver at startup and drives all three over `/
 - Heading fields (refreshed from each magnetometer publish):
   - `heading` — 0–359 degrees, integer
   - `heading-deg` — float, medium-EMA-smoothed
-  - `heading-accuracy` — heuristic 1-σ degrees
+  - `heading-accuracy` — compatibility estimate; `180` for a rejected heading
+  - `heading-valid` and `heading-invalid-reason` — authoritative usability verdict
+  - `calibration-state` — `uncalibrated` or `calibrated`
+  - `heading-field-residual` — recent field deviation fraction
   - `heading-tilt` — angle from level
   - `heading-tilt-comp` — `true` if accel-based tilt compensation was applied to this sample
 
@@ -72,12 +75,18 @@ motion-service unbinds the kernel driver at startup and drives all three over `/
     "heading_raw_deg": 191.7,    // unsmoothed, this sample only
     "heading_fast_deg": 192.1,   // fast EMA, τ ≈ 0.3 s
     "heading_slow_deg": 193.4,   // slow EMA, τ ≈ 3.9 s
-    "accuracy_deg": 4.32,        // heuristic 1-σ
+    "accuracy_deg": 17.2,
+    "heading_valid": true,
+    "calibration_state": "calibrated",
     "tilt_compensated": true,
-    "tilt_deg": 15.7,
-    "mag_strength_ut": 26.6,
+    "tilt_deg": 3.2,
+    "mag_strength_ut": 48.6,
+    "horizontal_field_ut": 20.1,
+    "field_residual": 0.03,
+    "heading_dispersion_deg": 1.4,
     "excess_g": 0.018,
-    "yaw_rate_dps": 1.4
+    "yaw_rate_dps": 1.4,
+    "data_ready": true
   }
   ```
 - **`motion:interrupt`** — JSON `MotionEvent`:
@@ -95,7 +104,12 @@ motion-service hosts a single redis-ipc `CallServer` on this channel, dispatchin
 | Method | Request | Response | Use |
 |---|---|---|---|
 | `prepare-hibernation` | `{profile: "armed-hibernation"}` | `{programmed: bool, profile: string}` | Synchronous chip-config confirmation. alarm-service Calls this before releasing pm-service's suspend inhibitor. ~180 ms round-trip on the bench. |
-| `get-calibration` | `{}` | `{hard_iron_offset, axis_order, axis_sign, yaw_offset_deg}` | Diagnostic — returns the magnetometer calibration applied to the heading pipeline. |
+| `get-calibration` | `{}` | `{hard_iron_offset, soft_iron_xy, axis_order, axis_sign, yaw_offset_deg, state}` | Returns the active pipeline calibration. |
+| `calibration-start` | `{}` | capture status | Starts a bounded coherent in-process capture. |
+| `calibration-status` | `{}` | capture status | Reports sample count, angle bins, spans, readiness, and fit metadata. |
+| `calibration-finish` | `{}` | capture status | Fits, validates, atomically saves, and applies the capture. Failure preserves the previous model. |
+| `calibration-cancel` | `{}` | capture status | Discards the active capture without changing calibration. |
+| `calibration-reset` | `{}` | capture status | Deletes calibration and immediately disables heading. |
 | `clear-latch` | `{}` | `{ok: bool}` | Clears the BMX055 latched INT bits. Useful for support if the chip is stuck asserted. |
 | `soft-reset` | `{}` | `{ok: bool}` | Soft-resets accel + gyro, then reprograms the current profile. It deliberately does not leave the chip at register defaults: a reset wipes the motion engine, and on an armed scooter that means no motion detection. |
 | `set-polling` | `{rate_hz: 1..100}` | `{ok: bool}` | Overrides the telemetry poll rate on both pollers. An override, not a setting — the vehicle-state watcher re-derives the rate on the next `vehicle.state` change. Replaces `LPUSH scooter:motion polling:N`. |
@@ -144,29 +158,32 @@ Both publish identical `MotionEvent` JSON envelopes on `motion:interrupt` and cl
 1. Unbind kernel BMX055 driver.
 2. Connect the redis-ipc client. One client serves the publisher, the hash watchers and the RPC server, so it comes up before anything that needs to write Redis.
 3. Initialize accel, gyro, mag (with retries on I²C transient errors).
-4. Start sensor + magnetometer pollers (telemetry).
-5. Start interrupt poller + watcher (initially disabled).
-6. **Read `INT_STATUS_0` BEFORE the first `controller.Apply`.** If a slope or slow-no-motion bit is latched, this is a wake-from-hibernation; record it.
-7. Apply `Idle` profile (always — defends against any half-state from a previous owner).
-8. If wake-from-hibernation was detected: `PUBLISH motion:interrupt {type:"wake-hibernation",...}` AND `HSET motion wake-cause <unix-ms>`. The hash field is the durable backstop for consumers that started after motion-service published.
-9. Start `Subscriber` (HashWatchers on alarm + power-manager, `StartWithSync` so the chip syncs to current vehicle state on first dispatch).
-10. Start `CallServer` with `prepare-hibernation`, `get-calibration`, `clear-latch`, `soft-reset`, `set-polling`, `set-streaming`.
-11. `PUBLISH motion:ready`.
+4. Load and validate `/data/motion-magnetometer-calibration.json`; otherwise remain uncalibrated and fail heading closed.
+5. Start sensor + magnetometer pollers (telemetry).
+6. Start interrupt poller + watcher (initially disabled).
+7. **Read `INT_STATUS_0` BEFORE the first `controller.Apply`.** If a slope or slow-no-motion bit is latched, this is a wake-from-hibernation; record it.
+8. Apply `Idle` profile (always — defends against any half-state from a previous owner).
+9. If wake-from-hibernation was detected: `PUBLISH motion:interrupt {type:"wake-hibernation",...}` AND `HSET motion wake-cause <unix-ms>`. The hash field is the durable backstop for consumers that started after motion-service published.
+10. Start `Subscriber` (HashWatchers on alarm + power-manager, `StartWithSync` so the chip syncs to current vehicle state on first dispatch).
+11. Start `CallServer`, including calibration capture methods.
+12. `PUBLISH motion:ready`.
 
 ## Magnetometer Calibration
 
-motion-service applies a hard-coded hard-iron offset + axis-order/sign remap + a yaw offset, derived from a sphere fit on bench-collected data:
+Firmware contains only the mechanical sensor-to-vehicle axis mapping. It ships no vehicle-specific hard-iron, soft-iron, or empirical yaw values. Without a valid persisted model, every magnetic heading has `heading_valid=false`, reason `uncalibrated`, and compatibility accuracy `180`.
 
-```go
-HardIronOffset: [3]int16{13, 339, 989}
-AxisOrder:      [3]int{1, 0, 2}        // chip Y -> vehicle X, etc
-AxisSign:       [3]float64{-1, 1, 1}
-YawOffsetDeg:   107
+Use the in-process workflow so motion-service remains the sole I²C owner and alarm detection continues:
+
+```sh
+lsc motion calibrate start
+# Walk the upright scooter through slow clockwise and counter-clockwise circles.
+lsc motion calibrate status
+lsc motion calibrate finish
 ```
 
-The chip is mounted face-down on the MDB underside, rotated 90°. The compensation transforms readings into vehicle NED (North=X, East=Y, Down=Z). Heading is computed as `atan2(-magY_NED, magX_NED)` after tilt compensation using accelerometer roll/pitch.
+Collect away from vehicles, steel structures, cables, and motor current. Readiness requires 180 accepted low-dynamic samples, 30/36 angular bins, and at least 300 compensated LSB span on both axes. `finish` fits a positive planar ellipse, rejects condition above 4 or normalized radial RMS above 10%, writes a diagnostic CSV, and atomically replaces `/data/motion-magnetometer-calibration.json`. Failed captures preserve the active model. `cancel` discards only the capture; `reset` deletes the model and disables heading.
 
-For long-term accuracy, an ellipsoid fit (accounting for soft-iron from the chassis steel) would be preferable; deferred to a future calibration capture.
+The model corrects X/Y hard iron and planar soft iron before the fixed NED axis transform. Planar calibration cannot identify Z hard iron, so headings over 10° vehicle tilt are invalid. Heading validity also checks warm-up, magnetic field range and short-term residual, horizontal field, dynamic acceleration, and stationary dispersion.
 
 ## Magnetometer Operating Mode
 
@@ -195,7 +212,7 @@ Auto-enabled (`SYSTEMD_AUTO_ENABLE = "enable"` in the meta-librescoot recipe). a
 
 ## Diagnostic Tool
 
-`motion-calibrate` (separate binary) is a one-shot data-capture tool for re-deriving the hard-iron offset. Triggered manually via `systemctl start motion-calibrate.service` — `Conflicts=` librescoot-motion so the capture has exclusive chip access; `ExecStopPost=` brings librescoot-motion back up automatically. CSVs written to `/data/motion-cal-<unix-ts>.csv`.
+The separate `motion-calibrate` binary remains for offline diagnostics. It records coherent raw and factory-trim-compensated values but requires exclusive IMU ownership. Prefer the live RPC workflow for normal calibration.
 
 ## Testing
 
