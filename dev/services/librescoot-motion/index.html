@@ -2180,7 +2180,10 @@
 <li>Heading fields (refreshed from each magnetometer publish):</li>
 <li><code>heading</code> — 0–359 degrees, integer</li>
 <li><code>heading-deg</code> — float, medium-EMA-smoothed</li>
-<li><code>heading-accuracy</code> — heuristic 1-σ degrees</li>
+<li><code>heading-accuracy</code> — compatibility estimate; <code>180</code> for a rejected heading</li>
+<li><code>heading-valid</code> and <code>heading-invalid-reason</code> — authoritative usability verdict</li>
+<li><code>calibration-state</code> — <code>uncalibrated</code> or <code>calibrated</code></li>
+<li><code>heading-field-residual</code> — recent field deviation fraction</li>
 <li><code>heading-tilt</code> — angle from level</li>
 <li><code>heading-tilt-comp</code> — <code>true</code> if accel-based tilt compensation was applied to this sample</li>
 </ul>
@@ -2201,13 +2204,19 @@
 </span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="w">  </span><span class="nt">"heading_raw_deg"</span><span class="p">:</span><span class="w"> </span><span class="mf">191.7</span><span class="p">,</span><span class="w">    </span><span class="c1">// unsmoothed, this sample only</span>
 </span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="w">  </span><span class="nt">"heading_fast_deg"</span><span class="p">:</span><span class="w"> </span><span class="mf">192.1</span><span class="p">,</span><span class="w">   </span><span class="c1">// fast EMA, τ ≈ 0.3 s</span>
 </span><span id="__span-1-6"><a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="w">  </span><span class="nt">"heading_slow_deg"</span><span class="p">:</span><span class="w"> </span><span class="mf">193.4</span><span class="p">,</span><span class="w">   </span><span class="c1">// slow EMA, τ ≈ 3.9 s</span>
-</span><span id="__span-1-7"><a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="w">  </span><span class="nt">"accuracy_deg"</span><span class="p">:</span><span class="w"> </span><span class="mf">4.32</span><span class="p">,</span><span class="w">        </span><span class="c1">// heuristic 1-σ</span>
-</span><span id="__span-1-8"><a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a><span class="w">  </span><span class="nt">"tilt_compensated"</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
-</span><span id="__span-1-9"><a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a><span class="w">  </span><span class="nt">"tilt_deg"</span><span class="p">:</span><span class="w"> </span><span class="mf">15.7</span><span class="p">,</span>
-</span><span id="__span-1-10"><a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a><span class="w">  </span><span class="nt">"mag_strength_ut"</span><span class="p">:</span><span class="w"> </span><span class="mf">26.6</span><span class="p">,</span>
-</span><span id="__span-1-11"><a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a><span class="w">  </span><span class="nt">"excess_g"</span><span class="p">:</span><span class="w"> </span><span class="mf">0.018</span><span class="p">,</span>
-</span><span id="__span-1-12"><a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a><span class="w">  </span><span class="nt">"yaw_rate_dps"</span><span class="p">:</span><span class="w"> </span><span class="mf">1.4</span>
-</span><span id="__span-1-13"><a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a><span class="p">}</span>
+</span><span id="__span-1-7"><a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="w">  </span><span class="nt">"accuracy_deg"</span><span class="p">:</span><span class="w"> </span><span class="mf">17.2</span><span class="p">,</span>
+</span><span id="__span-1-8"><a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a><span class="w">  </span><span class="nt">"heading_valid"</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
+</span><span id="__span-1-9"><a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a><span class="w">  </span><span class="nt">"calibration_state"</span><span class="p">:</span><span class="w"> </span><span class="s2">"calibrated"</span><span class="p">,</span>
+</span><span id="__span-1-10"><a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a><span class="w">  </span><span class="nt">"tilt_compensated"</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
+</span><span id="__span-1-11"><a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a><span class="w">  </span><span class="nt">"tilt_deg"</span><span class="p">:</span><span class="w"> </span><span class="mf">3.2</span><span class="p">,</span>
+</span><span id="__span-1-12"><a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a><span class="w">  </span><span class="nt">"mag_strength_ut"</span><span class="p">:</span><span class="w"> </span><span class="mf">48.6</span><span class="p">,</span>
+</span><span id="__span-1-13"><a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a><span class="w">  </span><span class="nt">"horizontal_field_ut"</span><span class="p">:</span><span class="w"> </span><span class="mf">20.1</span><span class="p">,</span>
+</span><span id="__span-1-14"><a id="__codelineno-1-14" name="__codelineno-1-14" href="#__codelineno-1-14"></a><span class="w">  </span><span class="nt">"field_residual"</span><span class="p">:</span><span class="w"> </span><span class="mf">0.03</span><span class="p">,</span>
+</span><span id="__span-1-15"><a id="__codelineno-1-15" name="__codelineno-1-15" href="#__codelineno-1-15"></a><span class="w">  </span><span class="nt">"heading_dispersion_deg"</span><span class="p">:</span><span class="w"> </span><span class="mf">1.4</span><span class="p">,</span>
+</span><span id="__span-1-16"><a id="__codelineno-1-16" name="__codelineno-1-16" href="#__codelineno-1-16"></a><span class="w">  </span><span class="nt">"excess_g"</span><span class="p">:</span><span class="w"> </span><span class="mf">0.018</span><span class="p">,</span>
+</span><span id="__span-1-17"><a id="__codelineno-1-17" name="__codelineno-1-17" href="#__codelineno-1-17"></a><span class="w">  </span><span class="nt">"yaw_rate_dps"</span><span class="p">:</span><span class="w"> </span><span class="mf">1.4</span><span class="p">,</span>
+</span><span id="__span-1-18"><a id="__codelineno-1-18" name="__codelineno-1-18" href="#__codelineno-1-18"></a><span class="w">  </span><span class="nt">"data_ready"</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span>
+</span><span id="__span-1-19"><a id="__codelineno-1-19" name="__codelineno-1-19" href="#__codelineno-1-19"></a><span class="p">}</span>
 </span></code></pre></div></li>
 <li><strong><code>motion:interrupt</code></strong> — JSON <code>MotionEvent</code>:
   <div class="language-json highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="p">{</span><span class="nt">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"edge"</span><span class="p">,</span><span class="w"> </span><span class="nt">"timestamp"</span><span class="p">:</span><span class="w"> </span><span class="mi">1777996408778</span><span class="p">,</span><span class="w"> </span><span class="nt">"engine"</span><span class="p">:</span><span class="w"> </span><span class="s2">"any-motion"</span><span class="p">}</span>
@@ -2237,8 +2246,38 @@
 <tr>
 <td><code>get-calibration</code></td>
 <td><code>{}</code></td>
-<td><code>{hard_iron_offset, axis_order, axis_sign, yaw_offset_deg}</code></td>
-<td>Diagnostic — returns the magnetometer calibration applied to the heading pipeline.</td>
+<td><code>{hard_iron_offset, soft_iron_xy, axis_order, axis_sign, yaw_offset_deg, state}</code></td>
+<td>Returns the active pipeline calibration.</td>
+</tr>
+<tr>
+<td><code>calibration-start</code></td>
+<td><code>{}</code></td>
+<td>capture status</td>
+<td>Starts a bounded coherent in-process capture.</td>
+</tr>
+<tr>
+<td><code>calibration-status</code></td>
+<td><code>{}</code></td>
+<td>capture status</td>
+<td>Reports sample count, angle bins, spans, readiness, and fit metadata.</td>
+</tr>
+<tr>
+<td><code>calibration-finish</code></td>
+<td><code>{}</code></td>
+<td>capture status</td>
+<td>Fits, validates, atomically saves, and applies the capture. Failure preserves the previous model.</td>
+</tr>
+<tr>
+<td><code>calibration-cancel</code></td>
+<td><code>{}</code></td>
+<td>capture status</td>
+<td>Discards the active capture without changing calibration.</td>
+</tr>
+<tr>
+<td><code>calibration-reset</code></td>
+<td><code>{}</code></td>
+<td>capture status</td>
+<td>Deletes calibration and immediately disables heading.</td>
 </tr>
 <tr>
 <td><code>clear-latch</code></td>
@@ -2360,24 +2399,26 @@
 <li>Unbind kernel BMX055 driver.</li>
 <li>Connect the redis-ipc client. One client serves the publisher, the hash watchers and the RPC server, so it comes up before anything that needs to write Redis.</li>
 <li>Initialize accel, gyro, mag (with retries on I²C transient errors).</li>
+<li>Load and validate <code>/data/motion-magnetometer-calibration.json</code>; otherwise remain uncalibrated and fail heading closed.</li>
 <li>Start sensor + magnetometer pollers (telemetry).</li>
 <li>Start interrupt poller + watcher (initially disabled).</li>
 <li><strong>Read <code>INT_STATUS_0</code> BEFORE the first <code>controller.Apply</code>.</strong> If a slope or slow-no-motion bit is latched, this is a wake-from-hibernation; record it.</li>
 <li>Apply <code>Idle</code> profile (always — defends against any half-state from a previous owner).</li>
 <li>If wake-from-hibernation was detected: <code>PUBLISH motion:interrupt {type:"wake-hibernation",...}</code> AND <code>HSET motion wake-cause &lt;unix-ms&gt;</code>. The hash field is the durable backstop for consumers that started after motion-service published.</li>
 <li>Start <code>Subscriber</code> (HashWatchers on alarm + power-manager, <code>StartWithSync</code> so the chip syncs to current vehicle state on first dispatch).</li>
-<li>Start <code>CallServer</code> with <code>prepare-hibernation</code>, <code>get-calibration</code>, <code>clear-latch</code>, <code>soft-reset</code>, <code>set-polling</code>, <code>set-streaming</code>.</li>
+<li>Start <code>CallServer</code>, including calibration capture methods.</li>
 <li><code>PUBLISH motion:ready</code>.</li>
 </ol>
 <h2 id="magnetometer-calibration">Magnetometer Calibration<a class="headerlink" href="#magnetometer-calibration" title="Permanent link">&para;</a></h2>
-<p>motion-service applies a hard-coded hard-iron offset + axis-order/sign remap + a yaw offset, derived from a sphere fit on bench-collected data:</p>
-<div class="language-go highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="nx">HardIronOffset</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="mi">3</span><span class="p">]</span><span class="kt">int16</span><span class="p">{</span><span class="mi">13</span><span class="p">,</span><span class="w"> </span><span class="mi">339</span><span class="p">,</span><span class="w"> </span><span class="mi">989</span><span class="p">}</span>
-</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="nx">AxisOrder</span><span class="p">:</span><span class="w">      </span><span class="p">[</span><span class="mi">3</span><span class="p">]</span><span class="kt">int</span><span class="p">{</span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="mi">2</span><span class="p">}</span><span class="w">        </span><span class="c1">// chip Y -&gt; vehicle X, etc</span>
-</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="nx">AxisSign</span><span class="p">:</span><span class="w">       </span><span class="p">[</span><span class="mi">3</span><span class="p">]</span><span class="kt">float64</span><span class="p">{</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">}</span>
-</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="nx">YawOffsetDeg</span><span class="p">:</span><span class="w">   </span><span class="mi">107</span>
+<p>Firmware contains only the mechanical sensor-to-vehicle axis mapping. It ships no vehicle-specific hard-iron, soft-iron, or empirical yaw values. Without a valid persisted model, every magnetic heading has <code>heading_valid=false</code>, reason <code>uncalibrated</code>, and compatibility accuracy <code>180</code>.</p>
+<p>Use the in-process workflow so motion-service remains the sole I²C owner and alarm detection continues:</p>
+<div class="language-sh highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>lsc<span class="w"> </span>motion<span class="w"> </span>calibrate<span class="w"> </span>start
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="c1"># Walk the upright scooter through slow clockwise and counter-clockwise circles.</span>
+</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>lsc<span class="w"> </span>motion<span class="w"> </span>calibrate<span class="w"> </span>status
+</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>lsc<span class="w"> </span>motion<span class="w"> </span>calibrate<span class="w"> </span>finish
 </span></code></pre></div>
-<p>The chip is mounted face-down on the MDB underside, rotated 90°. The compensation transforms readings into vehicle NED (North=X, East=Y, Down=Z). Heading is computed as <code>atan2(-magY_NED, magX_NED)</code> after tilt compensation using accelerometer roll/pitch.</p>
-<p>For long-term accuracy, an ellipsoid fit (accounting for soft-iron from the chassis steel) would be preferable; deferred to a future calibration capture.</p>
+<p>Collect away from vehicles, steel structures, cables, and motor current. Readiness requires 180 accepted low-dynamic samples, 30/36 angular bins, and at least 300 compensated LSB span on both axes. <code>finish</code> fits a positive planar ellipse, rejects condition above 4 or normalized radial RMS above 10%, writes a diagnostic CSV, and atomically replaces <code>/data/motion-magnetometer-calibration.json</code>. Failed captures preserve the active model. <code>cancel</code> discards only the capture; <code>reset</code> deletes the model and disables heading.</p>
+<p>The model corrects X/Y hard iron and planar soft iron before the fixed NED axis transform. Planar calibration cannot identify Z hard iron, so headings over 10° vehicle tilt are invalid. Heading validity also checks warm-up, magnetic field range and short-term residual, horizontal field, dynamic acceleration, and stationary dispersion.</p>
 <h2 id="magnetometer-operating-mode">Magnetometer Operating Mode<a class="headerlink" href="#magnetometer-operating-mode" title="Permanent link">&para;</a></h2>
 <p>BMM150 in <code>normal</code> mode at ODR 10 Hz with the <code>regular</code> REPXY/REPZ presets (9/15 reps), polled by the host at the sensor-poller rate (5 Hz in <code>parked</code> / <code>ready-to-drive</code>, 1 Hz otherwise). The trim compensation is the full Bosch BMM050 reference port (int64 to avoid the integer-truncation pitfall).</p>
 <h2 id="systemd-unit">systemd Unit<a class="headerlink" href="#systemd-unit" title="Permanent link">&para;</a></h2>
@@ -2398,7 +2439,7 @@
 </span></code></pre></div></p>
 <p>Auto-enabled (<code>SYSTEMD_AUTO_ENABLE = "enable"</code> in the meta-librescoot recipe). alarm-service's unit declares <code>Wants=</code>/<code>After=librescoot-motion.service</code> so the chip is in a known state before alarm-service starts driving it.</p>
 <h2 id="diagnostic-tool">Diagnostic Tool<a class="headerlink" href="#diagnostic-tool" title="Permanent link">&para;</a></h2>
-<p><code>motion-calibrate</code> (separate binary) is a one-shot data-capture tool for re-deriving the hard-iron offset. Triggered manually via <code>systemctl start motion-calibrate.service</code> — <code>Conflicts=</code> librescoot-motion so the capture has exclusive chip access; <code>ExecStopPost=</code> brings librescoot-motion back up automatically. CSVs written to <code>/data/motion-cal-&lt;unix-ts&gt;.csv</code>.</p>
+<p>The separate <code>motion-calibrate</code> binary remains for offline diagnostics. It records coherent raw and factory-trim-compensated values but requires exclusive IMU ownership. Prefer the live RPC workflow for normal calibration.</p>
 <h2 id="testing">Testing<a class="headerlink" href="#testing" title="Permanent link">&para;</a></h2>
 <h3 id="inspect-live-state">Inspect live state<a class="headerlink" href="#inspect-live-state" title="Permanent link">&para;</a></h3>
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="c1"># Current chip profile</span>
