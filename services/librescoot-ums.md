@@ -25,8 +25,8 @@ UMS_MENDER_TIMEOUT=15m       Per-file timeout for Mender update transfers (envir
 
 **Fields written:**
 
-- `status` - Service status (`idle`, `preparing`, `active`, `processing`, `awaiting-reboot`)
-  - `awaiting-reboot` is set while a UMS-initiated update install runs and the service waits for the post-install reboot (see UMS exit flow). It transitions back to `idle` once the reboot is triggered, the wait fails/times out, or a new UMS session cancels the pending reboot.
+- `status` - Service status (`idle`, `preparing`, `active`, `processing`, `awaiting-reboot`, `rebooting`)
+  - `awaiting-reboot` covers the hand-off to update-service and installation. After installation completes and the vehicle-state safety gate passes, `rebooting` is published briefly before the reboot or DBC power-cycle command. The status returns to `idle` when the trigger fails, the wait fails/times out, or a new UMS session cancels the pending operation.
 - `step` - Current processing step (`settings`, `wireguard`, `radio-gaga`, `uplink-service`, `onboot`, `updates`, `maps`, or empty). The RPM and script stages run without setting `step`.
 - `progress` - Upload progress percentage (0–100) during file transfers
 - `detail` - Human-readable transfer sub-step (e.g. `map.mbtiles (120/380 MB)`)
@@ -160,7 +160,7 @@ into place, and an untouched file is a no-op.
 Each step is independent: a failure is logged to `usb:log` and the remaining
 steps still run.
 
-**Post-update reboot:** if the exit processing queued an MDB or DBC update install, the service sets `status` to `awaiting-reboot` and a background watcher performs the install pushes, waits for completion (10 min timeout), then triggers a reboot. The reboot is gated on the vehicle state being in an allowed set (`stand-by`, `parked`, `shutting-down`); if the state is anything else, the reboot is skipped. MDB updates reboot the MDB via `scooter:power`; DBC-only updates power-cycle the dashboard via `scooter:hardware`. The watcher is cancellable: re-entering UMS cancels a pending reboot. When no update is queued, `status` goes straight back to `idle` with no reboot.
+**Post-update reboot:** if the exit processing queued an MDB or DBC update install, the service sets `status` to `awaiting-reboot` and a background watcher performs the install pushes and waits for completion (10 min timeout). Once the vehicle-state safety gate passes it publishes `rebooting`, allows the dashboard to paint that final phase, then triggers a reboot. The reboot is gated on the vehicle state being in an allowed set (`stand-by`, `parked`, `shutting-down`); if the state is anything else, the reboot is skipped. MDB updates reboot the MDB via `scooter:power`; DBC-only updates power-cycle the dashboard via `scooter:hardware`. The watcher is cancellable: re-entering UMS cancels a pending reboot. When no update is queued, `status` goes straight back to `idle` with no reboot.
 
 ## Hardware
 
