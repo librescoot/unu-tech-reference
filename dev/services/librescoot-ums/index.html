@@ -2007,8 +2007,8 @@
 </ul>
 <p><strong>Fields written:</strong></p>
 <ul>
-<li><code>status</code> - Service status (<code>idle</code>, <code>preparing</code>, <code>active</code>, <code>processing</code>, <code>awaiting-reboot</code>)</li>
-<li><code>awaiting-reboot</code> is set while a UMS-initiated update install runs and the service waits for the post-install reboot (see UMS exit flow). It transitions back to <code>idle</code> once the reboot is triggered, the wait fails/times out, or a new UMS session cancels the pending reboot.</li>
+<li><code>status</code> - Service status (<code>idle</code>, <code>preparing</code>, <code>active</code>, <code>processing</code>, <code>awaiting-reboot</code>, <code>rebooting</code>)</li>
+<li><code>awaiting-reboot</code> covers the hand-off to update-service and installation. After installation completes and the vehicle-state safety gate passes, <code>rebooting</code> is published briefly before the reboot or DBC power-cycle command. The status returns to <code>idle</code> when the trigger fails, the wait fails/times out, or a new UMS session cancels the pending operation.</li>
 <li><code>step</code> - Current processing step (<code>settings</code>, <code>wireguard</code>, <code>radio-gaga</code>, <code>uplink-service</code>, <code>onboot</code>, <code>updates</code>, <code>maps</code>, or empty). The RPM and script stages run without setting <code>step</code>.</li>
 <li><code>progress</code> - Upload progress percentage (0–100) during file transfers</li>
 <li><code>detail</code> - Human-readable transfer sub-step (e.g. <code>map.mbtiles (120/380 MB)</code>)</li>
@@ -2140,7 +2140,7 @@ into place, and an untouched file is a no-op.</p>
 </ol>
 <p>Each step is independent: a failure is logged to <code>usb:log</code> and the remaining
 steps still run.</p>
-<p><strong>Post-update reboot:</strong> if the exit processing queued an MDB or DBC update install, the service sets <code>status</code> to <code>awaiting-reboot</code> and a background watcher performs the install pushes, waits for completion (10 min timeout), then triggers a reboot. The reboot is gated on the vehicle state being in an allowed set (<code>stand-by</code>, <code>parked</code>, <code>shutting-down</code>); if the state is anything else, the reboot is skipped. MDB updates reboot the MDB via <code>scooter:power</code>; DBC-only updates power-cycle the dashboard via <code>scooter:hardware</code>. The watcher is cancellable: re-entering UMS cancels a pending reboot. When no update is queued, <code>status</code> goes straight back to <code>idle</code> with no reboot.</p>
+<p><strong>Post-update reboot:</strong> if the exit processing queued an MDB or DBC update install, the service sets <code>status</code> to <code>awaiting-reboot</code> and a background watcher performs the install pushes and waits for completion (10 min timeout). Once the vehicle-state safety gate passes it publishes <code>rebooting</code>, allows the dashboard to paint that final phase, then triggers a reboot. The reboot is gated on the vehicle state being in an allowed set (<code>stand-by</code>, <code>parked</code>, <code>shutting-down</code>); if the state is anything else, the reboot is skipped. MDB updates reboot the MDB via <code>scooter:power</code>; DBC-only updates power-cycle the dashboard via <code>scooter:hardware</code>. The watcher is cancellable: re-entering UMS cancels a pending reboot. When no update is queued, <code>status</code> goes straight back to <code>idle</code> with no reboot.</p>
 <h2 id="hardware">Hardware<a class="headerlink" href="#hardware" title="Permanent link">&para;</a></h2>
 <ul>
 <li><strong>Network mode:</strong> <code>g_ether</code> kernel module</li>
