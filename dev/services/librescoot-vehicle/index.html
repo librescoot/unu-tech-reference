@@ -2837,6 +2837,7 @@
 <ol>
 <li>Connects to Redis at 127.0.0.1:6379</li>
 <li>Reads saved vehicle state from Redis (if any)</li>
+<li>Publishes that saved state, or <code>stand-by</code> if there is none, to <code>vehicle[state]</code> right away. This lets BLE clients see a state before the hardware bring-up below rather than several seconds later; step 16 republishes whatever state the machine actually settled in</li>
 <li>Reads brake hibernation setting from Redis (<code>settings</code> hash, <code>scooter.brake-hibernation</code>)</li>
 <li>Checks if DBC update is in progress (restores <code>dbcUpdating</code> flag if needed)</li>
 <li>Reloads PWM LED kernel module (<code>rmmod imx_pwm_led &amp;&amp; modprobe imx_pwm_led</code>)</li>
@@ -2857,7 +2858,7 @@
 <li>Restores LED state based on saved vehicle state (if parked or ready-to-drive)</li>
 <li>Marks system as initialized</li>
 <li>Handles initial dashboard ready state (if dashboard was already ready)</li>
-<li>Publishes initial vehicle state to Redis</li>
+<li>Publishes the settled vehicle state to Redis (a repeat of step 3 when nothing changed)</li>
 <li>Transitions from <code>init</code> to <code>stand-by</code> if still in init state</li>
 <li>Starts Redis listeners (PUBSUB and BRPOP)</li>
 </ol>
