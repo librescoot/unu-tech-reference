@@ -508,6 +508,9 @@ Librescoot adds persistent settings managed by the settings-service:
 | updates.dbc.releases-url | string | Release index base URL for DBC | "https://downloads.librescoot.org/releases" |
 | updates.dbc.last-check-time | string (ISO8601) | Last DBC update check timestamp | "2025-01-15T10:30:00Z" |
 | dashboard.show-raw-speed | "true"/"false" | Show raw uncorrected speed from ECU | "false" |
+| dashboard.speedometer.max-speed | integer (km/h) | Full-scale value of the speedometer arc; labels and range follow it, the arc geometry does not change | "60" |
+| dashboard.speedometer.warn-speed | integer (km/h) | Speed from which the speedometer fill ramps from blue towards purple | "55" |
+| dashboard.speedometer.overspeed | integer (km/h) | Speed above which the speedometer fill pulses purple and pink | "60" |
 | dashboard.show-clock | string | Clock visibility (always/never) | "always" |
 | dashboard.show-gps | string | GPS indicator visibility (always/active-or-error/error/never) | "error" |
 | dashboard.show-bluetooth | string | Bluetooth indicator visibility | "active-or-error" |
