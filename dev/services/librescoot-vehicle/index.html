@@ -2840,8 +2840,7 @@
 <li>Publishes that saved state, or <code>stand-by</code> if there is none, to <code>vehicle[state]</code> right away. This lets BLE clients see a state before the hardware bring-up below rather than several seconds later; step 16 republishes whatever state the machine actually settled in</li>
 <li>Reads brake hibernation setting from Redis (<code>settings</code> hash, <code>scooter.brake-hibernation</code>)</li>
 <li>Checks if DBC update is in progress (restores <code>dbcUpdating</code> flag if needed)</li>
-<li>Reloads PWM LED kernel module (<code>rmmod imx_pwm_led &amp;&amp; modprobe imx_pwm_led</code>)</li>
-<li>Waits for <code>/dev/pwm_led0</code> to appear (up to 1 second)</li>
+<li>Prepares the PWM LED kernel module. If <code>imx_pwm_led</code> is already loaded (<code>/sys/module/imx_pwm_led</code> exists) and all eight <code>/dev/pwm_led0</code> through <code>/dev/pwm_led7</code> nodes are present as character devices, the loaded driver is reused as is. Otherwise it falls back to <code>rmmod imx_pwm_led &amp;&amp; modprobe imx_pwm_led</code> and waits up to 1 second for <code>/dev/pwm_led0</code> to appear</li>
 <li>Initializes hardware:</li>
 <li>Opens all 8 LED device files (<code>/dev/pwm_led0</code> through <code>/dev/pwm_led7</code>)</li>
 <li>Configures PWM parameters for each channel</li>
