@@ -2,7 +2,7 @@
 
 ## Description
 
-Manages USB gadget mode switching on the MDB between network (`g_ether`) and USB Mass Storage (`g_mass_storage`) modes. In UMS mode, exposes a 1 GB FAT32 virtual drive at `/data/usb.drive` to the host PC. On switching back to normal mode, processes files placed on the drive: syncs settings and WireGuard configs, installs Mender updates and RPMs, runs scripts, and transfers maps to the DBC.
+Manages USB gadget mode switching on the MDB between network (`g_ether`) and USB Mass Storage (`g_mass_storage`) modes. In UMS mode, exposes a 1 GB FAT32 virtual drive at `/data/usb.drive` to the host PC. On switching back to normal mode, processes files placed on the drive: syncs settings and WireGuard configs, installs Mender updates, runs scripts, and transfers maps to the DBC.
 
 ## Command-Line Options
 
@@ -10,7 +10,6 @@ Manages USB gadget mode switching on the MDB between network (`g_ether`) and USB
 REDIS_ADDR=localhost:6379    Redis server address (environment variable)
 REDIS_PASSWORD=              Redis password (environment variable)
 UMS_MAP_TIMEOUT=10m          Per-file timeout for map transfers (environment variable)
-UMS_RPM_TIMEOUT=5m           Per-file timeout for RPM transfers (environment variable)
 UMS_SCRIPT_TIMEOUT=2m        Per-file timeout for script transfers (environment variable)
 UMS_MENDER_TIMEOUT=15m       Per-file timeout for Mender update transfers (environment variable)
 ```
@@ -27,7 +26,7 @@ UMS_MENDER_TIMEOUT=15m       Per-file timeout for Mender update transfers (envir
 
 - `status` - Service status (`idle`, `preparing`, `active`, `processing`, `awaiting-reboot`, `rebooting`)
   - `awaiting-reboot` covers the hand-off to update-service and installation. After installation completes and the vehicle-state safety gate passes, `rebooting` is published briefly before the reboot or DBC power-cycle command. The status returns to `idle` when the trigger fails, the wait fails/times out, or a new UMS session cancels the pending operation.
-- `step` - Current processing step (`settings`, `wireguard`, `radio-gaga`, `uplink-service`, `onboot`, `updates`, `maps`, or empty). The RPM and script stages run without setting `step`.
+- `step` - Current processing step (`settings`, `wireguard`, `radio-gaga`, `uplink-service`, `onboot`, `updates`, `maps`, or empty). The script stage runs without setting `step`.
 - `progress` - Upload progress percentage (0–100) during file transfers
 - `detail` - Human-readable transfer sub-step (e.g. `map.mbtiles (120/380 MB)`)
 
@@ -116,9 +115,6 @@ first lets the in-flight entry observe it and abandon itself.
 ├── maps/                # place map files here
 │   ├── *.mbtiles
 │   └── *tiles.tar or valhalla_tiles_*.tar, plain or .zst
-├── rpms/
-│   ├── mdb/             # RPMs to install on MDB
-│   └── dbc/             # RPMs to transfer and install on DBC
 ├── scripts/
 │   ├── mdb.sh           # shell script to run on MDB
 │   └── dbc.sh           # shell script to transfer and run on DBC
@@ -137,7 +133,7 @@ first lets the in-flight entry observe it and abandon itself.
 2. Copies `/data/wireguard/*.conf` to `wireguard/`
 3. Copies `/data/radio-gaga/config.yaml` to `radio-gaga/` and `/data/uplink-service/config.yaml` to `uplink-service/`
 4. Copies the on-boot script to `onboot.sh`
-5. Creates `system-update/`, `maps/`, `rpms/mdb/`, `rpms/dbc/`, `scripts/` and `log-bundles/` directories
+5. Creates `system-update/`, `maps/`, `scripts/` and `log-bundles/` directories
 6. Copies existing log bundles from `/data/log-bundles` to `log-bundles/`
 7. Collects diagnostics to `diagnostics/mdb/` (journal, dmesg, system info) and `diagnostics/dbc/` if DBC is reachable. The MDB `system-info.txt` ends with a `=== modem ===` section read from the `internet` and `modem` hashes (IMEI, ICCID, IMSI, operator, access tech, signal, registration, connectivity, IP, health, SIM/PIN/APN state); fields Redis has no value for print as `-`
 
@@ -153,9 +149,8 @@ into place, and an untouched file is a no-op.
 5. **onboot** - copies `onboot.sh` back into place
 6. **Updates** - MDB `.mender`/`.delta` files installed locally via `scooter:update:mdb`; DBC `.mender`/`.delta` files transferred to DBC and queued via `scooter:update:dbc`
 7. **Maps** - transfers `.mbtiles` to `/data/maps/map.mbtiles` on DBC; transfers Valhalla tile archives to `/data/valhalla/tiles.tar` on DBC. A `valhalla_tiles_*.tar.zst` is uploaded compressed and decompressed on the DBC, into a temp file that only replaces `tiles.tar` once the whole stream has decoded; the installed file is always the plain seekable tar, because Valhalla mmaps it as its `tile_extract`. After each artifact lands, the service reads it back on the DBC (`sha256sum` plus `stat`), records it in `/data/maps/metadata.json` and mirrors it into the [`maps`](../redis/README.md#installed-maps-maps---librescoot-only) hash. The region comes from the published filename (`tiles_<slug>.mbtiles`, `valhalla_tiles_<slug>.tar`); a renamed or generically named file clears the recorded region rather than leaving the previous one to describe tiles it no longer refers to
-8. **RPMs** - installs `rpms/mdb/*.rpm` locally via `rpm -Uvh --force`; transfers and installs `rpms/dbc/*.rpm` on DBC
-9. **Scripts** - runs `scripts/mdb.sh` locally; transfers `scripts/dbc.sh` to DBC and runs it remotely
-10. Writes `ums_log.txt` to drive root, then cleans the drive (preserving `ums_log.txt`)
+8. **Scripts** - runs `scripts/mdb.sh` locally; transfers `scripts/dbc.sh` to DBC and runs it remotely
+9. Writes `ums_log.txt` to drive root, then cleans the drive (preserving `ums_log.txt`)
 
 Each step is independent: a failure is logged to `usb:log` and the remaining
 steps still run.
