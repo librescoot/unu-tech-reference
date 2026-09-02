@@ -112,6 +112,7 @@ Values `error:{component}` takes, with `error-message:{component}` carrying the 
 | `checksum-mismatch` | A downloaded or staged file did not match its expected checksum |
 | `file-not-found` | A path given to `update-from-file:` does not exist |
 | `invalid-file` | A path given to `update-from-file:` is neither a `.mender` nor a `.delta` |
+| `already-installed` | A full `.mender` given to `update-from-file:` carries the version that is already running. Checked before installation starts, so nothing is written |
 | `image-too-large` | The artifact's rootfs payload is larger than the rootfs slot it would be written to. Checked before installation starts, so nothing is written |
 | `install-failed` | `mender-update install` failed |
 | `no-base-image` | A delta arrived with no local `.mender` for the running version to apply it against |

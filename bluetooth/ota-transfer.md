@@ -101,6 +101,7 @@ Clients should ignore unknown opcodes for forward compatibility. Messages are at
 | `0x11` | Busy (reserved — currently a new START replaces an active receive session) |
 | `0x12` | Bad parameters (malformed START, unsupported version/component/chunk size) |
 | `0x13` | An install is in progress; poll with STATUS_REQ until it reaches a terminal phase |
+| `0x14` | The bundle's version (from its ID) is what that board already runs; nothing is staged |
 
 `window_chunks`, `ack_every`, and `max_chunk` announce the receiver's tuning so the constants live in one place (currently 64, 16, 240). The phone must keep at most `window_chunks` unacknowledged chunks in flight and must not exceed `max_chunk` as chunk size.
 
@@ -171,6 +172,8 @@ The bundle ID both identifies the transfer (resume matching) and names the stage
 - **Delta bundles:** send the full filename **with** the `.delta` extension; update-service dispatches on the extension to apply the file as a delta.
 
 update-service derives the installed version from the filename, so the name matters beyond identity. Allowed charset: first character alphanumeric, rest `[A-Za-z0-9._-]`, at most 64 bytes; anything else is rejected with START_ACK `0x12` (the ID is joined into filesystem paths, so separators and leading dots must never get through).
+
+bluetooth-service also reads the version out of the ID (the token after the third hyphen, extension stripped) and compares it against the installed version of the target board. A bundle for the version that board already runs is refused with START_ACK `0x14` before anything is staged, so a pointless full-image transfer fails in one round trip rather than at install time.
 
 ## Staging
 
