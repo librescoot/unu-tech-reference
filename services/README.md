@@ -22,6 +22,7 @@ Librescoot provides the open-source services that run on the scooter. All servic
 | [librescoot-settings](librescoot-settings.md) | Persistent settings sync | `settings` | NetworkManager, Redis |
 | [librescoot-ums](librescoot-ums.md) | USB Mass Storage / file transfer | `usb` | USB gadget (g_ether/g_mass_storage), Redis |
 | [librescoot-update](librescoot-update.md) | OTA update management (MDB + DBC) | `ota` | Mender, Redis, release index |
+| [librescoot-lsd](librescoot-lsd.md) | Web management interface on the usb0 network (MDB only) | `settings`, `navigation` | Redis, systemd, lsc |
 
 ## Service Architecture
 
