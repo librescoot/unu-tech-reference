@@ -194,9 +194,8 @@ The service controls 8 PWM LED channels via the `imx_pwm_led` kernel module:
 3. Publishes that saved state, or `stand-by` if there is none, to `vehicle[state]` right away. This lets BLE clients see a state before the hardware bring-up below rather than several seconds later; step 16 republishes whatever state the machine actually settled in
 4. Reads brake hibernation setting from Redis (`settings` hash, `scooter.brake-hibernation`)
 5. Checks if DBC update is in progress (restores `dbcUpdating` flag if needed)
-6. Reloads PWM LED kernel module (`rmmod imx_pwm_led && modprobe imx_pwm_led`)
-7. Waits for `/dev/pwm_led0` to appear (up to 1 second)
-8. Initializes hardware:
+6. Prepares the PWM LED kernel module. If `imx_pwm_led` is already loaded (`/sys/module/imx_pwm_led` exists) and all eight `/dev/pwm_led0` through `/dev/pwm_led7` nodes are present as character devices, the loaded driver is reused as is. Otherwise it falls back to `rmmod imx_pwm_led && modprobe imx_pwm_led` and waits up to 1 second for `/dev/pwm_led0` to appear
+7. Initializes hardware:
    - Opens all 8 LED device files (`/dev/pwm_led0` through `/dev/pwm_led7`)
    - Configures PWM parameters for each channel
    - Sets adaptive mode for non-blinker LEDs (channels 0, 1, 2, 5)
@@ -205,16 +204,16 @@ The service controls 8 PWM LED channels via the `imx_pwm_led` kernel module:
    - Plays initial LED cue (cue 0)
    - Opens GPIO input device
    - Opens GPIO output lines
-9. Resolves the usb0 gate (see below) and applies it, or starts waiting for the keycard counts
-10. Checks initial handlebar lock sensor state
-11. Registers input callbacks for all monitored inputs
-12. Publishes initial sensor states to Redis
-13. Restores LED state based on saved vehicle state (if parked or ready-to-drive)
-14. Marks system as initialized
-15. Handles initial dashboard ready state (if dashboard was already ready)
-16. Publishes the settled vehicle state to Redis (a repeat of step 3 when nothing changed)
-17. Transitions from `init` to `stand-by` if still in init state
-18. Starts Redis listeners (PUBSUB and BRPOP)
+8. Resolves the usb0 gate (see below) and applies it, or starts waiting for the keycard counts
+9. Checks initial handlebar lock sensor state
+10. Registers input callbacks for all monitored inputs
+11. Publishes initial sensor states to Redis
+12. Restores LED state based on saved vehicle state (if parked or ready-to-drive)
+13. Marks system as initialized
+14. Handles initial dashboard ready state (if dashboard was already ready)
+15. Publishes the settled vehicle state to Redis (a repeat of step 3 when nothing changed)
+16. Transitions from `init` to `stand-by` if still in init state
+17. Starts Redis listeners (PUBSUB and BRPOP)
 
 ### usb0 Link Gating
 
