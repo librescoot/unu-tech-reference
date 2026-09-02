@@ -2317,6 +2317,10 @@
 <td><code>0x13</code></td>
 <td>An install is in progress; poll with STATUS_REQ until it reaches a terminal phase</td>
 </tr>
+<tr>
+<td><code>0x14</code></td>
+<td>The bundle's version (from its ID) is what that board already runs; nothing is staged</td>
+</tr>
 </tbody>
 </table>
 <p><code>window_chunks</code>, <code>ack_every</code>, and <code>max_chunk</code> announce the receiver's tuning so the constants live in one place (currently 64, 16, 240). The phone must keep at most <code>window_chunks</code> unacknowledged chunks in flight and must not exceed <code>max_chunk</code> as chunk size.</p>
@@ -2457,6 +2461,7 @@
 <li><strong>Delta bundles:</strong> send the full filename <strong>with</strong> the <code>.delta</code> extension; update-service dispatches on the extension to apply the file as a delta.</li>
 </ul>
 <p>update-service derives the installed version from the filename, so the name matters beyond identity. Allowed charset: first character alphanumeric, rest <code>[A-Za-z0-9._-]</code>, at most 64 bytes; anything else is rejected with START_ACK <code>0x12</code> (the ID is joined into filesystem paths, so separators and leading dots must never get through).</p>
+<p>bluetooth-service also reads the version out of the ID (the token after the third hyphen, extension stripped) and compares it against the installed version of the target board. A bundle for the version that board already runs is refused with START_ACK <code>0x14</code> before anything is staged, so a pointless full-image transfer fails in one round trip rather than at install time.</p>
 <h2 id="staging">Staging<a class="headerlink" href="#staging" title="Permanent link">&para;</a></h2>
 <p>Bundles stage under <code>/data/ota/&lt;mdb|dbc&gt;/</code> — update-service's own download directories — on the persistent data partition:</p>
 <div class="language-text highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>/data/ota/mdb/&lt;bundle&gt;.mender.part   in-flight transfer

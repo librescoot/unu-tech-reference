@@ -2327,6 +2327,10 @@ A consumer that needs to distinguish a failed update from no update has to read
 <td>A path given to <code>update-from-file:</code> is neither a <code>.mender</code> nor a <code>.delta</code></td>
 </tr>
 <tr>
+<td><code>already-installed</code></td>
+<td>A full <code>.mender</code> given to <code>update-from-file:</code> carries the version that is already running. Checked before installation starts, so nothing is written</td>
+</tr>
+<tr>
 <td><code>image-too-large</code></td>
 <td>The artifact's rootfs payload is larger than the rootfs slot it would be written to. Checked before installation starts, so nothing is written</td>
 </tr>

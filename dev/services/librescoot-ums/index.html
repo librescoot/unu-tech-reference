@@ -1990,14 +1990,13 @@
 
 <h1 id="librescoot-ums-ums-service">librescoot-ums (ums-service)<a class="headerlink" href="#librescoot-ums-ums-service" title="Permanent link">&para;</a></h1>
 <h2 id="description">Description<a class="headerlink" href="#description" title="Permanent link">&para;</a></h2>
-<p>Manages USB gadget mode switching on the MDB between network (<code>g_ether</code>) and USB Mass Storage (<code>g_mass_storage</code>) modes. In UMS mode, exposes a 1 GB FAT32 virtual drive at <code>/data/usb.drive</code> to the host PC. On switching back to normal mode, processes files placed on the drive: syncs settings and WireGuard configs, installs Mender updates and RPMs, runs scripts, and transfers maps to the DBC.</p>
+<p>Manages USB gadget mode switching on the MDB between network (<code>g_ether</code>) and USB Mass Storage (<code>g_mass_storage</code>) modes. In UMS mode, exposes a 1 GB FAT32 virtual drive at <code>/data/usb.drive</code> to the host PC. On switching back to normal mode, processes files placed on the drive: syncs settings and WireGuard configs, installs Mender updates, runs scripts, and transfers maps to the DBC.</p>
 <h2 id="command-line-options">Command-Line Options<a class="headerlink" href="#command-line-options" title="Permanent link">&para;</a></h2>
 <div class="language-text highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>REDIS_ADDR=localhost:6379    Redis server address (environment variable)
 </span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>REDIS_PASSWORD=              Redis password (environment variable)
 </span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>UMS_MAP_TIMEOUT=10m          Per-file timeout for map transfers (environment variable)
-</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>UMS_RPM_TIMEOUT=5m           Per-file timeout for RPM transfers (environment variable)
-</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>UMS_SCRIPT_TIMEOUT=2m        Per-file timeout for script transfers (environment variable)
-</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>UMS_MENDER_TIMEOUT=15m       Per-file timeout for Mender update transfers (environment variable)
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>UMS_SCRIPT_TIMEOUT=2m        Per-file timeout for script transfers (environment variable)
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>UMS_MENDER_TIMEOUT=15m       Per-file timeout for Mender update transfers (environment variable)
 </span></code></pre></div>
 <h2 id="redis-operations">Redis Operations<a class="headerlink" href="#redis-operations" title="Permanent link">&para;</a></h2>
 <h3 id="hash-usb">Hash: <code>usb</code><a class="headerlink" href="#hash-usb" title="Permanent link">&para;</a></h3>
@@ -2009,7 +2008,7 @@
 <ul>
 <li><code>status</code> - Service status (<code>idle</code>, <code>preparing</code>, <code>active</code>, <code>processing</code>, <code>awaiting-reboot</code>, <code>rebooting</code>)</li>
 <li><code>awaiting-reboot</code> covers the hand-off to update-service and installation. After installation completes and the vehicle-state safety gate passes, <code>rebooting</code> is published briefly before the reboot or DBC power-cycle command. The status returns to <code>idle</code> when the trigger fails, the wait fails/times out, or a new UMS session cancels the pending operation.</li>
-<li><code>step</code> - Current processing step (<code>settings</code>, <code>wireguard</code>, <code>radio-gaga</code>, <code>uplink-service</code>, <code>onboot</code>, <code>updates</code>, <code>maps</code>, or empty). The RPM and script stages run without setting <code>step</code>.</li>
+<li><code>step</code> - Current processing step (<code>settings</code>, <code>wireguard</code>, <code>radio-gaga</code>, <code>uplink-service</code>, <code>onboot</code>, <code>updates</code>, <code>maps</code>, or empty). The script stage runs without setting <code>step</code>.</li>
 <li><code>progress</code> - Upload progress percentage (0–100) during file transfers</li>
 <li><code>detail</code> - Human-readable transfer sub-step (e.g. <code>map.mbtiles (120/380 MB)</code>)</li>
 </ul>
@@ -2100,17 +2099,14 @@ first lets the in-flight entry observe it and abandon itself.</p>
 </span><span id="__span-2-13"><a id="__codelineno-2-13" name="__codelineno-2-13" href="#__codelineno-2-13"></a>├── maps/                # place map files here
 </span><span id="__span-2-14"><a id="__codelineno-2-14" name="__codelineno-2-14" href="#__codelineno-2-14"></a>│   ├── *.mbtiles
 </span><span id="__span-2-15"><a id="__codelineno-2-15" name="__codelineno-2-15" href="#__codelineno-2-15"></a>│   └── *tiles.tar or valhalla_tiles_*.tar, plain or .zst
-</span><span id="__span-2-16"><a id="__codelineno-2-16" name="__codelineno-2-16" href="#__codelineno-2-16"></a>├── rpms/
-</span><span id="__span-2-17"><a id="__codelineno-2-17" name="__codelineno-2-17" href="#__codelineno-2-17"></a>│   ├── mdb/             # RPMs to install on MDB
-</span><span id="__span-2-18"><a id="__codelineno-2-18" name="__codelineno-2-18" href="#__codelineno-2-18"></a>│   └── dbc/             # RPMs to transfer and install on DBC
-</span><span id="__span-2-19"><a id="__codelineno-2-19" name="__codelineno-2-19" href="#__codelineno-2-19"></a>├── scripts/
-</span><span id="__span-2-20"><a id="__codelineno-2-20" name="__codelineno-2-20" href="#__codelineno-2-20"></a>│   ├── mdb.sh           # shell script to run on MDB
-</span><span id="__span-2-21"><a id="__codelineno-2-21" name="__codelineno-2-21" href="#__codelineno-2-21"></a>│   └── dbc.sh           # shell script to transfer and run on DBC
-</span><span id="__span-2-22"><a id="__codelineno-2-22" name="__codelineno-2-22" href="#__codelineno-2-22"></a>├── log-bundles/         # pre-populated: bundles previously captured with lsc
-</span><span id="__span-2-23"><a id="__codelineno-2-23" name="__codelineno-2-23" href="#__codelineno-2-23"></a>├── diagnostics/         # pre-populated on UMS entry (read-only for user)
-</span><span id="__span-2-24"><a id="__codelineno-2-24" name="__codelineno-2-24" href="#__codelineno-2-24"></a>│   ├── mdb/
-</span><span id="__span-2-25"><a id="__codelineno-2-25" name="__codelineno-2-25" href="#__codelineno-2-25"></a>│   └── dbc/             # only if DBC was reachable at UMS entry
-</span><span id="__span-2-26"><a id="__codelineno-2-26" name="__codelineno-2-26" href="#__codelineno-2-26"></a>└── ums_log.txt          # written on exit, survives the post-processing wipe
+</span><span id="__span-2-16"><a id="__codelineno-2-16" name="__codelineno-2-16" href="#__codelineno-2-16"></a>├── scripts/
+</span><span id="__span-2-17"><a id="__codelineno-2-17" name="__codelineno-2-17" href="#__codelineno-2-17"></a>│   ├── mdb.sh           # shell script to run on MDB
+</span><span id="__span-2-18"><a id="__codelineno-2-18" name="__codelineno-2-18" href="#__codelineno-2-18"></a>│   └── dbc.sh           # shell script to transfer and run on DBC
+</span><span id="__span-2-19"><a id="__codelineno-2-19" name="__codelineno-2-19" href="#__codelineno-2-19"></a>├── log-bundles/         # pre-populated: bundles previously captured with lsc
+</span><span id="__span-2-20"><a id="__codelineno-2-20" name="__codelineno-2-20" href="#__codelineno-2-20"></a>├── diagnostics/         # pre-populated on UMS entry (read-only for user)
+</span><span id="__span-2-21"><a id="__codelineno-2-21" name="__codelineno-2-21" href="#__codelineno-2-21"></a>│   ├── mdb/
+</span><span id="__span-2-22"><a id="__codelineno-2-22" name="__codelineno-2-22" href="#__codelineno-2-22"></a>│   └── dbc/             # only if DBC was reachable at UMS entry
+</span><span id="__span-2-23"><a id="__codelineno-2-23" name="__codelineno-2-23" href="#__codelineno-2-23"></a>└── ums_log.txt          # written on exit, survives the post-processing wipe
 </span></code></pre></div>
 <h2 id="file-processing">File Processing<a class="headerlink" href="#file-processing" title="Permanent link">&para;</a></h2>
 <h3 id="on-ums-entry">On UMS entry<a class="headerlink" href="#on-ums-entry" title="Permanent link">&para;</a></h3>
@@ -2119,7 +2115,7 @@ first lets the in-flight entry observe it and abandon itself.</p>
 <li>Copies <code>/data/wireguard/*.conf</code> to <code>wireguard/</code></li>
 <li>Copies <code>/data/radio-gaga/config.yaml</code> to <code>radio-gaga/</code> and <code>/data/uplink-service/config.yaml</code> to <code>uplink-service/</code></li>
 <li>Copies the on-boot script to <code>onboot.sh</code></li>
-<li>Creates <code>system-update/</code>, <code>maps/</code>, <code>rpms/mdb/</code>, <code>rpms/dbc/</code>, <code>scripts/</code> and <code>log-bundles/</code> directories</li>
+<li>Creates <code>system-update/</code>, <code>maps/</code>, <code>scripts/</code> and <code>log-bundles/</code> directories</li>
 <li>Copies existing log bundles from <code>/data/log-bundles</code> to <code>log-bundles/</code></li>
 <li>Collects diagnostics to <code>diagnostics/mdb/</code> (journal, dmesg, system info) and <code>diagnostics/dbc/</code> if DBC is reachable. The MDB <code>system-info.txt</code> ends with a <code>=== modem ===</code> section read from the <code>internet</code> and <code>modem</code> hashes (IMEI, ICCID, IMSI, operator, access tech, signal, registration, connectivity, IP, health, SIM/PIN/APN state); fields Redis has no value for print as <code>-</code></li>
 </ol>
@@ -2134,7 +2130,6 @@ into place, and an untouched file is a no-op.</p>
 <li><strong>onboot</strong> - copies <code>onboot.sh</code> back into place</li>
 <li><strong>Updates</strong> - MDB <code>.mender</code>/<code>.delta</code> files installed locally via <code>scooter:update:mdb</code>; DBC <code>.mender</code>/<code>.delta</code> files transferred to DBC and queued via <code>scooter:update:dbc</code></li>
 <li><strong>Maps</strong> - transfers <code>.mbtiles</code> to <code>/data/maps/map.mbtiles</code> on DBC; transfers Valhalla tile archives to <code>/data/valhalla/tiles.tar</code> on DBC. A <code>valhalla_tiles_*.tar.zst</code> is uploaded compressed and decompressed on the DBC, into a temp file that only replaces <code>tiles.tar</code> once the whole stream has decoded; the installed file is always the plain seekable tar, because Valhalla mmaps it as its <code>tile_extract</code>. After each artifact lands, the service reads it back on the DBC (<code>sha256sum</code> plus <code>stat</code>), records it in <code>/data/maps/metadata.json</code> and mirrors it into the <a href="../../redis/#installed-maps-maps---librescoot-only"><code>maps</code></a> hash. The region comes from the published filename (<code>tiles_&lt;slug&gt;.mbtiles</code>, <code>valhalla_tiles_&lt;slug&gt;.tar</code>); a renamed or generically named file clears the recorded region rather than leaving the previous one to describe tiles it no longer refers to</li>
-<li><strong>RPMs</strong> - installs <code>rpms/mdb/*.rpm</code> locally via <code>rpm -Uvh --force</code>; transfers and installs <code>rpms/dbc/*.rpm</code> on DBC</li>
 <li><strong>Scripts</strong> - runs <code>scripts/mdb.sh</code> locally; transfers <code>scripts/dbc.sh</code> to DBC and runs it remotely</li>
 <li>Writes <code>ums_log.txt</code> to drive root, then cleans the drive (preserving <code>ums_log.txt</code>)</li>
 </ol>
