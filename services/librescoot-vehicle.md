@@ -546,7 +546,7 @@ Librescoot vehicle-service controls 8 PWM LED channels:
 
 - **Active/Inactive Mode** (channels 3,4,6,7): Controls whether fade values are actually output to the LED. When active, fade values are set as the channel's duty-cycle normally. When inactive, the output is forced to 0% regardless of the fade being played. Blinker channels rely on precise active/inactive control for their flashing patterns and do NOT use adaptive mode.
 
-**Kernel module:** The PWM LED system is implemented via the `imx_pwm_led` kernel module, which provides `/dev/pwm_led*` character devices for each channel. The service reloads this module on startup to ensure clean state.
+**Kernel module:** The PWM LED system is implemented via the `imx_pwm_led` kernel module, which provides `/dev/pwm_led*` character devices for each channel. At startup the service reuses an already loaded module when all eight device nodes are present, and only unloads and reloads it when that check fails (see step 6 of the startup sequence).
 
 See [i.MX PWM LED kernel module documentation](https://github.com/librescoot/kernel-module-imx-pwm-led/blob/master/README.md) for detailed mode specifications and ioctl interface.
 
