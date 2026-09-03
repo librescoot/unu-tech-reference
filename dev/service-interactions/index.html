@@ -2732,12 +2732,14 @@ the rail.</p>
 <li><code>settings/alarm.seatbox-trigger</code>, <code>settings/alarm.hairtrigger</code>, <code>settings/alarm.hairtrigger-duration</code></li>
 <li><code>settings/alarm.l1-cooldown</code></li>
 <li><code>motion/wake-cause</code> (once on startup — durable backstop for wake-from-hibernation indicator)</li>
+<li><code>usb/mode</code> (via HashWatcher — "ums" / "ums-by-dbc" hold the FSM disarmed for the session)</li>
 </ul>
 <p><strong>Subscribes to:</strong></p>
 <ul>
 <li><code>vehicle</code> channel (state, seatbox:opened event, seatbox:lock)</li>
 <li><code>settings</code> channel</li>
 <li><code>power-manager</code> channel (state field — drives hibernation handshake)</li>
+<li><code>usb</code> channel (mode field — suppresses the alarm during mass-storage sessions)</li>
 <li><code>motion:interrupt</code> channel (JSON envelope <code>{type, timestamp, engine}</code>)</li>
 </ul>
 <p><strong>Consumes queues:</strong></p>
@@ -2924,7 +2926,7 @@ overridden off or pinned to a fixed level.</p>
 <tr>
 <td><code>usb</code></td>
 <td>ums-service</td>
-<td>ums-service (self), scootui</td>
+<td>ums-service (self), scootui, alarm-service</td>
 </tr>
 <tr>
 <td><code>motion</code></td>

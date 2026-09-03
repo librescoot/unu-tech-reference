@@ -1012,6 +1012,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#hash-usb" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Hash: <code>usb</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#hash-motion" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
@@ -1179,6 +1190,17 @@
         
       </ul>
     </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#ums-suppression" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        UMS Suppression
+      </span>
+    </span>
+  </a>
   
 </li>
       
@@ -1954,6 +1976,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#hash-usb" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Hash: <code>usb</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#hash-motion" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
@@ -2121,6 +2154,17 @@
         
       </ul>
     </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#ums-suppression" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        UMS Suppression
+      </span>
+    </span>
+  </a>
   
 </li>
       
@@ -2444,6 +2488,9 @@ after the fact why a parked scooter sounded its horn.</p>
 <h3 id="hash-power-manager">Hash: <code>power-manager</code><a class="headerlink" href="#hash-power-manager" title="Permanent link">&para;</a></h3>
 <p><strong>Fields read:</strong> <code>state</code>. Hibernation-imminent transitions trigger the synchronous <code>prepare-hibernation</code> Call.</p>
 <p><strong>Subscribed channels:</strong> <code>power-manager</code></p>
+<h3 id="hash-usb">Hash: <code>usb</code><a class="headerlink" href="#hash-usb" title="Permanent link">&para;</a></h3>
+<p><strong>Fields read:</strong> <code>mode</code>. A value of <code>ums</code> or <code>ums-by-dbc</code> suppresses the alarm for the duration of the mass-storage session (see <a href="#ums-suppression">UMS Suppression</a>).</p>
+<p><strong>Subscribed channels:</strong> <code>usb</code></p>
 <h3 id="hash-motion">Hash: <code>motion</code><a class="headerlink" href="#hash-motion" title="Permanent link">&para;</a></h3>
 <p><strong>Fields read on startup:</strong> <code>wake-cause</code> (deleted after consumption). Durable backstop for the wake-from-hibernation indicator across the startup-ordering race with motion-service's pub/sub.</p>
 <h3 id="pubsub-channels">Pub/Sub Channels<a class="headerlink" href="#pubsub-channels" title="Permanent link">&para;</a></h3>
@@ -2452,6 +2499,7 @@ after the fact why a parked scooter sounded its horn.</p>
 <li><code>vehicle</code> — state, seatbox:opened event, seatbox:lock, handlebar:lock-sensor, handlebar:position</li>
 <li><code>settings</code> — alarm.* changes</li>
 <li><code>power-manager</code> — state field</li>
+<li><code>usb</code> — mode field</li>
 <li><code>motion:interrupt</code> — JSON envelope <code>{type, timestamp, engine}</code> from motion-service. <code>type</code> becomes <code>BMXInterruptEvent.Data</code> (the FSM discriminates <code>wake-hibernation</code> from regular edges).</li>
 <li><code>buttons</code>: raw input edges from vehicle-service (<code>brake:left:{on,off}</code>, <code>brake:right:{on,off}</code>, <code>horn:{on,off}</code>, <code>seatbox:{on,off}</code>). Blinker edges share the channel and are ignored.</li>
 </ul>
@@ -2616,6 +2664,16 @@ soon as the baseline and settling-window guards allow.</p>
 <li><code>LPUSH scooter:alarm disarm</code> (runtime — re-arms on next stand-by)</li>
 <li><code>LPUSH scooter:alarm stop</code> (immediate)</li>
 </ul>
+<h2 id="ums-suppression">UMS Suppression<a class="headerlink" href="#ums-suppression" title="Permanent link">&para;</a></h2>
+<p>Entering USB mass-storage mode unloads <code>g_ether</code> and loads <code>g_mass_storage</code>, after which the rider plugs and unplugs a cable at the MDB. That reliably trips the any-motion engine, so an armed scooter would escalate to level 2 and sound the horn during authorized work.</p>
+<p>While <code>usb.mode</code> reads <code>ums</code> or <code>ums-by-dbc</code>:</p>
+<ul>
+<li>Any transition target other than <code>disarmed</code> or <code>waiting_enabled</code> is redirected to <code>disarmed</code>, so nothing arms and no trigger escalates.</li>
+<li>An alarm already sounding is stopped by the normal exit handler of the triggered state.</li>
+<li>The 5-minute post-alarm cooldown timer is not started, so it cannot re-arm mid-session.</li>
+</ul>
+<p>Because the published <code>alarm.status</code> is <code>disarmed</code>, motion-service also drops the BMX055 to the <code>idle</code> profile and stops raising interrupts.</p>
+<p>When <code>usb.mode</code> returns to <code>normal</code>, an enabled alarm on a scooter in <code>stand-by</code> re-arms through the usual 5-second <code>delay_armed</code> window. ums-service seeds <code>usb.mode = normal</code> on startup, so a reboot mid-session clears the suppression.</p>
 <h2 id="hibernation-handshake">Hibernation Handshake<a class="headerlink" href="#hibernation-handshake" title="Permanent link">&para;</a></h2>
 <p>When pm-service publishes <code>power-manager.state = hibernating-imminent</code> AND alarm-service is in <code>StateArmed</code>:</p>
 <ol>
@@ -2689,6 +2747,7 @@ soon as the baseline and settling-window guards allow.</p>
 <li><strong>redis-ipc v0.13.0+</strong> — for <code>CallMethod</code></li>
 <li><strong>Redis</strong> — for hashes, pub/sub, command queues</li>
 <li><strong>vehicle-service</strong> — provides vehicle state for arm/disarm gating</li>
+<li><strong>ums-service</strong> — owns <code>usb.mode</code>; its mass-storage sessions suppress the alarm</li>
 <li><strong>horn / blinker</strong> — typically provided by vehicle-service via <code>scooter:horn</code> / <code>scooter:blinker</code> queues</li>
 </ul>
 <h2 id="systemd">systemd<a class="headerlink" href="#systemd" title="Permanent link">&para;</a></h2>
