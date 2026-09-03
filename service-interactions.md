@@ -409,12 +409,14 @@ Note: version-service does not publish on any channel. It runs once at boot via 
 - `settings/alarm.seatbox-trigger`, `settings/alarm.hairtrigger`, `settings/alarm.hairtrigger-duration`
 - `settings/alarm.l1-cooldown`
 - `motion/wake-cause` (once on startup — durable backstop for wake-from-hibernation indicator)
+- `usb/mode` (via HashWatcher — "ums" / "ums-by-dbc" hold the FSM disarmed for the session)
 
 **Subscribes to:**
 
 - `vehicle` channel (state, seatbox:opened event, seatbox:lock)
 - `settings` channel
 - `power-manager` channel (state field — drives hibernation handshake)
+- `usb` channel (mode field — suppresses the alarm during mass-storage sessions)
 - `motion:interrupt` channel (JSON envelope `{type, timestamp, engine}`)
 
 **Consumes queues:**
@@ -546,7 +548,7 @@ overridden off or pinned to a fixed level.
 | `alarm` | alarm-service | lsc, monitoring |
 | `settings` | settings-service (from TOML), update-service (last-check-time) | vehicle-service, battery-service, ecu-service, alarm-service, pm-service |
 | `os-release` | version-service (one-shot) | Nothing (dead key — see gaps) |
-| `usb` | ums-service | ums-service (self), scootui |
+| `usb` | ums-service | ums-service (self), scootui, alarm-service |
 | `motion` | motion-service | alarm-service (wake-cause), scootui (heading), monitoring |
 
 ### Set Keys

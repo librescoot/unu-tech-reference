@@ -78,6 +78,12 @@ after the fact why a parked scooter sounded its horn.
 
 **Subscribed channels:** `power-manager`
 
+### Hash: `usb`
+
+**Fields read:** `mode`. A value of `ums` or `ums-by-dbc` suppresses the alarm for the duration of the mass-storage session (see [UMS Suppression](#ums-suppression)).
+
+**Subscribed channels:** `usb`
+
 ### Hash: `motion`
 
 **Fields read on startup:** `wake-cause` (deleted after consumption). Durable backstop for the wake-from-hibernation indicator across the startup-ordering race with motion-service's pub/sub.
@@ -89,6 +95,7 @@ after the fact why a parked scooter sounded its horn.
 - `vehicle` — state, seatbox:opened event, seatbox:lock, handlebar:lock-sensor, handlebar:position
 - `settings` — alarm.* changes
 - `power-manager` — state field
+- `usb` — mode field
 - `motion:interrupt` — JSON envelope `{type, timestamp, engine}` from motion-service. `type` becomes `BMXInterruptEvent.Data` (the FSM discriminates `wake-hibernation` from regular edges).
 - `buttons`: raw input edges from vehicle-service (`brake:left:{on,off}`, `brake:right:{on,off}`, `horn:{on,off}`, `seatbox:{on,off}`). Blinker edges share the channel and are ignored.
 
@@ -252,6 +259,20 @@ Plus `seatbox_access` (transient state during authorized seatbox openings) and `
 - `LPUSH scooter:alarm disarm` (runtime — re-arms on next stand-by)
 - `LPUSH scooter:alarm stop` (immediate)
 
+## UMS Suppression
+
+Entering USB mass-storage mode unloads `g_ether` and loads `g_mass_storage`, after which the rider plugs and unplugs a cable at the MDB. That reliably trips the any-motion engine, so an armed scooter would escalate to level 2 and sound the horn during authorized work.
+
+While `usb.mode` reads `ums` or `ums-by-dbc`:
+
+- Any transition target other than `disarmed` or `waiting_enabled` is redirected to `disarmed`, so nothing arms and no trigger escalates.
+- An alarm already sounding is stopped by the normal exit handler of the triggered state.
+- The 5-minute post-alarm cooldown timer is not started, so it cannot re-arm mid-session.
+
+Because the published `alarm.status` is `disarmed`, motion-service also drops the BMX055 to the `idle` profile and stops raising interrupts.
+
+When `usb.mode` returns to `normal`, an enabled alarm on a scooter in `stand-by` re-arms through the usual 5-second `delay_armed` window. ums-service seeds `usb.mode = normal` on startup, so a reboot mid-session clears the suppression.
+
 ## Hibernation Handshake
 
 When pm-service publishes `power-manager.state = hibernating-imminent` AND alarm-service is in `StateArmed`:
@@ -347,6 +368,7 @@ redis-cli LPUSH scooter:alarm stop      # cancel
 - **redis-ipc v0.13.0+** — for `CallMethod`
 - **Redis** — for hashes, pub/sub, command queues
 - **vehicle-service** — provides vehicle state for arm/disarm gating
+- **ums-service** — owns `usb.mode`; its mass-storage sessions suppress the alarm
 - **horn / blinker** — typically provided by vehicle-service via `scooter:horn` / `scooter:blinker` queues
 
 ## systemd
