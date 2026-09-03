@@ -75,13 +75,13 @@ Management commands via LPUSH:
 | `master:clear` | Empty the master list, keeping authorized cards. The next start re-arms bootstrap |
 | `master:bootstrap-cancel` | Leave master bootstrap without writing anything, so the next tap is not learned as master. Idempotent |
 | `set-master:<uid>` | Replace the master list with this single UID, or with `NONE` to record that this vehicle wants no physical master. Authorized cards are untouched |
-| `learn:start` | Enter learn mode programmatically |
+| `learn:start` | Enter learn mode programmatically. Supersedes master bootstrap |
 | `learn:stop` | Exit learn mode, saving learned cards (additive) |
-| `learn:master:start` | Enter master teach-in mode; next unregistered tap is appended as an additional master |
-| `learn:master:stop` | Exit master teach-in mode without committing |
+| `learn:master:start` | Enter master teach-in mode; next unregistered tap is appended as an additional master. Supersedes master bootstrap |
+| `learn:master:stop` | Exit master teach-in mode without committing. Also ends master bootstrap, which is what the installer sends it blind for |
 | `reset` | Reset all auth state (master + authorized cards) |
 
-`master:bootstrap-cancel` is what a caller that only wants to stop the next tap being learned as master should send. `set-master:NONE` persists a decision (no physical master on this vehicle, ever) and suppresses the bootstrap on later starts too; `master:bootstrap-cancel` applies to the current run only and writes nothing.
+`master:bootstrap-cancel` is the explicit way to stop the next tap being learned as master. `learn:start`, `learn:master:start` and `learn:master:stop` also end the bootstrap, since a caller driving modes by command has already answered the question the bootstrap was waiting on. `set-master:NONE` persists a decision (no physical master on this vehicle, ever) and suppresses the bootstrap on later starts too; `master:bootstrap-cancel` applies to the current run only and writes nothing.
 
 Responses are written to `keycard command-result` and `keycard command-error`; the error names in this table are `command-error` codes.
 
@@ -139,7 +139,7 @@ Format is `<event>[:<uid>][:<trigger>]`, where trigger is `card`, `command`, `bo
 
 ### Master Bootstrap (first boot)
 
-Activated at startup when the master file is missing or empty. Note that the `NONE` sentinel counts as an entry, so a vehicle that has recorded "no physical master" does not re-arm this.
+Activated at startup when the master file is missing or empty, and only on a reader that has no authorized cards and is not in service mode. A vehicle with cards enrolled must not crown the owner's next tap: a master starts learn mode and never unlocks, so that card would stop opening the scooter. The `NONE` sentinel counts as an entry, so a vehicle that has recorded "no physical master" does not re-arm this either.
 
 1. `mode-entered:master-bootstrap:boot` is published, and the RGB LED blinks (500 ms)
 2. The **first card presented becomes the master**, saved to `master_uids.txt`
