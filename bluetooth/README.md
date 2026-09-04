@@ -51,6 +51,19 @@ The mode can be overridden at runtime:
 
 The override does not survive the next vehicle state change, which recomputes the mode.
 
+### Internal UUID ranges (not GATT)
+
+Some UUIDs in this range address messages on the internal MDB to nRF52 link rather
+than characteristics. They are not part of the GATT table: no client can discover,
+read or subscribe to them, and they are listed here only so they are not mistaken
+for a service that failed to appear.
+
+| Range | Carries |
+|---|---|
+| 9a590120-9a590123 | Aux charger (LTC4020) control |
+| 9a590200-9a590202 | Accelerometer wake-up from suspend / hibernation |
+| 9a590800+ | Power management handshake (the client-visible state is 9a5900a1) |
+
 ### Control Service (9a590000)
 
 Primary control interface for scooter functions
@@ -126,23 +139,6 @@ Primary battery monitoring
 | Characteristic | Description | Values |
 |---------------|-------------|---------|
 | 9a590101 | Selected Input (read) | Active battery source |
-
-### Aux Charger Control Service (9a590120)
-
-LTC4020 auxiliary battery charger control
-
-| Characteristic | Description | Values |
-|---------------|-------------|---------|
-| 9a590121 | Safe Set (write) | 0=disable, 1=enable (with safety checks) |
-| 9a590122 | Force Set (write) | 0=disable, 1=enable (bypass safety checks) |
-| 9a590123 | Status (read) | Current charger enabled state |
-
-### Accelerometer Service (9a590200)
-
-| Characteristic | Description | Values |
-|---------------|-------------|---------|
-| 9a590201 | Wake-up Suspend (notify) | Movement detected in suspend mode |
-| 9a590202 | Wake-up Hibernation (notify) | Movement detected in hibernation mode |
 
 ### Extended Commands Service (9a590400)
 
