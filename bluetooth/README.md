@@ -12,6 +12,45 @@ The scooter exposes several Bluetooth LE services for control and monitoring. Al
 - **Connection Interval**: 20-75ms
 - **Security**: MITM enabled, LESC enabled, display-only pairing (6-digit PIN), bonding supported
 
+### What a client can do without bonding
+
+Reads and writes require an encrypted, MITM-protected link on every characteristic
+except two: `9a59a021` (Reset Reason) and `9a59a022` (Reset Count), which are open.
+Everything else, including both control characteristics, is protected. There is no
+unbonded path to `scooter:state unlock` or to any power command.
+
+An unbonded client can still:
+
+- see the advertisement: device name and manufacturer data (company `0xE50A`, payload =
+  the first two bytes of the BLE MAC, so an app can tell scooters apart before
+  connecting)
+- connect and discover the full GATT structure: every service, characteristic and its
+  properties
+- read the two reset counters above
+
+### Advertising modes
+
+Advertising follows the vehicle state, and it filters *connections* rather than changing
+the advertisement. The payload is byte-identical in both modes.
+
+| Vehicle state | Mode |
+|---|---|
+| `parked` | open, accepts new centrals |
+| `off`, `stand-by`, `updating`, `shutting-down`, `hop-on`, `ready-to-drive` | whitelist-only (bonded peers) |
+
+`ready-to-drive` is whitelist-only rather than off, so a bonded phone can reconnect
+mid-ride while unknown phones are ignored. Consequence when testing: a locked scooter
+advertises and is visible to a scanner, but will not accept a connection from an
+unbonded client. Unlock it (`parked`) to pair a new one.
+
+The mode can be overridden at runtime:
+
+    redis-cli lpush scooter:bluetooth advertising-restart-no-whitelisting
+    redis-cli lpush scooter:bluetooth advertising-start-with-whitelisting
+    redis-cli lpush scooter:bluetooth advertising-stop
+
+The override does not survive the next vehicle state change, which recomputes the mode.
+
 ### Control Service (9a590000)
 
 Primary control interface for scooter functions
@@ -178,8 +217,8 @@ System-level telemetry and configuration
 | Characteristic | Description | Values |
 |---------------|-------------|---------|
 | 9a59a001 | nRF Version | Version string (e.g. "v2.2.1-ls") |
-| 9a59a021 | Reset Reason | Nordic RESETREAS register value (see below) |
-| 9a59a022 | Reset Count | Integer |
+| 9a59a021 | Reset Reason | Nordic RESETREAS register value (see below). Readable without bonding |
+| 9a59a022 | Reset Count | Integer. Readable without bonding |
 
 #### RESETREAS (Reset Reason Register)
 
