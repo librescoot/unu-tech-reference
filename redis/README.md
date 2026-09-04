@@ -635,7 +635,7 @@ motion-service owns the BMX055 9-axis IMU and publishes its state here. The lega
 
 The `sensitivity` field is gone. Sensitivity is a property of the applied profile, so `current-profile` plus `threshold` describe it. motion-service deletes the stale field at startup on units upgrading from an older build.
 
-Chip configuration is reactive: motion-service derives the profile from the `alarm` and `power-manager` hashes, consumers never write registers. The `bmx:interrupt` channel survives only as a relay: bluetooth-service publishes `wake-suspend` / `wake-hibernation` there when the nRF52 reports an accelerometer wake event.
+Chip configuration is reactive: motion-service derives the profile from the `alarm` and `power-manager` hashes, consumers never write registers. motion-service is not the only publisher on `motion:interrupt`: bluetooth-service publishes there too, in the same JSON shape, when the nRF52 reports an accelerometer wake. A suspend wake is an `edge`; a hibernation wake is a `wake-hibernation`.
 
 See [motion-service documentation](../services/librescoot-motion.md) for profiles, payload schemas, and the hibernation handshake.
 

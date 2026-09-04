@@ -246,7 +246,7 @@ These are triggered by BLE characteristic writes received from the nRF52 (BLE ev
 
 ### Pub/Sub published
 
-- `bmx:interrupt` - Accelerometer wake-up events from nRF ("wake-suspend", "wake-hibernation")
+- `motion:interrupt` - Accelerometer wake-up events from the nRF, in motion-service's JSON event shape
 
 ## Hardware Interfaces
 
@@ -575,10 +575,12 @@ See [BLE OTA Firmware Transfer](../bluetooth/ota-transfer.md) for the protocol a
 
 The service handles accelerometer wake-up messages from the nRF (message type 0x0200):
 
-- **Suspend wake-up (0x0201):** Published to Redis `bmx:interrupt` as `"wake-suspend"`. The nRF sends this immediately when movement is detected during iMX suspend.
-- **Hibernation wake-up (0x0202):** Published to Redis `bmx:interrupt` as `"wake-hibernation"`. The nRF sends this after the VERSION handshake on the next boot, if the wake-up from hibernation was caused by accelerometer movement.
+Both are republished on Redis `motion:interrupt` using motion-service's event JSON, `{"type": ..., "timestamp": ...}` with a millisecond timestamp, since that is the channel and contract alarm-service consumes.
 
-The alarm-service subscribes to `bmx:interrupt` to trigger alarm escalation.
+- **Suspend wake-up (0x0201):** published as type `edge`. The nRF sends this immediately when movement is detected during iMX suspend. This is the only route by which a suspend wake reaches alarm-service, because motion-service runs straight through a suspend and so records no wake cause of its own.
+- **Hibernation wake-up (0x0202):** published as type `wake-hibernation`. The nRF sends this after the VERSION handshake on the next boot, if the wake-up from hibernation was caused by movement.
+
+The hibernation event is deliberately redundant: motion-service reads the same latched interrupt at startup and publishes its own `wake-hibernation`. Both routes report the one accelerometer, whose interrupt is wired to the iMX and to the nRF in parallel. alarm-service handles the duplicate without escalating, so the second event costs nothing but a log line.
 
 ### Power Management
 
