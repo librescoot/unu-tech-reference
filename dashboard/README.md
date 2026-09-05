@@ -18,6 +18,10 @@ The dashboard UI is implemented as a Qt/QML application (scootui-qt) that:
 - Sets `dashboard ready true` only after successfully reading serial number
 - Stores hardware serial number in `dashboard serial-number` Redis key
 
+## Sound Asset Format
+
+Use uncompressed RIFF/WAVE files with signed 16-bit little-endian PCM, a 48 kHz sample rate, and two channels. For mono sounds, duplicate the signal into both channels.
+
 ## Display Modes
 
 The dashboard operates in three primary modes, controlled via the `dashboard mode` Redis key:
