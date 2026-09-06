@@ -264,7 +264,9 @@ dashboard up and going in over SSH.
 | routing:published-at | string (ISO8601) | Upstream release time | "2026-08-09T21:30:13Z" |
 | routing:mtime | string (ISO8601) | When the file was written on the DBC | "2026-08-13T09:20:00Z" |
 | last-update-check | string (ISO8601) | When the dashboard last consulted the release manifest | "2026-08-20T07:00:00Z" |
-| update-available | "true"/"false" | Whether that check found newer tiles | "false" |
+| update-available | "true"/"false" | Whether that check found newer tiles (either set) | "false" |
+| map:update-available | "true"/"false" | The check found a newer display tile set | "false" |
+| routing:update-available | "true"/"false" | The check found a newer routing tile set | "false" |
 | updated-at | string (ISO8601) | When this hash was last written | "2026-08-24T11:00:00Z" |
 
 Reading it:
