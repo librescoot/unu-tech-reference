@@ -1288,6 +1288,23 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Systemd Units">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#boot-assets" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Boot assets
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -1767,6 +1784,23 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Systemd Units">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#boot-assets" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Boot assets
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -2150,6 +2184,14 @@ arguments, and each board's image ships its own version of the file:</p>
 <p>The DBC points at the MDB's datastore, since there is only one and it lives on the
 MDB. <code>systemctl status librescoot-update</code> is the same command on either board.</p>
 <p>Binary: <code>/usr/bin/update-service</code></p>
+<h3 id="boot-assets">Boot assets<a class="headerlink" href="#boot-assets" title="Permanent link">&para;</a></h3>
+<p>The boot updater consumes <code>u-boot-dtb.imx</code> from <code>/usr/share/boot-assets</code> and
+compares it with the boot region before deciding whether to write it. Kernel
+and device-tree updates arrive in <code>/boot</code> inside the Mender rootfs artifact;
+the boot updater does not copy them to the FAT boot partition.</p>
+<p>MDB nightly packaging includes only U-Boot, <code>manifest.sha256</code>, and <code>version</code>
+in <code>/usr/share/boot-assets</code>. It omits redundant kernel/DTB copies there while
+retaining the kernel and DTB packages under <code>/boot</code>.</p>
 <h2 id="redis-operations">Redis Operations<a class="headerlink" href="#redis-operations" title="Permanent link">&para;</a></h2>
 <h3 id="hash-ota-written">Hash: <code>ota</code> (written)<a class="headerlink" href="#hash-ota-written" title="Permanent link">&para;</a></h3>
 <p>All fields are namespaced by component (<code>mdb</code> or <code>dbc</code>):</p>
