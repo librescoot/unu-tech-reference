@@ -2418,27 +2418,31 @@
 </span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>  -connectivity-targets string
 </span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>        Comma-separated host:port fallback targets for the connectivity probe
 </span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>        (default "8.8.8.8:53,1.1.1.1:53,9.9.9.9:53,208.67.222.222:53")
-</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>  -data-usage-file string
-</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>        Where to persist cellular byte totals; empty keeps them in memory only
-</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>        (default "/data/internet-usage.json")
-</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>  -debug
-</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>        Enable debug logging
-</span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>  -gpsd-server string
-</span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>        GPSD server address (default "localhost:2947")
-</span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>  -interface string
-</span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>        Network interface to monitor (default "wwan0")
-</span><span id="__span-0-14"><a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>  -internet-check-max-interval duration
-</span><span id="__span-0-15"><a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a>        Upper bound for connectivity probe backoff (default 5m0s)
-</span><span id="__span-0-16"><a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a>  -internet-check-time duration
-</span><span id="__span-0-17"><a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a>        Internet check interval (default 30s)
-</span><span id="__span-0-18"><a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a>  -redis-url string
-</span><span id="__span-0-19"><a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a>        Redis URL (default "redis://127.0.0.1:6379")
-</span><span id="__span-0-20"><a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a>  -sms-keepalive
-</span><span id="__span-0-21"><a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a>        Keep the CS (SGs) registration alive for SMS delivery via periodic self-calls
-</span><span id="__span-0-22"><a id="__codelineno-0-22" name="__codelineno-0-22" href="#__codelineno-0-22"></a>  -supl-server string
-</span><span id="__span-0-23"><a id="__codelineno-0-23" name="__codelineno-0-23" href="#__codelineno-0-23"></a>        SUPL server for A-GPS (default "supl.google.com:7276")
-</span><span id="__span-0-24"><a id="__codelineno-0-24" name="__codelineno-0-24" href="#__codelineno-0-24"></a>  -version
-</span><span id="__span-0-25"><a id="__codelineno-0-25" name="__codelineno-0-25" href="#__codelineno-0-25"></a>        Print version and exit
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>  -connectivity-verification-name string
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>        DNS name whose TXT record verifies internet reachability (empty disables verification)
+</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>  -connectivity-verification-value string
+</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>        Expected TXT value for the connectivity verification name (empty disables verification)
+</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>  -data-usage-file string
+</span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>        Where to persist cellular byte totals; empty keeps them in memory only
+</span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>        (default "/data/internet-usage.json")
+</span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>  -debug
+</span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>        Enable debug logging
+</span><span id="__span-0-14"><a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>  -gpsd-server string
+</span><span id="__span-0-15"><a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a>        GPSD server address (default "localhost:2947")
+</span><span id="__span-0-16"><a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a>  -interface string
+</span><span id="__span-0-17"><a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a>        Network interface to monitor (default "wwan0")
+</span><span id="__span-0-18"><a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a>  -internet-check-max-interval duration
+</span><span id="__span-0-19"><a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a>        Upper bound for connectivity probe backoff (default 5m0s)
+</span><span id="__span-0-20"><a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a>  -internet-check-time duration
+</span><span id="__span-0-21"><a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a>        Internet check interval (default 30s)
+</span><span id="__span-0-22"><a id="__codelineno-0-22" name="__codelineno-0-22" href="#__codelineno-0-22"></a>  -redis-url string
+</span><span id="__span-0-23"><a id="__codelineno-0-23" name="__codelineno-0-23" href="#__codelineno-0-23"></a>        Redis URL (default "redis://127.0.0.1:6379")
+</span><span id="__span-0-24"><a id="__codelineno-0-24" name="__codelineno-0-24" href="#__codelineno-0-24"></a>  -sms-keepalive
+</span><span id="__span-0-25"><a id="__codelineno-0-25" name="__codelineno-0-25" href="#__codelineno-0-25"></a>        Keep the CS (SGs) registration alive for SMS delivery via periodic self-calls
+</span><span id="__span-0-26"><a id="__codelineno-0-26" name="__codelineno-0-26" href="#__codelineno-0-26"></a>  -supl-server string
+</span><span id="__span-0-27"><a id="__codelineno-0-27" name="__codelineno-0-27" href="#__codelineno-0-27"></a>        SUPL server for A-GPS (default "supl.google.com:7276")
+</span><span id="__span-0-28"><a id="__codelineno-0-28" name="__codelineno-0-28" href="#__codelineno-0-28"></a>  -version
+</span><span id="__span-0-29"><a id="__codelineno-0-29" name="__codelineno-0-29" href="#__codelineno-0-29"></a>        Print version and exit
 </span></code></pre></div>
 <p><strong>Active polling intervals:</strong></p>
 <ul>
@@ -2452,7 +2456,7 @@
 <li><code>modem-health</code> - Modem health state ("normal", "recovering", "recovery-failed-waiting-reboot", "permanent-failure-needs-replacement")</li>
 <li><code>modem-state</code> - Raw modem status ("off", "connected", "disconnected", "no-modem", "UNKNOWN")</li>
 <li><code>connectivity</code> - Debounced connectivity classification folding modem-state, SIM, registration, the enable flag and health into one verdict: <code>connected</code> / <code>disconnected</code> (provisioned-but-down) / <code>disabled</code> (off by command) / <code>no-sim</code> / <code>denied</code> (registration denied/failed, e.g. deactivated SIM) / <code>failed</code> (modem broken). Consumed by the dashboard to gate the internet icon. Hysteresis: -&gt; connected 60 s, connected -&gt; disconnected 3 min, -&gt; denied 60 s; disabled/no-sim/failed and any other -&gt; disconnected immediate.</li>
-<li><code>status</code> - Derived internet connectivity status ("connected", "disconnected") - set from the layer-8 reachability probe (DNS query to the network-assigned resolvers, then TCP dial of the <code>-connectivity-targets</code> fallbacks)</li>
+<li><code>status</code> - Derived internet connectivity status ("connected", "disconnected") - set from the layer-8 reachability probe. When TXT verification is configured, only an exact expected value counts</li>
 <li><code>ip-address</code> - Interface IP address from wwan0/ppp0</li>
 <li><code>access-tech</code> - Access technology from modem ("5G", "4G", "HSPA+", "HSPA", "3G", "UMTS", "EDGE", "GSM", "UNKNOWN")</li>
 <li><code>signal-quality</code> - Signal strength (0-100, or 255 if unknown)</li>
@@ -2635,7 +2639,7 @@ drops the inhibitor after <code>PowerOffModem</code>, and the suspend proceeds.<
 <ul>
 <li><strong>Interface:</strong> wwan0 (default) or ppp0</li>
 <li><strong>DNS:</strong> Provided by mobile operator</li>
-<li><strong>Connectivity test:</strong> DNS query to the network-assigned resolvers, falling back to a TCP dial of the <code>-connectivity-targets</code> list. No ICMP is used.</li>
+<li><strong>Connectivity test:</strong> By default, a permissive DNS/TCP probe. Deployments can configure a DNS TXT name and expected value for content-verified reachability. No ICMP is used.</li>
 </ul>
 <h4 id="apn-reconciliation">APN Reconciliation<a class="headerlink" href="#apn-reconciliation" title="Permanent link">&para;</a></h4>
 <p>The service reconciles <code>cellular.apn</code>, <code>cellular.username</code>, <code>cellular.password</code>, and <code>cellular.auth</code> from the <code>settings</code> hash against two backends on every monitor tick (gated to skip when the SIM is locked or missing):</p>
@@ -2698,12 +2702,14 @@ drops the inhibitor after <code>PowerOffModem</code>, and the suspend proceeds.<
 <li>
 <p><strong>Derived internet status</strong> (<code>status</code> field):</p>
 </li>
-<li>"connected" - the reachability probe got an answer</li>
-<li>"disconnected" - no target answered, or the local link assessment was unhealthy so the probe was skipped</li>
+<li>"connected" - the reachability probe succeeded (and, when configured, returned the expected TXT value)</li>
+<li>"disconnected" - no target produced a valid result, or the local link assessment was unhealthy so the probe was skipped</li>
 </ol>
 <p><strong>Connectivity test:</strong></p>
 <ul>
-<li><strong>Method:</strong> DNS A query for <code>connectivity-probe.invalid</code> against each network-assigned resolver, then a TCP dial of each <code>-connectivity-targets</code> entry (default <code>8.8.8.8:53,1.1.1.1:53,9.9.9.9:53,208.67.222.222:53</code>), all bound to the modem interface with SO_BINDTODEVICE. Any DNS response counts, whatever the rcode.</li>
+<li><strong>Verified mode:</strong> set both <code>-connectivity-verification-name</code> and <code>-connectivity-verification-value</code>. The service queries that TXT record through the network-assigned resolvers and then the <code>-connectivity-targets</code> resolvers, requiring an exact value match. A captive resolver's synthetic but incorrect answer is rejected. A partial configuration fails closed.</li>
+<li><strong>Compatibility mode (default):</strong> when both verification flags are empty, send a DNS A query for <code>connectivity-probe.invalid</code> to each network-assigned resolver, then TCP-dial each <code>-connectivity-targets</code> entry. Any well-formed DNS response counts. This explicit opt-out preserves existing deployments until they provision a controlled TXT record.</li>
+<li><strong>Binding:</strong> every query and dial uses SO_BINDTODEVICE for the configured modem interface.</li>
 <li><strong>Timeout:</strong> 2 seconds per DNS query and per dial</li>
 <li><strong>Interval:</strong> backs off exponentially while the local stack is healthy, up to <code>-internet-check-max-interval</code> (default 5m); any change in the local link assessment forces an immediate re-probe</li>
 <li><strong>Trigger recovery:</strong> never. A failed probe sets <code>status=disconnected</code> and <code>reachability=unreachable</code>, but only the local <code>link.Assess</code> verdict can trigger a modem remedy.</li>

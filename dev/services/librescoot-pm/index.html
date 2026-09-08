@@ -2817,7 +2817,7 @@
 <ul>
 <li><code>pm.hibernation-timer</code> - Inactivity-based hibernation timer duration in seconds (0 = disabled)</li>
 <li><code>pm.default-state</code> - Default target power state when idle (<code>run</code> / <code>suspend</code>)</li>
-<li><code>pm.suspend-when-online</code> - Bool, default <code>true</code>. Only matters when no main battery is present: a pack present (or active) in either slot always blocks suspend (<code>Cannot enter suspend state: a main battery is present or active</code>), independent of this setting. With no main battery, the default (<code>true</code>) lets the scooter suspend even while online. Set <code>false</code> to keep an online scooter awake so cloud commands can still reach it, which blocks suspend with <code>Suspend blocked: no main battery but online and pm.suspend-when-online disabled</code>. The guard only applies to the <code>suspend</code> target (not hibernate/reboot). Present and active are read live from Redis at the decision point because pub/sub state is lost across a suspend freeze.</li>
+<li><code>pm.suspend-when-online</code> - Bool, default <code>true</code>. Only matters when no main battery is present: a pack present (or active) in either slot always blocks suspend. With no main battery, the default (<code>true</code>) permits suspend even while remotely reachable. Set <code>false</code> to read <code>remote-access[status]</code> live at the decision point and stay awake while any provider is connected. A five-minute grace after boot and every resume lets providers reconnect; Redis read failures fail safe by keeping the scooter awake. The guard only applies to the <code>suspend</code> target (not hibernate/reboot). Present and active are read live from Redis at the decision point because pub/sub state is lost across a suspend freeze.</li>
 <li><code>pm.scheduled-hibernate-enabled</code> - Bool: enable cron-driven scheduled hibernation</li>
 <li><code>pm.scheduled-hibernate-cron</code> - 5-field cron expression (e.g. <code>0 22 * * *</code>)</li>
 <li><code>pm.scheduled-hibernate-duration</code> - Wake-by duration (Go duration syntax: <code>8h</code>, <code>30m</code>, ...)</li>
@@ -2874,7 +2874,7 @@
 <li><code>battery:1</code> -&gt; <code>state</code>, <code>present</code>, <code>charge</code> - Battery slot 1 state monitoring plus <code>present</code>/<code>charge</code> for the last-ditch hibernate inputs</li>
 <li><code>cb-battery</code> -&gt; <code>charge</code> - CBB charge, last-ditch hibernate input</li>
 <li><code>aux-battery</code> -&gt; <code>voltage</code> - Aux 12V rail voltage (millivolts), last-ditch hibernate input</li>
-<li><code>internet</code> -&gt; <code>connectivity</code> - Tracks data-session connectivity (<code>connected</code> =&gt; online) for the <code>pm.suspend-when-online</code> guard</li>
+<li><code>remote-access</code> -&gt; <code>status</code> - Read live (not watched) at each suspend decision for the <code>pm.suspend-when-online</code> guard</li>
 <li><code>power-manager</code> -&gt; <code>wake-timer-armed</code>, <code>power-state-sent</code> - Wake-timer ACK and the nRF suspend-ACK from the nRF52 (both written by bluetooth-service)</li>
 <li><code>settings</code> -&gt; <code>pm.suspend-when-online</code> (among the other <code>pm.*</code> fields above) - re-read on change</li>
 </ul>
