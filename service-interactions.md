@@ -17,6 +17,7 @@ Generated from source analysis of all service repositories.
  bluetooth-service writes──> ble, ble:fault, system (mdb-version, nrf-fw-version), engine-ecu (odometer)
  pm-service ─────writes──> power-manager, power-manager:busy-services, system (cpu:governor)
  modem-service ──writes──> internet, modem, gps, internet:fault, events:faults
+ radio-gaga + uplink-service ─writes──> remote-access (atomic per-provider convergence)
  dbc-backlight ──writes──> dashboard (backlight, brightness, from the OPT3001)
  alarm-service ──writes──> alarm
  event-service ──writes──> extensions, extensions:pending (MDB nightly packaging; not 1.3.1 stable)
@@ -56,7 +57,8 @@ Generated from source analysis of all service repositories.
  power-manager ← published by pm-service
  system        ← published by vehicle-service (cpu:governor), bluetooth-service (mdb-version, nrf-fw-version)
  ota           ← published by update-service
- internet      ← published by modem-service
+ internet      ← published by modem-service, radio-gaga, uplink-service (legacy unu-cloud)
+ remote-access ← published by radio-gaga and uplink-service (payload = provider or status)
  modem         ← published by modem-service
  gps           ← published by modem-service
  alarm         ← published by alarm-service
@@ -306,6 +308,7 @@ Note: Sets 10-second TTL on `keycard` hash after publish.
 - `vehicle/state` (watches for standby/parked/ready-to-drive transitions)
 - `battery:0/state` (watches for active/inactive)
 - `settings/hibernation-timer`
+- `remote-access/status` (live HGET at suspend decision; five-minute reconnect grace after boot/resume)
 
 **Subscribes to:**
 
@@ -585,7 +588,8 @@ overridden off or pinned to a fixed level.
 | `power-manager:busy-services` | pm-service | monitoring only |
 | `system` | vehicle-service (cpu:governor), bluetooth-service (mdb-version, nrf-fw-version), pm-service (cpu:governor) | bluetooth-service, uplink-service, scootui |
 | `ota` | update-service | vehicle-service (reads status), update-service (self), scootui |
-| `internet` | modem-service | scootui, uplink-service, pm-service |
+| `internet` | modem-service; radio-gaga/uplink-service (`unu-cloud` legacy) | scootui, uplink-service |
+| `remote-access` | radio-gaga, uplink-service, optional providers | pm-service (live `status` read), diagnostics |
 | `modem` | modem-service | scootui, uplink-service |
 | `gps` | modem-service | scootui, uplink-service |
 | `alarm` | alarm-service | lsc, monitoring |

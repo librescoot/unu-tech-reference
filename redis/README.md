@@ -218,12 +218,41 @@ hgetall internet
 | modem-state | string | Modem power state | "off" |
 | connectivity | string | Debounced connectivity classification (see below) | "connected" |
 | status | string | Layer-8 reachability (`connected` / `disconnected`). With modem-service TXT verification configured, `connected` requires an exact deployment-controlled TXT value; the empty default retains the legacy permissive DNS/TCP probe | "disconnected" |
-| unu-cloud | string | Cloud connection status; written by whichever cloud client runs (`radio-gaga` or `uplink-service`). Field absent = no cloud client configured (de-clouded); the dashboard hides the cloud icon in that case | "disconnected" |
+| unu-cloud | string | Legacy dashboard/fleet cloud status, dual-written alongside `remote-access`; last-writer-wins and diagnostic only. Field absent = no cloud client configured | "disconnected" |
 | ip-address | string | IP address | "1.2.3.4" |
 | access-tech | string | Access technology | "LTE" |
 | signal-quality | integer | Signal strength (0-100) | "0" |
 | sim-imei | string | SIM IMEI | "" |
 | sim-iccid | string | SIM ICCID | "" |
+
+### Remote Access (`remote-access`)
+
+```
+hgetall remote-access
+```
+
+| Field | Type | Description | Example |
+|-------|------|-------------|----------|
+| status | `connected` / `disconnected` | Converged consumer contract: `connected` when any provider field is connected | "connected" |
+| radio-gaga | `connected` / `disconnected` | radio-gaga's live MQTT connection state | "connected" |
+| uplink-service | `connected` / `disconnected` | uplink-service's live connection state | "disconnected" |
+| *provider name* | `connected` / `disconnected` | Optional additional provider, for example a WireGuard hook | "connected" |
+
+Providers atomically write their own field and recompute `status` from every
+other field in the hash. The update is one Lua operation: if any provider is
+`connected`, `status` is `connected`; otherwise it is `disconnected`. This
+avoids both last-writer-wins collisions and the lost-update race of a client-side
+`HGETALL`/`HSET` recompute. Changed fields publish their field name on the
+`remote-access` channel. A direct writer of `status` still works alone, but a
+conforming provider may replace it with the recomputed value.
+
+Provider fields intentionally have no TTL. Clean shutdown writes
+`disconnected`; a crash may leave stale `connected`, which errs toward keeping
+the scooter awake. pm-service reads `status` live at the suspend decision point
+and gives providers five minutes after boot and each resume to reconnect.
+
+`internet[unu-cloud]` remains dual-written temporarily for existing dashboard
+and fleet telemetry consumers; it is not the reachability contract.
 
 ### Dashboard Interface (`dashboard`)
 ```

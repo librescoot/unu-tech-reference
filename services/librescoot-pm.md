@@ -90,7 +90,7 @@ pm-service subscribes to the `power:inhibits` channel and syncs entries into its
 
 - `pm.hibernation-timer` - Inactivity-based hibernation timer duration in seconds (0 = disabled)
 - `pm.default-state` - Default target power state when idle (`run` / `suspend`)
-- `pm.suspend-when-online` - Bool, default `true`. Only matters when no main battery is present: a pack present (or active) in either slot always blocks suspend (`Cannot enter suspend state: a main battery is present or active`), independent of this setting. With no main battery, the default (`true`) lets the scooter suspend even while online. Set `false` to keep an online scooter awake so cloud commands can still reach it, which blocks suspend with `Suspend blocked: no main battery but online and pm.suspend-when-online disabled`. The guard only applies to the `suspend` target (not hibernate/reboot). Present and active are read live from Redis at the decision point because pub/sub state is lost across a suspend freeze.
+- `pm.suspend-when-online` - Bool, default `true`. Only matters when no main battery is present: a pack present (or active) in either slot always blocks suspend. With no main battery, the default (`true`) permits suspend even while remotely reachable. Set `false` to read `remote-access[status]` live at the decision point and stay awake while any provider is connected. A five-minute grace after boot and every resume lets providers reconnect; Redis read failures fail safe by keeping the scooter awake. The guard only applies to the `suspend` target (not hibernate/reboot). Present and active are read live from Redis at the decision point because pub/sub state is lost across a suspend freeze.
 - `pm.scheduled-hibernate-enabled` - Bool: enable cron-driven scheduled hibernation
 - `pm.scheduled-hibernate-cron` - 5-field cron expression (e.g. `0 22 * * *`)
 - `pm.scheduled-hibernate-duration` - Wake-by duration (Go duration syntax: `8h`, `30m`, ...)
@@ -146,7 +146,7 @@ pm-service subscribes to the `power:inhibits` channel and syncs entries into its
 - `battery:1` -> `state`, `present`, `charge` - Battery slot 1 state monitoring plus `present`/`charge` for the last-ditch hibernate inputs
 - `cb-battery` -> `charge` - CBB charge, last-ditch hibernate input
 - `aux-battery` -> `voltage` - Aux 12V rail voltage (millivolts), last-ditch hibernate input
-- `internet` -> `connectivity` - Tracks data-session connectivity (`connected` => online) for the `pm.suspend-when-online` guard
+- `remote-access` -> `status` - Read live (not watched) at each suspend decision for the `pm.suspend-when-online` guard
 - `power-manager` -> `wake-timer-armed`, `power-state-sent` - Wake-timer ACK and the nRF suspend-ACK from the nRF52 (both written by bluetooth-service)
 - `settings` -> `pm.suspend-when-online` (among the other `pm.*` fields above) - re-read on change
 
