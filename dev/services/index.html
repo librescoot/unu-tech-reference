@@ -925,6 +925,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#normalised-event-bus" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Normalised Event Bus
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#command-lists" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
@@ -1711,6 +1722,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#normalised-event-bus" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Normalised Event Bus
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#command-lists" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
@@ -2006,8 +2028,8 @@
 </tr>
 <tr>
 <td><a href="librescoot-events/">librescoot-events</a></td>
-<td>Normalised event bus over existing Redis traffic; rule-driven</td>
-<td><code>ev:*</code></td>
+<td>Normalised event bus and optional rules (MDB nightly packaging; not 1.3.1 stable)</td>
+<td><code>extensions</code>, <code>extensions:pending</code></td>
 <td>Redis</td>
 </tr>
 <tr>
@@ -2075,7 +2097,7 @@
 <h2 id="service-architecture">Service Architecture<a class="headerlink" href="#service-architecture" title="Permanent link">&para;</a></h2>
 <pre class="mermaid"><code>graph TB
     UI["scootui-qt&lt;br/&gt;Qt/QML UI on DBC"]
-    Redis["Redis&lt;br/&gt;Pub/Sub + Hashes + Lists"]
+    Redis["Redis&lt;br/&gt;Pub/Sub + Hashes + Lists + Streams"]
 
     PM["pm-service&lt;br/&gt;Power Management"]
     BT["bluetooth-service&lt;br/&gt;BLE Interface"]
@@ -2089,6 +2111,9 @@
     SET["settings-service&lt;br/&gt;Config Sync"]
     UMS["ums-service&lt;br/&gt;USB Mass Storage"]
     UPD["update-service&lt;br/&gt;OTA Updates"]
+    EVT["event-service&lt;br/&gt;State adapter + optional rules"]
+    RULES["/data/extensions/*.toml"]
+    EXEC["Configured executables&lt;br/&gt;only with exec rules"]
 
     LOGIND["systemd-logind&lt;br/&gt;D-Bus"]
     NRF["nRF52840&lt;br/&gt;UART"]
@@ -2114,6 +2139,11 @@
     SET &lt;--&gt; Redis
     UMS &lt;--&gt; Redis
     UPD &lt;--&gt; Redis
+    Redis --&gt;|Watched state and input channels| EVT
+    EVT --&gt;|events stream, ev topics, extension hashes| Redis
+    EVT -.-&gt;|Configured rules only: LPUSH| Redis
+    RULES --&gt; EVT
+    EVT -.-&gt;|Configured rules only| EXEC
 
     PM &lt;--&gt; LOGIND
     BT &lt;--&gt; NRF
@@ -2133,6 +2163,13 @@
 <li>Individual fields may publish separately (e.g., <code>PUBLISH vehicle state</code>)</li>
 <li>Dashboard and other services subscribe to relevant channels</li>
 </ul>
+<h3 id="normalised-event-bus">Normalised Event Bus<a class="headerlink" href="#normalised-event-bus" title="Permanent link">&para;</a></h3>
+<p><a href="librescoot-events/">event-service</a> appends derived events to the <code>events</code>
+stream and publishes JSON on <code>ev:&lt;topic&gt;</code>. Those are not hashes. Its optional
+rules consume selected live topics and may push to configured command lists
+or run executables. Without rules it makes no such commands and opens no
+additional <code>ev:*</code> subscription. This service is packaged for MDB nightly
+builds ahead of 1.4.0, not included in 1.3.1 stable.</p>
 <h3 id="command-lists">Command Lists<a class="headerlink" href="#command-lists" title="Permanent link">&para;</a></h3>
 <p>Command producer services use LPUSH, consumer services use BRPOP:</p>
 <ul>

@@ -1147,6 +1147,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#adapter-topics-and-sources" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Adapter Topics and Sources
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#rules" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
@@ -1831,6 +1842,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#adapter-topics-and-sources" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Adapter Topics and Sources
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#rules" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
@@ -2102,11 +2124,12 @@ runs user-defined rules against it. It has two halves:</p>
   sequence, to any event topic, entirely from TOML files, with no service of
   their own to write or deploy.</li>
 </ul>
-<p>With no rule files present, event-service subscribes to nothing beyond what
-the adapter itself needs, so a scooter carrying no extensions pays no cost
-for the rules engine at all.</p>
+<p>With no rules loaded, there is no additional <code>ev:*</code> subscription. The adapter,
+worker pool, scheduler and periodic statistics publisher still run.</p>
 <h2 id="version">Version<a class="headerlink" href="#version" title="Permanent link">&para;</a></h2>
-<p>Tracks <code>main</code> on <code>github.com/librescoot/event-service</code>.</p>
+<p>Packaged for MDB nightly builds ahead of Librescoot 1.4.0; not included in
+1.3.1 stable. Source: <a href="https://github.com/librescoot/event-service">event-service</a>.
+The image's build revision determines the installed version.</p>
 <h2 id="command-line-options">Command-Line Options<a class="headerlink" href="#command-line-options" title="Permanent link">&para;</a></h2>
 <div class="language-text highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>--redis &lt;addr&gt;               Datastore address (default: localhost:6379)
 </span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>--log-level &lt;level&gt;          debug, info, warn, error (default: info)
@@ -2128,8 +2151,9 @@ with no extensions installed.</p>
 <h2 id="redis-operations">Redis Operations<a class="headerlink" href="#redis-operations" title="Permanent link">&para;</a></h2>
 <h3 id="stream-events">Stream: <code>events</code><a class="headerlink" href="#stream-events" title="Permanent link">&para;</a></h3>
 <p>Every event the adapter derives is appended here. Rules do not publish new
-events; they only act on the ones already on the bus. Capped stream, newest
-2000 entries kept. Each entry is the JSON form of the event envelope below.</p>
+events; they only act on the ones already on the bus. The stream is trimmed
+approximately to 2000 entries (<code>MAXLEN ~</code>). Each entry has two fields:
+<code>topic</code> (the topic string) and <code>e</code> (the JSON event envelope).</p>
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>redis-cli<span class="w"> </span>xrevrange<span class="w"> </span>events<span class="w"> </span>+<span class="w"> </span>-<span class="w"> </span>COUNT<span class="w"> </span><span class="m">10</span>
 </span></code></pre></div>
 <h3 id="pubsub-evtopic">Pub/Sub: <code>ev:&lt;topic&gt;</code><a class="headerlink" href="#pubsub-evtopic" title="Permanent link">&para;</a></h3>
@@ -2144,11 +2168,15 @@ loaded, enabled rule's <code>on</code> or <code>cancel-on</code> actually names.
 once, at startup, and the subscription set is computed from them there and
 then; there is no reload and no signal that rereads them, so a change under
 <code>--rules-dir</code> takes effect at the next service restart. With zero rules
-loaded there is no subscription at all.</p>
+loaded there is no rule subscription at all. Rules do not read the stream to
+catch up: triggers missed during downtime or a disconnected subscription are
+not replayed. Durable pending-step recovery is separate.</p>
 <h3 id="hash-extensions">Hash: <code>extensions</code><a class="headerlink" href="#hash-extensions" title="Permanent link">&para;</a></h3>
-<p>Rule-engine counters, refreshed at <code>--stats-interval</code> and written once in
-full at startup so every field, including <code>version</code>, is present from the
-first read. After that, only fields whose value changed are written.</p>
+<p>Rule-engine counters, refreshed at <code>--stats-interval</code>. An asynchronous initial
+publication writes all fields individually, so early reads can see missing or
+partial data. After that, only changed fields are written; failed writes are
+retried on a later tick. These are polled hashes, with no change publication.
+Counters reset on service restart.</p>
 <table>
 <thead>
 <tr>
@@ -2198,9 +2226,11 @@ different fixes.</p>
 <h3 id="hash-extensionspending">Hash: <code>extensions:pending</code><a class="headerlink" href="#hash-extensionspending" title="Permanent link">&para;</a></h3>
 <p>One field per waiting durable step, keyed by an internal run id, JSON-encoded.
 There is no sweep and no expiry: a record is written when a durable step is
-scheduled and removed the moment it fires or is cancelled, so a scooter with
-nothing running writes nothing here at all. See <a href="#durability">Durability</a>
-below for what ends up in it and when it is dropped instead of replayed.</p>
+scheduled and retained through worker queuing until the action starts, or
+removed when its pending tail is cancelled. This is service-restart recovery
+in Valkey, not an on-disk store or a vehicle-reboot guarantee.
+See <a href="#durability">Durability</a> below for what ends up in it and when it is
+dropped instead of replayed.</p>
 <h2 id="event-envelope">Event Envelope<a class="headerlink" href="#event-envelope" title="Permanent link">&para;</a></h2>
 <div class="language-json highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="p">{</span>
 </span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="w">  </span><span class="nt">"id"</span><span class="p">:</span><span class="w"> </span><span class="s2">"1712345678901-0"</span><span class="p">,</span>
@@ -2212,10 +2242,136 @@ below for what ends up in it and when it is dropped instead of replayed.</p>
 </span><span id="__span-3-8"><a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a><span class="w">  </span><span class="nt">"data"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="nt">"slot"</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">}</span>
 </span><span id="__span-3-9"><a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a><span class="p">}</span>
 </span></code></pre></div>
-<p><code>id</code> is assigned by the datastore when the event is appended to the stream
-and is empty on events a rule only sees through the channel. <code>from</code>/<code>to</code> are
-pulled out of <code>data</code> because "changed from X to Y" is the shape most rules
-match on. <code>src</code> is <code>adapter</code> for everything event-service derives itself.</p>
+<p>The stream entry ID is assigned by the datastore on append. The channel JSON
+contains that ID, so adapter events received by rules also populate <code>LS_ID</code>.
+The stream's <code>e</code> JSON was encoded before ID assignment; use the outer stream
+entry ID when reading it. <code>from</code>/<code>to</code> are top-level fields because "changed
+from X to Y" is the shape most rules match on. <code>src</code> is <code>adapter</code> for everything event-service derives itself.</p>
+<h2 id="adapter-topics-and-sources">Adapter Topics and Sources<a class="headerlink" href="#adapter-topics-and-sources" title="Permanent link">&para;</a></h2>
+<p>All derived events have <code>src = "adapter"</code>. The adapter watches the hashes
+below and three raw channels: <code>input-events</code>, <code>motion:interrupt</code>, and
+<code>sms:received</code>. Startup seeding emits no events; repeated hash values are
+suppressed. Most hash transitions require a non-empty previous value.
+Raw channel events have no <code>from</code>/<code>to</code> transition.</p>
+<table>
+<thead>
+<tr>
+<th>Redis source</th>
+<th>Derived topics</th>
+<th>Condition / extra <code>data</code></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>vehicle[state]</code></td>
+<td><code>vehicle.state.changed</code></td>
+<td>Every observed transition with a known previous state</td>
+</tr>
+<tr>
+<td><code>vehicle[state]</code></td>
+<td><code>vehicle.unlocked</code>, <code>vehicle.locked</code></td>
+<td><code>stand-by</code> → <code>parked</code>; any transition to <code>stand-by</code>, respectively</td>
+</tr>
+<tr>
+<td><code>vehicle[state]</code></td>
+<td><code>ride.started</code>, <code>ride.ended</code></td>
+<td>Entering / leaving <code>ready-to-drive</code></td>
+</tr>
+<tr>
+<td><code>vehicle[state]</code></td>
+<td><code>vehicle.hibernating</code></td>
+<td>Entering the <code>waiting-hibernation*</code> family from outside it</td>
+</tr>
+<tr>
+<td><code>vehicle[seatbox:lock]</code></td>
+<td><code>vehicle.seatbox.opened</code>, <code>vehicle.seatbox.closed</code></td>
+<td><code>open</code> / any other value</td>
+</tr>
+<tr>
+<td><code>vehicle[kickstand]</code></td>
+<td><code>vehicle.kickstand.up</code>, <code>vehicle.kickstand.down</code></td>
+<td><code>up</code> / any other value</td>
+</tr>
+<tr>
+<td><code>vehicle[handlebar:lock-sensor]</code></td>
+<td><code>vehicle.handlebar.locked</code>, <code>vehicle.handlebar.unlocked</code></td>
+<td><code>locked</code> / any other value</td>
+</tr>
+<tr>
+<td><code>vehicle[blinker:switch]</code></td>
+<td><code>vehicle.blinker.changed</code></td>
+<td>Switch value changed</td>
+</tr>
+<tr>
+<td><code>battery:0</code>, <code>battery:1</code> (<code>present</code>, <code>state</code>, <code>charge</code>)</td>
+<td><code>battery.inserted</code>, <code>battery.removed</code>, <code>battery.state.changed</code>, <code>battery.charge.changed</code></td>
+<td>Presence <code>true</code> / any other value; numeric <code>data.slot</code> is 0 or 1; new charge must parse as an integer</td>
+</tr>
+<tr>
+<td><code>aux-battery[charge]</code>, <code>cb-battery[charge]</code></td>
+<td><code>aux.charge.changed</code>, <code>cbb.charge.changed</code></td>
+<td>New charge must parse as an integer; no slot</td>
+</tr>
+<tr>
+<td><code>alarm[status]</code></td>
+<td><code>alarm.status.changed</code>, <code>alarm.armed</code>, <code>alarm.disarmed</code>, <code>alarm.triggered</code></td>
+<td>Complete change plus named event for <code>armed</code>, <code>disarmed</code>/<code>disabled</code>, or a <code>-triggered</code> suffix; triggered <code>data.level</code> is 1, 2, or 0 for an unrecognised level</td>
+</tr>
+<tr>
+<td><code>power-manager[state]</code></td>
+<td><code>power.state.changed</code></td>
+<td>State transition</td>
+</tr>
+<tr>
+<td><code>power-manager[wakeup-source]</code></td>
+<td><code>power.wake</code></td>
+<td>Changed source also in <code>data.source</code></td>
+</tr>
+<tr>
+<td><code>internet[connectivity]</code></td>
+<td><code>net.connectivity.changed</code></td>
+<td>Connectivity transition</td>
+</tr>
+<tr>
+<td><code>ota[status:&lt;component&gt;]</code></td>
+<td><code>ota.status.changed</code></td>
+<td><code>data.component</code> is the field suffix</td>
+</tr>
+<tr>
+<td><code>keycard[authentication]</code></td>
+<td><code>keycard.auth.passed</code>, <code>keycard.auth.failed</code></td>
+<td>New value <code>passed</code> / <code>failed</code>; optional <code>data.uid</code>, <code>data.type</code> read live from the hash</td>
+</tr>
+<tr>
+<td><code>dashboard[ready]</code></td>
+<td><code>dashboard.ready</code></td>
+<td>New value <code>true</code></td>
+</tr>
+<tr>
+<td><code>input-events</code></td>
+<td><code>button.&lt;source&gt;.&lt;gesture&gt;</code></td>
+<td>Source colons become dots, e.g. <code>brake:left:hold</code> → <code>button.brake.left.hold</code></td>
+</tr>
+<tr>
+<td><code>motion:interrupt</code></td>
+<td><code>motion.detected</code></td>
+<td>Original payload string in <code>data.raw</code></td>
+</tr>
+<tr>
+<td><code>sms:received</code></td>
+<td><code>sms.received</code></td>
+<td>Original payload string in <code>data.raw</code>, not flattened SMS fields</td>
+</tr>
+</tbody>
+</table>
+<p>Accepted gestures are <code>press</code>, <code>release</code>, <code>tap</code>, <code>long-tap</code>, <code>hold</code>, and
+<code>double-tap</code>. The adapter does not subscribe to raw <code>buttons</code>, <code>motion:sensors</code>,
+<code>motion:heading</code>, or <code>gps:tpv</code>. No ECU-fault, GPS-fix, settings-change,
+system-boot/shutdown, or named OTA-available/installed events are derived by
+these adapters. A single state transition can emit several named topics.</p>
+<p>Hash notifications carry field names, not a snapshot of each value. Rapid
+producer updates can overwrite an intermediate value before the adapter reads
+it, so this bus is not an authoritative record of every vehicle transition.</p>
 <h2 id="rules">Rules<a class="headerlink" href="#rules" title="Permanent link">&para;</a></h2>
 <p>TOML files under <code>--rules-dir</code>, one or more <code>[[rule]]</code> blocks per file,
 loaded and compiled at startup. A file that fails to parse, or that contains
@@ -2239,8 +2395,22 @@ subset.</p>
 </span><span id="__span-4-15"><a id="__codelineno-4-15" name="__codelineno-4-15" href="#__codelineno-4-15"></a><span class="w">  </span><span class="n">list</span><span class="w">  </span><span class="o">=</span><span class="w"> </span><span class="s2">"scooter:blinker"</span>
 </span><span id="__span-4-16"><a id="__codelineno-4-16" name="__codelineno-4-16" href="#__codelineno-4-16"></a><span class="w">  </span><span class="n">push</span><span class="w">  </span><span class="o">=</span><span class="w"> </span><span class="s2">"off"</span>
 </span></code></pre></div>
-<p>On the alarm, the hazards go on immediately; thirty seconds later the second
-step turns them off, unless <code>alarm.disarmed</code> cancels the run first.</p>
+<p>On the alarm, the first step requests hazards on and the delayed step requests
+off. <code>alarm.disarmed</code> cancels the pending tail, including that off step; it
+does not undo the earlier on command. To request off on disarm, add a separate
+rule:</p>
+<div class="language-toml highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="k">[[rule]]</span>
+</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="n">name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"hazards-off-on-disarm"</span>
+</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="n">on</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="s2">"alarm.disarmed"</span><span class="p">]</span>
+</span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a>
+</span><span id="__span-5-5"><a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a><span class="w">  </span><span class="k">[[rule.step]]</span>
+</span><span id="__span-5-6"><a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a><span class="w">  </span><span class="n">do</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"redis"</span>
+</span><span id="__span-5-7"><a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a><span class="w">  </span><span class="n">list</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"scooter:blinker"</span>
+</span><span id="__span-5-8"><a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a><span class="w">  </span><span class="n">push</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"off"</span>
+</span></code></pre></div>
+<p>This is not an ordering guarantee across rules or against other command
+producers. Already accepted jobs are not interrupted and can overlap this
+rule's off action; cancellation alone cannot guarantee that hazards stop.</p>
 <p><code>on</code> matches a topic exactly, with <code>*</code> for everything or <code>prefix.*</code> for
 anything starting with <code>prefix.</code>. Mid-pattern globs are not supported: a
 pattern matches literally or not at all, so a typo in a topic name fires
@@ -2248,26 +2418,42 @@ nothing rather than something unintended. <code>when</code>, at rule level or st
 level, is an <code>expr</code> expression compiled once at load, evaluated against
 <code>topic</code>, <code>src</code>, <code>from</code>, <code>to</code>, <code>data</code>, and <code>state("hash", "field")</code> for the
 last value event-service's own shadow store observed for a hash field the
-event itself does not carry. A rule with no <code>when</code> fires on every event <code>on</code>
-matches; a step with no <code>when</code> always runs once it is reached.</p>
+event itself does not carry. Watched hashes are seeded by <code>StartWithSync()</code>
+using <code>HGETALL</code> at startup without emitting transitions. Later hash
+notifications update the store; writes without notifications can leave it
+stale. Missing or unwatched fields return <code>""</code>, indistinguishable from an
+empty value. <code>state()</code> does not read Valkey live.</p>
+<p>A rule with no <code>when</code> fires on every event <code>on</code> matches; a step with no <code>when</code>
+always runs once reached. A false step condition ends the run, not just that
+step. It is checked before submission, which may precede execution in a busy
+worker pool.</p>
 <h3 id="step-sequences">Step sequences<a class="headerlink" href="#step-sequences" title="Permanent link">&para;</a></h3>
 <p>A rule can carry several <code>[[rule.step]]</code> blocks. They run strictly in order:
 a step is submitted only once the one before it finished, and a step that
 fails ends the run, with the remaining steps not run. A sequence is a recipe,
 so carrying on past a failed step would act on a state that step never
 established.</p>
-<p>A step may carry <code>after</code>, a duration that delays it relative to the step
-before it finishing. A step waiting out <code>after</code> holds no worker thread; it
-sits on a scheduler timer, so a rule can say "and thirty seconds later, turn
-it off" without occupying anything for the wait.</p>
+<p>A step may carry <code>after</code>, a non-negative duration that delays it relative to
+the previous step finishing (or the run starting for the first step).
+An omitted or zero <code>after</code> is submitted without a timer delay when reached.
+A step waiting out <code>after</code> holds no worker thread; it sits on a scheduler
+timer, so a rule can say "and thirty seconds later, turn it off" without
+occupying a worker for the wait.</p>
 <h3 id="durability">Durability<a class="headerlink" href="#durability" title="Permanent link">&para;</a></h3>
-<p>A step with <code>after</code> is <code>durable</code> by default. The waiting step is written to
-the <code>extensions:pending</code> hash the moment it is scheduled and removed when it
-fires or is cancelled, so a service restart between "hazards on" and
-"hazards off thirty seconds later" does not leave the vehicle half-changed.
-On the next start, a recorded step whose delay already ran out fires
-immediately; one still in the future waits out what is left, both before the
-bus subscription reopens. A rule with <code>repeat</code> resumes on the pass it was on.</p>
+<p>A step with a positive <code>after</code> is <code>durable</code> by default. The waiting step is
+written to <code>extensions:pending</code> when scheduled and removed when its action
+starts or its pending tail is cancelled. Recovery covers an event-service
+restart while Valkey retains the hash; it does not guarantee survival across
+a datastore restart or vehicle reboot. The image's Valkey configuration
+disables RDB and AOF disk persistence.</p>
+<p>At startup, overdue records are submitted and future timers rearmed before
+the rule subscription opens. This does not wait for replayed actions to
+complete. A rule with <code>repeat</code> resumes on the pass it was on.</p>
+<p>This is not exactly-once execution. A record-write failure is logged, but the
+step still runs without restart recovery. A failed record deletion can cause
+another execution on restart; a crash after deletion but before successful
+action completion can lose the action. There is no guarantee that a sequence
+finishes or restores a safe vehicle state.</p>
 <p>A record is dropped instead of replayed, with a log line saying why, if its
 rule is no longer loaded, if that rule no longer has a step at the recorded
 index, if the step at that index was reconfigured while the service was
@@ -2283,14 +2469,13 @@ week does not come back up acting on what it was doing when it went down.</p>
 <p>Records go through the rule's <code>concurrency</code> policy the same way a live
 trigger does, so a rule that ends up with two records resumes one run rather
 than two. A step that comes due while the action pool has no room for it
-keeps its record: the step provably did not run, so the next start is what
-runs it, and the same holds for a step still queued in the pool when the
-service is stopped.</p>
-<p>Write <code>durable = false</code> on a step to opt out. <code>durable</code> on a step with no
-<code>after</code> is a load error: there is no wait for it to mean anything about.
-Nothing is recorded for the gap between <code>repeat</code> passes or for a trigger
-sitting in a <code>queue</code> backlog; neither has acted on the vehicle yet, so
-neither needs to survive a restart.</p>
+keeps its record for a later startup, subject to the replay checks above.
+The same holds for a queued step abandoned without starting when the service
+stops; there is no automatic retry during the current run.</p>
+<p>Write <code>durable = false</code> on a delayed step to opt out. Specifying <code>durable</code>
+without a positive <code>after</code> (including <code>after = "0s"</code>) is a load error.
+Nothing is recorded for a gap between completed <code>repeat</code> passes or for a
+trigger sitting in a <code>queue</code> backlog; these are lost on restart.</p>
 <h3 id="concurrency-and-cancellation">Concurrency and cancellation<a class="headerlink" href="#concurrency-and-cancellation" title="Permanent link">&para;</a></h3>
 <p><code>concurrency</code> decides what a fresh trigger does to a run of the same rule
 that has not finished:</p>
@@ -2311,8 +2496,8 @@ same pass.</p>
 <p>A step already handed to the worker pool when the cancel arrives is <strong>not</strong>
 interrupted, whether a worker is already running it or it is still waiting
 its turn in the pool's queue. A <code>redis</code> push or <code>exec</code> command already
-accepted completes. What cancelling guarantees is that no step after it
-runs.</p>
+accepted is not cancelled by this event (it can still fail or be stopped by
+service shutdown). Cancellation prevents submission of its remaining tail.</p>
 <h3 id="repeat">Repeat<a class="headerlink" href="#repeat" title="Permanent link">&para;</a></h3>
 <p><code>repeat = { count = 3, every = "700ms" }</code> at rule level runs the whole step
 sequence again once it finishes, <code>count</code> times total, waiting <code>every</code>
@@ -2347,16 +2532,19 @@ fails to load. An unrecognised <code>concurrency</code> value is rejected the sa
 naming the rule, the file, and the three accepted values.</p>
 <h2 id="actions">Actions<a class="headerlink" href="#actions" title="Permanent link">&para;</a></h2>
 <ul>
-<li><code>redis</code>: <code>LPUSH</code> a fixed value (<code>push</code>) onto an existing list (<code>list</code>).
+<li><code>redis</code>: <code>LPUSH</code> a fixed value (<code>push</code>) onto a list (<code>list</code>), creating it
+  if absent.
   One datastore round trip, no process spawned; the default choice for
   anything that stays on the vehicle.</li>
-<li><code>exec</code>: run <code>command</code> with a <code>timeout</code> (default <code>10s</code>). The event is on
+<li><code>exec</code>: run the executable name or path in <code>command</code> with a <code>timeout</code>
+  (default <code>10s</code>). It is not a shell command line: arguments, pipelines and
+  redirection require an executable wrapper script. The event is on
   stdin as JSON, plus environment variables <code>LS_TOPIC</code>, <code>LS_SRC</code>, <code>LS_FROM</code>,
   <code>LS_TO</code>, <code>LS_ID</code>, and one <code>LS_DATA_&lt;KEY&gt;</code> per scalar <code>data</code> field, so a
   short shell script needs no JSON parser. The command runs in its own
   process group; the hard timeout kills the whole group, not just the
   direct child.</li>
-<li><code>can</code>, <code>lua</code>, <code>http</code>: designed, not built. See <code>EVENT-SERVICE-DESIGN.md</code>.</li>
+<li><code>can</code>, <code>lua</code>, <code>http</code>: unsupported; a rule using one fails to load.</li>
 </ul>
 <h2 id="safety">Safety<a class="headerlink" href="#safety" title="Permanent link">&para;</a></h2>
 <p>There is no allowlist, no rate limit, and no interlock on what a rule can
@@ -2368,8 +2556,8 @@ including through the steering lock; nothing here detects or breaks that
 loop. The extension subsystem is a power-user feature by design, and it is
 deliberately not event-service's job to second-guess what a rule tells the
 vehicle to do.</p>
-<p>Durability extends the same stance across a restart. A step with <code>after</code>
-survives the service going down and finishes on the next start, so a rule
+<p>Durability extends the same stance across a service restart. A step with a
+positive <code>after</code> can resume on the next start if its record survives, so a rule
 nobody retriggered this session, left waiting from before the restart, can
 still push to a command queue once the service is back up, with nothing in
 between that the rider watching the vehicle now would connect to it. That is
@@ -2380,41 +2568,45 @@ command queue that should not fire from something that happened before the
 current rider ever saw the vehicle.</p>
 <h2 id="installation">Installation<a class="headerlink" href="#installation" title="Permanent link">&para;</a></h2>
 <p><strong>Unit file:</strong> <code>librescoot-events.service</code></p>
-<div class="language-ini highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="k">[Unit]</span>
-</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="na">Description</span><span class="o">=</span><span class="s">Librescoot Event Service</span>
-</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="na">After</span><span class="o">=</span><span class="s">valkey.service</span>
-</span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="na">Wants</span><span class="o">=</span><span class="s">valkey.service</span>
-</span><span id="__span-5-5"><a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a>
-</span><span id="__span-5-6"><a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a><span class="k">[Service]</span>
-</span><span id="__span-5-7"><a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a><span class="na">Type</span><span class="o">=</span><span class="s">simple</span>
-</span><span id="__span-5-8"><a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a><span class="na">ExecStart</span><span class="o">=</span><span class="s">/usr/bin/event-service </span>\
-</span><span id="__span-5-9"><a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a><span class="w">    </span><span class="s">--redis=localhost:6379 </span>\
-</span><span id="__span-5-10"><a id="__codelineno-5-10" name="__codelineno-5-10" href="#__codelineno-5-10"></a><span class="w">    </span><span class="s">--log-level=info</span>
-</span><span id="__span-5-11"><a id="__codelineno-5-11" name="__codelineno-5-11" href="#__codelineno-5-11"></a><span class="na">Restart</span><span class="o">=</span><span class="s">always</span>
-</span><span id="__span-5-12"><a id="__codelineno-5-12" name="__codelineno-5-12" href="#__codelineno-5-12"></a><span class="na">RestartSec</span><span class="o">=</span><span class="s">5</span>
-</span><span id="__span-5-13"><a id="__codelineno-5-13" name="__codelineno-5-13" href="#__codelineno-5-13"></a><span class="na">User</span><span class="o">=</span><span class="s">root</span>
-</span><span id="__span-5-14"><a id="__codelineno-5-14" name="__codelineno-5-14" href="#__codelineno-5-14"></a>
-</span><span id="__span-5-15"><a id="__codelineno-5-15" name="__codelineno-5-15" href="#__codelineno-5-15"></a><span class="na">Nice</span><span class="o">=</span><span class="s">5</span>
-</span><span id="__span-5-16"><a id="__codelineno-5-16" name="__codelineno-5-16" href="#__codelineno-5-16"></a><span class="na">CPUWeight</span><span class="o">=</span><span class="s">20</span>
-</span><span id="__span-5-17"><a id="__codelineno-5-17" name="__codelineno-5-17" href="#__codelineno-5-17"></a><span class="na">MemoryMax</span><span class="o">=</span><span class="s">48M</span>
-</span><span id="__span-5-18"><a id="__codelineno-5-18" name="__codelineno-5-18" href="#__codelineno-5-18"></a><span class="na">TasksMax</span><span class="o">=</span><span class="s">64</span>
-</span><span id="__span-5-19"><a id="__codelineno-5-19" name="__codelineno-5-19" href="#__codelineno-5-19"></a>
-</span><span id="__span-5-20"><a id="__codelineno-5-20" name="__codelineno-5-20" href="#__codelineno-5-20"></a><span class="na">StandardOutput</span><span class="o">=</span><span class="s">journal</span>
-</span><span id="__span-5-21"><a id="__codelineno-5-21" name="__codelineno-5-21" href="#__codelineno-5-21"></a><span class="na">StandardError</span><span class="o">=</span><span class="s">journal</span>
-</span><span id="__span-5-22"><a id="__codelineno-5-22" name="__codelineno-5-22" href="#__codelineno-5-22"></a>
-</span><span id="__span-5-23"><a id="__codelineno-5-23" name="__codelineno-5-23" href="#__codelineno-5-23"></a><span class="k">[Install]</span>
-</span><span id="__span-5-24"><a id="__codelineno-5-24" name="__codelineno-5-24" href="#__codelineno-5-24"></a><span class="na">WantedBy</span><span class="o">=</span><span class="s">multi-user.target</span>
+<div class="language-ini highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="k">[Unit]</span>
+</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="na">Description</span><span class="o">=</span><span class="s">Librescoot Event Service</span>
+</span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="na">After</span><span class="o">=</span><span class="s">valkey.service</span>
+</span><span id="__span-6-4"><a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="na">Wants</span><span class="o">=</span><span class="s">valkey.service</span>
+</span><span id="__span-6-5"><a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a><span class="na">RequiresMountsFor</span><span class="o">=</span><span class="s">/data</span>
+</span><span id="__span-6-6"><a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a>
+</span><span id="__span-6-7"><a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a><span class="k">[Service]</span>
+</span><span id="__span-6-8"><a id="__codelineno-6-8" name="__codelineno-6-8" href="#__codelineno-6-8"></a><span class="na">Type</span><span class="o">=</span><span class="s">simple</span>
+</span><span id="__span-6-9"><a id="__codelineno-6-9" name="__codelineno-6-9" href="#__codelineno-6-9"></a><span class="na">ExecStart</span><span class="o">=</span><span class="s">/usr/bin/event-service </span>\
+</span><span id="__span-6-10"><a id="__codelineno-6-10" name="__codelineno-6-10" href="#__codelineno-6-10"></a><span class="w">    </span><span class="s">--redis=localhost:6379 </span>\
+</span><span id="__span-6-11"><a id="__codelineno-6-11" name="__codelineno-6-11" href="#__codelineno-6-11"></a><span class="w">    </span><span class="s">--log-level=info</span>
+</span><span id="__span-6-12"><a id="__codelineno-6-12" name="__codelineno-6-12" href="#__codelineno-6-12"></a><span class="na">Restart</span><span class="o">=</span><span class="s">always</span>
+</span><span id="__span-6-13"><a id="__codelineno-6-13" name="__codelineno-6-13" href="#__codelineno-6-13"></a><span class="na">RestartSec</span><span class="o">=</span><span class="s">5</span>
+</span><span id="__span-6-14"><a id="__codelineno-6-14" name="__codelineno-6-14" href="#__codelineno-6-14"></a><span class="na">User</span><span class="o">=</span><span class="s">root</span>
+</span><span id="__span-6-15"><a id="__codelineno-6-15" name="__codelineno-6-15" href="#__codelineno-6-15"></a>
+</span><span id="__span-6-16"><a id="__codelineno-6-16" name="__codelineno-6-16" href="#__codelineno-6-16"></a><span class="na">Nice</span><span class="o">=</span><span class="s">5</span>
+</span><span id="__span-6-17"><a id="__codelineno-6-17" name="__codelineno-6-17" href="#__codelineno-6-17"></a><span class="na">CPUWeight</span><span class="o">=</span><span class="s">20</span>
+</span><span id="__span-6-18"><a id="__codelineno-6-18" name="__codelineno-6-18" href="#__codelineno-6-18"></a><span class="na">MemoryMax</span><span class="o">=</span><span class="s">48M</span>
+</span><span id="__span-6-19"><a id="__codelineno-6-19" name="__codelineno-6-19" href="#__codelineno-6-19"></a><span class="na">TasksMax</span><span class="o">=</span><span class="s">64</span>
+</span><span id="__span-6-20"><a id="__codelineno-6-20" name="__codelineno-6-20" href="#__codelineno-6-20"></a>
+</span><span id="__span-6-21"><a id="__codelineno-6-21" name="__codelineno-6-21" href="#__codelineno-6-21"></a><span class="na">StandardOutput</span><span class="o">=</span><span class="s">journal</span>
+</span><span id="__span-6-22"><a id="__codelineno-6-22" name="__codelineno-6-22" href="#__codelineno-6-22"></a><span class="na">StandardError</span><span class="o">=</span><span class="s">journal</span>
+</span><span id="__span-6-23"><a id="__codelineno-6-23" name="__codelineno-6-23" href="#__codelineno-6-23"></a>
+</span><span id="__span-6-24"><a id="__codelineno-6-24" name="__codelineno-6-24" href="#__codelineno-6-24"></a><span class="k">[Install]</span>
+</span><span id="__span-6-25"><a id="__codelineno-6-25" name="__codelineno-6-25" href="#__codelineno-6-25"></a><span class="na">WantedBy</span><span class="o">=</span><span class="s">multi-user.target</span>
 </span></code></pre></div>
-<p>The resource caps (<code>Nice</code>, <code>CPUWeight</code>, <code>MemoryMax</code>, <code>TasksMax</code>) are meant to
-make the extension subsystem structurally incapable of starving
-vehicle-service, regardless of what a rule set does. <code>--rules-dir</code> is not
-passed, so the compiled-in default (<code>/data/extensions</code>) applies.</p>
+<p>The resource limits and priorities (<code>Nice</code>, <code>CPUWeight</code>, <code>MemoryMax</code>,
+<code>TasksMax</code>) reduce contention; they are not isolation or a guarantee against
+starving other services. In this unit, <code>exec</code> runs as root with the service's
+privileges. Treat rule files and scripts as trusted administrative code;
+these settings do not prevent unsafe commands or Redis flooding.
+<code>--rules-dir</code> is not passed, so <code>/data/extensions</code> applies. The mount dependency
+ensures <code>/data</code> is available before startup.</p>
 <h2 id="dependencies">Dependencies<a class="headerlink" href="#dependencies" title="Permanent link">&para;</a></h2>
 <ul>
 <li><strong>Redis (valkey)</strong> - for the event stream, the <code>ev:*</code> channels, the
   <code>extensions</code> and <code>extensions:pending</code> hashes, and reading the hashes the
   adapter watches.</li>
-<li><strong>Whatever hash or command queue a rule's <code>redis</code> step targets</strong> - the
+<li><strong>Whatever command list a rule's <code>redis</code> step targets</strong> - the
   rules engine does not own those queues; it pushes onto them the same way
   any other client would.</li>
 </ul>

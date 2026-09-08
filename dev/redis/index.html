@@ -1196,6 +1196,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#extension-event-interfaces-librescoot-only" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Extension Event Interfaces - Librescoot Only
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#event-streams" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
@@ -2736,6 +2747,17 @@
         
       </ul>
     </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#extension-event-interfaces-librescoot-only" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Extension Event Interfaces - Librescoot Only
+      </span>
+    </span>
+  </a>
   
 </li>
         
@@ -5588,10 +5610,63 @@ input is still down, so a 4-second press emits <code>press</code>, <code>long-ta
 so a long press between two taps does not glue them into a <code>double-tap</code>.</p>
 <p>Unlike <code>buttons</code>, each gesture is emitted exactly once, which makes this the
 channel to use for anything that counts or reacts to discrete user actions.</p>
+<h3 id="extension-event-interfaces-librescoot-only">Extension Event Interfaces - Librescoot Only<a class="headerlink" href="#extension-event-interfaces-librescoot-only" title="Permanent link">&para;</a></h3>
+<p><a href="../services/librescoot-events/">event-service</a> is packaged for MDB nightly
+builds ahead of 1.4.0, not included in 1.3.1 stable. It observes existing state
+traffic without writing those source hashes. Its four interfaces are:</p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Contents</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>events</code></td>
+<td>Stream</td>
+<td>Approximately 2000 entries (<code>MAXLEN ~</code>), each with <code>topic</code> and <code>e</code> (JSON envelope) fields</td>
+</tr>
+<tr>
+<td><code>ev:&lt;topic&gt;</code></td>
+<td>Pub/Sub channel</td>
+<td>JSON envelope: <code>id</code>, <code>ts</code>, <code>topic</code>, <code>src</code>, optional <code>from</code>, <code>to</code>, <code>data</code></td>
+</tr>
+<tr>
+<td><code>extensions</code></td>
+<td>Hash</td>
+<td>Rule-engine counts: <code>rules</code>, <code>dispatched</code>, <code>dropped</code>, <code>refused</code>, <code>failed</code>, <code>pending</code>, <code>runs-active</code>, plus build <code>version</code></td>
+</tr>
+<tr>
+<td><code>extensions:pending</code></td>
+<td>Hash</td>
+<td>Internal run ID → JSON durable pending-step record; not a command interface</td>
+</tr>
+</tbody>
+</table>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-33-1"><a id="__codelineno-33-1" name="__codelineno-33-1" href="#__codelineno-33-1"></a>redis-cli<span class="w"> </span>XREVRANGE<span class="w"> </span>events<span class="w"> </span>+<span class="w"> </span>-<span class="w"> </span>COUNT<span class="w"> </span><span class="m">10</span>
+</span><span id="__span-33-2"><a id="__codelineno-33-2" name="__codelineno-33-2" href="#__codelineno-33-2"></a>redis-cli<span class="w"> </span>PSUBSCRIBE<span class="w"> </span><span class="s1">'ev:*'</span>
+</span><span id="__span-33-3"><a id="__codelineno-33-3" name="__codelineno-33-3" href="#__codelineno-33-3"></a>redis-cli<span class="w"> </span>HGETALL<span class="w"> </span>extensions
+</span><span id="__span-33-4"><a id="__codelineno-33-4" name="__codelineno-33-4" href="#__codelineno-33-4"></a>redis-cli<span class="w"> </span>HGETALL<span class="w"> </span>extensions:pending
+</span></code></pre></div>
+<p>The channel envelope contains the ID returned by the stream append. The
+stream's <code>e</code> JSON is encoded before that assignment, so stream readers use
+the outer entry ID. Adapter events use <code>src = "adapter"</code>.</p>
+<p>Counters reset on service restart. They are written asynchronously, field by
+field at startup, then only on change at the statistics interval (default
+10s), without Pub/Sub notifications. Early reads may be partial.</p>
+<p>Rules listen to live <code>ev:*</code> patterns selected by their configuration; they do
+not catch up from the stream after downtime. <code>extensions:pending</code> supports
+only service-restart recovery while Valkey retains its data, not guaranteed
+recovery across a datastore restart or vehicle reboot. Records cover positive
+<code>after</code> delays and remain through worker queuing until the action starts or
+the pending tail is cancelled. Execution is not exactly once. See the service
+reference for the topic catalogue, counter meanings and recovery limitations.</p>
 <h3 id="event-streams">Event Streams<a class="headerlink" href="#event-streams" title="Permanent link">&para;</a></h3>
 <h4 id="fault-events-eventsfaults">Fault Events (<code>events:faults</code>)<a class="headerlink" href="#fault-events-eventsfaults" title="Permanent link">&para;</a></h4>
 <p>Stream of system fault events using XADD:</p>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-33-1"><a id="__codelineno-33-1" name="__codelineno-33-1" href="#__codelineno-33-1"></a>XREAD STREAMS events:faults 0
+<div class="language-text highlight"><pre><span></span><code><span id="__span-34-1"><a id="__codelineno-34-1" name="__codelineno-34-1" href="#__codelineno-34-1"></a>XREAD STREAMS events:faults 0
 </span></code></pre></div>
 <p>Each entry contains:</p>
 <ul>
@@ -5603,63 +5678,63 @@ channel to use for anything that counts or reacts to discrete user actions.</p>
 <p>The scooter accepts control commands via Redis list-based channels using <code>LPUSH</code>. Commands are queued and processed by the vehicle service.</p>
 <h3 id="scooter-state-control-scooterstate">Scooter State Control (<code>scooter:state</code>)<a class="headerlink" href="#scooter-state-control-scooterstate" title="Permanent link">&para;</a></h3>
 <p>Controls the lock/unlock state of the scooter.</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-34-1"><a id="__codelineno-34-1" name="__codelineno-34-1" href="#__codelineno-34-1"></a><span class="c1"># Lock the scooter</span>
-</span><span id="__span-34-2"><a id="__codelineno-34-2" name="__codelineno-34-2" href="#__codelineno-34-2"></a>redis-cli<span class="w"> </span>-h<span class="w"> </span><span class="m">192</span>.168.7.1<span class="w"> </span>LPUSH<span class="w"> </span>scooter:state<span class="w"> </span>lock
-</span><span id="__span-34-3"><a id="__codelineno-34-3" name="__codelineno-34-3" href="#__codelineno-34-3"></a>
-</span><span id="__span-34-4"><a id="__codelineno-34-4" name="__codelineno-34-4" href="#__codelineno-34-4"></a><span class="c1"># Unlock the scooter</span>
-</span><span id="__span-34-5"><a id="__codelineno-34-5" name="__codelineno-34-5" href="#__codelineno-34-5"></a>redis-cli<span class="w"> </span>-h<span class="w"> </span><span class="m">192</span>.168.7.1<span class="w"> </span>LPUSH<span class="w"> </span>scooter:state<span class="w"> </span>unlock
-</span><span id="__span-34-6"><a id="__codelineno-34-6" name="__codelineno-34-6" href="#__codelineno-34-6"></a>
-</span><span id="__span-34-7"><a id="__codelineno-34-7" name="__codelineno-34-7" href="#__codelineno-34-7"></a><span class="c1"># Lock and request hibernation</span>
-</span><span id="__span-34-8"><a id="__codelineno-34-8" name="__codelineno-34-8" href="#__codelineno-34-8"></a>redis-cli<span class="w"> </span>-h<span class="w"> </span><span class="m">192</span>.168.7.1<span class="w"> </span>LPUSH<span class="w"> </span>scooter:state<span class="w"> </span>lock-hibernate
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-35-1"><a id="__codelineno-35-1" name="__codelineno-35-1" href="#__codelineno-35-1"></a><span class="c1"># Lock the scooter</span>
+</span><span id="__span-35-2"><a id="__codelineno-35-2" name="__codelineno-35-2" href="#__codelineno-35-2"></a>redis-cli<span class="w"> </span>-h<span class="w"> </span><span class="m">192</span>.168.7.1<span class="w"> </span>LPUSH<span class="w"> </span>scooter:state<span class="w"> </span>lock
+</span><span id="__span-35-3"><a id="__codelineno-35-3" name="__codelineno-35-3" href="#__codelineno-35-3"></a>
+</span><span id="__span-35-4"><a id="__codelineno-35-4" name="__codelineno-35-4" href="#__codelineno-35-4"></a><span class="c1"># Unlock the scooter</span>
+</span><span id="__span-35-5"><a id="__codelineno-35-5" name="__codelineno-35-5" href="#__codelineno-35-5"></a>redis-cli<span class="w"> </span>-h<span class="w"> </span><span class="m">192</span>.168.7.1<span class="w"> </span>LPUSH<span class="w"> </span>scooter:state<span class="w"> </span>unlock
+</span><span id="__span-35-6"><a id="__codelineno-35-6" name="__codelineno-35-6" href="#__codelineno-35-6"></a>
+</span><span id="__span-35-7"><a id="__codelineno-35-7" name="__codelineno-35-7" href="#__codelineno-35-7"></a><span class="c1"># Lock and request hibernation</span>
+</span><span id="__span-35-8"><a id="__codelineno-35-8" name="__codelineno-35-8" href="#__codelineno-35-8"></a>redis-cli<span class="w"> </span>-h<span class="w"> </span><span class="m">192</span>.168.7.1<span class="w"> </span>LPUSH<span class="w"> </span>scooter:state<span class="w"> </span>lock-hibernate
 </span></code></pre></div>
 <p><strong>Available commands</strong>: <code>lock</code>, <code>unlock</code>, <code>lock-hibernate</code>, <code>force-lock</code></p>
 <h3 id="seatbox-control-scooterseatbox">Seatbox Control (<code>scooter:seatbox</code>)<a class="headerlink" href="#seatbox-control-scooterseatbox" title="Permanent link">&para;</a></h3>
 <p>Controls the seatbox lock mechanism.</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-35-1"><a id="__codelineno-35-1" name="__codelineno-35-1" href="#__codelineno-35-1"></a><span class="c1"># Open the seatbox</span>
-</span><span id="__span-35-2"><a id="__codelineno-35-2" name="__codelineno-35-2" href="#__codelineno-35-2"></a>redis-cli<span class="w"> </span>-h<span class="w"> </span><span class="m">192</span>.168.7.1<span class="w"> </span>LPUSH<span class="w"> </span>scooter:seatbox<span class="w"> </span>open
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-36-1"><a id="__codelineno-36-1" name="__codelineno-36-1" href="#__codelineno-36-1"></a><span class="c1"># Open the seatbox</span>
+</span><span id="__span-36-2"><a id="__codelineno-36-2" name="__codelineno-36-2" href="#__codelineno-36-2"></a>redis-cli<span class="w"> </span>-h<span class="w"> </span><span class="m">192</span>.168.7.1<span class="w"> </span>LPUSH<span class="w"> </span>scooter:seatbox<span class="w"> </span>open
 </span></code></pre></div>
 <p><strong>Available commands</strong>: <code>open</code></p>
 <h3 id="horn-control-scooterhorn">Horn Control (<code>scooter:horn</code>)<a class="headerlink" href="#horn-control-scooterhorn" title="Permanent link">&para;</a></h3>
 <p>Controls the horn/buzzer.</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-36-1"><a id="__codelineno-36-1" name="__codelineno-36-1" href="#__codelineno-36-1"></a><span class="c1"># Turn horn on</span>
-</span><span id="__span-36-2"><a id="__codelineno-36-2" name="__codelineno-36-2" href="#__codelineno-36-2"></a>redis-cli<span class="w"> </span>-h<span class="w"> </span><span class="m">192</span>.168.7.1<span class="w"> </span>LPUSH<span class="w"> </span>scooter:horn<span class="w"> </span>on
-</span><span id="__span-36-3"><a id="__codelineno-36-3" name="__codelineno-36-3" href="#__codelineno-36-3"></a>
-</span><span id="__span-36-4"><a id="__codelineno-36-4" name="__codelineno-36-4" href="#__codelineno-36-4"></a><span class="c1"># Turn horn off</span>
-</span><span id="__span-36-5"><a id="__codelineno-36-5" name="__codelineno-36-5" href="#__codelineno-36-5"></a>redis-cli<span class="w"> </span>-h<span class="w"> </span><span class="m">192</span>.168.7.1<span class="w"> </span>LPUSH<span class="w"> </span>scooter:horn<span class="w"> </span>off
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-37-1"><a id="__codelineno-37-1" name="__codelineno-37-1" href="#__codelineno-37-1"></a><span class="c1"># Turn horn on</span>
+</span><span id="__span-37-2"><a id="__codelineno-37-2" name="__codelineno-37-2" href="#__codelineno-37-2"></a>redis-cli<span class="w"> </span>-h<span class="w"> </span><span class="m">192</span>.168.7.1<span class="w"> </span>LPUSH<span class="w"> </span>scooter:horn<span class="w"> </span>on
+</span><span id="__span-37-3"><a id="__codelineno-37-3" name="__codelineno-37-3" href="#__codelineno-37-3"></a>
+</span><span id="__span-37-4"><a id="__codelineno-37-4" name="__codelineno-37-4" href="#__codelineno-37-4"></a><span class="c1"># Turn horn off</span>
+</span><span id="__span-37-5"><a id="__codelineno-37-5" name="__codelineno-37-5" href="#__codelineno-37-5"></a>redis-cli<span class="w"> </span>-h<span class="w"> </span><span class="m">192</span>.168.7.1<span class="w"> </span>LPUSH<span class="w"> </span>scooter:horn<span class="w"> </span>off
 </span></code></pre></div>
 <p><strong>Available commands</strong>: <code>on</code>, <code>off</code></p>
 <h3 id="blinker-control-scooterblinker">Blinker Control (<code>scooter:blinker</code>)<a class="headerlink" href="#blinker-control-scooterblinker" title="Permanent link">&para;</a></h3>
 <p>Controls the turn signals/blinkers.</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-37-1"><a id="__codelineno-37-1" name="__codelineno-37-1" href="#__codelineno-37-1"></a><span class="c1"># Left blinker</span>
-</span><span id="__span-37-2"><a id="__codelineno-37-2" name="__codelineno-37-2" href="#__codelineno-37-2"></a>redis-cli<span class="w"> </span>-h<span class="w"> </span><span class="m">192</span>.168.7.1<span class="w"> </span>LPUSH<span class="w"> </span>scooter:blinker<span class="w"> </span>left
-</span><span id="__span-37-3"><a id="__codelineno-37-3" name="__codelineno-37-3" href="#__codelineno-37-3"></a>
-</span><span id="__span-37-4"><a id="__codelineno-37-4" name="__codelineno-37-4" href="#__codelineno-37-4"></a><span class="c1"># Right blinker</span>
-</span><span id="__span-37-5"><a id="__codelineno-37-5" name="__codelineno-37-5" href="#__codelineno-37-5"></a>redis-cli<span class="w"> </span>-h<span class="w"> </span><span class="m">192</span>.168.7.1<span class="w"> </span>LPUSH<span class="w"> </span>scooter:blinker<span class="w"> </span>right
-</span><span id="__span-37-6"><a id="__codelineno-37-6" name="__codelineno-37-6" href="#__codelineno-37-6"></a>
-</span><span id="__span-37-7"><a id="__codelineno-37-7" name="__codelineno-37-7" href="#__codelineno-37-7"></a><span class="c1"># Hazard mode (both blinkers)</span>
-</span><span id="__span-37-8"><a id="__codelineno-37-8" name="__codelineno-37-8" href="#__codelineno-37-8"></a>redis-cli<span class="w"> </span>-h<span class="w"> </span><span class="m">192</span>.168.7.1<span class="w"> </span>LPUSH<span class="w"> </span>scooter:blinker<span class="w"> </span>both
-</span><span id="__span-37-9"><a id="__codelineno-37-9" name="__codelineno-37-9" href="#__codelineno-37-9"></a>
-</span><span id="__span-37-10"><a id="__codelineno-37-10" name="__codelineno-37-10" href="#__codelineno-37-10"></a><span class="c1"># Turn off blinkers</span>
-</span><span id="__span-37-11"><a id="__codelineno-37-11" name="__codelineno-37-11" href="#__codelineno-37-11"></a>redis-cli<span class="w"> </span>-h<span class="w"> </span><span class="m">192</span>.168.7.1<span class="w"> </span>LPUSH<span class="w"> </span>scooter:blinker<span class="w"> </span>off
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-38-1"><a id="__codelineno-38-1" name="__codelineno-38-1" href="#__codelineno-38-1"></a><span class="c1"># Left blinker</span>
+</span><span id="__span-38-2"><a id="__codelineno-38-2" name="__codelineno-38-2" href="#__codelineno-38-2"></a>redis-cli<span class="w"> </span>-h<span class="w"> </span><span class="m">192</span>.168.7.1<span class="w"> </span>LPUSH<span class="w"> </span>scooter:blinker<span class="w"> </span>left
+</span><span id="__span-38-3"><a id="__codelineno-38-3" name="__codelineno-38-3" href="#__codelineno-38-3"></a>
+</span><span id="__span-38-4"><a id="__codelineno-38-4" name="__codelineno-38-4" href="#__codelineno-38-4"></a><span class="c1"># Right blinker</span>
+</span><span id="__span-38-5"><a id="__codelineno-38-5" name="__codelineno-38-5" href="#__codelineno-38-5"></a>redis-cli<span class="w"> </span>-h<span class="w"> </span><span class="m">192</span>.168.7.1<span class="w"> </span>LPUSH<span class="w"> </span>scooter:blinker<span class="w"> </span>right
+</span><span id="__span-38-6"><a id="__codelineno-38-6" name="__codelineno-38-6" href="#__codelineno-38-6"></a>
+</span><span id="__span-38-7"><a id="__codelineno-38-7" name="__codelineno-38-7" href="#__codelineno-38-7"></a><span class="c1"># Hazard mode (both blinkers)</span>
+</span><span id="__span-38-8"><a id="__codelineno-38-8" name="__codelineno-38-8" href="#__codelineno-38-8"></a>redis-cli<span class="w"> </span>-h<span class="w"> </span><span class="m">192</span>.168.7.1<span class="w"> </span>LPUSH<span class="w"> </span>scooter:blinker<span class="w"> </span>both
+</span><span id="__span-38-9"><a id="__codelineno-38-9" name="__codelineno-38-9" href="#__codelineno-38-9"></a>
+</span><span id="__span-38-10"><a id="__codelineno-38-10" name="__codelineno-38-10" href="#__codelineno-38-10"></a><span class="c1"># Turn off blinkers</span>
+</span><span id="__span-38-11"><a id="__codelineno-38-11" name="__codelineno-38-11" href="#__codelineno-38-11"></a>redis-cli<span class="w"> </span>-h<span class="w"> </span><span class="m">192</span>.168.7.1<span class="w"> </span>LPUSH<span class="w"> </span>scooter:blinker<span class="w"> </span>off
 </span></code></pre></div>
 <p><strong>Available commands</strong>: <code>left</code>, <code>right</code>, <code>both</code>, <code>off</code></p>
 <h3 id="alarm-control-scooteralarm-librescoot-only">Alarm Control (<code>scooter:alarm</code>) - Librescoot Only<a class="headerlink" href="#alarm-control-scooteralarm-librescoot-only" title="Permanent link">&para;</a></h3>
 <p>Controls the motion-based alarm system.</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-38-1"><a id="__codelineno-38-1" name="__codelineno-38-1" href="#__codelineno-38-1"></a><span class="c1"># Enable alarm system (persists settings.alarm.enabled=true)</span>
-</span><span id="__span-38-2"><a id="__codelineno-38-2" name="__codelineno-38-2" href="#__codelineno-38-2"></a>redis-cli<span class="w"> </span>-h<span class="w"> </span><span class="m">192</span>.168.7.1<span class="w"> </span>LPUSH<span class="w"> </span>scooter:alarm<span class="w"> </span><span class="nb">enable</span>
-</span><span id="__span-38-3"><a id="__codelineno-38-3" name="__codelineno-38-3" href="#__codelineno-38-3"></a>
-</span><span id="__span-38-4"><a id="__codelineno-38-4" name="__codelineno-38-4" href="#__codelineno-38-4"></a><span class="c1"># Disable alarm system (persists settings.alarm.enabled=false)</span>
-</span><span id="__span-38-5"><a id="__codelineno-38-5" name="__codelineno-38-5" href="#__codelineno-38-5"></a>redis-cli<span class="w"> </span>-h<span class="w"> </span><span class="m">192</span>.168.7.1<span class="w"> </span>LPUSH<span class="w"> </span>scooter:alarm<span class="w"> </span>disable
-</span><span id="__span-38-6"><a id="__codelineno-38-6" name="__codelineno-38-6" href="#__codelineno-38-6"></a>
-</span><span id="__span-38-7"><a id="__codelineno-38-7" name="__codelineno-38-7" href="#__codelineno-38-7"></a><span class="c1"># Runtime arm/disarm (does not change settings.alarm.enabled)</span>
-</span><span id="__span-38-8"><a id="__codelineno-38-8" name="__codelineno-38-8" href="#__codelineno-38-8"></a>redis-cli<span class="w"> </span>-h<span class="w"> </span><span class="m">192</span>.168.7.1<span class="w"> </span>LPUSH<span class="w"> </span>scooter:alarm<span class="w"> </span>arm
-</span><span id="__span-38-9"><a id="__codelineno-38-9" name="__codelineno-38-9" href="#__codelineno-38-9"></a>redis-cli<span class="w"> </span>-h<span class="w"> </span><span class="m">192</span>.168.7.1<span class="w"> </span>LPUSH<span class="w"> </span>scooter:alarm<span class="w"> </span>disarm
-</span><span id="__span-38-10"><a id="__codelineno-38-10" name="__codelineno-38-10" href="#__codelineno-38-10"></a>
-</span><span id="__span-38-11"><a id="__codelineno-38-11" name="__codelineno-38-11" href="#__codelineno-38-11"></a><span class="c1"># Manual alarm trigger (30 seconds)</span>
-</span><span id="__span-38-12"><a id="__codelineno-38-12" name="__codelineno-38-12" href="#__codelineno-38-12"></a>redis-cli<span class="w"> </span>-h<span class="w"> </span><span class="m">192</span>.168.7.1<span class="w"> </span>LPUSH<span class="w"> </span>scooter:alarm<span class="w"> </span>start:30
-</span><span id="__span-38-13"><a id="__codelineno-38-13" name="__codelineno-38-13" href="#__codelineno-38-13"></a>
-</span><span id="__span-38-14"><a id="__codelineno-38-14" name="__codelineno-38-14" href="#__codelineno-38-14"></a><span class="c1"># Stop alarm immediately</span>
-</span><span id="__span-38-15"><a id="__codelineno-38-15" name="__codelineno-38-15" href="#__codelineno-38-15"></a>redis-cli<span class="w"> </span>-h<span class="w"> </span><span class="m">192</span>.168.7.1<span class="w"> </span>LPUSH<span class="w"> </span>scooter:alarm<span class="w"> </span>stop
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-39-1"><a id="__codelineno-39-1" name="__codelineno-39-1" href="#__codelineno-39-1"></a><span class="c1"># Enable alarm system (persists settings.alarm.enabled=true)</span>
+</span><span id="__span-39-2"><a id="__codelineno-39-2" name="__codelineno-39-2" href="#__codelineno-39-2"></a>redis-cli<span class="w"> </span>-h<span class="w"> </span><span class="m">192</span>.168.7.1<span class="w"> </span>LPUSH<span class="w"> </span>scooter:alarm<span class="w"> </span><span class="nb">enable</span>
+</span><span id="__span-39-3"><a id="__codelineno-39-3" name="__codelineno-39-3" href="#__codelineno-39-3"></a>
+</span><span id="__span-39-4"><a id="__codelineno-39-4" name="__codelineno-39-4" href="#__codelineno-39-4"></a><span class="c1"># Disable alarm system (persists settings.alarm.enabled=false)</span>
+</span><span id="__span-39-5"><a id="__codelineno-39-5" name="__codelineno-39-5" href="#__codelineno-39-5"></a>redis-cli<span class="w"> </span>-h<span class="w"> </span><span class="m">192</span>.168.7.1<span class="w"> </span>LPUSH<span class="w"> </span>scooter:alarm<span class="w"> </span>disable
+</span><span id="__span-39-6"><a id="__codelineno-39-6" name="__codelineno-39-6" href="#__codelineno-39-6"></a>
+</span><span id="__span-39-7"><a id="__codelineno-39-7" name="__codelineno-39-7" href="#__codelineno-39-7"></a><span class="c1"># Runtime arm/disarm (does not change settings.alarm.enabled)</span>
+</span><span id="__span-39-8"><a id="__codelineno-39-8" name="__codelineno-39-8" href="#__codelineno-39-8"></a>redis-cli<span class="w"> </span>-h<span class="w"> </span><span class="m">192</span>.168.7.1<span class="w"> </span>LPUSH<span class="w"> </span>scooter:alarm<span class="w"> </span>arm
+</span><span id="__span-39-9"><a id="__codelineno-39-9" name="__codelineno-39-9" href="#__codelineno-39-9"></a>redis-cli<span class="w"> </span>-h<span class="w"> </span><span class="m">192</span>.168.7.1<span class="w"> </span>LPUSH<span class="w"> </span>scooter:alarm<span class="w"> </span>disarm
+</span><span id="__span-39-10"><a id="__codelineno-39-10" name="__codelineno-39-10" href="#__codelineno-39-10"></a>
+</span><span id="__span-39-11"><a id="__codelineno-39-11" name="__codelineno-39-11" href="#__codelineno-39-11"></a><span class="c1"># Manual alarm trigger (30 seconds)</span>
+</span><span id="__span-39-12"><a id="__codelineno-39-12" name="__codelineno-39-12" href="#__codelineno-39-12"></a>redis-cli<span class="w"> </span>-h<span class="w"> </span><span class="m">192</span>.168.7.1<span class="w"> </span>LPUSH<span class="w"> </span>scooter:alarm<span class="w"> </span>start:30
+</span><span id="__span-39-13"><a id="__codelineno-39-13" name="__codelineno-39-13" href="#__codelineno-39-13"></a>
+</span><span id="__span-39-14"><a id="__codelineno-39-14" name="__codelineno-39-14" href="#__codelineno-39-14"></a><span class="c1"># Stop alarm immediately</span>
+</span><span id="__span-39-15"><a id="__codelineno-39-15" name="__codelineno-39-15" href="#__codelineno-39-15"></a>redis-cli<span class="w"> </span>-h<span class="w"> </span><span class="m">192</span>.168.7.1<span class="w"> </span>LPUSH<span class="w"> </span>scooter:alarm<span class="w"> </span>stop
 </span></code></pre></div>
 <p><strong>Available commands</strong>: <code>enable</code>, <code>disable</code>, <code>arm</code>, <code>disarm</code>, <code>start:&lt;seconds&gt;</code>, <code>stop</code></p>
 <h3 id="motion-sensor-control-librescoot-only">Motion Sensor Control - Librescoot Only<a class="headerlink" href="#motion-sensor-control-librescoot-only" title="Permanent link">&para;</a></h3>
@@ -5668,38 +5743,38 @@ channel to use for anything that counts or reacts to discrete user actions.</p>
 <p>The remaining manual controls are RPC methods on <code>motion:rpc</code>. See <a href="#motion--imu-motion---librescoot-only">Motion / IMU (<code>motion</code>)</a>.</p>
 <h3 id="power-control-scooterpower-librescoot-enhanced">Power Control (<code>scooter:power</code>) - Librescoot Enhanced<a class="headerlink" href="#power-control-scooterpower-librescoot-enhanced" title="Permanent link">&para;</a></h3>
 <p>Librescoot adds more power control commands:</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-39-1"><a id="__codelineno-39-1" name="__codelineno-39-1" href="#__codelineno-39-1"></a><span class="c1"># Request running state (highest priority)</span>
-</span><span id="__span-39-2"><a id="__codelineno-39-2" name="__codelineno-39-2" href="#__codelineno-39-2"></a>redis-cli<span class="w"> </span>-h<span class="w"> </span><span class="m">192</span>.168.7.1<span class="w"> </span>LPUSH<span class="w"> </span>scooter:power<span class="w"> </span>run
-</span><span id="__span-39-3"><a id="__codelineno-39-3" name="__codelineno-39-3" href="#__codelineno-39-3"></a>
-</span><span id="__span-39-4"><a id="__codelineno-39-4" name="__codelineno-39-4" href="#__codelineno-39-4"></a><span class="c1"># Request suspend</span>
-</span><span id="__span-39-5"><a id="__codelineno-39-5" name="__codelineno-39-5" href="#__codelineno-39-5"></a>redis-cli<span class="w"> </span>-h<span class="w"> </span><span class="m">192</span>.168.7.1<span class="w"> </span>LPUSH<span class="w"> </span>scooter:power<span class="w"> </span><span class="nb">suspend</span>
-</span><span id="__span-39-6"><a id="__codelineno-39-6" name="__codelineno-39-6" href="#__codelineno-39-6"></a>
-</span><span id="__span-39-7"><a id="__codelineno-39-7" name="__codelineno-39-7" href="#__codelineno-39-7"></a><span class="c1"># Request hibernation</span>
-</span><span id="__span-39-8"><a id="__codelineno-39-8" name="__codelineno-39-8" href="#__codelineno-39-8"></a>redis-cli<span class="w"> </span>-h<span class="w"> </span><span class="m">192</span>.168.7.1<span class="w"> </span>LPUSH<span class="w"> </span>scooter:power<span class="w"> </span>hibernate
-</span><span id="__span-39-9"><a id="__codelineno-39-9" name="__codelineno-39-9" href="#__codelineno-39-9"></a>
-</span><span id="__span-39-10"><a id="__codelineno-39-10" name="__codelineno-39-10" href="#__codelineno-39-10"></a><span class="c1"># Manual hibernation (user-initiated)</span>
-</span><span id="__span-39-11"><a id="__codelineno-39-11" name="__codelineno-39-11" href="#__codelineno-39-11"></a>redis-cli<span class="w"> </span>-h<span class="w"> </span><span class="m">192</span>.168.7.1<span class="w"> </span>LPUSH<span class="w"> </span>scooter:power<span class="w"> </span>hibernate-manual
-</span><span id="__span-39-12"><a id="__codelineno-39-12" name="__codelineno-39-12" href="#__codelineno-39-12"></a>
-</span><span id="__span-39-13"><a id="__codelineno-39-13" name="__codelineno-39-13" href="#__codelineno-39-13"></a><span class="c1"># Timer-based hibernation</span>
-</span><span id="__span-39-14"><a id="__codelineno-39-14" name="__codelineno-39-14" href="#__codelineno-39-14"></a>redis-cli<span class="w"> </span>-h<span class="w"> </span><span class="m">192</span>.168.7.1<span class="w"> </span>LPUSH<span class="w"> </span>scooter:power<span class="w"> </span>hibernate-timer
-</span><span id="__span-39-15"><a id="__codelineno-39-15" name="__codelineno-39-15" href="#__codelineno-39-15"></a>
-</span><span id="__span-39-16"><a id="__codelineno-39-16" name="__codelineno-39-16" href="#__codelineno-39-16"></a><span class="c1"># Hibernate for a specific duration; nRF52 wakes the iMX6 after N seconds</span>
-</span><span id="__span-39-17"><a id="__codelineno-39-17" name="__codelineno-39-17" href="#__codelineno-39-17"></a>redis-cli<span class="w"> </span>-h<span class="w"> </span><span class="m">192</span>.168.7.1<span class="w"> </span>LPUSH<span class="w"> </span>scooter:power<span class="w"> </span><span class="s2">"hibernate-for:300"</span>
-</span><span id="__span-39-18"><a id="__codelineno-39-18" name="__codelineno-39-18" href="#__codelineno-39-18"></a>
-</span><span id="__span-39-19"><a id="__codelineno-39-19" name="__codelineno-39-19" href="#__codelineno-39-19"></a><span class="c1"># Cancel a pending hibernate-for and disarm the wake timer</span>
-</span><span id="__span-39-20"><a id="__codelineno-39-20" name="__codelineno-39-20" href="#__codelineno-39-20"></a>redis-cli<span class="w"> </span>-h<span class="w"> </span><span class="m">192</span>.168.7.1<span class="w"> </span>LPUSH<span class="w"> </span>scooter:power<span class="w"> </span>hibernate-cancel
-</span><span id="__span-39-21"><a id="__codelineno-39-21" name="__codelineno-39-21" href="#__codelineno-39-21"></a>
-</span><span id="__span-39-22"><a id="__codelineno-39-22" name="__codelineno-39-22" href="#__codelineno-39-22"></a><span class="c1"># Reboot system</span>
-</span><span id="__span-39-23"><a id="__codelineno-39-23" name="__codelineno-39-23" href="#__codelineno-39-23"></a>redis-cli<span class="w"> </span>-h<span class="w"> </span><span class="m">192</span>.168.7.1<span class="w"> </span>LPUSH<span class="w"> </span>scooter:power<span class="w"> </span>reboot
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-40-1"><a id="__codelineno-40-1" name="__codelineno-40-1" href="#__codelineno-40-1"></a><span class="c1"># Request running state (highest priority)</span>
+</span><span id="__span-40-2"><a id="__codelineno-40-2" name="__codelineno-40-2" href="#__codelineno-40-2"></a>redis-cli<span class="w"> </span>-h<span class="w"> </span><span class="m">192</span>.168.7.1<span class="w"> </span>LPUSH<span class="w"> </span>scooter:power<span class="w"> </span>run
+</span><span id="__span-40-3"><a id="__codelineno-40-3" name="__codelineno-40-3" href="#__codelineno-40-3"></a>
+</span><span id="__span-40-4"><a id="__codelineno-40-4" name="__codelineno-40-4" href="#__codelineno-40-4"></a><span class="c1"># Request suspend</span>
+</span><span id="__span-40-5"><a id="__codelineno-40-5" name="__codelineno-40-5" href="#__codelineno-40-5"></a>redis-cli<span class="w"> </span>-h<span class="w"> </span><span class="m">192</span>.168.7.1<span class="w"> </span>LPUSH<span class="w"> </span>scooter:power<span class="w"> </span><span class="nb">suspend</span>
+</span><span id="__span-40-6"><a id="__codelineno-40-6" name="__codelineno-40-6" href="#__codelineno-40-6"></a>
+</span><span id="__span-40-7"><a id="__codelineno-40-7" name="__codelineno-40-7" href="#__codelineno-40-7"></a><span class="c1"># Request hibernation</span>
+</span><span id="__span-40-8"><a id="__codelineno-40-8" name="__codelineno-40-8" href="#__codelineno-40-8"></a>redis-cli<span class="w"> </span>-h<span class="w"> </span><span class="m">192</span>.168.7.1<span class="w"> </span>LPUSH<span class="w"> </span>scooter:power<span class="w"> </span>hibernate
+</span><span id="__span-40-9"><a id="__codelineno-40-9" name="__codelineno-40-9" href="#__codelineno-40-9"></a>
+</span><span id="__span-40-10"><a id="__codelineno-40-10" name="__codelineno-40-10" href="#__codelineno-40-10"></a><span class="c1"># Manual hibernation (user-initiated)</span>
+</span><span id="__span-40-11"><a id="__codelineno-40-11" name="__codelineno-40-11" href="#__codelineno-40-11"></a>redis-cli<span class="w"> </span>-h<span class="w"> </span><span class="m">192</span>.168.7.1<span class="w"> </span>LPUSH<span class="w"> </span>scooter:power<span class="w"> </span>hibernate-manual
+</span><span id="__span-40-12"><a id="__codelineno-40-12" name="__codelineno-40-12" href="#__codelineno-40-12"></a>
+</span><span id="__span-40-13"><a id="__codelineno-40-13" name="__codelineno-40-13" href="#__codelineno-40-13"></a><span class="c1"># Timer-based hibernation</span>
+</span><span id="__span-40-14"><a id="__codelineno-40-14" name="__codelineno-40-14" href="#__codelineno-40-14"></a>redis-cli<span class="w"> </span>-h<span class="w"> </span><span class="m">192</span>.168.7.1<span class="w"> </span>LPUSH<span class="w"> </span>scooter:power<span class="w"> </span>hibernate-timer
+</span><span id="__span-40-15"><a id="__codelineno-40-15" name="__codelineno-40-15" href="#__codelineno-40-15"></a>
+</span><span id="__span-40-16"><a id="__codelineno-40-16" name="__codelineno-40-16" href="#__codelineno-40-16"></a><span class="c1"># Hibernate for a specific duration; nRF52 wakes the iMX6 after N seconds</span>
+</span><span id="__span-40-17"><a id="__codelineno-40-17" name="__codelineno-40-17" href="#__codelineno-40-17"></a>redis-cli<span class="w"> </span>-h<span class="w"> </span><span class="m">192</span>.168.7.1<span class="w"> </span>LPUSH<span class="w"> </span>scooter:power<span class="w"> </span><span class="s2">"hibernate-for:300"</span>
+</span><span id="__span-40-18"><a id="__codelineno-40-18" name="__codelineno-40-18" href="#__codelineno-40-18"></a>
+</span><span id="__span-40-19"><a id="__codelineno-40-19" name="__codelineno-40-19" href="#__codelineno-40-19"></a><span class="c1"># Cancel a pending hibernate-for and disarm the wake timer</span>
+</span><span id="__span-40-20"><a id="__codelineno-40-20" name="__codelineno-40-20" href="#__codelineno-40-20"></a>redis-cli<span class="w"> </span>-h<span class="w"> </span><span class="m">192</span>.168.7.1<span class="w"> </span>LPUSH<span class="w"> </span>scooter:power<span class="w"> </span>hibernate-cancel
+</span><span id="__span-40-21"><a id="__codelineno-40-21" name="__codelineno-40-21" href="#__codelineno-40-21"></a>
+</span><span id="__span-40-22"><a id="__codelineno-40-22" name="__codelineno-40-22" href="#__codelineno-40-22"></a><span class="c1"># Reboot system</span>
+</span><span id="__span-40-23"><a id="__codelineno-40-23" name="__codelineno-40-23" href="#__codelineno-40-23"></a>redis-cli<span class="w"> </span>-h<span class="w"> </span><span class="m">192</span>.168.7.1<span class="w"> </span>LPUSH<span class="w"> </span>scooter:power<span class="w"> </span>reboot
 </span></code></pre></div>
 <p><strong>Available commands</strong>: <code>run</code>, <code>suspend</code>, <code>hibernate</code>, <code>hibernate-manual</code>, <code>hibernate-timer</code>, <code>hibernate-for:&lt;seconds&gt;</code>, <code>hibernate-cancel</code>, <code>reboot</code></p>
 <h3 id="modem-control-scootermodem-librescoot-only">Modem Control (<code>scooter:modem</code>) - Librescoot Only<a class="headerlink" href="#modem-control-scootermodem-librescoot-only" title="Permanent link">&para;</a></h3>
 <p>Controls modem power state.</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-40-1"><a id="__codelineno-40-1" name="__codelineno-40-1" href="#__codelineno-40-1"></a><span class="c1"># Enable modem</span>
-</span><span id="__span-40-2"><a id="__codelineno-40-2" name="__codelineno-40-2" href="#__codelineno-40-2"></a>redis-cli<span class="w"> </span>-h<span class="w"> </span><span class="m">192</span>.168.7.1<span class="w"> </span>LPUSH<span class="w"> </span>scooter:modem<span class="w"> </span><span class="nb">enable</span>
-</span><span id="__span-40-3"><a id="__codelineno-40-3" name="__codelineno-40-3" href="#__codelineno-40-3"></a>
-</span><span id="__span-40-4"><a id="__codelineno-40-4" name="__codelineno-40-4" href="#__codelineno-40-4"></a><span class="c1"># Disable modem</span>
-</span><span id="__span-40-5"><a id="__codelineno-40-5" name="__codelineno-40-5" href="#__codelineno-40-5"></a>redis-cli<span class="w"> </span>-h<span class="w"> </span><span class="m">192</span>.168.7.1<span class="w"> </span>LPUSH<span class="w"> </span>scooter:modem<span class="w"> </span>disable
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-41-1"><a id="__codelineno-41-1" name="__codelineno-41-1" href="#__codelineno-41-1"></a><span class="c1"># Enable modem</span>
+</span><span id="__span-41-2"><a id="__codelineno-41-2" name="__codelineno-41-2" href="#__codelineno-41-2"></a>redis-cli<span class="w"> </span>-h<span class="w"> </span><span class="m">192</span>.168.7.1<span class="w"> </span>LPUSH<span class="w"> </span>scooter:modem<span class="w"> </span><span class="nb">enable</span>
+</span><span id="__span-41-3"><a id="__codelineno-41-3" name="__codelineno-41-3" href="#__codelineno-41-3"></a>
+</span><span id="__span-41-4"><a id="__codelineno-41-4" name="__codelineno-41-4" href="#__codelineno-41-4"></a><span class="c1"># Disable modem</span>
+</span><span id="__span-41-5"><a id="__codelineno-41-5" name="__codelineno-41-5" href="#__codelineno-41-5"></a>redis-cli<span class="w"> </span>-h<span class="w"> </span><span class="m">192</span>.168.7.1<span class="w"> </span>LPUSH<span class="w"> </span>scooter:modem<span class="w"> </span>disable
 </span></code></pre></div>
 <p><strong>Available commands</strong>: <code>enable</code>, <code>disable</code></p>
 <p>There are no GPS commands; modem-service manages GPS automatically based on connectivity state. The <code>modem.gps</code> setting toggles GPS overall.</p>
@@ -5708,26 +5783,26 @@ channel to use for anything that counts or reacts to discrete user actions.</p>
 commands), the payload is JSON, because a send needs both a recipient and a
 body. The optional <code>id</code> token is echoed back as <code>request-id</code> on the <code>sms:sent</code>
 stream so concurrent senders can correlate outcomes:</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-41-1"><a id="__codelineno-41-1" name="__codelineno-41-1" href="#__codelineno-41-1"></a>redis-cli<span class="w"> </span>-h<span class="w"> </span><span class="m">192</span>.168.7.1<span class="w"> </span>LPUSH<span class="w"> </span>scooter:sms<span class="w"> </span><span class="s1">'{"to":"+4915112345678","text":"Hello from the scooter"}'</span>
-</span><span id="__span-41-2"><a id="__codelineno-41-2" name="__codelineno-41-2" href="#__codelineno-41-2"></a>redis-cli<span class="w"> </span>-h<span class="w"> </span><span class="m">192</span>.168.7.1<span class="w"> </span>LPUSH<span class="w"> </span>scooter:sms<span class="w"> </span><span class="s1">'{"id":"trip-42","to":"+4915112345678","text":"Hello"}'</span>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-42-1"><a id="__codelineno-42-1" name="__codelineno-42-1" href="#__codelineno-42-1"></a>redis-cli<span class="w"> </span>-h<span class="w"> </span><span class="m">192</span>.168.7.1<span class="w"> </span>LPUSH<span class="w"> </span>scooter:sms<span class="w"> </span><span class="s1">'{"to":"+4915112345678","text":"Hello from the scooter"}'</span>
+</span><span id="__span-42-2"><a id="__codelineno-42-2" name="__codelineno-42-2" href="#__codelineno-42-2"></a>redis-cli<span class="w"> </span>-h<span class="w"> </span><span class="m">192</span>.168.7.1<span class="w"> </span>LPUSH<span class="w"> </span>scooter:sms<span class="w"> </span><span class="s1">'{"id":"trip-42","to":"+4915112345678","text":"Hello"}'</span>
 </span></code></pre></div>
 <p>The terminal outcome lands on the <code>sms:sent</code> stream/channel; send progress is
 also reflected in the <code>sms</code> hash (<code>state</code> goes <code>sending</code>, then <code>idle</code> or
 <code>error</code>).</p>
 <h3 id="update-control-scooterupdate-scooterupdatemdb-scooterupdatedbc-librescoot-only">Update Control (<code>scooter:update</code>, <code>scooter:update:mdb</code>, <code>scooter:update:dbc</code>) - Librescoot Only<a class="headerlink" href="#update-control-scooterupdate-scooterupdatemdb-scooterupdatedbc-librescoot-only" title="Permanent link">&para;</a></h3>
 <p>Controls the OTA update system. Per-component lists target one updater instance.</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-42-1"><a id="__codelineno-42-1" name="__codelineno-42-1" href="#__codelineno-42-1"></a><span class="c1"># Force immediate update check on one component</span>
-</span><span id="__span-42-2"><a id="__codelineno-42-2" name="__codelineno-42-2" href="#__codelineno-42-2"></a>redis-cli<span class="w"> </span>-h<span class="w"> </span><span class="m">192</span>.168.7.1<span class="w"> </span>LPUSH<span class="w"> </span>scooter:update:mdb<span class="w"> </span>check-now
-</span><span id="__span-42-3"><a id="__codelineno-42-3" name="__codelineno-42-3" href="#__codelineno-42-3"></a>
-</span><span id="__span-42-4"><a id="__codelineno-42-4" name="__codelineno-42-4" href="#__codelineno-42-4"></a><span class="c1"># Install from a local file (optional checksum)</span>
-</span><span id="__span-42-5"><a id="__codelineno-42-5" name="__codelineno-42-5" href="#__codelineno-42-5"></a>redis-cli<span class="w"> </span>-h<span class="w"> </span><span class="m">192</span>.168.7.1<span class="w"> </span>LPUSH<span class="w"> </span>scooter:update:dbc<span class="w"> </span><span class="s2">"update-from-file:/data/ota/image.mender#sha256=&lt;hex&gt;"</span>
-</span><span id="__span-42-6"><a id="__codelineno-42-6" name="__codelineno-42-6" href="#__codelineno-42-6"></a>
-</span><span id="__span-42-7"><a id="__codelineno-42-7" name="__codelineno-42-7" href="#__codelineno-42-7"></a><span class="c1"># Install from a URL</span>
-</span><span id="__span-42-8"><a id="__codelineno-42-8" name="__codelineno-42-8" href="#__codelineno-42-8"></a>redis-cli<span class="w"> </span>-h<span class="w"> </span><span class="m">192</span>.168.7.1<span class="w"> </span>LPUSH<span class="w"> </span>scooter:update:mdb<span class="w"> </span><span class="s2">"update-from-url:https://example.com/update.mender"</span>
-</span><span id="__span-42-9"><a id="__codelineno-42-9" name="__codelineno-42-9" href="#__codelineno-42-9"></a>
-</span><span id="__span-42-10"><a id="__codelineno-42-10" name="__codelineno-42-10" href="#__codelineno-42-10"></a><span class="c1"># Ask what a switch to another channel would download (changes nothing)</span>
-</span><span id="__span-42-11"><a id="__codelineno-42-11" name="__codelineno-42-11" href="#__codelineno-42-11"></a>redis-cli<span class="w"> </span>-h<span class="w"> </span><span class="m">192</span>.168.7.1<span class="w"> </span>LPUSH<span class="w"> </span>scooter:update:mdb<span class="w"> </span>preview-channel:stable
-</span><span id="__span-42-12"><a id="__codelineno-42-12" name="__codelineno-42-12" href="#__codelineno-42-12"></a>redis-cli<span class="w"> </span>-h<span class="w"> </span><span class="m">192</span>.168.7.1<span class="w"> </span>HMGET<span class="w"> </span>ota<span class="w"> </span>preview-status:mdb<span class="w"> </span>preview-version:mdb<span class="w"> </span>preview-size:mdb
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-43-1"><a id="__codelineno-43-1" name="__codelineno-43-1" href="#__codelineno-43-1"></a><span class="c1"># Force immediate update check on one component</span>
+</span><span id="__span-43-2"><a id="__codelineno-43-2" name="__codelineno-43-2" href="#__codelineno-43-2"></a>redis-cli<span class="w"> </span>-h<span class="w"> </span><span class="m">192</span>.168.7.1<span class="w"> </span>LPUSH<span class="w"> </span>scooter:update:mdb<span class="w"> </span>check-now
+</span><span id="__span-43-3"><a id="__codelineno-43-3" name="__codelineno-43-3" href="#__codelineno-43-3"></a>
+</span><span id="__span-43-4"><a id="__codelineno-43-4" name="__codelineno-43-4" href="#__codelineno-43-4"></a><span class="c1"># Install from a local file (optional checksum)</span>
+</span><span id="__span-43-5"><a id="__codelineno-43-5" name="__codelineno-43-5" href="#__codelineno-43-5"></a>redis-cli<span class="w"> </span>-h<span class="w"> </span><span class="m">192</span>.168.7.1<span class="w"> </span>LPUSH<span class="w"> </span>scooter:update:dbc<span class="w"> </span><span class="s2">"update-from-file:/data/ota/image.mender#sha256=&lt;hex&gt;"</span>
+</span><span id="__span-43-6"><a id="__codelineno-43-6" name="__codelineno-43-6" href="#__codelineno-43-6"></a>
+</span><span id="__span-43-7"><a id="__codelineno-43-7" name="__codelineno-43-7" href="#__codelineno-43-7"></a><span class="c1"># Install from a URL</span>
+</span><span id="__span-43-8"><a id="__codelineno-43-8" name="__codelineno-43-8" href="#__codelineno-43-8"></a>redis-cli<span class="w"> </span>-h<span class="w"> </span><span class="m">192</span>.168.7.1<span class="w"> </span>LPUSH<span class="w"> </span>scooter:update:mdb<span class="w"> </span><span class="s2">"update-from-url:https://example.com/update.mender"</span>
+</span><span id="__span-43-9"><a id="__codelineno-43-9" name="__codelineno-43-9" href="#__codelineno-43-9"></a>
+</span><span id="__span-43-10"><a id="__codelineno-43-10" name="__codelineno-43-10" href="#__codelineno-43-10"></a><span class="c1"># Ask what a switch to another channel would download (changes nothing)</span>
+</span><span id="__span-43-11"><a id="__codelineno-43-11" name="__codelineno-43-11" href="#__codelineno-43-11"></a>redis-cli<span class="w"> </span>-h<span class="w"> </span><span class="m">192</span>.168.7.1<span class="w"> </span>LPUSH<span class="w"> </span>scooter:update:mdb<span class="w"> </span>preview-channel:stable
+</span><span id="__span-43-12"><a id="__codelineno-43-12" name="__codelineno-43-12" href="#__codelineno-43-12"></a>redis-cli<span class="w"> </span>-h<span class="w"> </span><span class="m">192</span>.168.7.1<span class="w"> </span>HMGET<span class="w"> </span>ota<span class="w"> </span>preview-status:mdb<span class="w"> </span>preview-version:mdb<span class="w"> </span>preview-size:mdb
 </span></code></pre></div>
 <p><strong>Per-component commands</strong> (<code>scooter:update:mdb</code> / <code>scooter:update:dbc</code>): <code>check-now</code>, <code>preview-channel:&lt;channel&gt;</code>, <code>update-from-file:&lt;path&gt;[#sha256=&lt;hex&gt;]</code>, <code>update-from-url:&lt;url&gt;[#sha256=&lt;hex&gt;]</code></p>
 <p><code>preview-channel:&lt;channel&gt;</code> reports the latest release on <code>&lt;channel&gt;</code> for this
@@ -5738,16 +5813,16 @@ price a channel switch before asking the rider to confirm.</p>
 <p>See <a href="../services/librescoot-update/">update-service documentation</a>.</p>
 <h3 id="settings-overlay-control-settingsoverlay-librescoot-only">Settings Overlay Control (<code>settings:overlay</code>) - Librescoot Only<a class="headerlink" href="#settings-overlay-control-settingsoverlay-librescoot-only" title="Permanent link">&para;</a></h3>
 <p>Apply or clear a named settings overlay. See <a href="#settings-overlay-commands-settingsoverlay---librescoot-only">Settings Overlay Commands</a> above for full details.</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-43-1"><a id="__codelineno-43-1" name="__codelineno-43-1" href="#__codelineno-43-1"></a><span class="c1"># Enable Service mode</span>
-</span><span id="__span-43-2"><a id="__codelineno-43-2" name="__codelineno-43-2" href="#__codelineno-43-2"></a>redis-cli<span class="w"> </span>-h<span class="w"> </span><span class="m">192</span>.168.7.1<span class="w"> </span>LPUSH<span class="w"> </span>settings:overlay<span class="w"> </span>apply:service
-</span><span id="__span-43-3"><a id="__codelineno-43-3" name="__codelineno-43-3" href="#__codelineno-43-3"></a>
-</span><span id="__span-43-4"><a id="__codelineno-43-4" name="__codelineno-43-4" href="#__codelineno-43-4"></a><span class="c1"># Disable Service mode</span>
-</span><span id="__span-43-5"><a id="__codelineno-43-5" name="__codelineno-43-5" href="#__codelineno-43-5"></a>redis-cli<span class="w"> </span>-h<span class="w"> </span><span class="m">192</span>.168.7.1<span class="w"> </span>LPUSH<span class="w"> </span>settings:overlay<span class="w"> </span>clear:service
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-44-1"><a id="__codelineno-44-1" name="__codelineno-44-1" href="#__codelineno-44-1"></a><span class="c1"># Enable Service mode</span>
+</span><span id="__span-44-2"><a id="__codelineno-44-2" name="__codelineno-44-2" href="#__codelineno-44-2"></a>redis-cli<span class="w"> </span>-h<span class="w"> </span><span class="m">192</span>.168.7.1<span class="w"> </span>LPUSH<span class="w"> </span>settings:overlay<span class="w"> </span>apply:service
+</span><span id="__span-44-3"><a id="__codelineno-44-3" name="__codelineno-44-3" href="#__codelineno-44-3"></a>
+</span><span id="__span-44-4"><a id="__codelineno-44-4" name="__codelineno-44-4" href="#__codelineno-44-4"></a><span class="c1"># Disable Service mode</span>
+</span><span id="__span-44-5"><a id="__codelineno-44-5" name="__codelineno-44-5" href="#__codelineno-44-5"></a>redis-cli<span class="w"> </span>-h<span class="w"> </span><span class="m">192</span>.168.7.1<span class="w"> </span>LPUSH<span class="w"> </span>settings:overlay<span class="w"> </span>clear:service
 </span></code></pre></div>
 <p><strong>Available commands</strong>: <code>apply:service</code>, <code>clear:service</code></p>
 <h3 id="cpu-governor-control-scootergovernor-librescoot-only">CPU Governor Control (<code>scooter:governor</code>) - Librescoot Only<a class="headerlink" href="#cpu-governor-control-scootergovernor-librescoot-only" title="Permanent link">&para;</a></h3>
 <p>Consumed by pm-service; switches the CPU frequency governor. vehicle-service and update-service push <code>ondemand</code> here (when leaving stand-by, and at download start, respectively).</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-44-1"><a id="__codelineno-44-1" name="__codelineno-44-1" href="#__codelineno-44-1"></a>redis-cli<span class="w"> </span>-h<span class="w"> </span><span class="m">192</span>.168.7.1<span class="w"> </span>LPUSH<span class="w"> </span>scooter:governor<span class="w"> </span>performance
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-45-1"><a id="__codelineno-45-1" name="__codelineno-45-1" href="#__codelineno-45-1"></a>redis-cli<span class="w"> </span>-h<span class="w"> </span><span class="m">192</span>.168.7.1<span class="w"> </span>LPUSH<span class="w"> </span>scooter:governor<span class="w"> </span>performance
 </span></code></pre></div>
 <p><strong>Available commands</strong>: <code>ondemand</code>, <code>powersave</code>, <code>performance</code></p>
 <h3 id="command-channel-notes">Command Channel Notes<a class="headerlink" href="#command-channel-notes" title="Permanent link">&para;</a></h3>
