@@ -1192,10 +1192,10 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#master-learning-mode-first-boot" class="md-nav__link">
+  <a href="#master-bootstrap-first-boot" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
-        Master Learning Mode (first boot)
+        Master Bootstrap (first boot)
       </span>
     </span>
   </a>
@@ -1811,10 +1811,10 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#master-learning-mode-first-boot" class="md-nav__link">
+  <a href="#master-bootstrap-first-boot" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
-        Master Learning Mode (first boot)
+        Master Bootstrap (first boot)
       </span>
     </span>
   </a>
@@ -2012,7 +2012,9 @@
 
 <h1 id="librescoot-keycard-keycard-service">librescoot-keycard (keycard-service)<a class="headerlink" href="#librescoot-keycard-keycard-service" title="Permanent link">&para;</a></h1>
 <h2 id="description">Description<a class="headerlink" href="#description" title="Permanent link">&para;</a></h2>
-<p>Handles NFC-based authentication for the scooter. Detects keycards via the PN7150 controller, checks UIDs against authorized and master lists, controls LED feedback, and publishes authentication events to Redis. Supports master learning mode on first boot, learn mode for replacing the authorized card set, and a Redis command interface for UID management.</p>
+<p>Handles NFC-based authentication for the scooter. Detects keycards via the PN7150 controller, checks UIDs against authorized and master lists, controls LED feedback, and publishes authentication events to Redis. Supports master bootstrap on first boot, learn mode for adding authorized cards, and a Redis command interface for UID management.</p>
+<p>Two card roles, and they do not overlap. An <strong>authorized</strong> card unlocks the vehicle. A <strong>master</strong> card starts learn mode and never unlocks anything. A UID can hold one role or the other, never both.</p>
+<p><strong>UID format.</strong> Every UID entering the service, from a tag read, a command, or a UID file, is normalized to bare uppercase hex: <code>:</code>, <code>-</code>, <code>.</code> and spaces are stripped, and anything that is not 1-10 bytes of hex is rejected. Commands may therefore be written <code>add:04:A1:B2:C3</code> or <code>add:04a1b2c3</code> interchangeably. Malformed lines in the UID files are dropped at load and logged.</p>
 <h2 id="command-line-options">Command-Line Options<a class="headerlink" href="#command-line-options" title="Permanent link">&para;</a></h2>
 <div class="language-text highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>  --device string       NFC device path (default: /dev/pn5xx_i2c2)
 </span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>  --data-dir string     Directory for UID storage (default: /data/keycard)
@@ -2033,8 +2035,58 @@
 <p>A successful auth sets a 10-second TTL on the entire <code>keycard</code> key, so all three fields (and any <code>command-result</code> written before it) expire together.</p>
 <p><strong>Fields written on command response:</strong></p>
 <ul>
-<li><code>command-result</code> - Result of last management command (e.g. <code>ok</code>, <code>count:3</code>, <code>card:&lt;uid&gt;</code>, <code>error:&lt;reason&gt;</code>)</li>
+<li><code>command-result</code> - Result of the last management command, as prose (e.g. <code>ok</code>, <code>count:3</code>, <code>card:&lt;uid&gt;</code>, <code>error:not found</code>)</li>
+<li><code>command-error</code> - The same outcome as a machine-readable code, empty on success</li>
 </ul>
+<p>Both are written in one operation, with the notification on <code>command-result</code>, so a reader woken by that notification always sees the matching pair. Read <code>command-error</code> and fall back to <code>command-result</code> when the field is absent, which is what a keycard-service too old to write it looks like.</p>
+<p>The prose in <code>command-result</code> is a compatibility surface and has not changed. Match on the code:</p>
+<table>
+<thead>
+<tr>
+<th><code>command-error</code></th>
+<th><code>command-result</code></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>empty-uid</code></td>
+<td><code>error:empty uid</code></td>
+</tr>
+<tr>
+<td><code>bad-uid</code></td>
+<td><code>error:invalid uid</code></td>
+</tr>
+<tr>
+<td><code>already-authorized</code></td>
+<td><code>error:already authorized</code></td>
+</tr>
+<tr>
+<td><code>already-registered</code></td>
+<td><code>error:already registered as a master</code></td>
+</tr>
+<tr>
+<td><code>not-found</code></td>
+<td><code>error:not found</code></td>
+</tr>
+<tr>
+<td><code>last-credential</code></td>
+<td><code>error:cannot remove last authorized card</code></td>
+</tr>
+<tr>
+<td><code>save-failed</code></td>
+<td><code>error:save failed</code></td>
+</tr>
+<tr>
+<td><code>unknown-command</code></td>
+<td><code>error:unknown command</code></td>
+</tr>
+<tr>
+<td><code>wrong-mode:&lt;mode&gt;</code></td>
+<td>the wording that command used before, e.g. <code>error:not in learn mode</code></td>
+</tr>
+</tbody>
+</table>
+<p><code>&lt;mode&gt;</code> is <code>idle</code>, <code>learn</code>, <code>master-teach-in</code> or <code>master-bootstrap</code>.</p>
 <p><strong>Published channel:</strong> <code>keycard</code></p>
 <ul>
 <li><code>authentication</code> - Published when authorized keycard detected</li>
@@ -2059,19 +2111,39 @@
 </tr>
 <tr>
 <td><code>add:&lt;uid&gt;</code></td>
-<td><code>ok</code> or <code>error:&lt;reason&gt;</code></td>
+<td><code>ok</code>, or <code>already-authorized</code> / <code>already-registered</code> / <code>bad-uid</code></td>
 </tr>
 <tr>
 <td><code>remove:&lt;uid&gt;</code></td>
-<td><code>ok</code> or <code>error:&lt;reason&gt;</code> (cannot remove last card)</td>
+<td><code>ok</code>, or <code>not-found</code> / <code>last-credential</code></td>
+</tr>
+<tr>
+<td><code>master:list</code></td>
+<td><code>count:&lt;n&gt;</code> then one <code>master:&lt;uid&gt;</code> per master</td>
+</tr>
+<tr>
+<td><code>master:add:&lt;uid&gt;</code></td>
+<td>Append a master. <code>ok</code>, or <code>already-registered</code></td>
+</tr>
+<tr>
+<td><code>master:remove:&lt;uid&gt;</code></td>
+<td>Drop a master. <code>ok</code>, or <code>not-found</code>. Removing the last one is allowed</td>
+</tr>
+<tr>
+<td><code>master:clear</code></td>
+<td>Empty the master list, keeping authorized cards. The next start re-arms bootstrap</td>
+</tr>
+<tr>
+<td><code>master:bootstrap-cancel</code></td>
+<td>Leave master bootstrap without writing anything, so the next tap is not learned as master. Idempotent</td>
 </tr>
 <tr>
 <td><code>set-master:&lt;uid&gt;</code></td>
-<td>Replaces the master list with this single UID; <code>NONE</code> disables the physical master and leaves authorized cards intact; any other UID also clears the authorized list</td>
+<td>Replace the master list with this single UID, or with <code>NONE</code> to record that this vehicle wants no physical master. Authorized cards are untouched</td>
 </tr>
 <tr>
 <td><code>learn:start</code></td>
-<td>Enter learn mode programmatically</td>
+<td>Enter learn mode programmatically. Supersedes master bootstrap</td>
 </tr>
 <tr>
 <td><code>learn:stop</code></td>
@@ -2079,11 +2151,11 @@
 </tr>
 <tr>
 <td><code>learn:master:start</code></td>
-<td>Enter master teach-in mode; next non-registered tap is appended as an additional master (authorized list untouched)</td>
+<td>Enter master teach-in mode; next unregistered tap is appended as an additional master. Supersedes master bootstrap</td>
 </tr>
 <tr>
 <td><code>learn:master:stop</code></td>
-<td>Exit master teach-in mode without committing</td>
+<td>Exit master teach-in mode without committing. Also ends master bootstrap, which is what the installer sends it blind for</td>
 </tr>
 <tr>
 <td><code>reset</code></td>
@@ -2091,14 +2163,77 @@
 </tr>
 </tbody>
 </table>
-<p>Responses are written to <code>keycard command-result</code>.</p>
+<p><code>master:bootstrap-cancel</code> is the explicit way to stop the next tap being learned as master. <code>learn:start</code>, <code>learn:master:start</code> and <code>learn:master:stop</code> also end the bootstrap, since a caller driving modes by command has already answered the question the bootstrap was waiting on. <code>set-master:NONE</code> persists a decision (no physical master on this vehicle, ever) and suppresses the bootstrap on later starts too; <code>master:bootstrap-cancel</code> applies to the current run only and writes nothing.</p>
+<p>Responses are written to <code>keycard command-result</code> and <code>keycard command-error</code>; the error names in this table are <code>command-error</code> codes.</p>
 <h3 id="channel-keycardevents-published">Channel: <code>keycard:events</code> (published)<a class="headerlink" href="#channel-keycardevents-published" title="Permanent link">&para;</a></h3>
-<p>Transient per-tap progress events during teach-in flows, for real-time subscribers (installer, BLE bridge). Format <code>&lt;event&gt;</code> or <code>&lt;event&gt;:&lt;uid&gt;</code>:</p>
-<ul>
-<li>Master teach-in: <code>mode-entered:master</code>, <code>mode-exited:master</code>, <code>master-learned:&lt;uid&gt;</code>, <code>rejected:already-authorized:&lt;uid&gt;</code>, <code>error:save-failed:&lt;uid&gt;</code></li>
-<li>Learn mode: <code>card-learned:&lt;uid&gt;</code> (queued for commit on <code>learn:stop</code>), <code>card-duplicate:&lt;uid&gt;</code></li>
-<li>Reset: <code>reset</code></li>
-</ul>
+<p>Every state change is published here, whether a command or a tap on the reader caused it, so a subscriber (installer, BLE bridge) can stay in step with the vehicle rather than only hearing about what it asked for itself.</p>
+<p>Format is <code>&lt;event&gt;[:&lt;uid&gt;][:&lt;trigger&gt;]</code>, where trigger is <code>card</code>, <code>command</code>, <code>bootstrap</code> or <code>teach-in</code>.</p>
+<table>
+<thead>
+<tr>
+<th>Event</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>mode-entered:learn:&lt;trigger&gt;</code> / <code>mode-exited:learn:&lt;trigger&gt;</code></td>
+<td>Learn mode boundaries</td>
+</tr>
+<tr>
+<td><code>mode-entered:master</code> / <code>mode-exited:master</code></td>
+<td>Master teach-in boundaries (no trigger suffix)</td>
+</tr>
+<tr>
+<td><code>mode-entered:master-bootstrap:boot</code></td>
+<td>Boot-time bootstrap armed: the next card presented becomes master</td>
+</tr>
+<tr>
+<td><code>mode-exited:master-bootstrap:&lt;trigger&gt;</code></td>
+<td>Bootstrap ended, by a tap or by a command</td>
+</tr>
+<tr>
+<td><code>card-learned:&lt;uid&gt;</code></td>
+<td>Learn-mode tap, queued until <code>learn:stop</code></td>
+</tr>
+<tr>
+<td><code>card-duplicate:&lt;uid&gt;</code></td>
+<td>Already registered, or already seen this session</td>
+</tr>
+<tr>
+<td><code>card-added:&lt;uid&gt;:command</code> / <code>card-removed:&lt;uid&gt;:command</code></td>
+<td>Authorized list changed by command</td>
+</tr>
+<tr>
+<td><code>access-granted:&lt;uid&gt;</code></td>
+<td>An authorized card unlocked the vehicle</td>
+</tr>
+<tr>
+<td><code>master-added:&lt;uid&gt;:&lt;trigger&gt;</code> / <code>master-removed:&lt;uid&gt;:command</code></td>
+<td>Master list changed</td>
+</tr>
+<tr>
+<td><code>master-learned:&lt;uid&gt;</code></td>
+<td>Teach-in success; the same fact as <code>master-added:&lt;uid&gt;:teach-in</code></td>
+</tr>
+<tr>
+<td><code>masters-cleared</code></td>
+<td>Master list emptied</td>
+</tr>
+<tr>
+<td><code>rejected:already-authorized:&lt;uid&gt;</code></td>
+<td>Teach-in tap refused, UID already registered</td>
+</tr>
+<tr>
+<td><code>error:save-failed:&lt;uid&gt;</code></td>
+<td>Write to <code>/data/keycard</code> failed</td>
+</tr>
+<tr>
+<td><code>reset</code></td>
+<td>Both lists wiped</td>
+</tr>
+</tbody>
+</table>
 <h2 id="hardware">Hardware<a class="headerlink" href="#hardware" title="Permanent link">&para;</a></h2>
 <h3 id="nfc-reader">NFC Reader<a class="headerlink" href="#nfc-reader" title="Permanent link">&para;</a></h3>
 <ul>
@@ -2111,7 +2246,7 @@
 <ul>
 <li>I2C bus 2, address <code>0x30</code></li>
 <li>Enabled with <code>--led-device /dev/i2c-2</code></li>
-<li>Green: authorized card; Red: unauthorized; Amber: lookup in progress and for the duration of learn mode; Blinking: master learning mode</li>
+<li>Green: authorized card; Red: unauthorized; Amber: lookup in progress and for the duration of learn mode; Blinking: master bootstrap or teach-in</li>
 <li><strong>Shared chip.</strong> vehicle-service writes the same LP5562 (also via <code>I2C_SLAVE_FORCE</code> on <code>/dev/i2c-2</code>, address <code>0x30</code>) as the DBC blinker indicator when <code>settings[scooter.dbc-blinker-led]</code> is enabled. There is no arbitration: last writer wins, and blinker activity repaints whatever colour keycard-service left on the LED. keycard-service re-asserts the operating-mode, clock, enable and drive-current registers before every colour change, because vehicle-service leaves the chip on a lower drive current.</li>
 <li>A kernel <code>lp5562</code> driver is also bound to the chip and exposes <code>/sys/class/leds/{R,G,B,W}</code>. Both services bypass it deliberately.</li>
 </ul>
@@ -2126,14 +2261,15 @@
 <li><code>/usr/bin/ledcontrol.sh</code> — PWM pattern control</li>
 </ul>
 <h2 id="operational-modes">Operational Modes<a class="headerlink" href="#operational-modes" title="Permanent link">&para;</a></h2>
-<h3 id="master-learning-mode-first-boot">Master Learning Mode (first boot)<a class="headerlink" href="#master-learning-mode-first-boot" title="Permanent link">&para;</a></h3>
-<p>Activated at startup when no master UID is loaded (file missing or empty):</p>
+<h3 id="master-bootstrap-first-boot">Master Bootstrap (first boot)<a class="headerlink" href="#master-bootstrap-first-boot" title="Permanent link">&para;</a></h3>
+<p>Activated at startup when the master file is missing or empty, and only on a reader that has no authorized cards and is not in service mode. A vehicle with cards enrolled must not crown the owner's next tap: a master starts learn mode and never unlocks, so that card would stop opening the scooter. The <code>NONE</code> sentinel counts as an entry, so a vehicle that has recorded "no physical master" does not re-arm this either.</p>
 <ol>
-<li>RGB LED blinks (500ms) — waiting for master card</li>
-<li>First card presented becomes master UID, saved to <code>master_uids.txt</code></li>
-<li>Authorized list cleared; RGB LED flashes once to confirm</li>
+<li><code>mode-entered:master-bootstrap:boot</code> is published, and the RGB LED blinks (500 ms)</li>
+<li>The <strong>first card presented becomes the master</strong>, saved to <code>master_uids.txt</code></li>
+<li>RGB LED flashes once to confirm; <code>master-added:&lt;uid&gt;:bootstrap</code> and <code>mode-exited:master-bootstrap:card</code> are published</li>
 <li>Switches to normal operation</li>
 </ol>
+<p>Authorized cards are not touched at any point. To leave this mode without a card, send <code>master:bootstrap-cancel</code>; to leave it and record that this vehicle wants no physical master at all, send <code>set-master:NONE</code>.</p>
 <h3 id="normal-operation">Normal Operation<a class="headerlink" href="#normal-operation" title="Permanent link">&para;</a></h3>
 <table>
 <thead>
@@ -2152,7 +2288,7 @@
 <tr>
 <td>Master</td>
 <td>Amber → enter learn mode</td>
-<td>—</td>
+<td>— (a master never unlocks)</td>
 </tr>
 <tr>
 <td>Unauthorized</td>
@@ -2186,11 +2322,12 @@
 </tr>
 <tr>
 <td><code>/data/keycard/master_uids.txt</code></td>
-<td>Master UIDs (one per line; multiple masters supported)</td>
+<td>Master UIDs (one per line; multiple masters supported). A single line reading <code>NONE</code> records that this vehicle wants no physical master</td>
 </tr>
 </tbody>
 </table>
-<p>Files are written atomically (write to <code>.tmp</code>, sync, rename).</p>
+<p>Files are written atomically (write to <code>.tmp</code>, sync, rename). UIDs are stored as bare uppercase hex, but any separator form is accepted on read, so hand-edited files work.</p>
+<p><code>lsc keycard list</code> and <code>export</code> read these files directly because multi-entry command replies have no request correlation. Mutating commands go through the Redis interface while keycard-service is running, so its in-memory state and events remain authoritative. If the service is stopped or absent, lsc warns and falls back to editing the files directly; those fallback changes emit no events.</p>
 <h2 id="systemd-unit">Systemd Unit<a class="headerlink" href="#systemd-unit" title="Permanent link">&para;</a></h2>
 <ul>
 <li><strong>Unit:</strong> <code>librescoot-keycard.service</code></li>
