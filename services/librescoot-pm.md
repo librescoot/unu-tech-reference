@@ -146,7 +146,7 @@ pm-service subscribes to the `power:inhibits` channel and syncs entries into its
 - `battery:1` -> `state`, `present`, `charge` - Battery slot 1 state monitoring plus `present`/`charge` for the last-ditch hibernate inputs
 - `cb-battery` -> `charge` - CBB charge, last-ditch hibernate input
 - `aux-battery` -> `voltage` - Aux 12V rail voltage (millivolts), last-ditch hibernate input
-- `internet` -> `status` - Tracks connectivity (`connected` => online) for the `pm.suspend-when-online` guard
+- `internet` -> `connectivity` - Tracks data-session connectivity (`connected` => online) for the `pm.suspend-when-online` guard
 - `power-manager` -> `wake-timer-armed`, `power-state-sent` - Wake-timer ACK and the nRF suspend-ACK from the nRF52 (both written by bluetooth-service)
 - `settings` -> `pm.suspend-when-online` (among the other `pm.*` fields above) - re-read on change
 
