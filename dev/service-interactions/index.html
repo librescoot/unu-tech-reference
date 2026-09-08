@@ -2456,7 +2456,7 @@
 </span><span id="__span-0-67"><a id="__codelineno-0-67" name="__codelineno-0-67" href="#__codelineno-0-67"></a>                    ─────────────────────────────────────────────────────────
 </span><span id="__span-0-68"><a id="__codelineno-0-68" name="__codelineno-0-68" href="#__codelineno-0-68"></a> watched hashes + input-events + motion:interrupt + sms:received
 </span><span id="__span-0-69"><a id="__codelineno-0-69" name="__codelineno-0-69" href="#__codelineno-0-69"></a>     ── event-service adapter ──&gt; events stream + ev:&lt;topic&gt; channels
-</span><span id="__span-0-70"><a id="__codelineno-0-70" name="__codelineno-0-70" href="#__codelineno-0-70"></a> ev:&lt;topic&gt; ── configured rules only ──&gt; LPUSH to configured command lists / exec
+</span><span id="__span-0-70"><a id="__codelineno-0-70" name="__codelineno-0-70" href="#__codelineno-0-70"></a> ev:&lt;topic&gt; ── configured rules only ──&gt; LPUSH to configured command lists / exec / CAN send
 </span><span id="__span-0-71"><a id="__codelineno-0-71" name="__codelineno-0-71" href="#__codelineno-0-71"></a>
 </span><span id="__span-0-72"><a id="__codelineno-0-72" name="__codelineno-0-72" href="#__codelineno-0-72"></a>                    Sets (fault tracking)
 </span><span id="__span-0-73"><a id="__codelineno-0-73" name="__codelineno-0-73" href="#__codelineno-0-73"></a>                    ─────────────────────
@@ -2489,7 +2489,9 @@ records). It does not write the observed source hashes.</p>
 <p><strong>Conditional rule edges:</strong> only loaded rules subscribe to their selected
 <code>ev:*</code> patterns. A <code>redis</code> step can <code>LPUSH</code> to any configured list, including
 vehicle command queues; an <code>exec</code> step starts a configured executable as root
-under the packaged unit. These are optional rule-driven edges, not built-in
+under the packaged unit. A <code>can</code> step sends a classic CAN frame through the
+configured interface without subscribing to CAN traffic. These are optional
+rule-driven edges, not built-in
 commands or hardware behaviour. Without rules there is no additional event
 subscription or rule-driven command production.</p>
 <p>Rules consume live Pub/Sub, not stream catch-up. Pending records recover

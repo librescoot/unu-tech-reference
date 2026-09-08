@@ -2874,7 +2874,7 @@
 <li><code>battery:1</code> -&gt; <code>state</code>, <code>present</code>, <code>charge</code> - Battery slot 1 state monitoring plus <code>present</code>/<code>charge</code> for the last-ditch hibernate inputs</li>
 <li><code>cb-battery</code> -&gt; <code>charge</code> - CBB charge, last-ditch hibernate input</li>
 <li><code>aux-battery</code> -&gt; <code>voltage</code> - Aux 12V rail voltage (millivolts), last-ditch hibernate input</li>
-<li><code>internet</code> -&gt; <code>status</code> - Tracks connectivity (<code>connected</code> =&gt; online) for the <code>pm.suspend-when-online</code> guard</li>
+<li><code>internet</code> -&gt; <code>connectivity</code> - Tracks data-session connectivity (<code>connected</code> =&gt; online) for the <code>pm.suspend-when-online</code> guard</li>
 <li><code>power-manager</code> -&gt; <code>wake-timer-armed</code>, <code>power-state-sent</code> - Wake-timer ACK and the nRF suspend-ACK from the nRF52 (both written by bluetooth-service)</li>
 <li><code>settings</code> -&gt; <code>pm.suspend-when-online</code> (among the other <code>pm.*</code> fields above) - re-read on change</li>
 </ul>

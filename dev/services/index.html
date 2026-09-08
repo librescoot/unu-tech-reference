@@ -2030,7 +2030,7 @@
 <td><a href="librescoot-events/">librescoot-events</a></td>
 <td>Normalised event bus and optional rules (MDB nightly packaging; not 1.3.1 stable)</td>
 <td><code>extensions</code>, <code>extensions:pending</code></td>
-<td>Redis</td>
+<td>Redis, optional CAN transmit</td>
 </tr>
 <tr>
 <td><a href="librescoot-keycard/">librescoot-keycard</a></td>
@@ -2144,6 +2144,7 @@
     EVT -.-&gt;|Configured rules only: LPUSH| Redis
     RULES --&gt; EVT
     EVT -.-&gt;|Configured rules only| EXEC
+    EVT -.-&gt;|Configured CAN rules only: transmit| ECU
 
     PM &lt;--&gt; LOGIND
     BT &lt;--&gt; NRF
@@ -2167,7 +2168,7 @@
 <p><a href="librescoot-events/">event-service</a> appends derived events to the <code>events</code>
 stream and publishes JSON on <code>ev:&lt;topic&gt;</code>. Those are not hashes. Its optional
 rules consume selected live topics and may push to configured command lists
-or run executables. Without rules it makes no such commands and opens no
+or run executables or transmit CAN frames. Without rules it makes no such commands and opens no
 additional <code>ev:*</code> subscription. This service is packaged for MDB nightly
 builds ahead of 1.4.0, not included in 1.3.1 stable.</p>
 <h3 id="command-lists">Command Lists<a class="headerlink" href="#command-lists" title="Permanent link">&para;</a></h3>
