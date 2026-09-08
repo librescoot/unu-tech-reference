@@ -19,6 +19,7 @@ Generated from source analysis of all service repositories.
  modem-service ──writes──> internet, modem, gps, internet:fault, events:faults
  dbc-backlight ──writes──> dashboard (backlight, brightness, from the OPT3001)
  alarm-service ──writes──> alarm
+ event-service ──writes──> extensions, extensions:pending (MDB nightly packaging; not 1.3.1 stable)
  version-service  writes──> version:mdb (MDB), version:dbc (DBC)  (one-shot at boot, no pub/sub notification)
  settings-service writes──> settings  (WARNING: no PUBLISH on initial load, see gaps)
  update-service ──writes──> ota  (status:*, update-version:*, download-progress:*, etc.)
@@ -69,6 +70,12 @@ Generated from source analysis of all service repositories.
  motion:rpc        ← request channel for motion-service RPC (alarm-service Calls prepare-hibernation)
  buttons           ← published by vehicle-service (physical button events)
 
+                    Normalised events (JSON payload, not field notification)
+                    ─────────────────────────────────────────────────────────
+ watched hashes + input-events + motion:interrupt + sms:received
+     ── event-service adapter ──> events stream + ev:<topic> channels
+ ev:<topic> ── configured rules only ──> LPUSH to configured command lists / exec
+
                     Sets (fault tracking)
                     ─────────────────────
  vehicle:fault  ── written by vehicle-service
@@ -83,6 +90,40 @@ Generated from source analysis of all service repositories.
 ```
 
 ## Per-Service Detail
+
+### event-service
+
+Packaged for MDB nightly builds ahead of 1.4.0; not included in 1.3.1 stable.
+See [event-service](services/librescoot-events.md) for the adapter topic
+catalogue and rule configuration.
+
+**Reads and watches hashes:** `vehicle`, `battery:0`, `battery:1`,
+`aux-battery`, `cb-battery`, `power-manager`, `alarm`, `internet`, `ota`,
+`keycard`, `dashboard`. Startup `HGETALL` seeding emits no transitions;
+subsequent notifications update an in-memory shadow store. Keycard event
+metadata (`uid`, `type`) is read live.
+
+**Subscribes to raw channels:** `input-events`, `motion:interrupt`,
+`sms:received`. It does not watch raw `buttons` or high-rate sensor/GPS
+channels.
+
+**Writes:** `events` (stream fields `topic`, `e`), `ev:<topic>` (JSON Pub/Sub),
+`extensions` (polled counters), `extensions:pending` (internal pending-step
+records). It does not write the observed source hashes.
+
+**Conditional rule edges:** only loaded rules subscribe to their selected
+`ev:*` patterns. A `redis` step can `LPUSH` to any configured list, including
+vehicle command queues; an `exec` step starts a configured executable as root
+under the packaged unit. These are optional rule-driven edges, not built-in
+commands or hardware behaviour. Without rules there is no additional event
+subscription or rule-driven command production.
+
+Rules consume live Pub/Sub, not stream catch-up. Pending records recover
+positive `after` delays across service restarts while Valkey retains the hash;
+there is no vehicle-reboot or exactly-once guarantee. Cancellation drops a
+pending tail rather than undoing completed actions.
+
+---
 
 ### vehicle-service
 
@@ -551,6 +592,15 @@ overridden off or pinned to a fixed level.
 | `usb` | ums-service | ums-service (self), scootui, alarm-service |
 | `motion` | motion-service | alarm-service (wake-cause), scootui (heading), monitoring |
 
+event-service additionally reads the watched hashes listed in its
+[per-service entry](#event-service), including `aux-battery` and `cb-battery`.
+Its own hash interfaces are:
+
+| Key | Owner (Writer) | Primary Readers |
+|-----|---------------|-----------------|
+| `extensions` | event-service | Monitoring (polling, no change publication) |
+| `extensions:pending` | event-service | event-service restart recovery |
+
 ### Set Keys
 
 | Key | Owner | Readers |
@@ -566,8 +616,13 @@ overridden off or pinned to a fixed level.
 | Key | Writers | Readers |
 |-----|---------|---------|
 | `events:faults` | vehicle-service, modem-service | uplink-service (via HGetAll — see gaps) |
+| `events` | event-service adapter | Event-history consumers; rules use live `ev:<topic>` Pub/Sub instead |
 
 ### List Keys (Command Queues)
+
+In addition to the producers below, event-service can write any list named
+by an installed `redis` rule. No command-list edge is enabled by the adapter
+alone; the destination and value are entirely rule configuration.
 
 | Key | Consumer | Producers |
 |-----|---------|---------|

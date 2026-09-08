@@ -1003,6 +1003,42 @@ so a long press between two taps does not glue them into a `double-tap`.
 Unlike `buttons`, each gesture is emitted exactly once, which makes this the
 channel to use for anything that counts or reacts to discrete user actions.
 
+### Extension Event Interfaces - Librescoot Only
+
+[event-service](../services/librescoot-events.md) is packaged for MDB nightly
+builds ahead of 1.4.0, not included in 1.3.1 stable. It observes existing state
+traffic without writing those source hashes. Its four interfaces are:
+
+| Name | Type | Contents |
+|---|---|---|
+| `events` | Stream | Approximately 2000 entries (`MAXLEN ~`), each with `topic` and `e` (JSON envelope) fields |
+| `ev:<topic>` | Pub/Sub channel | JSON envelope: `id`, `ts`, `topic`, `src`, optional `from`, `to`, `data` |
+| `extensions` | Hash | Rule-engine counts: `rules`, `dispatched`, `dropped`, `refused`, `failed`, `pending`, `runs-active`, plus build `version` |
+| `extensions:pending` | Hash | Internal run ID → JSON durable pending-step record; not a command interface |
+
+```bash
+redis-cli XREVRANGE events + - COUNT 10
+redis-cli PSUBSCRIBE 'ev:*'
+redis-cli HGETALL extensions
+redis-cli HGETALL extensions:pending
+```
+
+The channel envelope contains the ID returned by the stream append. The
+stream's `e` JSON is encoded before that assignment, so stream readers use
+the outer entry ID. Adapter events use `src = "adapter"`.
+
+Counters reset on service restart. They are written asynchronously, field by
+field at startup, then only on change at the statistics interval (default
+10s), without Pub/Sub notifications. Early reads may be partial.
+
+Rules listen to live `ev:*` patterns selected by their configuration; they do
+not catch up from the stream after downtime. `extensions:pending` supports
+only service-restart recovery while Valkey retains its data, not guaranteed
+recovery across a datastore restart or vehicle reboot. Records cover positive
+`after` delays and remain through worker queuing until the action starts or
+the pending tail is cancelled. Execution is not exactly once. See the service
+reference for the topic catalogue, counter meanings and recovery limitations.
+
 ### Event Streams
 
 #### Fault Events (`events:faults`)

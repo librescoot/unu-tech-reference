@@ -16,13 +16,14 @@ runs user-defined rules against it. It has two halves:
   sequence, to any event topic, entirely from TOML files, with no service of
   their own to write or deploy.
 
-With no rule files present, event-service subscribes to nothing beyond what
-the adapter itself needs, so a scooter carrying no extensions pays no cost
-for the rules engine at all.
+With no rules loaded, there is no additional `ev:*` subscription. The adapter,
+worker pool, scheduler and periodic statistics publisher still run.
 
 ## Version
 
-Tracks `main` on `github.com/librescoot/event-service`.
+Packaged for MDB nightly builds ahead of Librescoot 1.4.0; not included in
+1.3.1 stable. Source: [event-service](https://github.com/librescoot/event-service).
+The image's build revision determines the installed version.
 
 ## Command-Line Options
 
@@ -52,8 +53,9 @@ with no extensions installed.
 ### Stream: `events`
 
 Every event the adapter derives is appended here. Rules do not publish new
-events; they only act on the ones already on the bus. Capped stream, newest
-2000 entries kept. Each entry is the JSON form of the event envelope below.
+events; they only act on the ones already on the bus. The stream is trimmed
+approximately to 2000 entries (`MAXLEN ~`). Each entry has two fields:
+`topic` (the topic string) and `e` (the JSON event envelope).
 
 ```bash
 redis-cli xrevrange events + - COUNT 10
@@ -75,13 +77,17 @@ loaded, enabled rule's `on` or `cancel-on` actually names. Rules are read
 once, at startup, and the subscription set is computed from them there and
 then; there is no reload and no signal that rereads them, so a change under
 `--rules-dir` takes effect at the next service restart. With zero rules
-loaded there is no subscription at all.
+loaded there is no rule subscription at all. Rules do not read the stream to
+catch up: triggers missed during downtime or a disconnected subscription are
+not replayed. Durable pending-step recovery is separate.
 
 ### Hash: `extensions`
 
-Rule-engine counters, refreshed at `--stats-interval` and written once in
-full at startup so every field, including `version`, is present from the
-first read. After that, only fields whose value changed are written.
+Rule-engine counters, refreshed at `--stats-interval`. An asynchronous initial
+publication writes all fields individually, so early reads can see missing or
+partial data. After that, only changed fields are written; failed writes are
+retried on a later tick. These are polled hashes, with no change publication.
+Counters reset on service restart.
 
 | Field | Meaning |
 |---|---|
@@ -103,9 +109,11 @@ different fixes.
 
 One field per waiting durable step, keyed by an internal run id, JSON-encoded.
 There is no sweep and no expiry: a record is written when a durable step is
-scheduled and removed the moment it fires or is cancelled, so a scooter with
-nothing running writes nothing here at all. See [Durability](#durability)
-below for what ends up in it and when it is dropped instead of replayed.
+scheduled and retained through worker queuing until the action starts, or
+removed when its pending tail is cancelled. This is service-restart recovery
+in Valkey, not an on-disk store or a vehicle-reboot guarantee.
+See [Durability](#durability) below for what ends up in it and when it is
+dropped instead of replayed.
 
 ## Event Envelope
 
@@ -121,10 +129,52 @@ below for what ends up in it and when it is dropped instead of replayed.
 }
 ```
 
-`id` is assigned by the datastore when the event is appended to the stream
-and is empty on events a rule only sees through the channel. `from`/`to` are
-pulled out of `data` because "changed from X to Y" is the shape most rules
-match on. `src` is `adapter` for everything event-service derives itself.
+The stream entry ID is assigned by the datastore on append. The channel JSON
+contains that ID, so adapter events received by rules also populate `LS_ID`.
+The stream's `e` JSON was encoded before ID assignment; use the outer stream
+entry ID when reading it. `from`/`to` are top-level fields because "changed
+from X to Y" is the shape most rules match on. `src` is `adapter` for everything event-service derives itself.
+
+## Adapter Topics and Sources
+
+All derived events have `src = "adapter"`. The adapter watches the hashes
+below and three raw channels: `input-events`, `motion:interrupt`, and
+`sms:received`. Startup seeding emits no events; repeated hash values are
+suppressed. Most hash transitions require a non-empty previous value.
+Raw channel events have no `from`/`to` transition.
+
+| Redis source | Derived topics | Condition / extra `data` |
+|---|---|---|
+| `vehicle[state]` | `vehicle.state.changed` | Every observed transition with a known previous state |
+| `vehicle[state]` | `vehicle.unlocked`, `vehicle.locked` | `stand-by` → `parked`; any transition to `stand-by`, respectively |
+| `vehicle[state]` | `ride.started`, `ride.ended` | Entering / leaving `ready-to-drive` |
+| `vehicle[state]` | `vehicle.hibernating` | Entering the `waiting-hibernation*` family from outside it |
+| `vehicle[seatbox:lock]` | `vehicle.seatbox.opened`, `vehicle.seatbox.closed` | `open` / any other value |
+| `vehicle[kickstand]` | `vehicle.kickstand.up`, `vehicle.kickstand.down` | `up` / any other value |
+| `vehicle[handlebar:lock-sensor]` | `vehicle.handlebar.locked`, `vehicle.handlebar.unlocked` | `locked` / any other value |
+| `vehicle[blinker:switch]` | `vehicle.blinker.changed` | Switch value changed |
+| `battery:0`, `battery:1` (`present`, `state`, `charge`) | `battery.inserted`, `battery.removed`, `battery.state.changed`, `battery.charge.changed` | Presence `true` / any other value; numeric `data.slot` is 0 or 1; new charge must parse as an integer |
+| `aux-battery[charge]`, `cb-battery[charge]` | `aux.charge.changed`, `cbb.charge.changed` | New charge must parse as an integer; no slot |
+| `alarm[status]` | `alarm.status.changed`, `alarm.armed`, `alarm.disarmed`, `alarm.triggered` | Complete change plus named event for `armed`, `disarmed`/`disabled`, or a `-triggered` suffix; triggered `data.level` is 1, 2, or 0 for an unrecognised level |
+| `power-manager[state]` | `power.state.changed` | State transition |
+| `power-manager[wakeup-source]` | `power.wake` | Changed source also in `data.source` |
+| `internet[connectivity]` | `net.connectivity.changed` | Connectivity transition |
+| `ota[status:<component>]` | `ota.status.changed` | `data.component` is the field suffix |
+| `keycard[authentication]` | `keycard.auth.passed`, `keycard.auth.failed` | New value `passed` / `failed`; optional `data.uid`, `data.type` read live from the hash |
+| `dashboard[ready]` | `dashboard.ready` | New value `true` |
+| `input-events` | `button.<source>.<gesture>` | Source colons become dots, e.g. `brake:left:hold` → `button.brake.left.hold` |
+| `motion:interrupt` | `motion.detected` | Original payload string in `data.raw` |
+| `sms:received` | `sms.received` | Original payload string in `data.raw`, not flattened SMS fields |
+
+Accepted gestures are `press`, `release`, `tap`, `long-tap`, `hold`, and
+`double-tap`. The adapter does not subscribe to raw `buttons`, `motion:sensors`,
+`motion:heading`, or `gps:tpv`. No ECU-fault, GPS-fix, settings-change,
+system-boot/shutdown, or named OTA-available/installed events are derived by
+these adapters. A single state transition can emit several named topics.
+
+Hash notifications carry field names, not a snapshot of each value. Rapid
+producer updates can overwrite an intermediate value before the adapter reads
+it, so this bus is not an authoritative record of every vehicle transition.
 
 ## Rules
 
@@ -153,8 +203,25 @@ cancel-on   = ["alarm.disarmed"]
   push  = "off"
 ```
 
-On the alarm, the hazards go on immediately; thirty seconds later the second
-step turns them off, unless `alarm.disarmed` cancels the run first.
+On the alarm, the first step requests hazards on and the delayed step requests
+off. `alarm.disarmed` cancels the pending tail, including that off step; it
+does not undo the earlier on command. To request off on disarm, add a separate
+rule:
+
+```toml
+[[rule]]
+name = "hazards-off-on-disarm"
+on = ["alarm.disarmed"]
+
+  [[rule.step]]
+  do = "redis"
+  list = "scooter:blinker"
+  push = "off"
+```
+
+This is not an ordering guarantee across rules or against other command
+producers. Already accepted jobs are not interrupted and can overlap this
+rule's off action; cancellation alone cannot guarantee that hazards stop.
 
 `on` matches a topic exactly, with `*` for everything or `prefix.*` for
 anything starting with `prefix.`. Mid-pattern globs are not supported: a
@@ -163,8 +230,16 @@ nothing rather than something unintended. `when`, at rule level or step
 level, is an `expr` expression compiled once at load, evaluated against
 `topic`, `src`, `from`, `to`, `data`, and `state("hash", "field")` for the
 last value event-service's own shadow store observed for a hash field the
-event itself does not carry. A rule with no `when` fires on every event `on`
-matches; a step with no `when` always runs once it is reached.
+event itself does not carry. Watched hashes are seeded by `StartWithSync()`
+using `HGETALL` at startup without emitting transitions. Later hash
+notifications update the store; writes without notifications can leave it
+stale. Missing or unwatched fields return `""`, indistinguishable from an
+empty value. `state()` does not read Valkey live.
+
+A rule with no `when` fires on every event `on` matches; a step with no `when`
+always runs once reached. A false step condition ends the run, not just that
+step. It is checked before submission, which may precede execution in a busy
+worker pool.
 
 ### Step sequences
 
@@ -174,20 +249,31 @@ fails ends the run, with the remaining steps not run. A sequence is a recipe,
 so carrying on past a failed step would act on a state that step never
 established.
 
-A step may carry `after`, a duration that delays it relative to the step
-before it finishing. A step waiting out `after` holds no worker thread; it
-sits on a scheduler timer, so a rule can say "and thirty seconds later, turn
-it off" without occupying anything for the wait.
+A step may carry `after`, a non-negative duration that delays it relative to
+the previous step finishing (or the run starting for the first step).
+An omitted or zero `after` is submitted without a timer delay when reached.
+A step waiting out `after` holds no worker thread; it sits on a scheduler
+timer, so a rule can say "and thirty seconds later, turn it off" without
+occupying a worker for the wait.
 
 ### Durability
 
-A step with `after` is `durable` by default. The waiting step is written to
-the `extensions:pending` hash the moment it is scheduled and removed when it
-fires or is cancelled, so a service restart between "hazards on" and
-"hazards off thirty seconds later" does not leave the vehicle half-changed.
-On the next start, a recorded step whose delay already ran out fires
-immediately; one still in the future waits out what is left, both before the
-bus subscription reopens. A rule with `repeat` resumes on the pass it was on.
+A step with a positive `after` is `durable` by default. The waiting step is
+written to `extensions:pending` when scheduled and removed when its action
+starts or its pending tail is cancelled. Recovery covers an event-service
+restart while Valkey retains the hash; it does not guarantee survival across
+a datastore restart or vehicle reboot. The image's Valkey configuration
+disables RDB and AOF disk persistence.
+
+At startup, overdue records are submitted and future timers rearmed before
+the rule subscription opens. This does not wait for replayed actions to
+complete. A rule with `repeat` resumes on the pass it was on.
+
+This is not exactly-once execution. A record-write failure is logged, but the
+step still runs without restart recovery. A failed record deletion can cause
+another execution on restart; a crash after deletion but before successful
+action completion can lose the action. There is no guarantee that a sequence
+finishes or restores a safe vehicle state.
 
 A record is dropped instead of replayed, with a log line saying why, if its
 rule is no longer loaded, if that rule no longer has a step at the recorded
@@ -205,15 +291,14 @@ week does not come back up acting on what it was doing when it went down.
 Records go through the rule's `concurrency` policy the same way a live
 trigger does, so a rule that ends up with two records resumes one run rather
 than two. A step that comes due while the action pool has no room for it
-keeps its record: the step provably did not run, so the next start is what
-runs it, and the same holds for a step still queued in the pool when the
-service is stopped.
+keeps its record for a later startup, subject to the replay checks above.
+The same holds for a queued step abandoned without starting when the service
+stops; there is no automatic retry during the current run.
 
-Write `durable = false` on a step to opt out. `durable` on a step with no
-`after` is a load error: there is no wait for it to mean anything about.
-Nothing is recorded for the gap between `repeat` passes or for a trigger
-sitting in a `queue` backlog; neither has acted on the vehicle yet, so
-neither needs to survive a restart.
+Write `durable = false` on a delayed step to opt out. Specifying `durable`
+without a positive `after` (including `after = "0s"`) is a load error.
+Nothing is recorded for a gap between completed `repeat` passes or for a
+trigger sitting in a `queue` backlog; these are lost on restart.
 
 ### Concurrency and cancellation
 
@@ -237,8 +322,8 @@ same pass.
 A step already handed to the worker pool when the cancel arrives is **not**
 interrupted, whether a worker is already running it or it is still waiting
 its turn in the pool's queue. A `redis` push or `exec` command already
-accepted completes. What cancelling guarantees is that no step after it
-runs.
+accepted is not cancelled by this event (it can still fail or be stopped by
+service shutdown). Cancellation prevents submission of its remaining tail.
 
 ### Repeat
 
@@ -283,16 +368,19 @@ naming the rule, the file, and the three accepted values.
 
 ## Actions
 
-- `redis`: `LPUSH` a fixed value (`push`) onto an existing list (`list`).
+- `redis`: `LPUSH` a fixed value (`push`) onto a list (`list`), creating it
+  if absent.
   One datastore round trip, no process spawned; the default choice for
   anything that stays on the vehicle.
-- `exec`: run `command` with a `timeout` (default `10s`). The event is on
+- `exec`: run the executable name or path in `command` with a `timeout`
+  (default `10s`). It is not a shell command line: arguments, pipelines and
+  redirection require an executable wrapper script. The event is on
   stdin as JSON, plus environment variables `LS_TOPIC`, `LS_SRC`, `LS_FROM`,
   `LS_TO`, `LS_ID`, and one `LS_DATA_<KEY>` per scalar `data` field, so a
   short shell script needs no JSON parser. The command runs in its own
   process group; the hard timeout kills the whole group, not just the
   direct child.
-- `can`, `lua`, `http`: designed, not built. See `EVENT-SERVICE-DESIGN.md`.
+- `can`, `lua`, `http`: unsupported; a rule using one fails to load.
 
 ## Safety
 
@@ -306,8 +394,8 @@ loop. The extension subsystem is a power-user feature by design, and it is
 deliberately not event-service's job to second-guess what a rule tells the
 vehicle to do.
 
-Durability extends the same stance across a restart. A step with `after`
-survives the service going down and finishes on the next start, so a rule
+Durability extends the same stance across a service restart. A step with a
+positive `after` can resume on the next start if its record survives, so a rule
 nobody retriggered this session, left waiting from before the restart, can
 still push to a command queue once the service is back up, with nothing in
 between that the rider watching the vehicle now would connect to it. That is
@@ -326,6 +414,7 @@ current rider ever saw the vehicle.
 Description=Librescoot Event Service
 After=valkey.service
 Wants=valkey.service
+RequiresMountsFor=/data
 
 [Service]
 Type=simple
@@ -348,17 +437,20 @@ StandardError=journal
 WantedBy=multi-user.target
 ```
 
-The resource caps (`Nice`, `CPUWeight`, `MemoryMax`, `TasksMax`) are meant to
-make the extension subsystem structurally incapable of starving
-vehicle-service, regardless of what a rule set does. `--rules-dir` is not
-passed, so the compiled-in default (`/data/extensions`) applies.
+The resource limits and priorities (`Nice`, `CPUWeight`, `MemoryMax`,
+`TasksMax`) reduce contention; they are not isolation or a guarantee against
+starving other services. In this unit, `exec` runs as root with the service's
+privileges. Treat rule files and scripts as trusted administrative code;
+these settings do not prevent unsafe commands or Redis flooding.
+`--rules-dir` is not passed, so `/data/extensions` applies. The mount dependency
+ensures `/data` is available before startup.
 
 ## Dependencies
 
 - **Redis (valkey)** - for the event stream, the `ev:*` channels, the
   `extensions` and `extensions:pending` hashes, and reading the hashes the
   adapter watches.
-- **Whatever hash or command queue a rule's `redis` step targets** - the
+- **Whatever command list a rule's `redis` step targets** - the
   rules engine does not own those queues; it pushes onto them the same way
   any other client would.
 
