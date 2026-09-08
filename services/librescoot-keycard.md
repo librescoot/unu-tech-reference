@@ -176,7 +176,7 @@ Activated by presenting master UID or via `learn:start`:
 
 Files are written atomically (write to `.tmp`, sync, rename). UIDs are stored as bare uppercase hex, but any separator form is accepted on read, so hand-edited files work.
 
-Note that `lsc keycard` edits these files directly and restarts the service rather than going through the Redis command interface, so it races a running service and does not emit events.
+`lsc keycard list` and `export` read these files directly because multi-entry command replies have no request correlation. Mutating commands go through the Redis interface while keycard-service is running, so its in-memory state and events remain authoritative. If the service is stopped or absent, lsc warns and falls back to editing the files directly; those fallback changes emit no events.
 
 ## Systemd Unit
 
