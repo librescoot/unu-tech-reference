@@ -2148,15 +2148,15 @@
 <h2 id="command-line-options">Command-Line Options<a class="headerlink" href="#command-line-options" title="Permanent link">&para;</a></h2>
 <div class="language-text highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>  --component string         Component to update: mdb or dbc (required)
 </span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>  --redis-addr string        Redis server address (default: localhost:6379)
-</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>  --channel string           Update channel: stable, testing, nightly (no default; inferred from the installed version, and the service exits if none can be determined)
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>  --channel string           Update channel: stable, testing, nightly (inferred from the installed version if unset; explicit installs still work without a channel)
 </span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>  --releases-url string      Release index base URL (default: https://downloads.librescoot.org/releases)
 </span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>  --check-interval duration  Interval between update checks; 0 to disable (default: 6h)
 </span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>  --download-dir string      OTA file download directory (default: /data/ota/{component})
 </span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>  --dry-run                  Log reboot actions instead of executing them
 </span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>  --boot-update              Enable boot partition updates
 </span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>  --boot-mount string        Boot partition mount point (default: /uboot)
-</span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>  --boot-device string       U-Boot device path (auto-detected if empty)
-</span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>  --boot-uboot-seek int64    512-byte blocks to seek before writing U-Boot (default: 2)
+</span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>  --boot-device string       eMMC boot0 device /dev/mmcblkNboot0 (auto-detected if empty)
+</span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>  --boot-uboot-seek int64    512-byte blocks to seek before writing U-Boot (only 2 is supported)
 </span></code></pre></div>
 <p>CLI flags override Redis settings. <code>--component</code> and <code>--redis-addr</code> are CLI-only.</p>
 <h2 id="systemd-units">Systemd Units<a class="headerlink" href="#systemd-units" title="Permanent link">&para;</a></h2>
@@ -2192,6 +2192,34 @@ the boot updater does not copy them to the FAT boot partition.</p>
 <p>MDB nightly packaging includes only U-Boot, <code>manifest.sha256</code>, and <code>version</code>
 in <code>/usr/share/boot-assets</code>. It omits redundant kernel/DTB copies there while
 retaining the kernel and DTB packages under <code>/boot</code>.</p>
+<p>Before target access, both comparison and installation require the exact U-Boot
+SHA-256 entry in <code>manifest.sha256</code> and validate the IMX v2 IVT and BootData extent.
+Image reads are limited to 32 MiB and manifests to 64 KiB. The target must be an
+identified eMMC boot0 block device with enough capacity; the source IVT at byte
+zero is placed at byte 1024. User-area targets and other offsets are refused.
+Comparison errors do not trigger a write. Short writes, sync failures, readback
+mismatches, and read-only restoration errors fail the operation without requesting
+a reboot. Cancellation before writing aborts; an already-started write completes
+sync/readback/cleanup instead of deliberately stopping halfway.</p>
+<p>Boot installation requires settled Mender state and holds the update-operation
+lock through its deferred reboot waiter so it cannot interrupt a rootfs install.
+It acquires <code>power:inhibits[install:{component}-boot]</code> as a non-expiring <code>block</code>
+for <code>power-state-change</code>. Before writing, it waits for pm-service's processed
+acknowledgement in <code>power-manager:busy-services</code>, using the field
+<code>update-service installing boot update for {component} ({requestID}) power-state-change</code>
+with value <code>block</code>, and requires <code>power-manager[state]=running</code>. The request ID
+is fresh per acquisition to reject stale acknowledgements; both observations
+are rechecked immediately before calling the writer. DBC writes additionally
+send <code>start-dbc</code>, await <code>vehicle[dbc-updating]=true</code>, and maintain an OTA heartbeat.
+Missing acknowledgements, Redis errors, and transition states prevent the write.
+Cleanup releases the boot hold after the writer returns; startup removes orphaned
+boot holds. DBC boot-only reboot uses the vehicle safety gate without creating or
+requiring a Mender activation marker.</p>
+<p>Checksums detect corruption, not image authenticity. Structural checks and
+readback do not prove board compatibility or bootability. Boot0 selection is
+unchanged and does not identify the ROM's active boot source. There is no
+boot-region migration or bootloader A/B/fallback; forced power loss during an
+in-place write remains unsafe.</p>
 <h2 id="redis-operations">Redis Operations<a class="headerlink" href="#redis-operations" title="Permanent link">&para;</a></h2>
 <h3 id="hash-ota-written">Hash: <code>ota</code> (written)<a class="headerlink" href="#hash-ota-written" title="Permanent link">&para;</a></h3>
 <p>All fields are namespaced by component (<code>mdb</code> or <code>dbc</code>):</p>
@@ -2469,6 +2497,13 @@ silence, not 90 seconds of heartbeat age.</p>
 <li><code>updates.{component}.last-check-time</code> — RFC3339 timestamp of last update check</li>
 </ul>
 <p><strong>Subscribed channel:</strong> <code>settings</code></p>
+<p>Each update check reads the effective channel and method directly from Redis,
+without waiting for the settings watcher. An explicit CLI channel remains pinned.
+Removing a Redis channel override restores the startup inferred/default channel,
+not the last watcher value. Redis read failures abort the check. The selected
+channel is retained through delta chains, rechecks, and full-image fallback.
+Switching from nightly/testing to stable is eligible for a full update; same-channel
+stable checks continue to reject downgrades.</p>
 <ul>
 <li>All <code>updates.{component}.*</code> field changes are applied at runtime</li>
 </ul>
