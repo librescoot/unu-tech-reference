@@ -188,7 +188,9 @@ subscribes directly to `ev:<topic-glob>` (default `ev:*`). All commands support
 
 The version-1 RPC methods are `v1.list`, `v1.show`, `v1.add`, `v1.set-enabled`,
 `v1.test`, and `v1.status`. Request envelopes carry `id`, `method`,
-`reply_channel`, `deadline` (Unix milliseconds), and `payload`. The reply
+`reply_channel`, `deadline` (Unix milliseconds using Redis `TIME`), and
+`payload`. Both endpoints use the datastore clock for wire expiry and local
+contexts for timeout budgets; remote host clocks need not be synchronized. The reply
 channel is `extensions:rpc:reply:<id>`; replies contain `ok`, `payload`, and
 optional `error`. Clients subscribe and await confirmation before enqueueing.
 The shared client caps requests at 64 KiB, replies at 512 KiB, the queue at
