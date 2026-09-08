@@ -1158,6 +1158,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#rule-management" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Rule Management
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#rules" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
@@ -1870,6 +1881,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#rule-management" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Rule Management
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#rules" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
@@ -2414,6 +2436,43 @@ these adapters. A single state transition can emit several named topics.</p>
 <p>Hash notifications carry field names, not a snapshot of each value. Rapid
 producer updates can overwrite an intermediate value before the adapter reads
 it, so this bus is not an authoritative record of every vehicle transition.</p>
+<h2 id="rule-management">Rule Management<a class="headerlink" href="#rule-management" title="Permanent link">&para;</a></h2>
+<p><code>lsc ext list</code>, <code>show</code>, <code>add</code>, <code>enable</code>, <code>disable</code>, <code>test</code>, and <code>status</code> use
+list-backed RPC on <code>extensions:rpc</code>. The service owns configuration files;
+a remote CLI never edits its own filesystem. <code>lsc ext tail [topic-glob]</code>
+subscribes directly to <code>ev:&lt;topic-glob&gt;</code> (default <code>ev:*</code>). All commands support
+<code>--json</code>; tail emits one JSON envelope per line.</p>
+<p>The version-1 RPC methods are <code>v1.list</code>, <code>v1.show</code>, <code>v1.add</code>, <code>v1.set-enabled</code>,
+<code>v1.test</code>, and <code>v1.status</code>. Request envelopes carry <code>id</code>, <code>method</code>,
+<code>reply_channel</code>, <code>deadline</code> (Unix milliseconds), and <code>payload</code>. The reply
+channel is <code>extensions:rpc:reply:&lt;id&gt;</code>; replies contain <code>ok</code>, <code>payload</code>, and
+optional <code>error</code>. Clients subscribe and await confirmation before enqueueing.
+The shared client caps requests at 64 KiB, replies at 512 KiB, the queue at
+32 requests, and calls at five seconds. Mutations are not automatically
+retried. A timeout can mean saved configuration with a lost response; inspect
+<code>show</code> or <code>list</code> before retrying.</p>
+<p><strong>Changes require an explicit service restart on the MDB.</strong> Mutations update
+desired configuration and report pending restart; existing rules can still
+accept triggers until then. Once restarted, disabled rules cannot accept new
+triggers, but valid recorded tails can finish without <code>cancel-on</code>
+cancellation. Expiry/fingerprint checks and the other replay limitations
+still apply. This is not a live reload API.</p>
+<p><code>add</code> stores one validated definition in a dedicated managed TOML file.
+Enable/disable preferences live in <code>.enabled.json</code> and override TOML <code>enabled</code>
+fields without rewriting hand-authored files. Mutations use revisions to
+reject conflicts and atomic file replacement. Invalid override metadata must
+be repaired before configuration can safely be activated.</p>
+<p>List/show expose desired enabled state separately from runtime loaded state.
+<code>last_fire</code> is the last run-start time, including replay, in Unix milliseconds;
+<code>errors</code> counts evaluation/action errors. These metrics reset with the service.
+Status uses RPC to prove liveness and reports actual queue capacity/depth,
+worker count/busy workers, and counters rather than treating active runs as
+worker saturation.</p>
+<p><code>test</code> evaluates the desired definition against an immutable snapshot of
+shadow state. It never dispatches, publishes the synthetic event, opens CAN
+sockets, starts processes/timers, or changes runtime counters. Delayed step
+conditions use current state, not a prediction of future state; cooldown,
+debounce and concurrency are not simulated.</p>
 <h2 id="rules">Rules<a class="headerlink" href="#rules" title="Permanent link">&para;</a></h2>
 <p>TOML files under <code>--rules-dir</code>, one or more <code>[[rule]]</code> blocks per file,
 loaded and compiled at startup. A file that fails to parse, or that contains

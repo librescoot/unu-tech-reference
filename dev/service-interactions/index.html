@@ -2474,6 +2474,11 @@
 </span></code></pre></div>
 <h2 id="per-service-detail">Per-Service Detail<a class="headerlink" href="#per-service-detail" title="Permanent link">&para;</a></h2>
 <h3 id="event-service">event-service<a class="headerlink" href="#event-service" title="Permanent link">&para;</a></h3>
+<p><strong>Management:</strong> <code>lsc ext</code> calls <code>extensions:rpc</code>; responses use
+<code>extensions:rpc:reply:&lt;id&gt;</code>. The service reads and writes desired rule
+configuration under <code>/data/extensions</code>; mutations require a service restart
+and do not dispatch actions. <code>test</code> only evaluates a snapshot. Disabling stops
+new triggers after restart, while valid saved tails can finish.</p>
 <p>Packaged for MDB nightly builds ahead of 1.4.0; not included in 1.3.1 stable.
 See <a href="../services/librescoot-events/">event-service</a> for the adapter topic
 catalogue and rule configuration.</p>
