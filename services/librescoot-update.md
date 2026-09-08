@@ -9,15 +9,15 @@ Manages over-the-air (OTA) updates for MDB and DBC components. Runs as two separ
 ```
   --component string         Component to update: mdb or dbc (required)
   --redis-addr string        Redis server address (default: localhost:6379)
-  --channel string           Update channel: stable, testing, nightly (no default; inferred from the installed version, and the service exits if none can be determined)
+  --channel string           Update channel: stable, testing, nightly (inferred from the installed version if unset; explicit installs still work without a channel)
   --releases-url string      Release index base URL (default: https://downloads.librescoot.org/releases)
   --check-interval duration  Interval between update checks; 0 to disable (default: 6h)
   --download-dir string      OTA file download directory (default: /data/ota/{component})
   --dry-run                  Log reboot actions instead of executing them
   --boot-update              Enable boot partition updates
   --boot-mount string        Boot partition mount point (default: /uboot)
-  --boot-device string       U-Boot device path (auto-detected if empty)
-  --boot-uboot-seek int64    512-byte blocks to seek before writing U-Boot (default: 2)
+  --boot-device string       eMMC boot0 device /dev/mmcblkNboot0 (auto-detected if empty)
+  --boot-uboot-seek int64    512-byte blocks to seek before writing U-Boot (only 2 is supported)
 ```
 
 CLI flags override Redis settings. `--component` and `--redis-addr` are CLI-only.
@@ -48,6 +48,37 @@ the boot updater does not copy them to the FAT boot partition.
 MDB nightly packaging includes only U-Boot, `manifest.sha256`, and `version`
 in `/usr/share/boot-assets`. It omits redundant kernel/DTB copies there while
 retaining the kernel and DTB packages under `/boot`.
+
+Before target access, both comparison and installation require the exact U-Boot
+SHA-256 entry in `manifest.sha256` and validate the IMX v2 IVT and BootData extent.
+Image reads are limited to 32 MiB and manifests to 64 KiB. The target must be an
+identified eMMC boot0 block device with enough capacity; the source IVT at byte
+zero is placed at byte 1024. User-area targets and other offsets are refused.
+Comparison errors do not trigger a write. Short writes, sync failures, readback
+mismatches, and read-only restoration errors fail the operation without requesting
+a reboot. Cancellation before writing aborts; an already-started write completes
+sync/readback/cleanup instead of deliberately stopping halfway.
+
+Boot installation requires settled Mender state and holds the update-operation
+lock through its deferred reboot waiter so it cannot interrupt a rootfs install.
+It acquires `power:inhibits[install:{component}-boot]` as a non-expiring `block`
+for `power-state-change`. Before writing, it waits for pm-service's processed
+acknowledgement in `power-manager:busy-services`, using the field
+`update-service installing boot update for {component} ({requestID}) power-state-change`
+with value `block`, and requires `power-manager[state]=running`. The request ID
+is fresh per acquisition to reject stale acknowledgements; both observations
+are rechecked immediately before calling the writer. DBC writes additionally
+send `start-dbc`, await `vehicle[dbc-updating]=true`, and maintain an OTA heartbeat.
+Missing acknowledgements, Redis errors, and transition states prevent the write.
+Cleanup releases the boot hold after the writer returns; startup removes orphaned
+boot holds. DBC boot-only reboot uses the vehicle safety gate without creating or
+requiring a Mender activation marker.
+
+Checksums detect corruption, not image authenticity. Structural checks and
+readback do not prove board compatibility or bootability. Boot0 selection is
+unchanged and does not identify the ROM's active boot source. There is no
+boot-region migration or bootloader A/B/fallback; forced power loss during an
+in-place write remains unsafe.
 
 ## Redis Operations
 
@@ -214,6 +245,14 @@ silence, not 90 seconds of heartbeat age.
 - `updates.{component}.last-check-time` — RFC3339 timestamp of last update check
 
 **Subscribed channel:** `settings`
+
+Each update check reads the effective channel and method directly from Redis,
+without waiting for the settings watcher. An explicit CLI channel remains pinned.
+Removing a Redis channel override restores the startup inferred/default channel,
+not the last watcher value. Redis read failures abort the check. The selected
+channel is retained through delta chains, rechecks, and full-image fallback.
+Switching from nightly/testing to stable is eligible for a full update; same-channel
+stable checks continue to reject downgrades.
 
 - All `updates.{component}.*` field changes are applied at runtime
 
