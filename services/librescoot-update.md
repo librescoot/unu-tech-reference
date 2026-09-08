@@ -38,6 +38,17 @@ MDB. `systemctl status librescoot-update` is the same command on either board.
 
 Binary: `/usr/bin/update-service`
 
+### Boot assets
+
+The boot updater consumes `u-boot-dtb.imx` from `/usr/share/boot-assets` and
+compares it with the boot region before deciding whether to write it. Kernel
+and device-tree updates arrive in `/boot` inside the Mender rootfs artifact;
+the boot updater does not copy them to the FAT boot partition.
+
+MDB nightly packaging includes only U-Boot, `manifest.sha256`, and `version`
+in `/usr/share/boot-assets`. It omits redundant kernel/DTB copies there while
+retaining the kernel and DTB packages under `/boot`.
+
 ## Redis Operations
 
 ### Hash: `ota` (written)
