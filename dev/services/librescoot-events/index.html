@@ -23,7 +23,7 @@
       
       
       <link rel="icon" href="../../assets/images/favicon.png">
-      <meta name="generator" content="zensical-0.0.59">
+      <meta name="generator" content="zensical-0.0.60">
     
     
       
@@ -34,7 +34,7 @@
       
         
       
-      <link rel="stylesheet" href="../../assets/stylesheets/modern/main.5da3a30f.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/modern/main.ce62732f.min.css">
       
         
           
@@ -2444,7 +2444,9 @@ subscribes directly to <code>ev:&lt;topic-glob&gt;</code> (default <code>ev:*</c
 <code>--json</code>; tail emits one JSON envelope per line.</p>
 <p>The version-1 RPC methods are <code>v1.list</code>, <code>v1.show</code>, <code>v1.add</code>, <code>v1.set-enabled</code>,
 <code>v1.test</code>, and <code>v1.status</code>. Request envelopes carry <code>id</code>, <code>method</code>,
-<code>reply_channel</code>, <code>deadline</code> (Unix milliseconds), and <code>payload</code>. The reply
+<code>reply_channel</code>, <code>deadline</code> (Unix milliseconds using Redis <code>TIME</code>), and
+<code>payload</code>. Both endpoints use the datastore clock for wire expiry and local
+contexts for timeout budgets; remote host clocks need not be synchronized. The reply
 channel is <code>extensions:rpc:reply:&lt;id&gt;</code>; replies contain <code>ok</code>, <code>payload</code>, and
 optional <code>error</code>. Clients subscribe and await confirmation before enqueueing.
 The shared client caps requests at 64 KiB, replies at 512 KiB, the queue at
@@ -2873,7 +2875,7 @@ ensures <code>/data</code> is available before startup.</p>
       <script id="__config" type="application/json">{"annotate":null,"base":"../..","features":["content.action.edit","content.code.copy","content.code.select","content.tooltips","navigation.footer","navigation.indexes","navigation.instant","navigation.instant.prefetch","navigation.path","navigation.sections","navigation.top","navigation.tracking","search.highlight","toc.follow"],"search":"../../assets/javascripts/workers/search.7d14d953.min.js","tags":null,"translations":{"clipboard.copied":"Copied to clipboard","clipboard.copy":"Copy to clipboard","search.result.more.one":"1 more on this page","search.result.more.other":"# more on this page","search.result.none":"No matching documents","search.result.one":"1 matching document","search.result.other":"# matching documents","search.result.placeholder":"Type to start searching","search.result.term.missing":"Missing","select.version":"Select version"},"version":{"provider":"mike"}}</script>
     
     
-      <script src="../../assets/javascripts/bundle.6970bfe9.min.js"></script>
+      <script src="../../assets/javascripts/bundle.88ee1349.min.js"></script>
       
     
   </body>
