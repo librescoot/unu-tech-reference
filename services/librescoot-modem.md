@@ -11,6 +11,10 @@ Usage of modem-service:
   -connectivity-targets string
         Comma-separated host:port fallback targets for the connectivity probe
         (default "8.8.8.8:53,1.1.1.1:53,9.9.9.9:53,208.67.222.222:53")
+  -connectivity-verification-name string
+        DNS name whose TXT record verifies internet reachability (empty disables verification)
+  -connectivity-verification-value string
+        Expected TXT value for the connectivity verification name (empty disables verification)
   -data-usage-file string
         Where to persist cellular byte totals; empty keeps them in memory only
         (default "/data/internet-usage.json")
@@ -48,7 +52,7 @@ Usage of modem-service:
 - `modem-health` - Modem health state ("normal", "recovering", "recovery-failed-waiting-reboot", "permanent-failure-needs-replacement")
 - `modem-state` - Raw modem status ("off", "connected", "disconnected", "no-modem", "UNKNOWN")
 - `connectivity` - Debounced connectivity classification folding modem-state, SIM, registration, the enable flag and health into one verdict: `connected` / `disconnected` (provisioned-but-down) / `disabled` (off by command) / `no-sim` / `denied` (registration denied/failed, e.g. deactivated SIM) / `failed` (modem broken). Consumed by the dashboard to gate the internet icon. Hysteresis: -> connected 60 s, connected -> disconnected 3 min, -> denied 60 s; disabled/no-sim/failed and any other -> disconnected immediate.
-- `status` - Derived internet connectivity status ("connected", "disconnected") - set from the layer-8 reachability probe (DNS query to the network-assigned resolvers, then TCP dial of the `-connectivity-targets` fallbacks)
+- `status` - Derived internet connectivity status ("connected", "disconnected") - set from the layer-8 reachability probe. When TXT verification is configured, only an exact expected value counts
 - `ip-address` - Interface IP address from wwan0/ppp0
 - `access-tech` - Access technology from modem ("5G", "4G", "HSPA+", "HSPA", "3G", "UMTS", "EDGE", "GSM", "UNKNOWN")
 - `signal-quality` - Signal strength (0-100, or 255 if unknown)
@@ -255,7 +259,7 @@ The service can control modem power via GPIO pin 110:
 
 - **Interface:** wwan0 (default) or ppp0
 - **DNS:** Provided by mobile operator
-- **Connectivity test:** DNS query to the network-assigned resolvers, falling back to a TCP dial of the `-connectivity-targets` list. No ICMP is used.
+- **Connectivity test:** By default, a permissive DNS/TCP probe. Deployments can configure a DNS TXT name and expected value for content-verified reachability. No ICMP is used.
 
 #### APN Reconciliation
 
@@ -325,12 +329,14 @@ The service uses a two-level status model:
    - "UNKNOWN" - Unable to determine state
 
 2. **Derived internet status** (`status` field):
-   - "connected" - the reachability probe got an answer
-   - "disconnected" - no target answered, or the local link assessment was unhealthy so the probe was skipped
+   - "connected" - the reachability probe succeeded (and, when configured, returned the expected TXT value)
+   - "disconnected" - no target produced a valid result, or the local link assessment was unhealthy so the probe was skipped
 
 **Connectivity test:**
 
-- **Method:** DNS A query for `connectivity-probe.invalid` against each network-assigned resolver, then a TCP dial of each `-connectivity-targets` entry (default `8.8.8.8:53,1.1.1.1:53,9.9.9.9:53,208.67.222.222:53`), all bound to the modem interface with SO_BINDTODEVICE. Any DNS response counts, whatever the rcode.
+- **Verified mode:** set both `-connectivity-verification-name` and `-connectivity-verification-value`. The service queries that TXT record through the network-assigned resolvers and then the `-connectivity-targets` resolvers, requiring an exact value match. A captive resolver's synthetic but incorrect answer is rejected. A partial configuration fails closed.
+- **Compatibility mode (default):** when both verification flags are empty, send a DNS A query for `connectivity-probe.invalid` to each network-assigned resolver, then TCP-dial each `-connectivity-targets` entry. Any well-formed DNS response counts. This explicit opt-out preserves existing deployments until they provision a controlled TXT record.
+- **Binding:** every query and dial uses SO_BINDTODEVICE for the configured modem interface.
 - **Timeout:** 2 seconds per DNS query and per dial
 - **Interval:** backs off exponentially while the local stack is healthy, up to `-internet-check-max-interval` (default 5m); any change in the local link assessment forces an immediate re-probe
 - **Trigger recovery:** never. A failed probe sets `status=disconnected` and `reachability=unreachable`, but only the local `link.Assess` verdict can trigger a modem remedy.

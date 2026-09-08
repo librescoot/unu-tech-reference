@@ -217,7 +217,7 @@ hgetall internet
 |-------|------|-------------|----------|
 | modem-state | string | Modem power state | "off" |
 | connectivity | string | Debounced connectivity classification (see below) | "connected" |
-| status | string | Connection status | "disconnected" |
+| status | string | Layer-8 reachability (`connected` / `disconnected`). With modem-service TXT verification configured, `connected` requires an exact deployment-controlled TXT value; the empty default retains the legacy permissive DNS/TCP probe | "disconnected" |
 | unu-cloud | string | Cloud connection status; written by whichever cloud client runs (`radio-gaga` or `uplink-service`). Field absent = no cloud client configured (de-clouded); the dashboard hides the cloud icon in that case | "disconnected" |
 | ip-address | string | IP address | "1.2.3.4" |
 | access-tech | string | Access technology | "LTE" |
