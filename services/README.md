@@ -44,7 +44,8 @@ graph TB
     UMS["ums-service<br/>USB Mass Storage"]
     UPD["update-service<br/>OTA Updates"]
     EVT["event-service<br/>State adapter + optional rules"]
-    RULES["/data/extensions/*.toml"]
+    RULES["/data/extensions<br/>TOML + enabled overrides"]
+    EXTCLI["lsc ext"]
     EXEC["Configured executables<br/>only with exec rules"]
 
     LOGIND["systemd-logind<br/>D-Bus"]
@@ -75,6 +76,8 @@ graph TB
     EVT -->|events stream, ev topics, extension hashes| Redis
     EVT -.->|Configured rules only: LPUSH| Redis
     RULES --> EVT
+    EXTCLI -->|extensions RPC| Redis
+    EVT -.->|Management: desired config only| RULES
     EVT -.->|Configured rules only| EXEC
     EVT -.->|Configured CAN rules only: transmit| ECU
 

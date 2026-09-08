@@ -95,6 +95,12 @@ Generated from source analysis of all service repositories.
 
 ### event-service
 
+**Management:** `lsc ext` calls `extensions:rpc`; responses use
+`extensions:rpc:reply:<id>`. The service reads and writes desired rule
+configuration under `/data/extensions`; mutations require a service restart
+and do not dispatch actions. `test` only evaluates a snapshot. Disabling stops
+new triggers after restart, while valid saved tails can finish.
+
 Packaged for MDB nightly builds ahead of 1.4.0; not included in 1.3.1 stable.
 See [event-service](services/librescoot-events.md) for the adapter topic
 catalogue and rule configuration.

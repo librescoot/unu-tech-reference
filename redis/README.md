@@ -1036,7 +1036,7 @@ channel to use for anything that counts or reacts to discrete user actions.
 
 [event-service](../services/librescoot-events.md) is packaged for MDB nightly
 builds ahead of 1.4.0, not included in 1.3.1 stable. It observes existing state
-traffic without writing those source hashes. Its four interfaces are:
+traffic without writing those source hashes. Its event and runtime interfaces are:
 
 | Name | Type | Contents |
 |---|---|---|
@@ -1067,6 +1067,17 @@ recovery across a datastore restart or vehicle reboot. Records cover positive
 `after` delays and remain through worker queuing until the action starts or
 the pending tail is cancelled. Execution is not exactly once. See the service
 reference for the topic catalogue, counter meanings and recovery limitations.
+
+### Extension Management RPC - Librescoot Only
+
+`extensions:rpc` is a bounded list-backed request queue for event-service
+management (`v1.list`, `v1.show`, `v1.add`, `v1.set-enabled`, `v1.test`,
+`v1.status`). Replies are published on `extensions:rpc:reply:<request-id>`.
+`lsc ext` uses this interface, so configuration always belongs to the remote
+MDB, not the CLI host. Mutations report pending restart; they never restart
+the service or dispatch actions. Dry-run events are not published to `ev:*`.
+See [rule management](../services/librescoot-events.md#rule-management) for
+request limits, revision checks, disabled-tail behavior and timeout handling.
 
 ### Event Streams
 

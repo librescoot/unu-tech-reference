@@ -178,6 +178,50 @@ Hash notifications carry field names, not a snapshot of each value. Rapid
 producer updates can overwrite an intermediate value before the adapter reads
 it, so this bus is not an authoritative record of every vehicle transition.
 
+## Rule Management
+
+`lsc ext list`, `show`, `add`, `enable`, `disable`, `test`, and `status` use
+list-backed RPC on `extensions:rpc`. The service owns configuration files;
+a remote CLI never edits its own filesystem. `lsc ext tail [topic-glob]`
+subscribes directly to `ev:<topic-glob>` (default `ev:*`). All commands support
+`--json`; tail emits one JSON envelope per line.
+
+The version-1 RPC methods are `v1.list`, `v1.show`, `v1.add`, `v1.set-enabled`,
+`v1.test`, and `v1.status`. Request envelopes carry `id`, `method`,
+`reply_channel`, `deadline` (Unix milliseconds), and `payload`. The reply
+channel is `extensions:rpc:reply:<id>`; replies contain `ok`, `payload`, and
+optional `error`. Clients subscribe and await confirmation before enqueueing.
+The shared client caps requests at 64 KiB, replies at 512 KiB, the queue at
+32 requests, and calls at five seconds. Mutations are not automatically
+retried. A timeout can mean saved configuration with a lost response; inspect
+`show` or `list` before retrying.
+
+**Changes require an explicit service restart on the MDB.** Mutations update
+desired configuration and report pending restart; existing rules can still
+accept triggers until then. Once restarted, disabled rules cannot accept new
+triggers, but valid recorded tails can finish without `cancel-on`
+cancellation. Expiry/fingerprint checks and the other replay limitations
+still apply. This is not a live reload API.
+
+`add` stores one validated definition in a dedicated managed TOML file.
+Enable/disable preferences live in `.enabled.json` and override TOML `enabled`
+fields without rewriting hand-authored files. Mutations use revisions to
+reject conflicts and atomic file replacement. Invalid override metadata must
+be repaired before configuration can safely be activated.
+
+List/show expose desired enabled state separately from runtime loaded state.
+`last_fire` is the last run-start time, including replay, in Unix milliseconds;
+`errors` counts evaluation/action errors. These metrics reset with the service.
+Status uses RPC to prove liveness and reports actual queue capacity/depth,
+worker count/busy workers, and counters rather than treating active runs as
+worker saturation.
+
+`test` evaluates the desired definition against an immutable snapshot of
+shadow state. It never dispatches, publishes the synthetic event, opens CAN
+sockets, starts processes/timers, or changes runtime counters. Delayed step
+conditions use current state, not a prediction of future state; cooldown,
+debounce and concurrency are not simulated.
+
 ## Rules
 
 TOML files under `--rules-dir`, one or more `[[rule]]` blocks per file,
