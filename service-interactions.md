@@ -74,7 +74,7 @@ Generated from source analysis of all service repositories.
                     ─────────────────────────────────────────────────────────
  watched hashes + input-events + motion:interrupt + sms:received
      ── event-service adapter ──> events stream + ev:<topic> channels
- ev:<topic> ── configured rules only ──> LPUSH to configured command lists / exec
+ ev:<topic> ── configured rules only ──> LPUSH to configured command lists / exec / CAN send
 
                     Sets (fault tracking)
                     ─────────────────────
@@ -114,7 +114,9 @@ records). It does not write the observed source hashes.
 **Conditional rule edges:** only loaded rules subscribe to their selected
 `ev:*` patterns. A `redis` step can `LPUSH` to any configured list, including
 vehicle command queues; an `exec` step starts a configured executable as root
-under the packaged unit. These are optional rule-driven edges, not built-in
+under the packaged unit. A `can` step sends a classic CAN frame through the
+configured interface without subscribing to CAN traffic. These are optional
+rule-driven edges, not built-in
 commands or hardware behaviour. Without rules there is no additional event
 subscription or rule-driven command production.
 

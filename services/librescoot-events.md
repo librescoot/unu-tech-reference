@@ -41,9 +41,9 @@ The image's build revision determines the installed version.
                               logs a warning and falls back to the default.
 ```
 
-`--log-level` is parsed and printed at startup but does not currently gate
-anything: every log line, including the ones prefixed `debug:`, is written
-regardless of the flag's value.
+`--log-level=debug` enables per-frame CAN logs, including transport failures.
+Other service logs, including existing lines prefixed `debug:`, are not
+currently filtered by this flag.
 
 A missing `--rules-dir` is not an error; it is the normal state of a scooter
 with no extensions installed.
@@ -96,6 +96,8 @@ Counters reset on service restart.
 | `dropped` | actions the worker pool refused because its queue was full or it was shutting down; the operator's lever is `--workers` / `--queue` |
 | `refused` | triggers a `queue`-concurrency rule turned away because that rule's own backlog (capped at 8) was already full; the lever is that rule's own sequence, not the worker pool |
 | `failed` | actions that ran and returned an error |
+| `can-sent` | CAN frames accepted by the kernel; not ECU acknowledgements |
+| `can-errors` | CAN send failures, also included in `failed` |
 | `pending` | timers armed right now: steps waiting out an `after`, gaps between `repeat` passes, and `debounce` quiet windows. Observability only; a fire leaves the count the moment it is claimed, so `0` does not mean nothing is in flight |
 | `runs-active` | sequence runs part-way through their steps, including ones parked on a timer. A trigger sitting in a `queue` backlog has not started and is not counted here |
 | `version` | build version; constant for the life of the process |
@@ -321,7 +323,7 @@ same pass.
 
 A step already handed to the worker pool when the cancel arrives is **not**
 interrupted, whether a worker is already running it or it is still waiting
-its turn in the pool's queue. A `redis` push or `exec` command already
+its turn in the pool's queue. A `redis` push, `exec` command, or CAN send already
 accepted is not cancelled by this event (it can still fail or be stopped by
 service shutdown). Cancellation prevents submission of its remaining tail.
 
@@ -362,7 +364,7 @@ name, and neither does a rule that fails to compile, so an old copy kept
 around under `enabled = false` while a variant is tried, or a fix landing
 under the name a broken rule already failed to claim, both work as expected.
 
-`can`, `lua` and `http` step kinds are not supported yet; a rule naming one
+`lua` and `http` step kinds are not supported yet; a rule naming one
 fails to load. An unrecognised `concurrency` value is rejected the same way,
 naming the rule, the file, and the three accepted values.
 
@@ -380,7 +382,39 @@ naming the rule, the file, and the three accepted values.
   short shell script needs no JSON parser. The command runs in its own
   process group; the hard timeout kills the whole group, not just the
   direct child.
-- `can`, `lua`, `http`: unsupported; a rule using one fails to load.
+- `can`: send a classic CAN frame directly through SocketCAN; see below.
+- `lua`, `http`: unsupported; a rule using one fails to load.
+
+### CAN frames
+
+```toml
+[[rule.step]]
+do = "can"
+iface = "can0"
+id = "0x123"
+data = "01 02 03 04"
+```
+
+This is syntax, not an ECU command recommendation. `iface` is required. IDs
+are hexadecimal with an optional `0x` prefix; values above `0x7ff` select
+extended frames, up to `0x1fffffff`. `data` is contiguous hex or
+whitespace-separated byte pairs, at most eight bytes. Empty data is valid.
+
+For a remote-request frame, set `rtr = true`, omit the payload, and optionally
+set `dlc` to the requested length (0–8, default 0). Ordinary frames derive
+length from data and reject explicit `dlc`. RTR support does not imply the ECU
+uses or responds to remote requests.
+
+One socket is opened lazily per interface and reused; there is no receive
+loop or `cansend` process. Writes are nonblocking and never automatically
+retried. A full transmit queue or down interface fails the step, ends its run,
+and invalidates the socket for a later action to reopen. Kernel acceptance
+is not proof of ECU reception. All sockets close during service shutdown.
+
+Per-frame logs are debug-only to avoid filling the journal on a failing bus.
+Use `extensions[can-sent]`, `[can-errors]`, and `[failed]` for monitoring.
+There is no CAN rate limit or riding-state interlock; frequent sends compete
+with normal ECU traffic.
 
 ## Safety
 

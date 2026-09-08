@@ -1013,7 +1013,7 @@ traffic without writing those source hashes. Its four interfaces are:
 |---|---|---|
 | `events` | Stream | Approximately 2000 entries (`MAXLEN ~`), each with `topic` and `e` (JSON envelope) fields |
 | `ev:<topic>` | Pub/Sub channel | JSON envelope: `id`, `ts`, `topic`, `src`, optional `from`, `to`, `data` |
-| `extensions` | Hash | Rule-engine counts: `rules`, `dispatched`, `dropped`, `refused`, `failed`, `pending`, `runs-active`, plus build `version` |
+| `extensions` | Hash | Rule-engine counts: `rules`, `dispatched`, `dropped`, `refused`, `failed`, `pending`, `runs-active`, `can-sent`, `can-errors`, plus build `version` |
 | `extensions:pending` | Hash | Internal run ID → JSON durable pending-step record; not a command interface |
 
 ```bash
