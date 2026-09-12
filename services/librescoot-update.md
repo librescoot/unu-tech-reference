@@ -88,7 +88,7 @@ All fields are namespaced by component (`mdb` or `dbc`):
 
 | Field | Description | Values |
 |-------|-------------|--------|
-| `status:{component}` | Current update status | `idle`, `downloading`, `preparing`, `installing`, `pending-reboot`, `error` |
+| `status:{component}` | Current update status | `idle`, `downloading`, `preparing`, `installing`, `pending-reboot`, `staged-noop`, `error` |
 | `update-version:{component}` | Target version being installed | e.g. `20251009t162327` |
 | `update-method:{component}` | Update method in use | `full`, `delta` |
 | `download-progress:{component}` | Download progress (0–100) | Integer or empty |
@@ -127,6 +127,7 @@ The mapping from a component's status:
 | `downloading` | `downloading-updates` | `blocking` |
 | `preparing`, `installing` | `installing-updates` | `blocking` |
 | `pending-reboot` | `installation-complete-waiting-reboot` | `blocking` |
+| `staged-noop` | empty | empty |
 | `idle`, `error`, absent, unrecognised | empty | empty |
 
 Both components feed the same pair, and when they disagree **the least advanced one

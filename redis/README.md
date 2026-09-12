@@ -874,7 +874,9 @@ Librescoot adds per-component update tracking:
 | status | string | Flat status, not namespaced, stock convention | "downloading-updates" |
 | update-type | string | Whether the flat status blocks use of the vehicle | "blocking" |
 
-**Update status values:** `idle`, `downloading`, `preparing`, `installing`, `pending-reboot`, `error`
+**Update status values:** `idle`, `downloading`, `preparing`, `installing`, `pending-reboot`, `staged-noop`, `error`
+
+`staged-noop` is terminal and not an error: an `apply-staged-updates` push found nothing applicable (the staged image is already the running version, or only unusable artifacts are staged), so nothing was installed and nothing needs rebooting. ums-service finishes the cycle on it without triggering a reboot.
 
 `status` and `update-type` are the non-namespaced pair from the stock convention,
 describing the vehicle rather than one board. Both components feed them and the least
