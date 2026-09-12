@@ -163,7 +163,7 @@ Values `error:{component}` takes, with `error-message:{component}` carrying the 
 | `delta-base-mismatch` | A delta was built for a base image other than the staged one it was applied against |
 | `staged-read-failed` | The component's download directory could not be read while resolving `apply-staged-updates` |
 | `no-running-version` | The running version could not be determined, so staged update files cannot be resolved |
-| `staged-updates-refused` | The staged set is ambiguous: a newer `.mender` alongside a `.delta`, two or more newer `.mender` files, or deltas that do not form one contiguous chain from the running version. Checked before installation starts, so nothing is written |
+| `staged-updates-refused` | The staged set is ambiguous: a newer `.mender` alongside a `.delta` that parses as a newer artifact on the running version's channel, two or more newer `.mender` files, or deltas that do not form one contiguous chain from the running version. Checked before installation starts, so nothing is written |
 | `delta-failed` | A delta update failed and a full update is being started instead. Transient: cleared to `idle` after two seconds, then the full update proceeds |
 | `reboot-failed` | The update installed but the reboot could not be triggered |
 
@@ -173,10 +173,15 @@ Values `error:{component}` takes, with `error-message:{component}` carrying the 
 component's download directory (default `/data/ota/<component>`). A `.mender`
 that is not newer than the running version is treated as the delta base image and
 ignored, so the base file that lives in that directory is never a conflict. A
-newer `.mender` staged together with any `.delta`, two or more newer `.mender`
-files, and deltas that cannot be resolved into one contiguous chain from the
-running version are all refused before anything is unpacked, with
-`staged-updates-refused` and no install. Resolved deltas are applied as a single
+newer `.mender` staged together with any `.delta` that parses as a newer artifact on
+the running version's channel, two or more newer `.mender` files, and deltas that
+cannot be resolved into one contiguous chain from the running version are all refused
+before anything is unpacked, with `staged-updates-refused` and no install. A `.delta`
+the version test cannot judge (a cross-channel orphan, an unparsable name, a partial
+transfer) is ignored rather than counted, and so cannot block a legitimately staged
+image. When nothing in the set applies — the staged image is already the running
+version — the command logs it and returns to `idle`; that is a normal post-success
+state, not a refusal. Resolved deltas are applied as a single
 chain and installed once, so several staged deltas cost one install and one
 reboot. This is the path ums-service uses to hand over files imported from the
 USB drive.

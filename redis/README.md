@@ -1310,10 +1310,14 @@ several deltas for one board needs a single install and a single reboot.
 
 A staged `.mender` that is **not newer** than the running version is the base image a
 delta is applied against, and is ignored rather than treated as an update. A newer
-`.mender` staged alongside any `.delta` is refused as ambiguous, as are two or more
-newer `.mender` files, or deltas that do not resolve into one chain from the running
-version. A refused set installs nothing and is reported through `error:{component}`
-(`staged-updates-refused`, `staged-read-failed`, `no-running-version`). ums-service
+`.mender` staged alongside any `.delta` that parses as a newer artifact on the running
+version's channel is refused as ambiguous, as are two or more newer `.mender` files, or
+deltas that do not resolve into one chain from the running version. A `.delta` the
+version test cannot judge (a cross-channel orphan, an unparsable name, a partial
+transfer) is ignored rather than counted, so it neither joins a chain nor blocks a
+legitimately staged image. A refused set installs nothing and is reported through
+`error:{component}` (`staged-updates-refused`, `staged-read-failed`,
+`no-running-version`). ums-service
 additionally reports its own refusals in `usb.last-result` and as an `error` event on
 `scootui:notification`.
 
