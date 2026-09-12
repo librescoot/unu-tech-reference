@@ -229,7 +229,7 @@ the rail.
 **Writes:**
 | Hash | Fields | Channel |
 |------|--------|---------|
-| `engine-ecu` | `motor:voltage`, `motor:current`, `rpm`, `speed`, `raw-speed`, `throttle`, `brake`, `power`, `energy:consumed`, `energy:recovered` | (broken: see gaps) |
+| `engine-ecu` | `motor:voltage`, `motor:current`, `rpm`, `speed`, `raw-speed`, `corrected-speed`, `throttle`, `brake`, `power`, `energy:consumed`, `energy:recovered` | (broken: see gaps) |
 | `engine-ecu` | `temperature`, `fault:code`, `fault:description` | (no publish) |
 | `engine-ecu` | `odometer` | (broken: see gaps) |
 | `engine-ecu` | `kers`, `boost` | (broken: see gaps) |

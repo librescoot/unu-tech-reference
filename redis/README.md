@@ -73,8 +73,9 @@ hgetall engine-ecu
 | energy:consumed | integer (mWh) | Cumulative energy consumed | "0" |
 | energy:recovered | integer (mWh) | Cumulative energy recovered via regen | "0" |
 | rpm | integer | Motor RPM | "0" |
-| speed | integer (km/h) | Vehicle speed (calibrated) | "0" |
-| raw-speed | integer (km/h) | Raw speed before calibration | "0" |
+| speed | integer (km/h) | Vehicle speed after calibration and moving-average filtering | "0" |
+| raw-speed | integer (km/h) | Speed as reported by the ECU, before calibration or filtering | "0" |
+| corrected-speed | integer (km/h) | Calibrated speed from the latest ECU sample, without filtering | "0" |
 | throttle | "on"/"off" | Throttle state | "off" |
 | brake | "on"/"off" | Brake state | "off" |
 | gear | integer | Current gear (1-3, 0 if unknown) | "1" |
