@@ -5987,10 +5987,14 @@ contiguous chain from the running version and installed once, so a drop containi
 several deltas for one board needs a single install and a single reboot.</p>
 <p>A staged <code>.mender</code> that is <strong>not newer</strong> than the running version is the base image a
 delta is applied against, and is ignored rather than treated as an update. A newer
-<code>.mender</code> staged alongside any <code>.delta</code> is refused as ambiguous, as are two or more
-newer <code>.mender</code> files, or deltas that do not resolve into one chain from the running
-version. A refused set installs nothing and is reported through <code>error:{component}</code>
-(<code>staged-updates-refused</code>, <code>staged-read-failed</code>, <code>no-running-version</code>). ums-service
+<code>.mender</code> staged alongside any <code>.delta</code> that parses as a newer artifact on the running
+version's channel is refused as ambiguous, as are two or more newer <code>.mender</code> files, or
+deltas that do not resolve into one chain from the running version. A <code>.delta</code> the
+version test cannot judge (a cross-channel orphan, an unparsable name, a partial
+transfer) is ignored rather than counted, so it neither joins a chain nor blocks a
+legitimately staged image. A refused set installs nothing and is reported through
+<code>error:{component}</code> (<code>staged-updates-refused</code>, <code>staged-read-failed</code>,
+<code>no-running-version</code>). ums-service
 additionally reports its own refusals in <code>usb.last-result</code> and as an <code>error</code> event on
 <code>scootui:notification</code>.</p>
 <p>The shared <code>scooter:update</code> list is consumed by <strong>vehicle-service</strong>, not the updaters: update-service pushes lifecycle commands (<code>start</code>, <code>complete</code>, <code>start-dbc</code>, <code>complete-dbc</code>) there to drive the vehicle's <code>updating</code> state.</p>

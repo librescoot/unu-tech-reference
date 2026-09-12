@@ -2456,7 +2456,7 @@ A consumer that needs to distinguish a failed update from no update has to read
 </tr>
 <tr>
 <td><code>staged-updates-refused</code></td>
-<td>The staged set is ambiguous: a newer <code>.mender</code> alongside a <code>.delta</code>, two or more newer <code>.mender</code> files, or deltas that do not form one contiguous chain from the running version. Checked before installation starts, so nothing is written</td>
+<td>The staged set is ambiguous: a newer <code>.mender</code> alongside a <code>.delta</code> that parses as a newer artifact on the running version's channel, two or more newer <code>.mender</code> files, or deltas that do not form one contiguous chain from the running version. Checked before installation starts, so nothing is written</td>
 </tr>
 <tr>
 <td><code>delta-failed</code></td>
@@ -2473,10 +2473,15 @@ A consumer that needs to distinguish a failed update from no update has to read
 component's download directory (default <code>/data/ota/&lt;component&gt;</code>). A <code>.mender</code>
 that is not newer than the running version is treated as the delta base image and
 ignored, so the base file that lives in that directory is never a conflict. A
-newer <code>.mender</code> staged together with any <code>.delta</code>, two or more newer <code>.mender</code>
-files, and deltas that cannot be resolved into one contiguous chain from the
-running version are all refused before anything is unpacked, with
-<code>staged-updates-refused</code> and no install. Resolved deltas are applied as a single
+newer <code>.mender</code> staged together with any <code>.delta</code> that parses as a newer artifact on
+the running version's channel, two or more newer <code>.mender</code> files, and deltas that
+cannot be resolved into one contiguous chain from the running version are all refused
+before anything is unpacked, with <code>staged-updates-refused</code> and no install. A <code>.delta</code>
+the version test cannot judge (a cross-channel orphan, an unparsable name, a partial
+transfer) is ignored rather than counted, and so cannot block a legitimately staged
+image. When nothing in the set applies — the staged image is already the running
+version — the command logs it and returns to <code>idle</code>; that is a normal post-success
+state, not a refusal. Resolved deltas are applied as a single
 chain and installed once, so several staged deltas cost one install and one
 reboot. This is the path ums-service uses to hand over files imported from the
 USB drive.</p>
