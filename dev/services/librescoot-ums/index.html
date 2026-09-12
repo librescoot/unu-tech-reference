@@ -2094,19 +2094,21 @@ first lets the in-flight entry observe it and abandon itself.</p>
 </span><span id="__span-2-8"><a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a>│   └── config.yaml      # copied from /data/uplink-service/config.yaml
 </span><span id="__span-2-9"><a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a>├── onboot.sh            # copied from the on-boot script if present
 </span><span id="__span-2-10"><a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a>├── system-update/       # place .mender or .delta update files here
-</span><span id="__span-2-11"><a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a>│   ├── librescoot-mdb-*.mender
-</span><span id="__span-2-12"><a id="__codelineno-2-12" name="__codelineno-2-12" href="#__codelineno-2-12"></a>│   └── librescoot-dbc-*.mender
-</span><span id="__span-2-13"><a id="__codelineno-2-13" name="__codelineno-2-13" href="#__codelineno-2-13"></a>├── maps/                # place map files here
-</span><span id="__span-2-14"><a id="__codelineno-2-14" name="__codelineno-2-14" href="#__codelineno-2-14"></a>│   ├── *.mbtiles
-</span><span id="__span-2-15"><a id="__codelineno-2-15" name="__codelineno-2-15" href="#__codelineno-2-15"></a>│   └── *tiles.tar or valhalla_tiles_*.tar, plain or .zst
-</span><span id="__span-2-16"><a id="__codelineno-2-16" name="__codelineno-2-16" href="#__codelineno-2-16"></a>├── scripts/
-</span><span id="__span-2-17"><a id="__codelineno-2-17" name="__codelineno-2-17" href="#__codelineno-2-17"></a>│   ├── mdb.sh           # shell script to run on MDB
-</span><span id="__span-2-18"><a id="__codelineno-2-18" name="__codelineno-2-18" href="#__codelineno-2-18"></a>│   └── dbc.sh           # shell script to transfer and run on DBC
-</span><span id="__span-2-19"><a id="__codelineno-2-19" name="__codelineno-2-19" href="#__codelineno-2-19"></a>├── log-bundles/         # pre-populated: bundles previously captured with lsc
-</span><span id="__span-2-20"><a id="__codelineno-2-20" name="__codelineno-2-20" href="#__codelineno-2-20"></a>├── diagnostics/         # pre-populated on UMS entry (read-only for user)
-</span><span id="__span-2-21"><a id="__codelineno-2-21" name="__codelineno-2-21" href="#__codelineno-2-21"></a>│   ├── mdb/
-</span><span id="__span-2-22"><a id="__codelineno-2-22" name="__codelineno-2-22" href="#__codelineno-2-22"></a>│   └── dbc/             # only if DBC was reachable at UMS entry
-</span><span id="__span-2-23"><a id="__codelineno-2-23" name="__codelineno-2-23" href="#__codelineno-2-23"></a>└── ums_log.txt          # written on exit, survives the post-processing wipe
+</span><span id="__span-2-11"><a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a>│   ├── librescoot-unu-mdb-*.mender
+</span><span id="__span-2-12"><a id="__codelineno-2-12" name="__codelineno-2-12" href="#__codelineno-2-12"></a>│   ├── librescoot-unu-mdb-*.delta
+</span><span id="__span-2-13"><a id="__codelineno-2-13" name="__codelineno-2-13" href="#__codelineno-2-13"></a>│   ├── librescoot-unu-dbc-*.mender
+</span><span id="__span-2-14"><a id="__codelineno-2-14" name="__codelineno-2-14" href="#__codelineno-2-14"></a>│   └── librescoot-unu-dbc-*.delta
+</span><span id="__span-2-15"><a id="__codelineno-2-15" name="__codelineno-2-15" href="#__codelineno-2-15"></a>├── maps/                # place map files here
+</span><span id="__span-2-16"><a id="__codelineno-2-16" name="__codelineno-2-16" href="#__codelineno-2-16"></a>│   ├── *.mbtiles
+</span><span id="__span-2-17"><a id="__codelineno-2-17" name="__codelineno-2-17" href="#__codelineno-2-17"></a>│   └── *tiles.tar or valhalla_tiles_*.tar, plain or .zst
+</span><span id="__span-2-18"><a id="__codelineno-2-18" name="__codelineno-2-18" href="#__codelineno-2-18"></a>├── scripts/
+</span><span id="__span-2-19"><a id="__codelineno-2-19" name="__codelineno-2-19" href="#__codelineno-2-19"></a>│   ├── mdb.sh           # shell script to run on MDB
+</span><span id="__span-2-20"><a id="__codelineno-2-20" name="__codelineno-2-20" href="#__codelineno-2-20"></a>│   └── dbc.sh           # shell script to transfer and run on DBC
+</span><span id="__span-2-21"><a id="__codelineno-2-21" name="__codelineno-2-21" href="#__codelineno-2-21"></a>├── log-bundles/         # pre-populated: bundles previously captured with lsc
+</span><span id="__span-2-22"><a id="__codelineno-2-22" name="__codelineno-2-22" href="#__codelineno-2-22"></a>├── diagnostics/         # pre-populated on UMS entry (read-only for user)
+</span><span id="__span-2-23"><a id="__codelineno-2-23" name="__codelineno-2-23" href="#__codelineno-2-23"></a>│   ├── mdb/
+</span><span id="__span-2-24"><a id="__codelineno-2-24" name="__codelineno-2-24" href="#__codelineno-2-24"></a>│   └── dbc/             # only if DBC was reachable at UMS entry
+</span><span id="__span-2-25"><a id="__codelineno-2-25" name="__codelineno-2-25" href="#__codelineno-2-25"></a>└── ums_log.txt          # written on exit, survives the post-processing wipe
 </span></code></pre></div>
 <h2 id="file-processing">File Processing<a class="headerlink" href="#file-processing" title="Permanent link">&para;</a></h2>
 <h3 id="on-ums-entry">On UMS entry<a class="headerlink" href="#on-ums-entry" title="Permanent link">&para;</a></h3>
@@ -2128,14 +2130,18 @@ into place, and an untouched file is a no-op.</p>
 <li><strong>radio-gaga</strong> - copies <code>radio-gaga/config.yaml</code> back to <code>/data/radio-gaga/</code>, restarts <code>radio-gaga.service</code> if changed</li>
 <li><strong>uplink-service</strong> - copies <code>uplink-service/config.yaml</code> back to <code>/data/uplink-service/</code>, restarts <code>librescoot-uplink.service</code> if changed</li>
 <li><strong>onboot</strong> - copies <code>onboot.sh</code> back into place</li>
-<li><strong>Updates</strong> - MDB <code>.mender</code>/<code>.delta</code> files installed locally via <code>scooter:update:mdb</code>; DBC <code>.mender</code>/<code>.delta</code> files transferred to DBC and queued via <code>scooter:update:dbc</code></li>
+<li><strong>Updates</strong> - update files for each board are staged in that board's own update directory (MDB <code>/data/ota/mdb</code>; DBC transferred to <code>/data/ota/dbc</code>), then one path-free <code>apply-staged-updates</code> command is pushed per board. Several <code>.delta</code> files for one board are applied by update-service as a single chain: one assemble, one install, one reboot. A board whose drop mixes a newer <code>.mender</code> with a <code>.delta</code>, or contains two or more newer <code>.mender</code> files, is refused: nothing is staged for that board, the other board still proceeds</li>
 <li><strong>Maps</strong> - transfers <code>.mbtiles</code> to <code>/data/maps/map.mbtiles</code> on DBC; transfers Valhalla tile archives to <code>/data/valhalla/tiles.tar</code> on DBC. A <code>valhalla_tiles_*.tar.zst</code> is uploaded compressed and decompressed on the DBC, into a temp file that only replaces <code>tiles.tar</code> once the whole stream has decoded; the installed file is always the plain seekable tar, because Valhalla mmaps it as its <code>tile_extract</code>. After each artifact lands, the service reads it back on the DBC (<code>sha256sum</code> plus <code>stat</code>), records it in <code>/data/maps/metadata.json</code> and mirrors it into the <a href="../../redis/#installed-maps-maps---librescoot-only"><code>maps</code></a> hash. The region comes from the published filename (<code>tiles_&lt;slug&gt;.mbtiles</code>, <code>valhalla_tiles_&lt;slug&gt;.tar</code>); a renamed or generically named file clears the recorded region rather than leaving the previous one to describe tiles it no longer refers to</li>
 <li><strong>Scripts</strong> - runs <code>scripts/mdb.sh</code> locally; transfers <code>scripts/dbc.sh</code> to DBC and runs it remotely</li>
 <li>Writes <code>ums_log.txt</code> to drive root, then cleans the drive (preserving <code>ums_log.txt</code>)</li>
 </ol>
 <p>Each step is independent: a failure is logged to <code>usb:log</code> and the remaining
 steps still run.</p>
-<p><strong>Post-update reboot:</strong> if the exit processing queued an MDB or DBC update install, the service sets <code>status</code> to <code>awaiting-reboot</code> and a background watcher performs the install pushes and waits for completion (10 min timeout). Once the vehicle-state safety gate passes it publishes <code>rebooting</code>, allows the dashboard to paint that final phase, then triggers a reboot. The reboot is gated on the vehicle state being in an allowed set (<code>stand-by</code>, <code>parked</code>, <code>shutting-down</code>); if the state is anything else, the reboot is skipped. MDB updates reboot the MDB via <code>scooter:power</code>; DBC-only updates power-cycle the dashboard via <code>scooter:hardware</code>. The watcher is cancellable: re-entering UMS cancels a pending reboot. When no update is queued, <code>status</code> goes straight back to <code>idle</code> with no reboot.</p>
+<p><strong>Post-update reboot:</strong> if the exit processing queued an MDB or DBC update install, the service sets <code>status</code> to <code>awaiting-reboot</code> and a background watcher performs the install pushes and waits for completion. The wait is a 10-minute liveness window that is extended while an install is genuinely in progress (<code>downloading</code>, <code>preparing</code>, <code>installing</code>, or a DBC verifying its post-reboot commit), with a 2-hour overall cap; a window that expires with no install activity ends the wait and retains MDB reboot ownership as a fail-safe. Once the vehicle-state safety gate passes it publishes <code>rebooting</code>, allows the dashboard to paint that final phase, then triggers a reboot. The reboot is gated on the vehicle state being in an allowed set (<code>stand-by</code>, <code>parked</code>, <code>shutting-down</code>); if the state is anything else, the reboot is skipped. MDB updates reboot the MDB via <code>scooter:power</code>; DBC-only updates power-cycle the dashboard via <code>scooter:hardware</code>. The watcher is cancellable: re-entering UMS cancels a pending reboot. When no update is queued, <code>status</code> goes straight back to <code>idle</code> with no reboot.</p>
+<p>A refused board is reported in three places: the service log (journald and
+<code>ums_log.txt</code>), <code>usb.last-result</code> (set to <code>error</code>, visible through <code>lsc usb
+status</code>), and an <code>error</code>-severity event published on <code>scootui:notification</code> for
+the dashboard.</p>
 <h2 id="hardware">Hardware<a class="headerlink" href="#hardware" title="Permanent link">&para;</a></h2>
 <ul>
 <li><strong>Network mode:</strong> <code>g_ether</code> kernel module</li>

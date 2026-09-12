@@ -3237,10 +3237,11 @@
 </ul>
 <p><strong>Hibernation Scheduler (<code>internal/hibernation/scheduler.go</code>)</strong></p>
 <ul>
-<li>Cron-driven scheduler for <code>pm.scheduled-hibernate-*</code> settings (uses <code>github.com/robfig/cron/v3</code>, standard 5-field parser)</li>
-<li>Latches a wall-clock validity gate based on <code>gps.active</code>; suppresses fires until first observed <code>"true"</code></li>
+<li>Cron-driven scheduler for <code>pm.scheduled-hibernate-*</code> settings (uses <code>github.com/robfig/cron/v3</code>, standard 5-field parser). Expressions whose consecutive occurrences are closer than 15 min are rejected at configuration time (the previous expression stays in effect), because a sub-15-min cadence is indistinguishable from a hibernate/wake loop across poweroffs</li>
+<li>Latches a wall-clock validity gate on <strong>either</strong> a confirmed GPS clock step (the <code>clock</code> hash that modem-service writes after a successful <code>chronyc settime</code>) <strong>or</strong> chronyd converging on a real external reference (<code>chronyc tracking</code> with <code>Leap status: Normal</code> and a reference ID outside <code>127.0.0.0/8</code>, so chrony's <code>local</code>/<code>manual</code> pseudo-sources do not count). Both paths additionally require a reading past the plausibility floor, the newer of <code>/etc/build-timestamp</code> and the fake-hwclock saved time (<code>/data</code> or <code>/etc/fake-hwclock.data</code>). A cron occurrence that elapsed under the gate is caught up once it opens, if its wake-by target is still in the future</li>
+<li>Rejects cron fires for the first 15 min of uptime after a wake from a scheduled hibernation. The fact that the last shutdown was scheduled is persisted as a flag in <code>/data</code> (not a timestamp, since the clock is untrusted across the poweroff); the guard itself is monotonic-uptime based</li>
 <li>Defers cron fires while the vehicle is not in <code>stand-by</code> and dispatches on the next standby transition with the remaining time until the original wake-by target</li>
-<li>30 s background monitor detects wall-clock jumps and rebuilds the cron entry / re-evaluates pending deferred wakes accordingly</li>
+<li>30 s background monitor detects wall-clock jumps (wall time vs monotonic time, so external <code>CLOCK_REALTIME</code> steps are visible) and rebuilds the cron entry / re-evaluates pending deferred wakes accordingly</li>
 </ul>
 <p><strong>Service Coordinator (<code>internal/service/service.go</code>)</strong></p>
 <ul>

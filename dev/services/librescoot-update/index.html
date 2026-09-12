@@ -1354,6 +1354,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#staged-updates" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Staged updates
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#abandoned-downloads" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
@@ -1843,6 +1854,17 @@
     <span class="md-ellipsis">
       <span class="md-typeset">
         Error types
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#staged-updates" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Staged updates
       </span>
     </span>
   </a>
@@ -2390,11 +2412,11 @@ A consumer that needs to distinguish a failed update from no update has to read
 </tr>
 <tr>
 <td><code>file-not-found</code></td>
-<td>A path given to <code>update-from-file:</code> does not exist</td>
+<td>A path given to <code>update-from-file:</code>, or a staged update file, does not exist</td>
 </tr>
 <tr>
 <td><code>invalid-file</code></td>
-<td>A path given to <code>update-from-file:</code> is neither a <code>.mender</code> nor a <code>.delta</code></td>
+<td>A file given to <code>update-from-file:</code>, or staged for update, is neither a <code>.mender</code> nor a <code>.delta</code></td>
 </tr>
 <tr>
 <td><code>already-installed</code></td>
@@ -2421,6 +2443,22 @@ A consumer that needs to distinguish a failed update from no update has to read
 <td>Applying a locally delivered delta failed</td>
 </tr>
 <tr>
+<td><code>delta-base-mismatch</code></td>
+<td>A delta was built for a base image other than the staged one it was applied against</td>
+</tr>
+<tr>
+<td><code>staged-read-failed</code></td>
+<td>The component's download directory could not be read while resolving <code>apply-staged-updates</code></td>
+</tr>
+<tr>
+<td><code>no-running-version</code></td>
+<td>The running version could not be determined, so staged update files cannot be resolved</td>
+</tr>
+<tr>
+<td><code>staged-updates-refused</code></td>
+<td>The staged set is ambiguous: a newer <code>.mender</code> alongside a <code>.delta</code>, two or more newer <code>.mender</code> files, or deltas that do not form one contiguous chain from the running version. Checked before installation starts, so nothing is written</td>
+</tr>
+<tr>
 <td><code>delta-failed</code></td>
 <td>A delta update failed and a full update is being started instead. Transient: cleared to <code>idle</code> after two seconds, then the full update proceeds</td>
 </tr>
@@ -2430,6 +2468,18 @@ A consumer that needs to distinguish a failed update from no update has to read
 </tr>
 </tbody>
 </table>
+<h4 id="staged-updates">Staged updates<a class="headerlink" href="#staged-updates" title="Permanent link">&para;</a></h4>
+<p><code>apply-staged-updates</code> installs whatever update files are present in the
+component's download directory (default <code>/data/ota/&lt;component&gt;</code>). A <code>.mender</code>
+that is not newer than the running version is treated as the delta base image and
+ignored, so the base file that lives in that directory is never a conflict. A
+newer <code>.mender</code> staged together with any <code>.delta</code>, two or more newer <code>.mender</code>
+files, and deltas that cannot be resolved into one contiguous chain from the
+running version are all refused before anything is unpacked, with
+<code>staged-updates-refused</code> and no install. Resolved deltas are applied as a single
+chain and installed once, so several staged deltas cost one install and one
+reboot. This is the path ums-service uses to hand over files imported from the
+USB drive.</p>
 <h4 id="abandoned-downloads">Abandoned downloads<a class="headerlink" href="#abandoned-downloads" title="Permanent link">&para;</a></h4>
 <p>A download that is too slow is abandoned rather than left to run indefinitely. Each
 attempt is bounded by a wall-clock cap and a rolling throughput floor (see the
@@ -2519,6 +2569,7 @@ stable checks continue to reject downgrades.</p>
 <li><code>preview-channel:&lt;channel&gt;</code> — report what a switch to <code>&lt;channel&gt;</code> would fetch, without changing anything</li>
 <li><code>update-from-file:/path/to/file.mender</code> — install from local file</li>
 <li><code>update-from-file:/path/to/file.mender#sha256=&lt;hex&gt;</code> - with checksum</li>
+<li><code>apply-staged-updates</code> — install the update files staged in this component's download directory, resolving staged <code>.delta</code> files as one chain</li>
 <li><code>update-from-url:https://...</code> — install from URL</li>
 <li><code>update-from-url:https://...#sha256=&lt;hex&gt;</code> - with checksum</li>
 <li>the legacy checksum form <code>:sha256:&lt;hex&gt;</code> is still accepted; <code>#sha256=</code> is preferred (keeps the source a valid URL)</li>
