@@ -1275,14 +1275,32 @@ redis-cli -h 192.168.7.1 LPUSH scooter:update:mdb "update-from-url:https://examp
 # Ask what a switch to another channel would download (changes nothing)
 redis-cli -h 192.168.7.1 LPUSH scooter:update:mdb preview-channel:stable
 redis-cli -h 192.168.7.1 HMGET ota preview-status:mdb preview-version:mdb preview-size:mdb
+
+# Install whatever update files are staged for this component
+redis-cli -h 192.168.7.1 LPUSH scooter:update:mdb apply-staged-updates
 ```
 
-**Per-component commands** (`scooter:update:mdb` / `scooter:update:dbc`): `check-now`, `preview-channel:<channel>`, `update-from-file:<path>[#sha256=<hex>]`, `update-from-url:<url>[#sha256=<hex>]`
+**Per-component commands** (`scooter:update:mdb` / `scooter:update:dbc`): `check-now`, `preview-channel:<channel>`, `update-from-file:<path>[#sha256=<hex>]`, `update-from-url:<url>[#sha256=<hex>]`, `apply-staged-updates`
 
 `preview-channel:<channel>` reports the latest release on `<channel>` for this
 component's `variant_id` and the size of its `.mender` artifact, into the `ota` hash's
 `preview-*` fields. It sets nothing and downloads nothing; the dashboard uses it to
 price a channel switch before asking the rider to confirm.
+
+`apply-staged-updates` installs update files already present in the component's own
+download directory (`/data/ota/mdb` or `/data/ota/dbc`), which is how ums-service hands
+over files imported from the USB drive. Staged `.delta` files are applied as one
+contiguous chain from the running version and installed once, so a drop containing
+several deltas for one board needs a single install and a single reboot.
+
+A staged `.mender` that is **not newer** than the running version is the base image a
+delta is applied against, and is ignored rather than treated as an update. A newer
+`.mender` staged alongside any `.delta` is refused as ambiguous, as are two or more
+newer `.mender` files, or deltas that do not resolve into one chain from the running
+version. A refused set installs nothing and is reported through `error:{component}`
+(`staged-updates-refused`, `staged-read-failed`, `no-running-version`). ums-service
+additionally reports its own refusals in `usb.last-result` and as an `error` event on
+`scootui:notification`.
 
 The shared `scooter:update` list is consumed by **vehicle-service**, not the updaters: update-service pushes lifecycle commands (`start`, `complete`, `start-dbc`, `complete-dbc`) there to drive the vehicle's `updating` state.
 
