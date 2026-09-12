@@ -513,10 +513,11 @@ Use `journalctl -u librescoot-pm.service` to view logs.
 
 **Hibernation Scheduler (`internal/hibernation/scheduler.go`)**
 
-- Cron-driven scheduler for `pm.scheduled-hibernate-*` settings (uses `github.com/robfig/cron/v3`, standard 5-field parser)
-- Latches a wall-clock validity gate based on `gps.active`; suppresses fires until first observed `"true"`
+- Cron-driven scheduler for `pm.scheduled-hibernate-*` settings (uses `github.com/robfig/cron/v3`, standard 5-field parser). Expressions whose consecutive occurrences are closer than 15 min are rejected at configuration time (the previous expression stays in effect), because a sub-15-min cadence is indistinguishable from a hibernate/wake loop across poweroffs
+- Latches a wall-clock validity gate on **either** a confirmed GPS clock step (the `clock` hash that modem-service writes after a successful `chronyc settime`) **or** chronyd converging on a real external reference (`chronyc tracking` with `Leap status: Normal` and a reference ID outside `127.0.0.0/8`, so chrony's `local`/`manual` pseudo-sources do not count). Both paths additionally require a reading past the plausibility floor, the newer of `/etc/build-timestamp` and the fake-hwclock saved time (`/data` or `/etc/fake-hwclock.data`). A cron occurrence that elapsed under the gate is caught up once it opens, if its wake-by target is still in the future
+- Rejects cron fires for the first 15 min of uptime after a wake from a scheduled hibernation. The fact that the last shutdown was scheduled is persisted as a flag in `/data` (not a timestamp, since the clock is untrusted across the poweroff); the guard itself is monotonic-uptime based
 - Defers cron fires while the vehicle is not in `stand-by` and dispatches on the next standby transition with the remaining time until the original wake-by target
-- 30 s background monitor detects wall-clock jumps and rebuilds the cron entry / re-evaluates pending deferred wakes accordingly
+- 30 s background monitor detects wall-clock jumps (wall time vs monotonic time, so external `CLOCK_REALTIME` steps are visible) and rebuilds the cron entry / re-evaluates pending deferred wakes accordingly
 
 **Service Coordinator (`internal/service/service.go`)**
 

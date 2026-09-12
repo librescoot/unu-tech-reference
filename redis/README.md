@@ -472,6 +472,21 @@ The hash is updated silently; a pub/sub notification on `timestamp` is published
 
 GPS has no commands; modem-service manages it automatically (see `scooter:modem` below). The legacy `gps:raw` and `gps:filtered` hashes no longer exist.
 
+### Clock Sync (`clock`)
+```
+hgetall clock
+```
+
+Written by modem-service after it successfully sets the system clock from an authoritative source. It is passed to chrony as a discrete step (`chronyc settime`), which does *not* register a chrony reference, so this hash — not `gps.active` and not `chronyc tracking` — is the evidence that the GPS clock path actually worked. Consumers poll it (the write is silent); pm-service uses it to gate scheduled hibernation.
+
+| Field | Type | Description | Example |
+|-------|------|-------------|---------|
+| source | string | Source the clock was set from | "gps" |
+| synced-at | string | Timestamp that was applied (RFC3339) | "2026-06-11T12:00:00Z" |
+| updated | string | When the hash was last written (RFC3339) | "2026-06-11T12:00:00Z" |
+
+Redis is not persistent on librescoot, so the presence of this hash always refers to the current boot.
+
 ### Over-the-Air Updates (`ota`)
 ```
 hgetall ota
