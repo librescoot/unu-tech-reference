@@ -2257,7 +2257,7 @@ in-place write remains unsafe.</p>
 <tr>
 <td><code>status:{component}</code></td>
 <td>Current update status</td>
-<td><code>idle</code>, <code>downloading</code>, <code>preparing</code>, <code>installing</code>, <code>pending-reboot</code>, <code>error</code></td>
+<td><code>idle</code>, <code>downloading</code>, <code>preparing</code>, <code>installing</code>, <code>pending-reboot</code>, <code>staged-noop</code>, <code>error</code></td>
 </tr>
 <tr>
 <td><code>update-version:{component}</code></td>
@@ -2372,6 +2372,11 @@ against Librescoot should read those instead.</p>
 <td><code>pending-reboot</code></td>
 <td><code>installation-complete-waiting-reboot</code></td>
 <td><code>blocking</code></td>
+</tr>
+<tr>
+<td><code>staged-noop</code></td>
+<td>empty</td>
+<td>empty</td>
 </tr>
 <tr>
 <td><code>idle</code>, <code>error</code>, absent, unrecognised</td>

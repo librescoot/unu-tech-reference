@@ -5523,7 +5523,8 @@ its stored total and restarted the baseline.</p>
 </tr>
 </tbody>
 </table>
-<p><strong>Update status values:</strong> <code>idle</code>, <code>downloading</code>, <code>preparing</code>, <code>installing</code>, <code>pending-reboot</code>, <code>error</code></p>
+<p><strong>Update status values:</strong> <code>idle</code>, <code>downloading</code>, <code>preparing</code>, <code>installing</code>, <code>pending-reboot</code>, <code>staged-noop</code>, <code>error</code></p>
+<p><code>staged-noop</code> is terminal and not an error: an <code>apply-staged-updates</code> push found nothing applicable (the staged image is already the running version, or only unusable artifacts are staged), so nothing was installed and nothing needs rebooting. ums-service finishes the cycle on it without triggering a reboot.</p>
 <p><code>status</code> and <code>update-type</code> are the non-namespaced pair from the stock convention,
 describing the vehicle rather than one board. Both components feed them and the least
 advanced one wins, so the pair only clears once neither board is busy. The MDB's
