@@ -10,36 +10,36 @@
       
       
       
-        <link rel="canonical" href="https://reference.librescoot.org/dev/states/">
+        <link rel="canonical" href="https://reference.librescoot.org/dev/services/librescoot-trip/">
       
       
-        <link rel="prev" href="../nrf/power-management/">
+        <link rel="prev" href="../librescoot-settings/">
       
       
-        <link rel="next" href="../services/">
+        <link rel="next" href="../librescoot-ums/">
       
       
         
       
       
-      <link rel="icon" href="../assets/images/favicon.png">
+      <link rel="icon" href="../../assets/images/favicon.png">
       <meta name="generator" content="zensical-0.0.62">
     
     
       
-        <title>System States - Librescoot Tech Reference</title>
+        <title>trip-service - Librescoot Tech Reference</title>
       
     
     
       
         
       
-      <link rel="stylesheet" href="../assets/stylesheets/modern/main.ce62732f.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/modern/main.ce62732f.min.css">
       
         
           
         
-        <link rel="stylesheet" href="../assets/stylesheets/modern/palette.812a03bb.min.css">
+        <link rel="stylesheet" href="../../assets/stylesheets/modern/palette.812a03bb.min.css">
       
       
 
@@ -58,9 +58,9 @@
       
     
     
-      <link rel="stylesheet" href="../stylesheets/extra.css">
+      <link rel="stylesheet" href="../../stylesheets/extra.css">
     
-    <script>__md_scope=new URL("..",location),__md_scope.pathname.endsWith("/")||(__md_scope=new URL(__md_scope.pathname+"/",location)),__md_hash=e=>[...e].reduce(((e,t)=>(e<<5)-e+t.charCodeAt(0)),0),__md_get=(e,t=localStorage,_=__md_scope)=>JSON.parse(t.getItem(_.pathname+"."+e)),__md_set=(e,t,_=localStorage,a=__md_scope)=>{try{_.setItem(a.pathname+"."+e,JSON.stringify(t))}catch(e){}},document.documentElement.setAttribute("data-platform",navigator.platform)</script>
+    <script>__md_scope=new URL("../..",location),__md_scope.pathname.endsWith("/")||(__md_scope=new URL(__md_scope.pathname+"/",location)),__md_hash=e=>[...e].reduce(((e,t)=>(e<<5)-e+t.charCodeAt(0)),0),__md_get=(e,t=localStorage,_=__md_scope)=>JSON.parse(t.getItem(_.pathname+"."+e)),__md_set=(e,t,_=localStorage,a=__md_scope)=>{try{_.setItem(a.pathname+"."+e,JSON.stringify(t))}catch(e){}},document.documentElement.setAttribute("data-platform",navigator.platform)</script>
     
       
 
@@ -85,7 +85,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#system-states-documentation" class="md-skip">
+        <a href="#librescoot-trip-trip-service" class="md-skip">
           Skip to content
         </a>
       
@@ -105,7 +105,7 @@
 
 <header class="md-header md-header--shadow" data-md-component="header">
   <nav class="md-header__inner md-grid" aria-label="Header">
-    <a href="./.." title="Librescoot Tech Reference" class="md-header__button md-logo" aria-label="Librescoot Tech Reference" data-md-component="logo">
+    <a href="../.." title="Librescoot Tech Reference" class="md-header__button md-logo" aria-label="Librescoot Tech Reference" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-book-open" viewBox="0 0 24 24"><path d="M12 5v16M20.001 19A2 2 0 0 0 22 17V5a2 2 0 0 0-1.999-2L16 3.002A5 5 0 0 0 12 5a5 5 0 0 0-4-2H4a2 2 0 0 0-2 2v12a2 2 0 0 0 1.999 2H8a5 5 0 0 1 4 2 5 5 0 0 1 4-2z"/></svg>
@@ -125,7 +125,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              System States
+              trip-service
             
           </span>
         </div>
@@ -214,7 +214,7 @@
 
 <nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
-    <a href="./.." title="Librescoot Tech Reference" class="md-nav__button md-logo" aria-label="Librescoot Tech Reference" data-md-component="logo">
+    <a href="../.." title="Librescoot Tech Reference" class="md-nav__button md-logo" aria-label="Librescoot Tech Reference" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-book-open" viewBox="0 0 24 24"><path d="M12 5v16M20.001 19A2 2 0 0 0 22 17V5a2 2 0 0 0-1.999-2L16 3.002A5 5 0 0 0 12 5a5 5 0 0 0-4-2H4a2 2 0 0 0-2 2v12a2 2 0 0 0 1.999 2H8a5 5 0 0 1 4 2 5 5 0 0 1 4-2z"/></svg>
@@ -244,7 +244,7 @@
   
   
     <li class="md-nav__item">
-      <a href="./.." class="md-nav__link">
+      <a href="../.." class="md-nav__link">
         
   
   
@@ -297,7 +297,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../electronic/" class="md-nav__link ">
+            <a href="../../electronic/" class="md-nav__link ">
               
   
   
@@ -339,7 +339,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../mechanical/" class="md-nav__link">
+      <a href="../../mechanical/" class="md-nav__link">
         
   
   
@@ -366,7 +366,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../wiring/" class="md-nav__link">
+      <a href="../../wiring/" class="md-nav__link">
         
   
   
@@ -425,7 +425,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../battery/" class="md-nav__link ">
+            <a href="../../battery/" class="md-nav__link ">
               
   
   
@@ -467,7 +467,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../battery-charger/" class="md-nav__link">
+      <a href="../../battery-charger/" class="md-nav__link">
         
   
   
@@ -534,7 +534,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../bluetooth/" class="md-nav__link ">
+            <a href="../../bluetooth/" class="md-nav__link ">
               
   
   
@@ -576,7 +576,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../bluetooth/ota-transfer/" class="md-nav__link">
+      <a href="../../bluetooth/ota-transfer/" class="md-nav__link">
         
   
   
@@ -603,7 +603,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../redis/" class="md-nav__link">
+      <a href="../../redis/" class="md-nav__link">
         
   
   
@@ -630,7 +630,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../nrf/" class="md-nav__link">
+      <a href="../../nrf/" class="md-nav__link">
         
   
   
@@ -657,7 +657,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../nrf/UART/" class="md-nav__link">
+      <a href="../../nrf/UART/" class="md-nav__link">
         
   
   
@@ -684,7 +684,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../nrf/power-management/" class="md-nav__link">
+      <a href="../../nrf/power-management/" class="md-nav__link">
         
   
   
@@ -781,7 +781,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="././" class="md-nav__link md-nav__link--active">
+            <a href="../../states/" class="md-nav__link ">
               
   
   
@@ -798,7 +798,7 @@
             </a>
             
               
-              <label class="md-nav__link md-nav__link--active" for="__nav_5" id="__nav_5_label" tabindex="">
+              <label class="md-nav__link " for="__nav_5" id="__nav_5_label" tabindex="">
                 <span class="md-nav__icon md-icon"></span>
               </label>
             
@@ -823,7 +823,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../services/" class="md-nav__link">
+      <a href="../" class="md-nav__link">
         
   
   
@@ -850,7 +850,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../service-interactions/" class="md-nav__link">
+      <a href="../../service-interactions/" class="md-nav__link">
         
   
   
@@ -877,7 +877,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../services/librescoot-alarm/" class="md-nav__link">
+      <a href="../librescoot-alarm/" class="md-nav__link">
         
   
   
@@ -904,7 +904,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../services/librescoot-battery/" class="md-nav__link">
+      <a href="../librescoot-battery/" class="md-nav__link">
         
   
   
@@ -931,7 +931,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../services/librescoot-bluetooth/" class="md-nav__link">
+      <a href="../librescoot-bluetooth/" class="md-nav__link">
         
   
   
@@ -958,7 +958,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../services/librescoot-ecu/" class="md-nav__link">
+      <a href="../librescoot-ecu/" class="md-nav__link">
         
   
   
@@ -985,7 +985,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../services/librescoot-events/" class="md-nav__link">
+      <a href="../librescoot-events/" class="md-nav__link">
         
   
   
@@ -1012,7 +1012,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../services/librescoot-keycard/" class="md-nav__link">
+      <a href="../librescoot-keycard/" class="md-nav__link">
         
   
   
@@ -1039,7 +1039,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../services/librescoot-modem/" class="md-nav__link">
+      <a href="../librescoot-modem/" class="md-nav__link">
         
   
   
@@ -1066,7 +1066,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../services/librescoot-motion/" class="md-nav__link">
+      <a href="../librescoot-motion/" class="md-nav__link">
         
   
   
@@ -1093,7 +1093,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../services/librescoot-pm/" class="md-nav__link">
+      <a href="../librescoot-pm/" class="md-nav__link">
         
   
   
@@ -1120,7 +1120,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../services/librescoot-scootui/" class="md-nav__link">
+      <a href="../librescoot-scootui/" class="md-nav__link">
         
   
   
@@ -1147,7 +1147,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../services/librescoot-settings/" class="md-nav__link">
+      <a href="../librescoot-settings/" class="md-nav__link">
         
   
   
@@ -1171,10 +1171,36 @@
                 
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="../services/librescoot-trip/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  trip-service
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="././" class="md-nav__link md-nav__link--active">
         
   
   
@@ -1189,6 +1215,138 @@
   
 
       </a>
+      
+        
+
+
+<nav class="md-nav md-nav--secondary" aria-label="On this page">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      On this page
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#purpose-and-ownership" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Purpose and ownership
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#counter-and-reset-policy" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Counter and reset policy
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#recovery-and-availability" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Recovery and availability
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#redis-contract" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Redis contract
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Redis contract">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#tripcounter-hash" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>trip:counter</code> hash
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#reset-queue-and-result-channel" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Reset queue and result channel
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#trip-history-retention" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Trip-history retention
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Trip-history retention">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#tripexpunge-hash" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>trip:expunge</code> hash
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#privacy-and-access-limits" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Privacy and access limits
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -1201,7 +1359,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../services/librescoot-ums/" class="md-nav__link">
+      <a href="../librescoot-ums/" class="md-nav__link">
         
   
   
@@ -1228,7 +1386,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../services/librescoot-update/" class="md-nav__link">
+      <a href="../librescoot-update/" class="md-nav__link">
         
   
   
@@ -1255,7 +1413,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../services/librescoot-vehicle/" class="md-nav__link">
+      <a href="../librescoot-vehicle/" class="md-nav__link">
         
   
   
@@ -1282,7 +1440,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../dashboard/" class="md-nav__link">
+      <a href="../../dashboard/" class="md-nav__link">
         
   
   
@@ -1309,7 +1467,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../dashboard/REDIS/" class="md-nav__link">
+      <a href="../../dashboard/REDIS/" class="md-nav__link">
         
   
   
@@ -1397,7 +1555,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../tools/lsc/" class="md-nav__link">
+      <a href="../../tools/lsc/" class="md-nav__link">
         
   
   
@@ -1465,111 +1623,55 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#vehicle-states" class="md-nav__link">
+  <a href="#purpose-and-ownership" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
-        Vehicle States
+        Purpose and ownership
       </span>
     </span>
   </a>
-  
-    <nav class="md-nav" aria-label="Vehicle States">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#canonical-vehicle-states" class="md-nav__link">
-    <span class="md-ellipsis">
-      <span class="md-typeset">
-        Canonical Vehicle States
-      </span>
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#vehicle-state-transitions" class="md-nav__link">
-    <span class="md-ellipsis">
-      <span class="md-typeset">
-        Vehicle State Transitions
-      </span>
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#key-transition-conditions" class="md-nav__link">
-    <span class="md-ellipsis">
-      <span class="md-typeset">
-        Key Transition Conditions
-      </span>
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Key Transition Conditions">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#is_ready_to_drive" class="md-nav__link">
-    <span class="md-ellipsis">
-      <span class="md-typeset">
-        is_ready_to_drive()
-      </span>
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#hibernation-sequence" class="md-nav__link">
-    <span class="md-ellipsis">
-      <span class="md-typeset">
-        Hibernation Sequence
-      </span>
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#park-protection" class="md-nav__link">
-    <span class="md-ellipsis">
-      <span class="md-typeset">
-        Park Protection
-      </span>
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-        
-      </ul>
-    </nav>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#power-manager-states" class="md-nav__link">
+  <a href="#counter-and-reset-policy" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
-        Power Manager States
+        Counter and reset policy
       </span>
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Power Manager States">
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#recovery-and-availability" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Recovery and availability
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#redis-contract" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Redis contract
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Redis contract">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#power-states" class="md-nav__link">
+  <a href="#tripcounter-hash" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
-        Power States
+        <code>trip:counter</code> hash
       </span>
     </span>
   </a>
@@ -1577,32 +1679,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#state-suffixes" class="md-nav__link">
+  <a href="#reset-queue-and-result-channel" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
-        State Suffixes
-      </span>
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#power-state-transitions" class="md-nav__link">
-    <span class="md-ellipsis">
-      <span class="md-typeset">
-        Power State Transitions
-      </span>
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#nrf-hibernation-levels" class="md-nav__link">
-    <span class="md-ellipsis">
-      <span class="md-typeset">
-        nRF Hibernation Levels
+        Reset queue and result channel
       </span>
     </span>
   </a>
@@ -1615,44 +1695,22 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#battery-states" class="md-nav__link">
+  <a href="#trip-history-retention" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
-        Battery States
+        Trip-history retention
       </span>
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Battery States">
+    <nav class="md-nav" aria-label="Trip-history retention">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#main-battery" class="md-nav__link">
+  <a href="#tripexpunge-hash" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
-        Main Battery
-      </span>
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#connectivity-battery-cb" class="md-nav__link">
-    <span class="md-ellipsis">
-      <span class="md-typeset">
-        Connectivity Battery (CB)
-      </span>
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#auxiliary-battery-aux" class="md-nav__link">
-    <span class="md-ellipsis">
-      <span class="md-typeset">
-        Auxiliary Battery (AUX)
+        <code>trip:expunge</code> hash
       </span>
     </span>
   </a>
@@ -1661,6 +1719,17 @@
         
       </ul>
     </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#privacy-and-access-limits" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Privacy and access limits
+      </span>
+    </span>
+  </a>
   
 </li>
       
@@ -1689,7 +1758,7 @@
   
   
     <li class="md-path__item">
-      <a href="./.." class="md-path__link">
+      <a href="../.." class="md-path__link">
         
   
   <span class="md-ellipsis">
@@ -1755,7 +1824,7 @@
     
     
       <li class="md-path__item">
-        <a href="././" class="md-path__link">
+        <a href="../../states/" class="md-path__link">
           
   
   <span class="md-ellipsis">
@@ -1776,7 +1845,7 @@
                 
                   
   
-    <a href="https://github.com/librescoot/unu-tech-reference/edit/master/docs/states/README.md" title="Edit this page" class="md-content__button md-icon" rel="edit">
+    <a href="https://github.com/librescoot/unu-tech-reference/edit/master/docs/services/librescoot-trip.md" title="Edit this page" class="md-content__button md-icon" rel="edit">
       
       <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-file-pen" viewBox="0 0 24 24"><path d="M12.659 22H18a2 2 0 0 0 2-2V8a2.4 2.4 0 0 0-.706-1.706l-3.588-3.588A2.4 2.4 0 0 0 14 2H6a2 2 0 0 0-2 2v9.34"/><path d="M14 2v5a1 1 0 0 0 1 1h5M10.378 12.622a1 1 0 0 1 3 3.003L8.36 20.637a2 2 0 0 1-.854.506l-2.867.837a.5.5 0 0 1-.62-.62l.836-2.869a2 2 0 0 1 .506-.853z"/></svg>
     </a>
@@ -1784,201 +1853,311 @@
   
 
 
-<h1 id="system-states-documentation">System States Documentation<a class="headerlink" href="#system-states-documentation" title="Permanent link">&para;</a></h1>
-<h2 id="vehicle-states">Vehicle States<a class="headerlink" href="#vehicle-states" title="Permanent link">&para;</a></h2>
-<p>The scooter's operational mode is tracked via the <code>vehicle:state</code> Redis key and BLE characteristic 9a590021.</p>
-<h3 id="canonical-vehicle-states">Canonical Vehicle States<a class="headerlink" href="#canonical-vehicle-states" title="Permanent link">&para;</a></h3>
-<p>These are the exact string values that appear in Redis and BLE:</p>
+<h1 id="librescoot-trip-trip-service">librescoot-trip (trip-service)<a class="headerlink" href="#librescoot-trip-trip-service" title="Permanent link">&para;</a></h1>
+<h2 id="purpose-and-ownership">Purpose and ownership<a class="headerlink" href="#purpose-and-ownership" title="Permanent link">&para;</a></h2>
+<p>trip-service records one history entry for an unlocked ride and owns the
+vehicle-wide trip counter. It uses <code>vehicle</code> state, <code>engine-ecu</code> odometer, <code>gps</code>, <code>profile</code>,
+<code>battery:0</code>, <code>battery:1</code>, and the relevant <code>settings</code> fields as inputs. It
+writes the <code>trip</code>, <code>trip:counter</code>, and <code>trip:expunge</code> hashes, the
+<code>trip:completed</code> and <code>trip:command-result</code> channels, and the <code>trip:ready</code> lease.
+It consumes the <code>scooter:trip</code> command queue.</p>
+<p>The canonical ride lifecycle is:</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>stand-by -&gt; unlock -&gt; parked -&gt; kickstand up -&gt; ready-to-drive -&gt; kickstand down -&gt; parked -&gt; lock -&gt; stand-by
+</span></code></pre></div>
+<p><code>parked</code> and <code>ready-to-drive</code> may repeat before the final lock. <code>hop-on</code> and
+<code>hop-on-learning</code> are parked-equivalent pause states within that same unlocked
+ride, never a ride boundary. The history row begins at the first
+<code>ready-to-drive</code>, pauses duration and GPS collection in every parked-equivalent
+state, resumes on each later <code>ready-to-drive</code>, and completes only at the final
+lock/non-paused state. Thus one history entry spans the first Ready interval
+through final lock, rather than one entry per Ready interval.</p>
+<p>The counter is not a trip-history summary: it has its own durable state and can
+be reset without changing a recorded trip. History includes GPS points and a
+profile ID; the counter projection does not. The counter and history use the
+same unlock-to-lock ride boundary: with the <code>ride</code> reset policy, the counter
+resets at the first Ready interval of an unlock session and remains in that
+session across every parked-equivalent pause until lock.</p>
+<p>All counter distances are integer metres, durations are integer seconds,
+<code>reset-at</code>, <code>updated-at</code>, and expunge timestamps are Unix seconds, and
+<code>average-speed-kmh</code> is an integer km/h rounded to the nearest km/h. The ECU
+odometer is also metres. The counter only includes time in <code>ready-to-drive</code>.</p>
+<h2 id="counter-and-reset-policy">Counter and reset policy<a class="headerlink" href="#counter-and-reset-policy" title="Permanent link">&para;</a></h2>
+<p><code>settings[trip.counter-reset]</code> is a persistent enum. Its default is <code>ride</code>;
+valid values are <code>ride</code>, <code>day</code>, <code>battery</code>, and <code>manual</code>. settings-service
+persists the value and publishes settings changes; trip-service applies a valid
+change immediately.</p>
+<p>A counter snapshot has a durable generation. Each reset zeros distance and
+duration, records its Unix time and reason, and increments the generation.
+Possible reasons are <code>initial</code>, <code>ride</code>, <code>day</code>, <code>battery</code>, and <code>manual</code>.</p>
 <ul>
-<li><strong>"unknown"</strong> - Initial/uninitialized state</li>
-<li><strong>"stand-by"</strong> - Systems powered but motor disabled, ready for authentication</li>
-<li><strong>"parked"</strong> - Vehicle unlocked with kickstand down or not ready to drive</li>
-<li><strong>"hop-on"</strong> - Locked hop-on / hop-off mode: rider briefly off, motor disabled, optional steering lock; dashboard renders a lock overlay</li>
-<li><strong>"hop-on-learning"</strong> - Combo-learning sibling of hop-on: same input gating but no user-facing LED cue, no steering-lock attempt, no lock screen</li>
-<li><strong>"ready-to-drive"</strong> - Full system power, motor enabled, kickstand up, all conditions met</li>
-<li><strong>"waiting-seatbox"</strong> - Transitional state waiting for seatbox to close</li>
-<li><strong>"shutting-down"</strong> - Transitional state before powering down (~5s)</li>
-<li><strong>"updating"</strong> - OTA firmware update in progress</li>
-<li><strong>"waiting-hibernation"</strong> - Manual hibernation sequence initiated (60s timeout)</li>
-<li><strong>"waiting-hibernation-advanced"</strong> - Advanced hibernation wait (brakes held for 10s+)</li>
-<li><strong>"waiting-hibernation-seatbox"</strong> - Hibernation wait with seatbox open notification</li>
-<li><strong>"waiting-hibernation-confirm"</strong> - Hibernation confirmation screen (3s)</li>
+<li><strong><code>ride</code></strong> resets at the first <code>ready-to-drive</code> transition of an unlocked
+  ride. <code>parked</code>, <code>hop-on</code>, and <code>hop-on-learning</code> keep that session open, so
+  returning to ready-to-drive does not reset it. Locking or another
+  non-paused/non-ready state closes the session; the next unlock session's
+  first Ready transition starts a new one.</li>
+<li><strong><code>day</code></strong> uses the local calendar date. At the start of a new session it
+  resets only when the date is strictly later than the stored daily anchor.
+  The first trustworthy date establishes the anchor without a reset. A clock
+  before 2020, or a date moving backwards, cannot trigger a reset.</li>
+<li><strong><code>battery</code></strong> resets when a present, non-empty serial number changes in a
+  configured battery slot. Startup values seed the remembered identities;
+  removal and reinsertion of the same pack do not reset it. Slot 1 counts only
+  while dual-battery mode is enabled. Empty serials and changes in a disabled
+  slot do not reset it.</li>
+<li><strong><code>manual</code></strong> performs no automatic reset. A manual command is allowed only
+  while the counter is idle; it returns <code>busy</code> during ready-to-drive.</li>
 </ul>
-<p><strong>At-rest grouping.</strong> Internally, <code>parked</code>, <code>hop-on</code>, and <code>hop-on-learning</code> are children of an <code>at-rest</code> parent state in the FSM. The parent owns the auto-standby timer, so the timer keeps running across hop-on detours without manual handoff. The parent is never published as <code>vehicle:state</code> — only its leaves are.</p>
-<p><strong>External representation of the hop-on family.</strong> vehicle-service publishes the leaf states as-is. Downstream consumers collapse them when their audience does not need to distinguish:</p>
+<p>Negative or backward odometer readings are ignored. The terminal odometer is
+read before leaving ready-to-drive when available, so that final distance is
+accounted for.</p>
+<h2 id="recovery-and-availability">Recovery and availability<a class="headerlink" href="#recovery-and-availability" title="Permanent link">&para;</a></h2>
+<p>The database is <code>/data/trips.db</code>. It is SQLite with WAL journalling, foreign
+keys, a five-second busy timeout, one database connection, and incremental
+vacuum enabled. Counter state is committed on input changes and checkpointed
+at least every 30 seconds and during shutdown.</p>
+<p>On restart, trip-service first reads the current odometer and vehicle state,
+loads durable counter state, reconciles a nondecreasing current odometer
+against the last durable one when applicable, and then synchronizes its
+watchers. If Ready is observed before a valid nonnegative odometer, it defers
+creating a new history row until the first valid odometer arrives; that value
+becomes the trip baseline rather than an unknown zero. It deliberately discards the unavailable wall-time interval: an
+active Ready interval resumes from recovery time, not from the last checkpoint.
+This avoids inventing riding time after a crash or power loss.</p>
+<p>An unfinished history row is handled from the recovered vehicle state. A row
+paused in <code>parked</code>, <code>hop-on</code>, or <code>hop-on-learning</code> remains open and paused; a
+row recovered in <code>ready-to-drive</code> resumes as a new observed Ready interval;
+and a row recovered in any other state (including <code>stand-by</code>) is abandoned.
+The recovered row still belongs to the same unlock-to-lock ride when it remains
+open. GPS collection remains paused until a later Ready interval.</p>
+<p><code>trip:ready</code> is a liveness lease, not a permanent feature flag. While startup
+has completed, its string value is <code>"1"</code> with a 90-second TTL; trip-service
+refreshes it every 30 seconds and deletes it on orderly shutdown. Its absence
+means a caller must treat the current counter interface as unavailable or
+stale.</p>
+<h2 id="redis-contract">Redis contract<a class="headerlink" href="#redis-contract" title="Permanent link">&para;</a></h2>
+<h3 id="tripcounter-hash"><code>trip:counter</code> hash<a class="headerlink" href="#tripcounter-hash" title="Permanent link">&para;</a></h3>
+<p>trip-service writes a complete synchronous snapshot. <code>api-version</code> must be
+<code>"1"</code>; a reader that does not understand that version must not interpret the
+other fields.</p>
 <table>
 <thead>
 <tr>
-<th>Leaf state</th>
-<th>Cloud (uplink, radio-gaga)</th>
-<th>nRF wire value</th>
-<th>BLE characteristic 9a590021 string</th>
+<th>Field</th>
+<th>Type and unit</th>
+<th>Values / meaning</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td><code>hop-on</code></td>
-<td><code>stand-by</code> (locked)</td>
-<td>6 (<code>HOP_ON</code>)</td>
-<td><code>stand-by</code> (cloaked by firmware)</td>
+<td><code>api-version</code></td>
+<td>string</td>
+<td><code>"1"</code></td>
 </tr>
 <tr>
-<td><code>hop-on-learning</code></td>
-<td><code>parked</code></td>
-<td>1 (<code>PARKED</code>)</td>
-<td><code>parked</code></td>
+<td><code>distance-m</code></td>
+<td>integer metres</td>
+<td>Counter distance</td>
+</tr>
+<tr>
+<td><code>duration-s</code></td>
+<td>integer seconds</td>
+<td>Durable and currently projected ready-to-drive time</td>
+</tr>
+<tr>
+<td><code>average-speed-kmh</code></td>
+<td>integer km/h</td>
+<td>Counter distance divided by counter duration, rounded; <code>0</code> if duration is zero</td>
+</tr>
+<tr>
+<td><code>reset-policy</code></td>
+<td>enum</td>
+<td><code>ride</code>, <code>day</code>, <code>battery</code>, or <code>manual</code></td>
+</tr>
+<tr>
+<td><code>reset-at</code></td>
+<td>Unix seconds</td>
+<td>Time of the most recent reset or initial state</td>
+</tr>
+<tr>
+<td><code>reset-reason</code></td>
+<td>enum</td>
+<td><code>initial</code>, <code>ride</code>, <code>day</code>, <code>battery</code>, or <code>manual</code></td>
+</tr>
+<tr>
+<td><code>generation</code></td>
+<td>nonnegative integer</td>
+<td>Increments on every reset</td>
+</tr>
+<tr>
+<td><code>status</code></td>
+<td>enum</td>
+<td><code>idle</code> or <code>recording</code> (<code>recording</code> means ready-to-drive)</td>
+</tr>
+<tr>
+<td><code>updated-at</code></td>
+<td>Unix seconds</td>
+<td>Last durable state update</td>
 </tr>
 </tbody>
 </table>
-<p>The wire value 6 is dedicated so the firmware picks <code>POWER_MODE_ACTIVE</code> (parked-equivalent rails: PMIC_EN2 on, AUX battery) while still surfacing the BLE state-string as <code>stand-by</code> to mobile apps that have no concept of hop-on. See <a href="../nrf/UART/">nRF UART Protocol</a> and <a href="../bluetooth/">BLE Services</a>.</p>
-<p><strong>Note</strong>: Vehicle states are separate from power manager states (tracked in <code>power-manager:state</code>). Vehicle states represent the operational mode of the scooter, while power manager states represent the system's power/suspend state.</p>
-<h3 id="vehicle-state-transitions">Vehicle State Transitions<a class="headerlink" href="#vehicle-state-transitions" title="Permanent link">&para;</a></h3>
-<pre class="mermaid"><code>stateDiagram-v2
-    [*] --&gt; unknown
-    unknown --&gt; stand-by: init complete (initial state)
-    unknown --&gt; updating: init complete (updating)
-    unknown --&gt; ready-to-drive: init complete (default)
-
-    stand-by --&gt; ready-to-drive: keycard auth / unlock request
-
-    ready-to-drive --&gt; parked: kickstand down (after 1s timer)
-    ready-to-drive --&gt; ready-to-drive: conditions still met
-
-    parked --&gt; ready-to-drive: kickstand up + all conditions met
-    parked --&gt; waiting-seatbox: keycard auth (when not activating)
-    parked --&gt; shutting-down: lock request
-    parked --&gt; waiting-hibernation-confirm: lock-hibernate request
-    parked --&gt; waiting-hibernation: hibernation timer (manual)
-
-    parked --&gt; hop-on: scooter:hop-on engage
-    parked --&gt; hop-on-learning: scooter:hop-on engage-learning
-    hop-on --&gt; parked: scooter:hop-on release / unlock request
-    hop-on-learning --&gt; parked: scooter:hop-on release / unlock request
-    hop-on --&gt; shutting-down: lock / keycard / auto-standby
-    hop-on-learning --&gt; shutting-down: lock / keycard / auto-standby
-
-    waiting-seatbox --&gt; ready-to-drive: seatbox closed + conditions met
-    waiting-seatbox --&gt; parked: seatbox closed (not ready)
-    waiting-seatbox --&gt; shutting-down: keycard auth / lock request
-    waiting-seatbox --&gt; ready-to-drive: unlock request
-    waiting-seatbox --&gt; waiting-hibernation-confirm: lock-hibernate request
-
-    shutting-down --&gt; stand-by: timeout (~5s)
-
-    updating --&gt; shutting-down: update complete / not updating
-    updating --&gt; shutting-down: timeout (30min abort)
-    updating --&gt; ready-to-drive: keycard auth / unlock request
-
-    waiting-hibernation --&gt; waiting-hibernation-seatbox: keycard tap (seatbox open)
-    waiting-hibernation --&gt; waiting-hibernation-advanced: brakes held (10s timer)
-    waiting-hibernation --&gt; ready-to-drive: timeout (60s) / kickstand raised / unlock
-    waiting-hibernation --&gt; shutting-down: lock request
-    waiting-hibernation --&gt; waiting-hibernation-confirm: lock-hibernate request
-
-    waiting-hibernation-advanced --&gt; ready-to-drive: brakes released
-    waiting-hibernation-advanced --&gt; waiting-hibernation-confirm: keycard auth
-
-    waiting-hibernation-seatbox --&gt; waiting-hibernation: seatbox closed
-    waiting-hibernation-seatbox --&gt; waiting-hibernation-confirm: keycard auth
-
-    waiting-hibernation-confirm --&gt; shutting-down: timeout (3s, then hibernate)</code></pre>
-<h3 id="key-transition-conditions">Key Transition Conditions<a class="headerlink" href="#key-transition-conditions" title="Permanent link">&para;</a></h3>
-<h4 id="is_ready_to_drive">is_ready_to_drive()<a class="headerlink" href="#is_ready_to_drive" title="Permanent link">&para;</a></h4>
-<p>Vehicle can enter "ready-to-drive" when ALL conditions are met:</p>
+<h3 id="reset-queue-and-result-channel">Reset queue and result channel<a class="headerlink" href="#reset-queue-and-result-channel" title="Permanent link">&para;</a></h3>
+<p>Producers send compact JSON to the <code>scooter:trip</code> Redis list:</p>
+<div class="language-json highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="p">{</span><span class="nt">"id"</span><span class="p">:</span><span class="s2">"client-request-id"</span><span class="p">,</span><span class="nt">"op"</span><span class="p">:</span><span class="s2">"counter.reset"</span><span class="p">,</span><span class="nt">"source"</span><span class="p">:</span><span class="s2">"client-name"</span><span class="p">,</span><span class="nt">"expires-at"</span><span class="p">:</span><span class="mi">1700000015000</span><span class="p">}</span>
+</span></code></pre></div>
+<p><code>id</code> is required for an accepted reset and is the idempotency key; <code>source</code> is
+carried by the request but does not alter reset semantics. <code>expires-at</code> is a
+required Unix-millisecond deadline. It must be in the future and no more than
+60 seconds ahead when trip-service receives the command. An already-expired
+queued attempt is discarded without executing or publishing a stale correlated
+result; a missing or excessively long-lived deadline returns <code>timeout</code>. A
+deliberate retry may reuse the same ID with a fresh short deadline. The service accepts
+only <code>op: "counter.reset"</code>. Each non-expired request publishes one correlated
+JSON result on <code>trip:command-result</code>:</p>
+<div class="language-json highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="p">{</span><span class="nt">"id"</span><span class="p">:</span><span class="s2">"client-request-id"</span><span class="p">,</span><span class="nt">"op"</span><span class="p">:</span><span class="s2">"counter.reset"</span><span class="p">,</span><span class="nt">"status"</span><span class="p">:</span><span class="s2">"ok"</span><span class="p">,</span><span class="nt">"error"</span><span class="p">:</span><span class="s2">""</span><span class="p">}</span>
+</span></code></pre></div>
+<p><code>status</code> is <code>ok</code> or <code>error</code>. Errors are <code>invalid</code> for malformed or unsupported
+requests, <code>busy</code> for a reset while recording, <code>timeout</code> for an invalid command
+deadline, and <code>internal</code> when a reset could not be committed. Error text is bounded to 256 bytes. The reset state and its
+idempotency record commit in one SQLite transaction. Repeating an ID returns
+its recorded outcome; records are retained for 30 days, subject to a 10,000
+record safety cap.</p>
+<p>For a successful manual reset, trip-service commits the zeroed state before it
+publishes the result. It synchronously publishes the new <code>trip:counter</code>
+snapshot before the success result, so a consumer subscribed before enqueueing
+can read the generation associated with that acknowledgement.</p>
+<h2 id="trip-history-retention">Trip-history retention<a class="headerlink" href="#trip-history-retention" title="Permanent link">&para;</a></h2>
+<p><code>settings[trip.expunge]</code> is one atomic persistent setting for history
+retention; its default is <code>age:365d</code>. Its complete transport-safe grammar is:</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>never
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>age:&lt;duration&gt;
+</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>count:&lt;canonical-nonnegative-signed-int64-decimal&gt;
+</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>size:&lt;canonical-nonnegative-signed-int64-decimal&gt;
+</span></code></pre></div>
+<p><code>&lt;duration&gt;</code> is either a sequence of ASCII Go-style components
+<code>&lt;canonical-integer&gt;[.&lt;digits&gt;]&lt;unit&gt;</code>, using only <code>ns</code>, <code>us</code>, <code>ms</code>, <code>s</code>, <code>m</code>,
+or <code>h</code>, or one canonical integer-day token <code>Nd</code>. A parsed component duration
+must be 1 through 9223372036854775807 nanoseconds. Integer days are <code>1d</code>
+through <code>106751d</code>; <code>d</code> cannot be mixed with any other component. A canonical
+nonnegative signed-int64 decimal is <code>0</code> or an ASCII decimal integer without a
+leading zero, in the inclusive range 0 through 9223372036854775807.</p>
+<p>The parser rejects Unicode micro signs (<code>µ</code> and <code>μ</code>), whitespace, signs,
+leading zeroes, zero or sub-nanosecond ages, overflow, malformed or mixed day
+units, and trailing junk. The boundary corpus is:</p>
 <ul>
-<li>Dashboard ready</li>
-<li>Kickstand up</li>
-<li>Seatbox lock closed</li>
-<li>Not activating</li>
-<li>Handlebar unlocked</li>
-<li>Battery on</li>
+<li>Valid: <code>never</code>, <code>age:1ns</code>, <code>age:1us</code>, <code>age:1.5ms</code>, <code>age:1h30m</code>, <code>age:1d</code>,
+  <code>age:106751d</code>, <code>count:0</code>, <code>count:9223372036854775807</code>, <code>size:0</code>, and
+  <code>size:9223372036854775807</code>.</li>
+<li>Invalid: <code>age:0</code>, <code>age:0ns</code>, <code>age:0.5ns</code>, <code>age:.5us</code>, <code>age:1.s</code>,
+  <code>age:1µs</code>, <code>age:1μs</code>, <code>age:106752d</code>, <code>age:2562047h47m16.854775808s</code>, <code>count:01</code>, <code>count:+1</code>,
+  <code>count:9223372036854775808</code>, <code>size:-1</code>, <code>size:9223372036854775808</code>, and
+  any value containing whitespace (for example <code>age:1s</code>, <code>age:1s</code>,
+  <code>age:1 s</code>, <code>count:1\t</code>, or <code>size:\n1</code>).</li>
 </ul>
-<h4 id="hibernation-sequence">Hibernation Sequence<a class="headerlink" href="#hibernation-sequence" title="Permanent link">&para;</a></h4>
-<p>Manual hibernation requires:</p>
-<ol>
-<li>Both brakes pressed</li>
-<li>Dashboard ready</li>
-<li>Not activating</li>
-</ol>
-<p>Flow: parked (15s) → waiting-hibernation (brakes held 10s) → waiting-hibernation-advanced → waiting-hibernation-confirm (keycard) → shutting-down (3s) → stand-by (with hibernation flag)</p>
-<h4 id="park-protection">Park Protection<a class="headerlink" href="#park-protection" title="Permanent link">&para;</a></h4>
-<p>1-second timer prevents rapid drive → park → drive oscillations</p>
-<hr />
-<h2 id="power-manager-states">Power Manager States<a class="headerlink" href="#power-manager-states" title="Permanent link">&para;</a></h2>
-<p>The power manager (unu-pm) tracks system power states separately from vehicle states. These are exposed via <code>power-manager:state</code> Redis key and BLE characteristic 9a5900a1:</p>
-<h3 id="power-states">Power States<a class="headerlink" href="#power-states" title="Permanent link">&para;</a></h3>
-<ul>
-<li><strong>"booting"</strong> - System starting up</li>
-<li><strong>"running"</strong> - System fully operational</li>
-<li><strong>"suspending"</strong> - System entering suspend mode</li>
-<li><strong>"suspending-imminent"</strong> - Suspend about to occur (pre-suspend delay active)</li>
-<li><strong>"hibernating"</strong> - System in hibernation</li>
-<li><strong>"hibernating-imminent"</strong> - Hibernation about to occur</li>
-<li><strong>"hibernating-manual"</strong> - Manual hibernation requested</li>
-<li><strong>"hibernating-manual-imminent"</strong> - Manual hibernation about to occur</li>
-<li><strong>"hibernating-timer"</strong> - Timer-based hibernation (configurable, default 5 days)</li>
-<li><strong>"hibernating-timer-imminent"</strong> - Timer hibernation about to occur</li>
-<li><strong>"reboot"</strong> - System reboot</li>
-<li><strong>"reboot-imminent"</strong> - Reboot about to occur</li>
-</ul>
-<h3 id="state-suffixes">State Suffixes<a class="headerlink" href="#state-suffixes" title="Permanent link">&para;</a></h3>
-<p>The "-imminent" suffix indicates that a power state change is about to occur but the pre-suspend delay is still active. This gives services time to complete operations and prevents data loss.</p>
-<h3 id="power-state-transitions">Power State Transitions<a class="headerlink" href="#power-state-transitions" title="Permanent link">&para;</a></h3>
-<pre class="mermaid"><code>stateDiagram-v2
-    [*] --&gt; booting
-    booting --&gt; running: boot complete (~5s)
-    running --&gt; suspending-imminent: suspend request
-    suspending-imminent --&gt; suspending: pre-suspend delay (~60s)
-    suspending-imminent --&gt; running: abort suspend
-    suspending --&gt; hibernating-imminent: low battery / hibernate request
-    suspending --&gt; running: wakeup
-    hibernating-imminent --&gt; hibernating: iMX6 power down (~20s)
-    hibernating-imminent --&gt; running: abort hibernation
-    hibernating --&gt; booting: wakeup (brakes/BLE)
-    running --&gt; reboot-imminent: reboot request
-    reboot-imminent --&gt; reboot: pre-reboot delay
-    reboot --&gt; booting: system restart</code></pre>
-<h3 id="nrf-hibernation-levels">nRF Hibernation Levels<a class="headerlink" href="#nrf-hibernation-levels" title="Permanent link">&para;</a></h3>
-<p>When in "hibernating" power state, the nRF firmware distinguishes between two hibernation levels based on CB battery charge:</p>
-<ul>
-<li><strong>L1 (Level 1)</strong> - Triggered at CB battery ≤25% SoC</li>
-<li>CB battery continues to power control electronics</li>
-<li>Periodic wakeup checks for brake lever activation</li>
-<li>
-<p>Low battery wakeup at 10% SoC</p>
-</li>
-<li>
-<p><strong>L2 (Level 2)</strong> - Triggered at CB battery ≤5% SoC</p>
-</li>
-<li>System switches to AUX battery to preserve CB battery</li>
-<li>Minimal power consumption</li>
-<li>Wakeup only via brake levers</li>
-</ul>
-<p>See <a href="../nrf/power-management/">nRF Power Management</a> for details.</p>
-<hr />
-<h2 id="battery-states">Battery States<a class="headerlink" href="#battery-states" title="Permanent link">&para;</a></h2>
-<h3 id="main-battery">Main Battery<a class="headerlink" href="#main-battery" title="Permanent link">&para;</a></h3>
-<p>Tracked per battery slot (battery:0, battery:1) via Redis and BLE:</p>
-<ul>
-<li><strong>"unknown"</strong> - State cannot be determined</li>
-<li><strong>"asleep"</strong> - Lowest power state, NFC wake detection active</li>
-<li><strong>"idle"</strong> - Systems powered, high current path disabled</li>
-<li><strong>"active"</strong> - Full power state, high current path enabled, required for driving/charging</li>
-</ul>
-<h3 id="connectivity-battery-cb">Connectivity Battery (CB)<a class="headerlink" href="#connectivity-battery-cb" title="Permanent link">&para;</a></h3>
-<ul>
-<li><strong>"not-charging"</strong> - Battery discharging</li>
-<li><strong>"charging"</strong> - Battery charging (current &gt; ~100mA)</li>
-<li><strong>"unknown"</strong> - State cannot be determined</li>
-</ul>
-<h3 id="auxiliary-battery-aux">Auxiliary Battery (AUX)<a class="headerlink" href="#auxiliary-battery-aux" title="Permanent link">&para;</a></h3>
-<p>Hardware-controlled charging states:</p>
-<ul>
-<li><strong>"not-charging"</strong> - Not charging</li>
-<li><strong>"bulk-charge"</strong> - Maximum current charging for depleted battery</li>
-<li><strong>"absorption-charge"</strong> - Constant voltage as battery approaches full charge</li>
-<li><strong>"float-charge"</strong> - Maintenance mode for fully charged battery</li>
-</ul>
+<p>Production validation is fail-safe. settings-service validates <code>trip.expunge</code>
+on TOML hydration and live Redis updates. An invalid persisted value is repaired
+to the last persisted valid policy, or <code>never</code> when none exists, and the repair
+is written back once; it refuses to persist an invalid value. Independently, if
+trip-service cannot read the setting at startup or receives a malformed stored
+value, it fails closed to <code>never</code> and reports an expunge error. Only an absent
+setting selects the <code>age:365d</code> default. A later invalid live update leaves the
+last valid in-service policy selected and reports an error.</p>
+<p>Expunge runs at startup, after a completed or abandoned trip, and on the
+30-second periodic tick. It runs only while no trip is recording. An active
+ride is never pruned; a scheduled pass reports <code>deferred</code> and waits for an idle
+pass. Failures also defer rather than interrupt recording.</p>
+<p>Only <code>completed</code> and <code>abandoned</code> trips are eligible. Deletion is oldest first,
+in batches of at most 100, and foreign-key cascade deletes their GPS points.
+<code>age</code> requires a trustworthy wall clock (Unix time no earlier than 2020);
+otherwise it defers without deleting history. <code>count</code> keeps the newest N
+eligible trips.</p>
+<p>For <code>size</code>, the measured limit is SQLite page storage plus the WAL. Before it
+deletes any history, each pass attempts bounded pre-reclamation: a truncating
+WAL checkpoint followed by at most 100 incremental-vacuum pages. It then
+removes at most 100 eligible oldest rows and repeats that bounded reclamation.
+Consequently one pass need not reach the requested size (there may be no
+eligible rows, active rows are protected, SQLite may retain free pages, or the
+checkpoint may be busy); later idle passes retry. A legacy database without
+incremental auto-vacuum is not size-pruned until its one-time migration sets
+incremental mode and runs <code>VACUUM</code>. That migration is started only while idle
+and is cancelable when Ready begins, without holding ride startup; cancellation
+or failure defers the pass and a later idle pass retries it. It never deletes an
+active trip, counter state, or reset-command idempotency records.</p>
+<h3 id="tripexpunge-hash"><code>trip:expunge</code> hash<a class="headerlink" href="#tripexpunge-hash" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>api-version</code></td>
+<td>string</td>
+<td><code>"1"</code></td>
+</tr>
+<tr>
+<td><code>policy</code></td>
+<td>enum</td>
+<td><code>never</code>, <code>age</code>, <code>count</code>, or <code>size</code></td>
+</tr>
+<tr>
+<td><code>value</code></td>
+<td>string</td>
+<td>Policy operand (<code>365d</code>, duration, count, or bytes); empty for <code>never</code></td>
+</tr>
+<tr>
+<td><code>status</code></td>
+<td>enum</td>
+<td><code>idle</code>, <code>running</code>, <code>deferred</code>, or <code>error</code></td>
+</tr>
+<tr>
+<td><code>last-run</code></td>
+<td>Unix seconds</td>
+<td>Most recent successful pass</td>
+</tr>
+<tr>
+<td><code>last-error</code></td>
+<td>string</td>
+<td>Most recent policy or run error, bounded to 256 bytes</td>
+</tr>
+<tr>
+<td><code>deleted-trips</code></td>
+<td>integer</td>
+<td>Trips deleted by the latest pass</td>
+</tr>
+<tr>
+<td><code>db-bytes</code></td>
+<td>integer bytes</td>
+<td>Latest SQLite main database storage measurement</td>
+</tr>
+<tr>
+<td><code>wal-bytes</code></td>
+<td>integer bytes</td>
+<td>Latest WAL file storage measurement</td>
+</tr>
+<tr>
+<td><code>updated-at</code></td>
+<td>Unix seconds</td>
+<td>Publication time</td>
+</tr>
+</tbody>
+</table>
+<p>Retention deletes local completed/abandoned history and their saved points; it
+is not a counter reset and does not erase data outside this database. Conversely,
+resetting the counter never deletes trip-history rows or GPS points.</p>
+<h2 id="privacy-and-access-limits">Privacy and access limits<a class="headerlink" href="#privacy-and-access-limits" title="Permanent link">&para;</a></h2>
+<p>The counter and Bluetooth trip response intentionally contain no GPS trace,
+trip-history record, or profile ID. <code>trip:counter</code> is a vehicle-wide display
+counter, not an access-controlled per-rider record. Redis access is trusted
+local infrastructure, and anyone with that access can read its hashes or send
+its queue commands.</p>
+<p>The Bluetooth extended-command characteristics require an encrypted,
+MITM-protected bonded connection. There is no per-phone authorization layer:
+any bonded phone that can use extended commands can read the counter, request a
+manual reset, and use writable generic settings, including the counter policy
+and retention setting. BLE does not provide trip-history or GPS-trace queries.</p>
 
 
 
@@ -2016,7 +2195,7 @@
       <nav class="md-footer__inner md-grid" aria-label="Footer" >
         
           
-          <a href="../nrf/power-management/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Power Management">
+          <a href="../librescoot-settings/" class="md-footer__link md-footer__link--prev" aria-label="Previous: settings-service">
             <div class="md-footer__button md-icon">
               
               <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-arrow-left" viewBox="0 0 24 24"><path d="m12 19-7-7 7-7M19 12H5"/></svg>
@@ -2026,20 +2205,20 @@
                 Previous
               </span>
               <div class="md-ellipsis">
-                Power Management
+                settings-service
               </div>
             </div>
           </a>
         
         
           
-          <a href="../services/" class="md-footer__link md-footer__link--next" aria-label="Next: Services">
+          <a href="../librescoot-ums/" class="md-footer__link md-footer__link--next" aria-label="Next: ums-service">
             <div class="md-footer__title">
               <span class="md-footer__direction">
                 Next
               </span>
               <div class="md-ellipsis">
-                Services
+                ums-service
               </div>
             </div>
             <div class="md-footer__button md-icon">
@@ -2111,10 +2290,10 @@
       
         
         
-      <script id="__config" type="application/json">{"annotate":null,"base":"..","features":["content.action.edit","content.code.copy","content.code.select","content.tooltips","navigation.footer","navigation.indexes","navigation.instant","navigation.instant.prefetch","navigation.path","navigation.sections","navigation.top","navigation.tracking","search.highlight","toc.follow"],"redirect":null,"search":"../assets/javascripts/workers/search.7d14d953.min.js","tags":null,"translations":{"clipboard.copied":"Copied to clipboard","clipboard.copy":"Copy to clipboard","search.result.more.one":"1 more on this page","search.result.more.other":"# more on this page","search.result.none":"No matching documents","search.result.one":"1 matching document","search.result.other":"# matching documents","search.result.placeholder":"Type to start searching","search.result.term.missing":"Missing","select.version":"Select version"},"version":{"provider":"mike"}}</script>
+      <script id="__config" type="application/json">{"annotate":null,"base":"../..","features":["content.action.edit","content.code.copy","content.code.select","content.tooltips","navigation.footer","navigation.indexes","navigation.instant","navigation.instant.prefetch","navigation.path","navigation.sections","navigation.top","navigation.tracking","search.highlight","toc.follow"],"redirect":null,"search":"../../assets/javascripts/workers/search.7d14d953.min.js","tags":null,"translations":{"clipboard.copied":"Copied to clipboard","clipboard.copy":"Copy to clipboard","search.result.more.one":"1 more on this page","search.result.more.other":"# more on this page","search.result.none":"No matching documents","search.result.one":"1 matching document","search.result.other":"# matching documents","search.result.placeholder":"Type to start searching","search.result.term.missing":"Missing","select.version":"Select version"},"version":{"provider":"mike"}}</script>
     
     
-      <script src="../assets/javascripts/bundle.8dcc8e9c.min.js"></script>
+      <script src="../../assets/javascripts/bundle.8dcc8e9c.min.js"></script>
       
     
   </body>

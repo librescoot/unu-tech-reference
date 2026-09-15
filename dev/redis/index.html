@@ -23,7 +23,7 @@
       
       
       <link rel="icon" href="../assets/images/favicon.png">
-      <meta name="generator" content="zensical-0.0.61">
+      <meta name="generator" content="zensical-0.0.62">
     
     
       
@@ -952,6 +952,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#trip-service-trip-tripcounter-and-tripexpunge-librescoot-only" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Trip Service (<code>trip</code>, <code>trip:counter</code>, and <code>trip:expunge</code>) - Librescoot Only
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#over-the-air-updates-ota" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
@@ -1578,6 +1589,8 @@
       
         
       
+        
+      
     
     
     
@@ -1969,6 +1982,33 @@
     
   
   settings-service
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../services/librescoot-trip/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  trip-service
 
     
   </span>
@@ -2533,6 +2573,17 @@
     <span class="md-ellipsis">
       <span class="md-typeset">
         Clock Sync (<code>clock</code>)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#trip-service-trip-tripcounter-and-tripexpunge-librescoot-only" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Trip Service (<code>trip</code>, <code>trip:counter</code>, and <code>trip:expunge</code>) - Librescoot Only
       </span>
     </span>
   </a>
@@ -4443,6 +4494,33 @@ all three writers in the shape scootui-qt's <code>MapMetadata</code> defines.</p
 </tbody>
 </table>
 <p>Redis is not persistent on librescoot, so the presence of this hash always refers to the current boot.</p>
+<h3 id="trip-service-trip-tripcounter-and-tripexpunge-librescoot-only">Trip Service (<code>trip</code>, <code>trip:counter</code>, and <code>trip:expunge</code>) - Librescoot Only<a class="headerlink" href="#trip-service-trip-tripcounter-and-tripexpunge-librescoot-only" title="Permanent link">&para;</a></h3>
+<p>trip-service owns a durable vehicle-wide display counter and separate recorded
+trip history. See <a href="../services/librescoot-trip/">trip-service</a> for recovery,
+retention, and command details.</p>
+<p><code>trip</code> remains the current trip recorder status. <code>trip:counter</code> is the complete
+counter snapshot, with <code>api-version</code> <code>"1"</code>, integer <code>distance-m</code> (m),
+<code>duration-s</code> (s), and <code>average-speed-kmh</code> (km/h); <code>reset-policy</code> (<code>ride</code>,
+<code>day</code>, <code>battery</code>, <code>manual</code>); <code>reset-at</code>, <code>generation</code>, <code>updated-at</code>; and
+<code>reset-reason</code> (<code>initial</code>, <code>ride</code>, <code>day</code>, <code>battery</code>, <code>manual</code>) plus <code>status</code>
+(<code>idle</code> or <code>recording</code>). <code>trip:ready</code> is a separate string liveness lease:
+value <code>"1"</code>, TTL 90 seconds, refreshed every 30 seconds. Do not use a stale or
+absent lease as evidence that the counter is available.</p>
+<p><code>trip:expunge</code> reports the independent trip-history retention pass. Its
+<code>api-version</code> is <code>"1"</code>; <code>policy</code> is <code>never</code>, <code>age</code>, <code>count</code>, or <code>size</code>; and
+<code>value</code> is its operand (empty for <code>never</code>). <code>status</code> is <code>idle</code>, <code>running</code>,
+<code>deferred</code>, or <code>error</code>. <code>last-run</code> and <code>updated-at</code> are Unix seconds,
+<code>deleted-trips</code> is the latest pass count, <code>db-bytes</code> and <code>wal-bytes</code> are bytes,
+and <code>last-error</code> is a bounded diagnostic string.</p>
+<p>Counter commands use the <code>scooter:trip</code> list with JSON
+<code>{"id":"…","op":"counter.reset","source":"…","expires-at":&lt;unix-ms&gt;}</code>.
+The required deadline must be in the future and at most 60 seconds ahead when
+consumed, preventing queued resets from executing after a later service
+restart. Already-expired attempts are discarded without a stale result, which
+lets an ambiguous retry safely reuse its idempotency ID with a fresh deadline. The correlated <code>trip:command-result</code> channel publishes JSON with <code>id</code>,
+<code>op</code>, <code>status</code>, and <code>error</code>. A successful reset publishes its new <code>trip:counter</code> snapshot before
+its result. Resetting the counter never deletes history; expunging history
+never changes the counter.</p>
 <h3 id="over-the-air-updates-ota">Over-the-Air Updates (<code>ota</code>)<a class="headerlink" href="#over-the-air-updates-ota" title="Permanent link">&para;</a></h3>
 <div class="language-text highlight"><pre><span></span><code><span id="__span-22-1"><a id="__codelineno-22-1" name="__codelineno-22-1" href="#__codelineno-22-1"></a>hgetall ota
 </span></code></pre></div>
@@ -4604,6 +4682,18 @@ all three writers in the shape scootui-qt's <code>MapMetadata</code> defines.</p
 <td>"true"/"false"</td>
 <td>Ignore seatbox state for battery management</td>
 <td>"false"</td>
+</tr>
+<tr>
+<td>trip.counter-reset</td>
+<td>enum</td>
+<td>Vehicle-wide counter reset policy: <code>ride</code>, <code>day</code>, <code>battery</code>, or <code>manual</code></td>
+<td>"ride"</td>
+</tr>
+<tr>
+<td>trip.expunge</td>
+<td>string</td>
+<td>Atomic completed/abandoned trip-history retention policy: <code>never</code>, <code>age:&lt;duration&gt;</code>, <code>count:&lt;trips&gt;</code>, or <code>size:&lt;bytes&gt;</code></td>
+<td>"age:365d"</td>
 </tr>
 <tr>
 <td>cellular.apn</td>
@@ -6157,7 +6247,7 @@ additionally reports its own refusals in <code>usb.last-result</code> and as an 
       <script id="__config" type="application/json">{"annotate":null,"base":"..","features":["content.action.edit","content.code.copy","content.code.select","content.tooltips","navigation.footer","navigation.indexes","navigation.instant","navigation.instant.prefetch","navigation.path","navigation.sections","navigation.top","navigation.tracking","search.highlight","toc.follow"],"redirect":null,"search":"../assets/javascripts/workers/search.7d14d953.min.js","tags":null,"translations":{"clipboard.copied":"Copied to clipboard","clipboard.copy":"Copy to clipboard","search.result.more.one":"1 more on this page","search.result.more.other":"# more on this page","search.result.none":"No matching documents","search.result.one":"1 matching document","search.result.other":"# matching documents","search.result.placeholder":"Type to start searching","search.result.term.missing":"Missing","select.version":"Select version"},"version":{"provider":"mike"}}</script>
     
     
-      <script src="../assets/javascripts/bundle.df5d1f2b.min.js"></script>
+      <script src="../assets/javascripts/bundle.8dcc8e9c.min.js"></script>
       
     
   </body>

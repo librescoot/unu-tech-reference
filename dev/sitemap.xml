@@ -79,6 +79,9 @@
         <loc>https://reference.librescoot.org/dev/services/librescoot-settings/</loc>
       </url>
       <url>
+        <loc>https://reference.librescoot.org/dev/services/librescoot-trip/</loc>
+      </url>
+      <url>
         <loc>https://reference.librescoot.org/dev/services/librescoot-ums/</loc>
       </url>
       <url>

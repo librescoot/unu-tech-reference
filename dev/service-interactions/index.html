@@ -23,7 +23,7 @@
       
       
       <link rel="icon" href="../assets/images/favicon.png">
-      <meta name="generator" content="zensical-0.0.61">
+      <meta name="generator" content="zensical-0.0.62">
     
     
       
@@ -762,6 +762,8 @@
       
         
       
+        
+      
     
     
     
@@ -989,6 +991,17 @@
     <span class="md-ellipsis">
       <span class="md-typeset">
         bluetooth-service
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#trip-service" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        trip-service
       </span>
     </span>
   </a>
@@ -1611,6 +1624,33 @@
   
   
     <li class="md-nav__item">
+      <a href="../services/librescoot-trip/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  trip-service
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../services/librescoot-ums/" class="md-nav__link">
         
   
@@ -1957,6 +1997,17 @@
     <span class="md-ellipsis">
       <span class="md-typeset">
         bluetooth-service
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#trip-service" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        trip-service
       </span>
     </span>
   </a>
@@ -2350,6 +2401,8 @@
       
         
       
+        
+      
     
     
     
@@ -2405,72 +2458,79 @@
 </span><span id="__span-0-16"><a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a> event-service ──writes──&gt; extensions, extensions:pending (MDB nightly packaging; not 1.3.1 stable)
 </span><span id="__span-0-17"><a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a> version-service  writes──&gt; version:mdb (MDB), version:dbc (DBC)  (one-shot at boot, no pub/sub notification)
 </span><span id="__span-0-18"><a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a> settings-service writes──&gt; settings  (WARNING: no PUBLISH on initial load, see gaps)
-</span><span id="__span-0-19"><a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a> update-service ──writes──&gt; ota  (status:*, update-version:*, download-progress:*, etc.)
-</span><span id="__span-0-20"><a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a> ums-service ────writes──&gt; usb
-</span><span id="__span-0-21"><a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a> scootui ────────writes──&gt; dashboard (ready, serial-number)
-</span><span id="__span-0-22"><a id="__codelineno-0-22" name="__codelineno-0-22" href="#__codelineno-0-22"></a>
-</span><span id="__span-0-23"><a id="__codelineno-0-23" name="__codelineno-0-23" href="#__codelineno-0-23"></a>                    Lists (command queues, LPUSH/BRPOP)
-</span><span id="__span-0-24"><a id="__codelineno-0-24" name="__codelineno-0-24" href="#__codelineno-0-24"></a>                    ────────────────────────────────────
-</span><span id="__span-0-25"><a id="__codelineno-0-25" name="__codelineno-0-25" href="#__codelineno-0-25"></a> scooter:state   ── vehicle-service reads ── lsc, scootui, uplink-service, alarm-service write
-</span><span id="__span-0-26"><a id="__codelineno-0-26" name="__codelineno-0-26" href="#__codelineno-0-26"></a> scooter:seatbox ── vehicle-service reads ── lsc, scootui, uplink-service write
-</span><span id="__span-0-27"><a id="__codelineno-0-27" name="__codelineno-0-27" href="#__codelineno-0-27"></a> scooter:horn    ── vehicle-service reads ── lsc, scootui, uplink-service, alarm-service write
-</span><span id="__span-0-28"><a id="__codelineno-0-28" name="__codelineno-0-28" href="#__codelineno-0-28"></a> scooter:blinker ── vehicle-service reads ── lsc, scootui, uplink-service, alarm-service write
-</span><span id="__span-0-29"><a id="__codelineno-0-29" name="__codelineno-0-29" href="#__codelineno-0-29"></a> scooter:led:cue ── vehicle-service reads ── lsc writes
-</span><span id="__span-0-30"><a id="__codelineno-0-30" name="__codelineno-0-30" href="#__codelineno-0-30"></a> scooter:led:fade── vehicle-service reads ── lsc writes
-</span><span id="__span-0-31"><a id="__codelineno-0-31" name="__codelineno-0-31" href="#__codelineno-0-31"></a> scooter:update  ── vehicle-service reads ── update-service writes (start-dbc, complete-dbc)
-</span><span id="__span-0-32"><a id="__codelineno-0-32" name="__codelineno-0-32" href="#__codelineno-0-32"></a> scooter:hardware── vehicle-service reads ── lsc, scootui, uplink-service write
-</span><span id="__span-0-33"><a id="__codelineno-0-33" name="__codelineno-0-33" href="#__codelineno-0-33"></a> scooter:power   ── pm-service reads      ── lsc, update-service, uplink-service write
-</span><span id="__span-0-34"><a id="__codelineno-0-34" name="__codelineno-0-34" href="#__codelineno-0-34"></a> scooter:governor── pm-service reads      ── vehicle-service writes
-</span><span id="__span-0-35"><a id="__codelineno-0-35" name="__codelineno-0-35" href="#__codelineno-0-35"></a> scooter:modem   ── modem-service reads   ── pm-service writes ("disable")
-</span><span id="__span-0-36"><a id="__codelineno-0-36" name="__codelineno-0-36" href="#__codelineno-0-36"></a> scooter:bluetooth─ bluetooth-service reads─ (firmware-update and BLE commands)
-</span><span id="__span-0-37"><a id="__codelineno-0-37" name="__codelineno-0-37" href="#__codelineno-0-37"></a> scooter:alarm   ── alarm-service reads   ── lsc writes
-</span><span id="__span-0-38"><a id="__codelineno-0-38" name="__codelineno-0-38" href="#__codelineno-0-38"></a> settings:overlay── settings-service reads ── lsc writes (apply:service, clear:service)
-</span><span id="__span-0-39"><a id="__codelineno-0-39" name="__codelineno-0-39" href="#__codelineno-0-39"></a> scooter:update:&lt;component&gt; ── update-service reads ── update-service writes (check-now)
-</span><span id="__span-0-40"><a id="__codelineno-0-40" name="__codelineno-0-40" href="#__codelineno-0-40"></a> power:inhibits  ── pm-service inhibitor redis listener reads ── (external inhibitors write)
-</span><span id="__span-0-41"><a id="__codelineno-0-41" name="__codelineno-0-41" href="#__codelineno-0-41"></a>
-</span><span id="__span-0-42"><a id="__codelineno-0-42" name="__codelineno-0-42" href="#__codelineno-0-42"></a>                    Pub/Sub channels (notifications only; consumers HGET after receiving)
-</span><span id="__span-0-43"><a id="__codelineno-0-43" name="__codelineno-0-43" href="#__codelineno-0-43"></a>                    ──────────────────────────────────────────────────────────────────────
-</span><span id="__span-0-44"><a id="__codelineno-0-44" name="__codelineno-0-44" href="#__codelineno-0-44"></a> vehicle       ← published by vehicle-service (payload = field name changed)
-</span><span id="__span-0-45"><a id="__codelineno-0-45" name="__codelineno-0-45" href="#__codelineno-0-45"></a> battery:0     ← published by battery-service (payload = field name or "fault")
-</span><span id="__span-0-46"><a id="__codelineno-0-46" name="__codelineno-0-46" href="#__codelineno-0-46"></a> battery:1     ← published by battery-service
-</span><span id="__span-0-47"><a id="__codelineno-0-47" name="__codelineno-0-47" href="#__codelineno-0-47"></a> engine-ecu    ← published by bluetooth-service (odometer), NOT by ecu-service (see gaps)
-</span><span id="__span-0-48"><a id="__codelineno-0-48" name="__codelineno-0-48" href="#__codelineno-0-48"></a> keycard       ← published by keycard-service
-</span><span id="__span-0-49"><a id="__codelineno-0-49" name="__codelineno-0-49" href="#__codelineno-0-49"></a> dashboard     ← published by scootui (ready, serial-number, backlight-enabled), dbc-backlight
-</span><span id="__span-0-50"><a id="__codelineno-0-50" name="__codelineno-0-50" href="#__codelineno-0-50"></a> power-manager ← published by pm-service
-</span><span id="__span-0-51"><a id="__codelineno-0-51" name="__codelineno-0-51" href="#__codelineno-0-51"></a> system        ← published by vehicle-service (cpu:governor), bluetooth-service (mdb-version, nrf-fw-version)
-</span><span id="__span-0-52"><a id="__codelineno-0-52" name="__codelineno-0-52" href="#__codelineno-0-52"></a> ota           ← published by update-service
-</span><span id="__span-0-53"><a id="__codelineno-0-53" name="__codelineno-0-53" href="#__codelineno-0-53"></a> internet      ← published by modem-service, radio-gaga, uplink-service (legacy unu-cloud)
-</span><span id="__span-0-54"><a id="__codelineno-0-54" name="__codelineno-0-54" href="#__codelineno-0-54"></a> remote-access ← published by radio-gaga and uplink-service (payload = provider or status)
-</span><span id="__span-0-55"><a id="__codelineno-0-55" name="__codelineno-0-55" href="#__codelineno-0-55"></a> modem         ← published by modem-service
-</span><span id="__span-0-56"><a id="__codelineno-0-56" name="__codelineno-0-56" href="#__codelineno-0-56"></a> gps           ← published by modem-service
-</span><span id="__span-0-57"><a id="__codelineno-0-57" name="__codelineno-0-57" href="#__codelineno-0-57"></a> alarm         ← published by alarm-service
-</span><span id="__span-0-58"><a id="__codelineno-0-58" name="__codelineno-0-58" href="#__codelineno-0-58"></a> ble           ← published by bluetooth-service
-</span><span id="__span-0-59"><a id="__codelineno-0-59" name="__codelineno-0-59" href="#__codelineno-0-59"></a> usb           ← published by ums-service
-</span><span id="__span-0-60"><a id="__codelineno-0-60" name="__codelineno-0-60" href="#__codelineno-0-60"></a> settings      ← published externally (scootui, UMS updates); NOT by settings-service on load
-</span><span id="__span-0-61"><a id="__codelineno-0-61" name="__codelineno-0-61" href="#__codelineno-0-61"></a> motion:sensors    ← published by motion-service (10 Hz IMU stream)
-</span><span id="__span-0-62"><a id="__codelineno-0-62" name="__codelineno-0-62" href="#__codelineno-0-62"></a> motion:heading    ← published by motion-service (5 Hz tilt-compensated mag heading)
-</span><span id="__span-0-63"><a id="__codelineno-0-63" name="__codelineno-0-63" href="#__codelineno-0-63"></a> motion:interrupt  ← published by motion-service (motion-engine edges + wake-hibernation)
-</span><span id="__span-0-64"><a id="__codelineno-0-64" name="__codelineno-0-64" href="#__codelineno-0-64"></a> motion:ready      ← published by motion-service on startup
-</span><span id="__span-0-65"><a id="__codelineno-0-65" name="__codelineno-0-65" href="#__codelineno-0-65"></a> motion:rpc        ← request channel for motion-service RPC (alarm-service Calls prepare-hibernation)
-</span><span id="__span-0-66"><a id="__codelineno-0-66" name="__codelineno-0-66" href="#__codelineno-0-66"></a> buttons           ← published by vehicle-service (physical button events)
-</span><span id="__span-0-67"><a id="__codelineno-0-67" name="__codelineno-0-67" href="#__codelineno-0-67"></a>
-</span><span id="__span-0-68"><a id="__codelineno-0-68" name="__codelineno-0-68" href="#__codelineno-0-68"></a>                    Normalised events (JSON payload, not field notification)
-</span><span id="__span-0-69"><a id="__codelineno-0-69" name="__codelineno-0-69" href="#__codelineno-0-69"></a>                    ─────────────────────────────────────────────────────────
-</span><span id="__span-0-70"><a id="__codelineno-0-70" name="__codelineno-0-70" href="#__codelineno-0-70"></a> watched hashes + input-events + motion:interrupt + sms:received
-</span><span id="__span-0-71"><a id="__codelineno-0-71" name="__codelineno-0-71" href="#__codelineno-0-71"></a>     ── event-service adapter ──&gt; events stream + ev:&lt;topic&gt; channels
-</span><span id="__span-0-72"><a id="__codelineno-0-72" name="__codelineno-0-72" href="#__codelineno-0-72"></a> ev:&lt;topic&gt; ── configured rules only ──&gt; LPUSH to configured command lists / exec / CAN send
-</span><span id="__span-0-73"><a id="__codelineno-0-73" name="__codelineno-0-73" href="#__codelineno-0-73"></a>
-</span><span id="__span-0-74"><a id="__codelineno-0-74" name="__codelineno-0-74" href="#__codelineno-0-74"></a>                    Sets (fault tracking)
-</span><span id="__span-0-75"><a id="__codelineno-0-75" name="__codelineno-0-75" href="#__codelineno-0-75"></a>                    ─────────────────────
-</span><span id="__span-0-76"><a id="__codelineno-0-76" name="__codelineno-0-76" href="#__codelineno-0-76"></a> vehicle:fault  ── written by vehicle-service
-</span><span id="__span-0-77"><a id="__codelineno-0-77" name="__codelineno-0-77" href="#__codelineno-0-77"></a> battery:0:fault── written by battery-service
-</span><span id="__span-0-78"><a id="__codelineno-0-78" name="__codelineno-0-78" href="#__codelineno-0-78"></a> battery:1:fault── written by battery-service
-</span><span id="__span-0-79"><a id="__codelineno-0-79" name="__codelineno-0-79" href="#__codelineno-0-79"></a> internet:fault ── written by modem-service
-</span><span id="__span-0-80"><a id="__codelineno-0-80" name="__codelineno-0-80" href="#__codelineno-0-80"></a> ble:fault      ── written by bluetooth-service
-</span><span id="__span-0-81"><a id="__codelineno-0-81" name="__codelineno-0-81" href="#__codelineno-0-81"></a>
-</span><span id="__span-0-82"><a id="__codelineno-0-82" name="__codelineno-0-82" href="#__codelineno-0-82"></a>                    Streams (event log)
-</span><span id="__span-0-83"><a id="__codelineno-0-83" name="__codelineno-0-83" href="#__codelineno-0-83"></a>                    ───────────────────
-</span><span id="__span-0-84"><a id="__codelineno-0-84" name="__codelineno-0-84" href="#__codelineno-0-84"></a> events:faults  ── written by vehicle-service, ecu-service, battery-service, modem-service, bluetooth-service; read by uplink-service (stream consumer)
+</span><span id="__span-0-19"><a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a> trip-service ─────writes──&gt; trip, trip:counter, trip:expunge; leases trip:ready
+</span><span id="__span-0-20"><a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a> update-service ──writes──&gt; ota  (status:*, update-version:*, download-progress:*, etc.)
+</span><span id="__span-0-21"><a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a> ums-service ────writes──&gt; usb
+</span><span id="__span-0-22"><a id="__codelineno-0-22" name="__codelineno-0-22" href="#__codelineno-0-22"></a> scootui ────────writes──&gt; dashboard (ready, serial-number)
+</span><span id="__span-0-23"><a id="__codelineno-0-23" name="__codelineno-0-23" href="#__codelineno-0-23"></a>
+</span><span id="__span-0-24"><a id="__codelineno-0-24" name="__codelineno-0-24" href="#__codelineno-0-24"></a>                    Lists (command queues, LPUSH/BRPOP)
+</span><span id="__span-0-25"><a id="__codelineno-0-25" name="__codelineno-0-25" href="#__codelineno-0-25"></a>                    ────────────────────────────────────
+</span><span id="__span-0-26"><a id="__codelineno-0-26" name="__codelineno-0-26" href="#__codelineno-0-26"></a> scooter:state   ── vehicle-service reads ── lsc, scootui, uplink-service, alarm-service write
+</span><span id="__span-0-27"><a id="__codelineno-0-27" name="__codelineno-0-27" href="#__codelineno-0-27"></a> scooter:seatbox ── vehicle-service reads ── lsc, scootui, uplink-service write
+</span><span id="__span-0-28"><a id="__codelineno-0-28" name="__codelineno-0-28" href="#__codelineno-0-28"></a> scooter:horn    ── vehicle-service reads ── lsc, scootui, uplink-service, alarm-service write
+</span><span id="__span-0-29"><a id="__codelineno-0-29" name="__codelineno-0-29" href="#__codelineno-0-29"></a> scooter:blinker ── vehicle-service reads ── lsc, scootui, uplink-service, alarm-service write
+</span><span id="__span-0-30"><a id="__codelineno-0-30" name="__codelineno-0-30" href="#__codelineno-0-30"></a> scooter:led:cue ── vehicle-service reads ── lsc writes
+</span><span id="__span-0-31"><a id="__codelineno-0-31" name="__codelineno-0-31" href="#__codelineno-0-31"></a> scooter:led:fade── vehicle-service reads ── lsc writes
+</span><span id="__span-0-32"><a id="__codelineno-0-32" name="__codelineno-0-32" href="#__codelineno-0-32"></a> scooter:update  ── vehicle-service reads ── update-service writes (start-dbc, complete-dbc)
+</span><span id="__span-0-33"><a id="__codelineno-0-33" name="__codelineno-0-33" href="#__codelineno-0-33"></a> scooter:hardware── vehicle-service reads ── lsc, scootui, uplink-service write
+</span><span id="__span-0-34"><a id="__codelineno-0-34" name="__codelineno-0-34" href="#__codelineno-0-34"></a> scooter:power   ── pm-service reads      ── lsc, update-service, uplink-service write
+</span><span id="__span-0-35"><a id="__codelineno-0-35" name="__codelineno-0-35" href="#__codelineno-0-35"></a> scooter:governor── pm-service reads      ── vehicle-service writes
+</span><span id="__span-0-36"><a id="__codelineno-0-36" name="__codelineno-0-36" href="#__codelineno-0-36"></a> scooter:modem   ── modem-service reads   ── pm-service writes ("disable")
+</span><span id="__span-0-37"><a id="__codelineno-0-37" name="__codelineno-0-37" href="#__codelineno-0-37"></a> scooter:bluetooth─ bluetooth-service reads─ (firmware-update and BLE commands)
+</span><span id="__span-0-38"><a id="__codelineno-0-38" name="__codelineno-0-38" href="#__codelineno-0-38"></a> scooter:trip    ── trip-service reads ── bluetooth-service and local clients write JSON counter resets
+</span><span id="__span-0-39"><a id="__codelineno-0-39" name="__codelineno-0-39" href="#__codelineno-0-39"></a> scooter:alarm   ── alarm-service reads   ── lsc writes
+</span><span id="__span-0-40"><a id="__codelineno-0-40" name="__codelineno-0-40" href="#__codelineno-0-40"></a> settings:overlay── settings-service reads ── lsc writes (apply:service, clear:service)
+</span><span id="__span-0-41"><a id="__codelineno-0-41" name="__codelineno-0-41" href="#__codelineno-0-41"></a> scooter:update:&lt;component&gt; ── update-service reads ── update-service writes (check-now)
+</span><span id="__span-0-42"><a id="__codelineno-0-42" name="__codelineno-0-42" href="#__codelineno-0-42"></a> power:inhibits  ── pm-service inhibitor redis listener reads ── (external inhibitors write)
+</span><span id="__span-0-43"><a id="__codelineno-0-43" name="__codelineno-0-43" href="#__codelineno-0-43"></a>
+</span><span id="__span-0-44"><a id="__codelineno-0-44" name="__codelineno-0-44" href="#__codelineno-0-44"></a>                    Pub/Sub channels (notifications only; consumers HGET after receiving)
+</span><span id="__span-0-45"><a id="__codelineno-0-45" name="__codelineno-0-45" href="#__codelineno-0-45"></a>                    ──────────────────────────────────────────────────────────────────────
+</span><span id="__span-0-46"><a id="__codelineno-0-46" name="__codelineno-0-46" href="#__codelineno-0-46"></a> vehicle       ← published by vehicle-service (payload = field name changed)
+</span><span id="__span-0-47"><a id="__codelineno-0-47" name="__codelineno-0-47" href="#__codelineno-0-47"></a> battery:0     ← published by battery-service (payload = field name or "fault")
+</span><span id="__span-0-48"><a id="__codelineno-0-48" name="__codelineno-0-48" href="#__codelineno-0-48"></a> battery:1     ← published by battery-service
+</span><span id="__span-0-49"><a id="__codelineno-0-49" name="__codelineno-0-49" href="#__codelineno-0-49"></a> engine-ecu    ← published by bluetooth-service (odometer), NOT by ecu-service (see gaps)
+</span><span id="__span-0-50"><a id="__codelineno-0-50" name="__codelineno-0-50" href="#__codelineno-0-50"></a> keycard       ← published by keycard-service
+</span><span id="__span-0-51"><a id="__codelineno-0-51" name="__codelineno-0-51" href="#__codelineno-0-51"></a> dashboard     ← published by scootui (ready, serial-number, backlight-enabled), dbc-backlight
+</span><span id="__span-0-52"><a id="__codelineno-0-52" name="__codelineno-0-52" href="#__codelineno-0-52"></a> power-manager ← published by pm-service
+</span><span id="__span-0-53"><a id="__codelineno-0-53" name="__codelineno-0-53" href="#__codelineno-0-53"></a> system        ← published by vehicle-service (cpu:governor), bluetooth-service (mdb-version, nrf-fw-version)
+</span><span id="__span-0-54"><a id="__codelineno-0-54" name="__codelineno-0-54" href="#__codelineno-0-54"></a> ota           ← published by update-service
+</span><span id="__span-0-55"><a id="__codelineno-0-55" name="__codelineno-0-55" href="#__codelineno-0-55"></a> internet      ← published by modem-service, radio-gaga, uplink-service (legacy unu-cloud)
+</span><span id="__span-0-56"><a id="__codelineno-0-56" name="__codelineno-0-56" href="#__codelineno-0-56"></a> remote-access ← published by radio-gaga and uplink-service (payload = provider or status)
+</span><span id="__span-0-57"><a id="__codelineno-0-57" name="__codelineno-0-57" href="#__codelineno-0-57"></a> modem         ← published by modem-service
+</span><span id="__span-0-58"><a id="__codelineno-0-58" name="__codelineno-0-58" href="#__codelineno-0-58"></a> gps           ← published by modem-service
+</span><span id="__span-0-59"><a id="__codelineno-0-59" name="__codelineno-0-59" href="#__codelineno-0-59"></a> alarm         ← published by alarm-service
+</span><span id="__span-0-60"><a id="__codelineno-0-60" name="__codelineno-0-60" href="#__codelineno-0-60"></a> ble           ← published by bluetooth-service
+</span><span id="__span-0-61"><a id="__codelineno-0-61" name="__codelineno-0-61" href="#__codelineno-0-61"></a> trip          ← published by trip-service (current-trip hash updates)
+</span><span id="__span-0-62"><a id="__codelineno-0-62" name="__codelineno-0-62" href="#__codelineno-0-62"></a> trip:counter  ← published by trip-service (counter snapshot updates)
+</span><span id="__span-0-63"><a id="__codelineno-0-63" name="__codelineno-0-63" href="#__codelineno-0-63"></a> trip:expunge  ← published by trip-service (retention status updates)
+</span><span id="__span-0-64"><a id="__codelineno-0-64" name="__codelineno-0-64" href="#__codelineno-0-64"></a> trip:completed ← published by trip-service (completed trip notification)
+</span><span id="__span-0-65"><a id="__codelineno-0-65" name="__codelineno-0-65" href="#__codelineno-0-65"></a> trip:command-result ← published by trip-service (correlated counter-reset JSON result)
+</span><span id="__span-0-66"><a id="__codelineno-0-66" name="__codelineno-0-66" href="#__codelineno-0-66"></a> usb           ← published by ums-service
+</span><span id="__span-0-67"><a id="__codelineno-0-67" name="__codelineno-0-67" href="#__codelineno-0-67"></a> settings      ← published externally (scootui, UMS updates); NOT by settings-service on load
+</span><span id="__span-0-68"><a id="__codelineno-0-68" name="__codelineno-0-68" href="#__codelineno-0-68"></a> motion:sensors    ← published by motion-service (10 Hz IMU stream)
+</span><span id="__span-0-69"><a id="__codelineno-0-69" name="__codelineno-0-69" href="#__codelineno-0-69"></a> motion:heading    ← published by motion-service (5 Hz tilt-compensated mag heading)
+</span><span id="__span-0-70"><a id="__codelineno-0-70" name="__codelineno-0-70" href="#__codelineno-0-70"></a> motion:interrupt  ← published by motion-service (motion-engine edges + wake-hibernation)
+</span><span id="__span-0-71"><a id="__codelineno-0-71" name="__codelineno-0-71" href="#__codelineno-0-71"></a> motion:ready      ← published by motion-service on startup
+</span><span id="__span-0-72"><a id="__codelineno-0-72" name="__codelineno-0-72" href="#__codelineno-0-72"></a> motion:rpc        ← request channel for motion-service RPC (alarm-service Calls prepare-hibernation)
+</span><span id="__span-0-73"><a id="__codelineno-0-73" name="__codelineno-0-73" href="#__codelineno-0-73"></a> buttons           ← published by vehicle-service (physical button events)
+</span><span id="__span-0-74"><a id="__codelineno-0-74" name="__codelineno-0-74" href="#__codelineno-0-74"></a>
+</span><span id="__span-0-75"><a id="__codelineno-0-75" name="__codelineno-0-75" href="#__codelineno-0-75"></a>                    Normalised events (JSON payload, not field notification)
+</span><span id="__span-0-76"><a id="__codelineno-0-76" name="__codelineno-0-76" href="#__codelineno-0-76"></a>                    ─────────────────────────────────────────────────────────
+</span><span id="__span-0-77"><a id="__codelineno-0-77" name="__codelineno-0-77" href="#__codelineno-0-77"></a> watched hashes + input-events + motion:interrupt + sms:received
+</span><span id="__span-0-78"><a id="__codelineno-0-78" name="__codelineno-0-78" href="#__codelineno-0-78"></a>     ── event-service adapter ──&gt; events stream + ev:&lt;topic&gt; channels
+</span><span id="__span-0-79"><a id="__codelineno-0-79" name="__codelineno-0-79" href="#__codelineno-0-79"></a> ev:&lt;topic&gt; ── configured rules only ──&gt; LPUSH to configured command lists / exec / CAN send
+</span><span id="__span-0-80"><a id="__codelineno-0-80" name="__codelineno-0-80" href="#__codelineno-0-80"></a>
+</span><span id="__span-0-81"><a id="__codelineno-0-81" name="__codelineno-0-81" href="#__codelineno-0-81"></a>                    Sets (fault tracking)
+</span><span id="__span-0-82"><a id="__codelineno-0-82" name="__codelineno-0-82" href="#__codelineno-0-82"></a>                    ─────────────────────
+</span><span id="__span-0-83"><a id="__codelineno-0-83" name="__codelineno-0-83" href="#__codelineno-0-83"></a> vehicle:fault  ── written by vehicle-service
+</span><span id="__span-0-84"><a id="__codelineno-0-84" name="__codelineno-0-84" href="#__codelineno-0-84"></a> battery:0:fault── written by battery-service
+</span><span id="__span-0-85"><a id="__codelineno-0-85" name="__codelineno-0-85" href="#__codelineno-0-85"></a> battery:1:fault── written by battery-service
+</span><span id="__span-0-86"><a id="__codelineno-0-86" name="__codelineno-0-86" href="#__codelineno-0-86"></a> internet:fault ── written by modem-service
+</span><span id="__span-0-87"><a id="__codelineno-0-87" name="__codelineno-0-87" href="#__codelineno-0-87"></a> ble:fault      ── written by bluetooth-service
+</span><span id="__span-0-88"><a id="__codelineno-0-88" name="__codelineno-0-88" href="#__codelineno-0-88"></a>
+</span><span id="__span-0-89"><a id="__codelineno-0-89" name="__codelineno-0-89" href="#__codelineno-0-89"></a>                    Streams (event log)
+</span><span id="__span-0-90"><a id="__codelineno-0-90" name="__codelineno-0-90" href="#__codelineno-0-90"></a>                    ───────────────────
+</span><span id="__span-0-91"><a id="__codelineno-0-91" name="__codelineno-0-91" href="#__codelineno-0-91"></a> events:faults  ── written by vehicle-service, ecu-service, battery-service, modem-service, bluetooth-service; read by uplink-service (stream consumer)
 </span></code></pre></div>
 <h2 id="per-service-detail">Per-Service Detail<a class="headerlink" href="#per-service-detail" title="Permanent link">&para;</a></h2>
 <h3 id="event-service">event-service<a class="headerlink" href="#event-service" title="Permanent link">&para;</a></h3>
@@ -2659,6 +2719,50 @@ the rail.</p>
 </ul>
 <p><strong>Hardware access:</strong> UART via usock to nRF52 at <code>/var/run/bluetooth-service.sock</code> or similar</p>
 <hr />
+<h3 id="trip-service">trip-service<a class="headerlink" href="#trip-service" title="Permanent link">&para;</a></h3>
+<p><strong>Writes (hash → pub/sub channel):</strong></p>
+<table>
+<thead>
+<tr>
+<th>Hash</th>
+<th>Fields</th>
+<th>Channel</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>trip</code></td>
+<td>current recorder status, ID, profile ID, distance and duration</td>
+<td><code>trip</code></td>
+</tr>
+<tr>
+<td><code>trip:counter</code></td>
+<td>API-versioned vehicle-wide counter snapshot</td>
+<td><code>trip:counter</code></td>
+</tr>
+<tr>
+<td><code>trip:expunge</code></td>
+<td>API-versioned retention status and storage measurements</td>
+<td><code>trip:expunge</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Writes (other):</strong> <code>trip:ready</code> is a 90-second string lease refreshed every
+30 seconds. <code>trip:completed</code> publishes a completed-trip notification.
+<code>trip:command-result</code> publishes the JSON result of a <code>counter.reset</code> request,
+after a successful replacement <code>trip:counter</code> snapshot has been written.</p>
+<p><strong>Reads and watches:</strong> <code>vehicle/state</code>; <code>engine-ecu/odometer</code> and <code>speed</code>; GPS;
+<code>profile/active.id</code>; <code>battery:0</code> and <code>battery:1</code> presence and serial; and
+<code>settings/trip.counter-reset</code>, <code>settings/trip.expunge</code>, and
+<code>scooter.dual-battery</code>. It synchronizes the watched snapshots at startup.</p>
+<p><strong>Consumes queue:</strong> <code>scooter:trip</code> JSON requests with
+<code>op: "counter.reset"</code> and a required short Unix-millisecond <code>expires-at</code>
+deadline. bluetooth-service is the BLE producer; local trusted clients may also
+enqueue. trip-service rejects expired requests so queued resets cannot execute
+after a later service restart. The service persists trip history and counter state
+in its SQLite database. See <a href="../services/librescoot-trip/">trip-service</a> for
+units, retention safety, and the command contract.</p>
+<hr />
 <h3 id="pm-service">pm-service<a class="headerlink" href="#pm-service" title="Permanent link">&para;</a></h3>
 <p><strong>Writes:</strong>
 | Hash | Fields | Channel |
@@ -2755,7 +2859,7 @@ the rail.</p>
 <p><strong>Writes:</strong>
 | Hash | Fields | Channel |
 |------|--------|---------|
-| <code>settings</code> | All TOML fields: <code>scooter.*</code>, <code>cellular.*</code>, <code>updates.*</code>, <code>dashboard.*</code>, <code>alarm.*</code>; overlay-injected values (in-memory only, not persisted); <code>dashboard.service-mode-active</code> status field | NONE (critical gap — see gaps section) |</p>
+| <code>settings</code> | All TOML fields including <code>scooter.*</code>, <code>cellular.*</code>, <code>updates.*</code>, <code>dashboard.*</code>, <code>alarm.*</code>, and <code>trip.*</code>; overlay-injected values (in-memory only, not persisted); <code>dashboard.service-mode-active</code> status field | NONE (critical gap — see gaps section) |</p>
 <p><strong>Reads:</strong></p>
 <ul>
 <li><code>settings/*</code> (all fields, to save back to TOML)</li>
@@ -2837,7 +2941,7 @@ overridden off or pinned to a fixed level.</p>
 | <code>dashboard</code> | <code>ready</code> ("true"), <code>serial-number</code> | <code>dashboard</code> |</p>
 <p><strong>Reads (HGETALL / HGET):</strong></p>
 <ul>
-<li><code>vehicle</code>, <code>battery:0</code>, <code>battery:1</code>, <code>engine-ecu</code>, <code>power-manager</code>, <code>internet</code>, <code>modem</code>, <code>gps</code>, <code>keycard</code>, <code>ble</code>, <code>dashboard</code>, <code>system</code></li>
+<li><code>vehicle</code>, <code>battery:0</code>, <code>battery:1</code>, <code>engine-ecu</code>, <code>power-manager</code>, <code>internet</code>, <code>modem</code>, <code>gps</code>, <code>keycard</code>, <code>ble</code>, <code>dashboard</code>, <code>system</code>, <code>trip:counter</code>, <code>trip:expunge</code></li>
 </ul>
 <p><strong>Subscribes to (pub/sub):</strong></p>
 <ul>
@@ -2986,7 +3090,27 @@ overridden off or pinned to a fixed level.</p>
 <tr>
 <td><code>settings</code></td>
 <td>settings-service (from TOML), update-service (last-check-time)</td>
-<td>vehicle-service, battery-service, ecu-service, alarm-service, pm-service</td>
+<td>vehicle-service, battery-service, ecu-service, alarm-service, pm-service, trip-service</td>
+</tr>
+<tr>
+<td><code>trip</code></td>
+<td>trip-service</td>
+<td>scootui, monitoring</td>
+</tr>
+<tr>
+<td><code>trip:counter</code></td>
+<td>trip-service</td>
+<td>scootui, bluetooth-service, monitoring</td>
+</tr>
+<tr>
+<td><code>trip:expunge</code></td>
+<td>trip-service</td>
+<td>scootui, monitoring</td>
+</tr>
+<tr>
+<td><code>trip:ready</code></td>
+<td>trip-service (90-second lease)</td>
+<td>bluetooth-service capability discovery</td>
 </tr>
 <tr>
 <td><code>os-release</code></td>
@@ -3165,6 +3289,11 @@ alone; the destination and value are entirely rule configuration.</p>
 <td><code>scooter:bluetooth</code></td>
 <td>bluetooth-service</td>
 <td>external/lsc</td>
+</tr>
+<tr>
+<td><code>scooter:trip</code></td>
+<td>trip-service</td>
+<td>bluetooth-service, trusted local clients</td>
 </tr>
 <tr>
 <td><code>scooter:alarm</code></td>
@@ -3492,7 +3621,7 @@ on the channel constant recording the convention.</p>
       <script id="__config" type="application/json">{"annotate":null,"base":"..","features":["content.action.edit","content.code.copy","content.code.select","content.tooltips","navigation.footer","navigation.indexes","navigation.instant","navigation.instant.prefetch","navigation.path","navigation.sections","navigation.top","navigation.tracking","search.highlight","toc.follow"],"redirect":null,"search":"../assets/javascripts/workers/search.7d14d953.min.js","tags":null,"translations":{"clipboard.copied":"Copied to clipboard","clipboard.copy":"Copy to clipboard","search.result.more.one":"1 more on this page","search.result.more.other":"# more on this page","search.result.none":"No matching documents","search.result.one":"1 matching document","search.result.other":"# matching documents","search.result.placeholder":"Type to start searching","search.result.term.missing":"Missing","select.version":"Select version"},"version":{"provider":"mike"}}</script>
     
     
-      <script src="../assets/javascripts/bundle.df5d1f2b.min.js"></script>
+      <script src="../assets/javascripts/bundle.8dcc8e9c.min.js"></script>
       
     
   </body>

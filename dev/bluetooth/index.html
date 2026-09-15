@@ -23,7 +23,7 @@
       
       
       <link rel="icon" href="../assets/images/favicon.png">
-      <meta name="generator" content="zensical-0.0.61">
+      <meta name="generator" content="zensical-0.0.62">
     
     
       
@@ -762,6 +762,8 @@
       
         
       
+        
+      
     
     
     
@@ -1153,6 +1155,33 @@
     
   
   settings-service
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../services/librescoot-trip/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  trip-service
 
     
   </span>
@@ -1573,6 +1602,28 @@
     <span class="md-ellipsis">
       <span class="md-typeset">
         Extended Commands Service (9a590400)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#trip-counter-and-retention" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Trip counter and retention
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#generic-settings" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Generic settings
       </span>
     </span>
   </a>
@@ -2183,18 +2234,109 @@ for a service that failed to appear.</p>
 <td><code>ble:forget:ok</code>, or <code>ble:error:unsupported</code></td>
 </tr>
 <tr>
+<td><code>cap:ext</code></td>
+<td>One complete current high-level capability registry</td>
+<td><code>cap:ext:&lt;group&gt;[:&lt;group&gt;...]</code></td>
+</tr>
+<tr>
 <td><code>cap:list</code></td>
-<td>Enumerate supported capability categories</td>
-<td><code>cap:count:&lt;n&gt;</code> then <code>cap:&lt;name&gt;</code> per category</td>
+<td>Legacy enumerated capability categories</td>
+<td><code>cap:count:&lt;n&gt;</code> then exactly <code>&lt;n&gt;</code> <code>cap:&lt;name&gt;</code> notifications</td>
 </tr>
 <tr>
 <td><code>cap:&lt;category&gt;</code></td>
-<td>List commands for a category</td>
-<td><code>cap:&lt;category&gt;:count:&lt;n&gt;</code> then <code>cap:&lt;category&gt;:&lt;command&gt;</code> per command</td>
+<td>List commands for a legacy category</td>
+<td><code>cap:&lt;category&gt;:count:&lt;n&gt;</code> then exactly <code>&lt;n&gt;</code> <code>cap:&lt;category&gt;:&lt;command&gt;</code> notifications</td>
+</tr>
+<tr>
+<td><code>trip:get</code></td>
+<td>Read the bounded trip-counter projection (only when <code>trip</code> is in <code>cap:ext</code>)</td>
+<td><code>trip:data:...</code>, <code>trip:data:error:unavailable</code>, or <code>trip:data:error:invalid</code></td>
+</tr>
+<tr>
+<td><code>trip:reset</code></td>
+<td>Request an acknowledged manual counter reset</td>
+<td><code>trip:reset:ok</code> or <code>trip:reset:error:&lt;reason&gt;</code></td>
+</tr>
+<tr>
+<td><code>get:&lt;key&gt;</code></td>
+<td>Read a schema-declared setting</td>
+<td><code>get:&lt;key&gt;:&lt;value&gt;</code></td>
+</tr>
+<tr>
+<td><code>set:&lt;key&gt;:&lt;value&gt;</code></td>
+<td>Set a writable schema-declared setting</td>
+<td><code>set:ok:&lt;key&gt;</code> or <code>set:error:&lt;reason&gt;</code></td>
 </tr>
 </tbody>
 </table>
-<p>Error responses follow the pattern <code>&lt;prefix&gt;:error:&lt;details&gt;</code>.</p>
+<p>Error responses follow the pattern <code>&lt;prefix&gt;:error:&lt;details&gt;</code>. See
+<a href="#trip-counter-and-retention">Trip counter and retention</a> and
+<a href="#generic-settings">Generic settings</a> for the complete contracts.</p>
+<h3 id="trip-counter-and-retention">Trip counter and retention<a class="headerlink" href="#trip-counter-and-retention" title="Permanent link">&para;</a></h3>
+<p><code>cap:ext</code> is the preferred one-response discovery command. Its fixed-order
+response starts <code>cap:ext:</code> and lists the complete contract groups implemented
+at that moment:</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>cap:ext:nav:keycard:usb:time:config:status:alarm:ltc[:ble]:pm:dbc:ota:settings[:trip]
+</span></code></pre></div>
+<p><code>ble</code> appears only when the attached nRF supports bond deletion. <code>trip</code> appears
+only when <code>trip:counter[api-version]</code> is <code>1</code>, the live <code>trip:ready</code> lease is
+present, and settings-service exposes a writable four-value
+<code>trip.counter-reset</code> enum. An unsuffixed group denotes its initial contract;
+there is no redundant <code>=1</code> suffix. The response is capped at 480 bytes.</p>
+<p>Older clients can use <code>cap:list</code>. It is a multi-notification fallback: first
+collect <code>cap:count:&lt;n&gt;</code>, then exactly <code>n</code> <code>cap:&lt;name&gt;</code> notifications. Category
+order is not a contract. <code>cap:list</code> reports only the legacy categories and
+never reports <code>settings</code> or <code>trip</code>; there is no <code>cap:trip</code> or <code>cap:all</code> query.
+For a listed category, <code>cap:&lt;category&gt;</code> is likewise counted and may be needed
+to discover command-level variation (notably <code>cap:ble</code>).</p>
+<p>When the <code>trip</code> group is present, <code>trip:get</code> returns one colon-delimited,
+bounded response, not JSON:</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>trip:data:distance-m:&lt;m&gt;:duration-s:&lt;s&gt;:average-speed-kmh:&lt;kmh&gt;:reset-policy:&lt;policy&gt;:reset-at:&lt;unix&gt;:reset-reason:&lt;reason&gt;:generation:&lt;n&gt;:status:&lt;status&gt;
+</span></code></pre></div>
+<p>All numeric values are unsigned decimal integers. <code>policy</code> is <code>ride</code>, <code>day</code>,
+<code>battery</code>, or <code>manual</code>; <code>reason</code> is <code>initial</code>, <code>ride</code>, <code>day</code>, <code>battery</code>, or
+<code>manual</code>; <code>status</code> is <code>idle</code> or <code>recording</code>. Missing/unsupported API version or an absent live <code>trip:ready</code> lease returns
+<code>trip:data:error:unavailable</code>; malformed counter data returns
+<code>trip:data:error:invalid</code>. The lease is checked for every read, not only during
+capability discovery, so an old retained hash is never presented after
+trip-service stops. The complete response is at most 480 bytes.</p>
+<p><code>trip:reset</code> checks the live <code>trip:ready</code> lease, then subscribes to the
+correlated result before it queues the reset. bluetooth-service permits one
+reset in flight, generates an opaque request ID, attaches a 15-second
+Unix-millisecond command deadline, and waits up to 15 seconds. It answers <code>trip:reset:ok</code> only after trip-service
+has committed the reset and published the correlated result. The other results
+are <code>trip:reset:error:busy</code>, <code>trip:reset:error:invalid</code>,
+<code>trip:reset:error:unavailable</code>, <code>trip:reset:error:internal</code>, or
+<code>trip:reset:error:timeout</code>. After a timeout, a retry on the same BLE connection
+reuses the ID for up to 30 days but attaches a fresh short deadline;
+disconnecting clears that retry identity. Trip-service discards expired queued
+attempts without a stale correlated result, so a reset cannot execute merely
+because the service later restarts or race a fresh retry response.</p>
+<p>This BLE interface deliberately has no trip-history, GPS-trace, or profile-ID
+query. For counter units, reset semantics, retention, and the Redis command
+ordering, see <a href="../services/librescoot-trip/">trip-service</a>.</p>
+<h3 id="generic-settings">Generic settings<a class="headerlink" href="#generic-settings" title="Permanent link">&para;</a></h3>
+<p><code>get:&lt;key&gt;</code> and <code>set:&lt;key&gt;:&lt;value&gt;</code> use the schema published by settings-service
+in <code>settings:schema</code>. Reads and writes reject unknown keys; writes also reject
+read-only keys and schema-invalid values. A value begins after the first colon,
+so a value may itself contain colons. <code>get:list</code> and <code>get:list:&lt;prefix&gt;</code> return
+<code>get:count:&lt;n&gt;</code> followed by exactly <code>n</code> <code>get:&lt;key&gt;</code> notifications.</p>
+<p>The trip settings use these generic commands, not <code>trip:</code> commands:</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>get:trip.counter-reset
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>set:trip.counter-reset:manual
+</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>get:trip.expunge
+</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>set:trip.expunge:age:365d
+</span></code></pre></div>
+<p><code>trip.expunge</code> accepts <code>never</code>, a positive <code>age:&lt;duration&gt;</code> (including whole
+<code>Nd</code> days), or canonical nonnegative <code>count:&lt;trips&gt;</code> and <code>size:&lt;bytes&gt;</code> values.
+The write updates Redis and publishes the settings field for settings-service
+and consumers.</p>
+<p>All extended commands, including generic settings and trip reset, require the
+encrypted MITM-protected bonded connection described above. The protocol has no
+per-phone authorization: any bonded phone with extended-command access can
+read schema-declared setting values and change any writable schema setting.
+Treat bonding as the authorization boundary.</p>
 <h3 id="ota-transfer-service-9a590500">OTA Transfer Service (9a590500)<a class="headerlink" href="#ota-transfer-service-9a590500" title="Permanent link">&para;</a></h3>
 <p>Firmware bundle transfer from the phone to the scooter (MDB and DBC updates over BLE). Windowed, resumable, integrity-checked; the nRF forwards these characteristics verbatim to bluetooth-service. See <a href="ota-transfer/">BLE OTA Firmware Transfer</a> for the full protocol.</p>
 <table>
@@ -2516,7 +2658,7 @@ for a service that failed to appear.</p>
       <script id="__config" type="application/json">{"annotate":null,"base":"..","features":["content.action.edit","content.code.copy","content.code.select","content.tooltips","navigation.footer","navigation.indexes","navigation.instant","navigation.instant.prefetch","navigation.path","navigation.sections","navigation.top","navigation.tracking","search.highlight","toc.follow"],"redirect":null,"search":"../assets/javascripts/workers/search.7d14d953.min.js","tags":null,"translations":{"clipboard.copied":"Copied to clipboard","clipboard.copy":"Copy to clipboard","search.result.more.one":"1 more on this page","search.result.more.other":"# more on this page","search.result.none":"No matching documents","search.result.one":"1 matching document","search.result.other":"# matching documents","search.result.placeholder":"Type to start searching","search.result.term.missing":"Missing","select.version":"Select version"},"version":{"provider":"mike"}}</script>
     
     
-      <script src="../assets/javascripts/bundle.df5d1f2b.min.js"></script>
+      <script src="../assets/javascripts/bundle.8dcc8e9c.min.js"></script>
       
     
   </body>
