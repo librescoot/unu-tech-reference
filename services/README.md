@@ -20,6 +20,7 @@ Librescoot provides the open-source services that run on the scooter. All servic
 | [librescoot-motion](librescoot-motion.md) | BMX055 IMU owner — sensor telemetry, magnetic heading, motion-engine events; reactively re-derives chip profile from `alarm` + `power-manager` state; hosts `motion:rpc` for synchronous handshakes | `motion` | BMX055 (I2C), Redis |
 | [librescoot-alarm](librescoot-alarm.md) | Motion-based alarm FSM (consumer of motion-service) | `alarm` | motion-service, Redis |
 | [librescoot-settings](librescoot-settings.md) | Persistent settings sync | `settings` | NetworkManager, Redis |
+| [librescoot-trip](librescoot-trip.md) | Durable trip history, trip counter, and retention | `trip`, `trip:counter`, `trip:expunge` | SQLite, Redis |
 | [librescoot-ums](librescoot-ums.md) | USB Mass Storage / file transfer | `usb` | USB gadget (g_ether/g_mass_storage), Redis |
 | [librescoot-update](librescoot-update.md) | OTA update management (MDB + DBC) | `ota` | Mender, Redis, release index |
 | [librescoot-lsd](librescoot-lsd.md) | Web management interface on the usb0 network (MDB only) | `settings`, `navigation` | Redis, systemd, lsc |
@@ -41,6 +42,7 @@ graph TB
     MOT["motion-service<br/>BMX055 IMU + Heading"]
     ALM["alarm-service<br/>Motion Alarm FSM"]
     SET["settings-service<br/>Config Sync"]
+    TRIP["trip-service<br/>Trip history, counter and retention"]
     UMS["ums-service<br/>USB Mass Storage"]
     UPD["update-service<br/>OTA Updates"]
     EVT["event-service<br/>State adapter + optional rules"]
@@ -70,6 +72,7 @@ graph TB
     MOT <--> Redis
     ALM <--> Redis
     SET <--> Redis
+    TRIP <--> Redis
     UMS <--> Redis
     UPD <--> Redis
     Redis -->|Watched state and input channels| EVT

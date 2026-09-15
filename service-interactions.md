@@ -23,6 +23,7 @@ Generated from source analysis of all service repositories.
  event-service ──writes──> extensions, extensions:pending (MDB nightly packaging; not 1.3.1 stable)
  version-service  writes──> version:mdb (MDB), version:dbc (DBC)  (one-shot at boot, no pub/sub notification)
  settings-service writes──> settings  (WARNING: no PUBLISH on initial load, see gaps)
+ trip-service ─────writes──> trip, trip:counter, trip:expunge; leases trip:ready
  update-service ──writes──> ota  (status:*, update-version:*, download-progress:*, etc.)
  ums-service ────writes──> usb
  scootui ────────writes──> dashboard (ready, serial-number)
@@ -41,6 +42,7 @@ Generated from source analysis of all service repositories.
  scooter:governor── pm-service reads      ── vehicle-service writes
  scooter:modem   ── modem-service reads   ── pm-service writes ("disable")
  scooter:bluetooth─ bluetooth-service reads─ (firmware-update and BLE commands)
+ scooter:trip    ── trip-service reads ── bluetooth-service and local clients write JSON counter resets
  scooter:alarm   ── alarm-service reads   ── lsc writes
  settings:overlay── settings-service reads ── lsc writes (apply:service, clear:service)
  scooter:update:<component> ── update-service reads ── update-service writes (check-now)
@@ -63,6 +65,11 @@ Generated from source analysis of all service repositories.
  gps           ← published by modem-service
  alarm         ← published by alarm-service
  ble           ← published by bluetooth-service
+ trip          ← published by trip-service (current-trip hash updates)
+ trip:counter  ← published by trip-service (counter snapshot updates)
+ trip:expunge  ← published by trip-service (retention status updates)
+ trip:completed ← published by trip-service (completed trip notification)
+ trip:command-result ← published by trip-service (correlated counter-reset JSON result)
  usb           ← published by ums-service
  settings      ← published externally (scootui, UMS updates); NOT by settings-service on load
  motion:sensors    ← published by motion-service (10 Hz IMU stream)
@@ -300,6 +307,36 @@ Note: Sets 10-second TTL on `keycard` hash after publish.
 
 ---
 
+### trip-service
+
+**Writes (hash → pub/sub channel):**
+
+| Hash | Fields | Channel |
+|------|--------|---------|
+| `trip` | current recorder status, ID, profile ID, distance and duration | `trip` |
+| `trip:counter` | API-versioned vehicle-wide counter snapshot | `trip:counter` |
+| `trip:expunge` | API-versioned retention status and storage measurements | `trip:expunge` |
+
+**Writes (other):** `trip:ready` is a 90-second string lease refreshed every
+30 seconds. `trip:completed` publishes a completed-trip notification.
+`trip:command-result` publishes the JSON result of a `counter.reset` request,
+after a successful replacement `trip:counter` snapshot has been written.
+
+**Reads and watches:** `vehicle/state`; `engine-ecu/odometer` and `speed`; GPS;
+`profile/active.id`; `battery:0` and `battery:1` presence and serial; and
+`settings/trip.counter-reset`, `settings/trip.expunge`, and
+`scooter.dual-battery`. It synchronizes the watched snapshots at startup.
+
+**Consumes queue:** `scooter:trip` JSON requests with
+`op: "counter.reset"` and a required short Unix-millisecond `expires-at`
+deadline. bluetooth-service is the BLE producer; local trusted clients may also
+enqueue. trip-service rejects expired requests so queued resets cannot execute
+after a later service restart. The service persists trip history and counter state
+in its SQLite database. See [trip-service](services/librescoot-trip.md) for
+units, retention safety, and the command contract.
+
+---
+
 ### pm-service
 
 **Writes:**
@@ -414,7 +451,7 @@ Note: version-service does not publish on any channel. It runs once at boot via 
 **Writes:**
 | Hash | Fields | Channel |
 |------|--------|---------|
-| `settings` | All TOML fields: `scooter.*`, `cellular.*`, `updates.*`, `dashboard.*`, `alarm.*`; overlay-injected values (in-memory only, not persisted); `dashboard.service-mode-active` status field | NONE (critical gap — see gaps section) |
+| `settings` | All TOML fields including `scooter.*`, `cellular.*`, `updates.*`, `dashboard.*`, `alarm.*`, and `trip.*`; overlay-injected values (in-memory only, not persisted); `dashboard.service-mode-active` status field | NONE (critical gap — see gaps section) |
 
 **Reads:**
 
@@ -511,7 +548,7 @@ overridden off or pinned to a fixed level.
 
 **Reads (HGETALL / HGET):**
 
-- `vehicle`, `battery:0`, `battery:1`, `engine-ecu`, `power-manager`, `internet`, `modem`, `gps`, `keycard`, `ble`, `dashboard`, `system`
+- `vehicle`, `battery:0`, `battery:1`, `engine-ecu`, `power-manager`, `internet`, `modem`, `gps`, `keycard`, `ble`, `dashboard`, `system`, `trip:counter`, `trip:expunge`
 
 **Subscribes to (pub/sub):**
 
@@ -599,7 +636,11 @@ overridden off or pinned to a fixed level.
 | `modem` | modem-service | scootui, uplink-service |
 | `gps` | modem-service | scootui, uplink-service |
 | `alarm` | alarm-service | lsc, monitoring |
-| `settings` | settings-service (from TOML), update-service (last-check-time) | vehicle-service, battery-service, ecu-service, alarm-service, pm-service |
+| `settings` | settings-service (from TOML), update-service (last-check-time) | vehicle-service, battery-service, ecu-service, alarm-service, pm-service, trip-service |
+| `trip` | trip-service | scootui, monitoring |
+| `trip:counter` | trip-service | scootui, bluetooth-service, monitoring |
+| `trip:expunge` | trip-service | scootui, monitoring |
+| `trip:ready` | trip-service (90-second lease) | bluetooth-service capability discovery |
 | `os-release` | version-service (one-shot) | Nothing (dead key — see gaps) |
 | `usb` | ums-service | ums-service (self), scootui, alarm-service |
 | `motion` | motion-service | alarm-service (wake-cause), scootui (heading), monitoring |
@@ -651,6 +692,7 @@ alone; the destination and value are entirely rule configuration.
 | `scooter:governor` | pm-service | vehicle-service (sends cpu governor changes) |
 | `scooter:modem` | modem-service | pm-service |
 | `scooter:bluetooth` | bluetooth-service | external/lsc |
+| `scooter:trip` | trip-service | bluetooth-service, trusted local clients |
 | `scooter:alarm` | alarm-service | lsc |
 | `settings:overlay` | settings-service | lsc |
 | `power:inhibits` | pm-service inhibitor manager | update-service, vehicle-service, modem-service (hold pm inhibitors) |

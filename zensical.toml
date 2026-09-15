@@ -42,6 +42,7 @@ nav = [
         { "pm-service" = "services/librescoot-pm.md" },
         { "scootui-qt" = "services/librescoot-scootui.md" },
         { "settings-service" = "services/librescoot-settings.md" },
+        { "trip-service" = "services/librescoot-trip.md" },
         { "ums-service" = "services/librescoot-ums.md" },
         { "update-service" = "services/librescoot-update.md" },
         { "vehicle-service" = "services/librescoot-vehicle.md" },

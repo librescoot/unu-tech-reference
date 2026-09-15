@@ -130,6 +130,15 @@ Settings are organized by section. Examples:
 - `dashboard.maps-available` - Offline map tiles available (system-managed; default: false)
 - `dashboard.navigation-available` - Full navigation available (system-managed; default: false)
 
+**Trip settings:**
+
+- `trip.counter-reset` - Vehicle-wide display-counter reset policy: `ride`, `day`, `battery`, or `manual` (default: `ride`). TOML hydration and live Redis updates enforce this enum; invalid values are replaced by the last persisted valid value or the default.
+- `trip.expunge` - Atomic recorded-trip retention policy (default: `age:365d`): `never`, `age:<positive duration>` or positive whole days such as `365d`, `count:<canonical nonnegative trips>`, or `size:<canonical nonnegative bytes>`. Invalid forms, signs, whitespace, leading zeroes (apart from `0` for count/size), zero ages, and overflow are rejected.
+
+Trip-service consumes these fields. `trip.counter-reset` never removes recorded
+history; `trip.expunge` only selects completed/abandoned history for deletion.
+See [trip-service](librescoot-trip.md) for policy and recovery semantics.
+
 **ECU settings:**
 
 - `engine-ecu.kers` - KERS enable/disable ("enabled"/"disabled"; default: "enabled")

@@ -181,10 +181,100 @@ Unified extensible command/response channel for phone app interaction
 | `status:maps-available` | Query if offline maps are installed | `status:maps-available:true` or `false` |
 | `status:navigation-available` | Query if routing engine is available | `status:navigation-available:true` or `false` |
 | `ble:forget` | Ask the scooter to forget the phone sending the command, so an app's "forget this scooter" clears both halves of the bond. Ends the connection it arrives on. Needs nRF v2.8.0-ls or later, so probe `cap:ble` first | `ble:forget:ok`, or `ble:error:unsupported` |
-| `cap:list` | Enumerate supported capability categories | `cap:count:<n>` then `cap:<name>` per category |
-| `cap:<category>` | List commands for a category | `cap:<category>:count:<n>` then `cap:<category>:<command>` per command |
+| `cap:ext` | One complete current high-level capability registry | `cap:ext:<group>[:<group>...]` |
+| `cap:list` | Legacy enumerated capability categories | `cap:count:<n>` then exactly `<n>` `cap:<name>` notifications |
+| `cap:<category>` | List commands for a legacy category | `cap:<category>:count:<n>` then exactly `<n>` `cap:<category>:<command>` notifications |
+| `trip:get` | Read the bounded trip-counter projection (only when `trip` is in `cap:ext`) | `trip:data:...`, `trip:data:error:unavailable`, or `trip:data:error:invalid` |
+| `trip:reset` | Request an acknowledged manual counter reset | `trip:reset:ok` or `trip:reset:error:<reason>` |
+| `get:<key>` | Read a schema-declared setting | `get:<key>:<value>` |
+| `set:<key>:<value>` | Set a writable schema-declared setting | `set:ok:<key>` or `set:error:<reason>` |
 
-Error responses follow the pattern `<prefix>:error:<details>`.
+Error responses follow the pattern `<prefix>:error:<details>`. See
+[Trip counter and retention](#trip-counter-and-retention) and
+[Generic settings](#generic-settings) for the complete contracts.
+
+### Trip counter and retention
+
+`cap:ext` is the preferred one-response discovery command. Its fixed-order
+response starts `cap:ext:` and lists the complete contract groups implemented
+at that moment:
+
+```
+cap:ext:nav:keycard:usb:time:config:status:alarm:ltc[:ble]:pm:dbc:ota:settings[:trip]
+```
+
+`ble` appears only when the attached nRF supports bond deletion. `trip` appears
+only when `trip:counter[api-version]` is `1`, the live `trip:ready` lease is
+present, and settings-service exposes a writable four-value
+`trip.counter-reset` enum. An unsuffixed group denotes its initial contract;
+there is no redundant `=1` suffix. The response is capped at 480 bytes.
+
+Older clients can use `cap:list`. It is a multi-notification fallback: first
+collect `cap:count:<n>`, then exactly `n` `cap:<name>` notifications. Category
+order is not a contract. `cap:list` reports only the legacy categories and
+never reports `settings` or `trip`; there is no `cap:trip` or `cap:all` query.
+For a listed category, `cap:<category>` is likewise counted and may be needed
+to discover command-level variation (notably `cap:ble`).
+
+When the `trip` group is present, `trip:get` returns one colon-delimited,
+bounded response, not JSON:
+
+```
+trip:data:distance-m:<m>:duration-s:<s>:average-speed-kmh:<kmh>:reset-policy:<policy>:reset-at:<unix>:reset-reason:<reason>:generation:<n>:status:<status>
+```
+
+All numeric values are unsigned decimal integers. `policy` is `ride`, `day`,
+`battery`, or `manual`; `reason` is `initial`, `ride`, `day`, `battery`, or
+`manual`; `status` is `idle` or `recording`. Missing/unsupported API version or an absent live `trip:ready` lease returns
+`trip:data:error:unavailable`; malformed counter data returns
+`trip:data:error:invalid`. The lease is checked for every read, not only during
+capability discovery, so an old retained hash is never presented after
+trip-service stops. The complete response is at most 480 bytes.
+
+`trip:reset` checks the live `trip:ready` lease, then subscribes to the
+correlated result before it queues the reset. bluetooth-service permits one
+reset in flight, generates an opaque request ID, attaches a 15-second
+Unix-millisecond command deadline, and waits up to 15 seconds. It answers `trip:reset:ok` only after trip-service
+has committed the reset and published the correlated result. The other results
+are `trip:reset:error:busy`, `trip:reset:error:invalid`,
+`trip:reset:error:unavailable`, `trip:reset:error:internal`, or
+`trip:reset:error:timeout`. After a timeout, a retry on the same BLE connection
+reuses the ID for up to 30 days but attaches a fresh short deadline;
+disconnecting clears that retry identity. Trip-service discards expired queued
+attempts without a stale correlated result, so a reset cannot execute merely
+because the service later restarts or race a fresh retry response.
+
+This BLE interface deliberately has no trip-history, GPS-trace, or profile-ID
+query. For counter units, reset semantics, retention, and the Redis command
+ordering, see [trip-service](../services/librescoot-trip.md).
+
+### Generic settings
+
+`get:<key>` and `set:<key>:<value>` use the schema published by settings-service
+in `settings:schema`. Reads and writes reject unknown keys; writes also reject
+read-only keys and schema-invalid values. A value begins after the first colon,
+so a value may itself contain colons. `get:list` and `get:list:<prefix>` return
+`get:count:<n>` followed by exactly `n` `get:<key>` notifications.
+
+The trip settings use these generic commands, not `trip:` commands:
+
+```
+get:trip.counter-reset
+set:trip.counter-reset:manual
+get:trip.expunge
+set:trip.expunge:age:365d
+```
+
+`trip.expunge` accepts `never`, a positive `age:<duration>` (including whole
+`Nd` days), or canonical nonnegative `count:<trips>` and `size:<bytes>` values.
+The write updates Redis and publishes the settings field for settings-service
+and consumers.
+
+All extended commands, including generic settings and trip reset, require the
+encrypted MITM-protected bonded connection described above. The protocol has no
+per-phone authorization: any bonded phone with extended-command access can
+read schema-declared setting values and change any writable schema setting.
+Treat bonding as the authorization boundary.
 
 ### OTA Transfer Service (9a590500)
 

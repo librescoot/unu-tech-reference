@@ -487,6 +487,38 @@ Written by modem-service after it successfully sets the system clock from an aut
 
 Redis is not persistent on librescoot, so the presence of this hash always refers to the current boot.
 
+### Trip Service (`trip`, `trip:counter`, and `trip:expunge`) - Librescoot Only
+
+trip-service owns a durable vehicle-wide display counter and separate recorded
+trip history. See [trip-service](../services/librescoot-trip.md) for recovery,
+retention, and command details.
+
+`trip` remains the current trip recorder status. `trip:counter` is the complete
+counter snapshot, with `api-version` `"1"`, integer `distance-m` (m),
+`duration-s` (s), and `average-speed-kmh` (km/h); `reset-policy` (`ride`,
+`day`, `battery`, `manual`); `reset-at`, `generation`, `updated-at`; and
+`reset-reason` (`initial`, `ride`, `day`, `battery`, `manual`) plus `status`
+(`idle` or `recording`). `trip:ready` is a separate string liveness lease:
+value `"1"`, TTL 90 seconds, refreshed every 30 seconds. Do not use a stale or
+absent lease as evidence that the counter is available.
+
+`trip:expunge` reports the independent trip-history retention pass. Its
+`api-version` is `"1"`; `policy` is `never`, `age`, `count`, or `size`; and
+`value` is its operand (empty for `never`). `status` is `idle`, `running`,
+`deferred`, or `error`. `last-run` and `updated-at` are Unix seconds,
+`deleted-trips` is the latest pass count, `db-bytes` and `wal-bytes` are bytes,
+and `last-error` is a bounded diagnostic string.
+
+Counter commands use the `scooter:trip` list with JSON
+`{"id":"…","op":"counter.reset","source":"…","expires-at":<unix-ms>}`.
+The required deadline must be in the future and at most 60 seconds ahead when
+consumed, preventing queued resets from executing after a later service
+restart. Already-expired attempts are discarded without a stale result, which
+lets an ambiguous retry safely reuse its idempotency ID with a fresh deadline. The correlated `trip:command-result` channel publishes JSON with `id`,
+`op`, `status`, and `error`. A successful reset publishes its new `trip:counter` snapshot before
+its result. Resetting the counter never deletes history; expunging history
+never changes the counter.
+
 ### Over-the-Air Updates (`ota`)
 ```
 hgetall ota
@@ -529,6 +561,8 @@ Librescoot adds persistent settings managed by the settings-service:
 | alarm.hairtrigger-duration | integer (sec) | Hair trigger alarm duration in seconds | "3" |
 | alarm.l1-cooldown | integer (sec) | Level 1 cooldown duration in seconds | "15" |
 | battery.ignore-seatbox | "true"/"false" | Ignore seatbox state for battery management | "false" |
+| trip.counter-reset | enum | Vehicle-wide counter reset policy: `ride`, `day`, `battery`, or `manual` | "ride" |
+| trip.expunge | string | Atomic completed/abandoned trip-history retention policy: `never`, `age:<duration>`, `count:<trips>`, or `size:<bytes>` | "age:365d" |
 | cellular.apn | string | Cellular APN | "internet.provider.com" |
 | hibernation-timer | integer (sec) | Hibernation timeout (0=disabled) | "259200" |
 | pm.hibernation-timer | integer (sec) | New name for hibernation-timer (idle-driven auto-hibernate; 0=disabled) | "259200" |
