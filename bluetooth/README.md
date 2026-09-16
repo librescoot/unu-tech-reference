@@ -161,6 +161,8 @@ Unified extensible command/response channel for phone app interaction
 | `nav:fav:list` | List saved locations | `nav:fav:count:<n>` then `nav:fav:<id>:lat,lon,name` per entry |
 | `usb:ums` | Enter USB Mass Storage mode | `usb:ok` |
 | `usb:normal` | Exit USB Mass Storage mode | `usb:ok` |
+| `service-mode:on` | Apply the service-mode settings overlay | `service-mode:ok` |
+| `service-mode:off` | Clear the service-mode settings overlay | `service-mode:ok` |
 | `keycard:list` | List keycards | Response via keycard-service |
 | `keycard:count` | Count keycards | Response via keycard-service |
 | `keycard:add:<uid>` | Add keycard | Response via keycard-service |
