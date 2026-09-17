@@ -1593,6 +1593,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#lock-on-bluetooth-disconnect" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Lock on Bluetooth Disconnect
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#hibernation-sequence" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
@@ -2323,6 +2334,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#lock-on-bluetooth-disconnect" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Lock on Bluetooth Disconnect
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#hibernation-sequence" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
@@ -2977,6 +2999,42 @@ In <code>parked</code> state, if dashboard is not ready, pressing the seatbox bu
 <li>Immediately transitions to <code>stand-by</code> without handlebar locking</li>
 <li>Used for emergency shutdown or special cases (e.g., DBC update)</li>
 </ol>
+<h4 id="lock-on-bluetooth-disconnect">Lock on Bluetooth Disconnect<a class="headerlink" href="#lock-on-bluetooth-disconnect" title="Permanent link">&para;</a></h4>
+<p><code>scooter.lock-on-bluetooth-disconnect-seconds</code> (settings hash, integer seconds,
+default <code>0</code> = disabled) locks the scooter when the connected phone walks away.
+The value is a grace period, not a separate timeout or state: on expiry the
+existing auto-standby path runs (<code>parked</code> -&gt; <code>shutting-down</code> -&gt; <code>stand-by</code>).</p>
+<p><strong>Value handling.</strong> <code>0</code> disables the feature; any value above <code>0</code> enables it.
+Non-zero values below 5 are clamped up to 5 (<code>minLockOnDisconnectSeconds</code>), and
+negative values are treated as <code>0</code>. The same clamp applies on the startup read and
+on a <code>settings</code> update.</p>
+<p><strong>Arming.</strong> vehicle-service watches the <code>ble</code> hash <code>status</code> field. It arms a
+countdown only when all of these hold at the moment the field changes:</p>
+<ol>
+<li>the new status is <code>disconnected</code> and the previous status was <code>connected</code> (a
+   real drop edge),</li>
+<li>the FSM leaf is exactly <code>parked</code> (not <code>hop-on</code>, <code>hop-on-learning</code>, or
+   <code>ready-to-drive</code>),</li>
+<li>the setting is above <code>0</code>, and</li>
+<li>no countdown is already armed.</li>
+</ol>
+<p>Because the trigger is the edge, the phone must still be connected when the
+scooter becomes <code>parked</code>. A scooter that is already <code>parked</code> with the phone
+disconnected (for example a keycard unlock with no phone present) never arms.</p>
+<p><strong>Countdown.</strong> Arming cancels the idle auto-standby timer and starts the shared
+standby countdown for the configured grace period. This publishes the same
+<code>vehicle</code> fields (<code>auto-standby-deadline</code>, <code>auto-standby-remaining</code>) as idle
+auto-standby, so the dashboard's existing countdown overlay renders it (it shows
+only the final 60 s). Expiry fires <code>EvAutoStandbyTimeout</code>, identical to idle
+auto-standby, so the feature introduces no new state or FSM transition.</p>
+<p><strong>Cancelling.</strong> A <code>disconnected</code> -&gt; <code>connected</code> reconnect during the countdown
+cancels it. So does any rider interaction (brake, kickstand, seatbox button) via
+<code>resetAutoStandbyTimer</code>, which clears the countdown regardless of whether idle
+auto-standby is enabled. After a cancel the idle auto-standby timer is re-armed
+only when still <code>parked</code> and <code>scooter.auto-standby-seconds</code> is above <code>0</code>. Entering
+or leaving the <code>at-rest</code> family also clears an armed countdown.</p>
+<p>This is independent of <code>scooter.auto-standby-seconds</code>; either setting can be
+enabled without the other.</p>
 <h4 id="hibernation-sequence">Hibernation Sequence<a class="headerlink" href="#hibernation-sequence" title="Permanent link">&para;</a></h4>
 <p><strong>Brake-lever hibernation</strong> (can be disabled via <code>settings</code> hash <code>scooter.brake-hibernation</code> = "disabled"):</p>
 <ol>
@@ -3308,6 +3366,7 @@ Three keycard taps while holding brake lever triggers immediate transition to st
 The service responds to settings changes via PUBSUB:</p>
 <ul>
 <li><code>scooter.brake-hibernation</code>: "enabled" or "disabled"</li>
+<li><code>scooter.lock-on-bluetooth-disconnect-seconds</code>: integer seconds; <code>0</code> disables</li>
 <li>Changes take effect immediately</li>
 <li>Active hibernation sequences are cancelled when disabled</li>
 </ul>
