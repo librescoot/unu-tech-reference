@@ -2349,9 +2349,9 @@
 <p><strong>Writes (hash → pub/sub channel):</strong>
 | Hash | Fields | Channel |
 |------|--------|---------|
-| <code>vehicle</code> | <code>state</code>, <code>state:timestamp</code>, <code>blinker:switch</code>, <code>blinker:state</code>, <code>brake:left</code>, <code>brake:right</code>, <code>seatbox:lock</code>, <code>kickstand</code>, <code>handlebar:lock-sensor</code>, <code>handlebar:position</code>, <code>dashboard:power</code>, <code>dbc-updating</code>, <code>update:status</code>, <code>auto-standby-remaining</code> (deprecated), <code>auto-standby-deadline</code> | <code>vehicle</code> |
-| <code>system</code> | <code>cpu:governor</code> | <code>system</code> |
-| <code>dashboard</code> | <code>ready</code> (deletes on standby) | <code>dashboard</code> |
+| <code>vehicle</code> | <code>state</code>, <code>state:timestamp</code>, <code>blinker:switch</code>, <code>blinker:state</code>, <code>brake:left</code>, <code>brake:right</code>, <code>seatbox:lock</code>, <code>kickstand</code>, <code>handlebar:lock-sensor</code>, <code>handlebar:position</code>, <code>handlebar:lock-state</code>, <code>dashboard:power</code>, <code>main-power</code>, <code>engine-power</code>, <code>horn:button</code>, <code>seatbox:button</code>, <code>dbc-updating</code>, <code>update:status</code>, <code>auto-standby-remaining</code>, <code>auto-standby-deadline</code> | <code>vehicle</code> |
+| <code>system</code> | <code>cpu:governor</code>, <code>usb0-gate</code> | <code>system</code> |
+| <code>dashboard</code> | <code>ready</code> (deletes on standby), <code>backlight-enabled</code> | <code>dashboard</code> |
 | <code>vehicle:fault</code> | fault codes (Redis Set) | <code>vehicle</code> (payload: "fault") |
 | <code>events:faults</code> | fault events (Redis Stream) | — |</p>
 <p><strong>Publishes (channel only, no hash behind them):</strong></p>
@@ -2367,6 +2367,8 @@
 <li><code>keycard/authentication</code> (from keycard-service)</li>
 <li><code>settings/*</code> (any field, for scooter.*, alarm settings via watch)</li>
 <li><code>ota/status:mdb</code>, <code>ota/status:dbc</code> (checks OTA status on update commands)</li>
+<li><code>power-manager/state</code> (suspend/hibernate handshake)</li>
+<li><code>ble/status</code> (link state for lock-on-disconnect)</li>
 </ul>
 <p><strong>Consumes queues (BRPOP):</strong></p>
 <ul>
@@ -2378,6 +2380,8 @@
 <li><code>scooter:led:fade</code> → "channel:index" string</li>
 <li><code>scooter:update</code> → "start", "complete", "start-dbc", "complete-dbc"</li>
 <li><code>scooter:hardware</code> → "dashboard:on", "dashboard:off", "engine:on", "engine:off", "handlebar:lock", "handlebar:unlock" (and :force variants)</li>
+<li><code>scooter:hop-on</code> → "engage", "engage-learning", "release"</li>
+<li><code>scooter:dbc-hold</code> → "map-download", "release"</li>
 </ul>
 <p><strong>DBC update power hold.</strong> <code>start-dbc</code> makes vehicle-service keep dashboard power up and
 defer the power cut that entering stand-by would normally perform, until <code>complete-dbc</code>
@@ -2465,9 +2469,19 @@ the rail.</p>
 <p><strong>Writes:</strong>
 | Hash | Fields | Channel |
 |------|--------|---------|
-| <code>keycard</code> | <code>authentication</code> ("passed"), <code>type</code> ("scooter"), <code>uid</code> | <code>keycard</code> (payload: "authentication") |</p>
+| <code>keycard</code> | <code>authentication</code> ("passed"), <code>type</code> ("scooter"), <code>uid</code> | <code>keycard</code> (payload: "authentication") |
+| <code>keycard</code> | <code>command-result</code> | <code>keycard</code> |
+| <code>system</code> | <code>keycard-master-count</code>, <code>keycard-authorized-count</code> | <code>system</code> |</p>
 <p>Note: Sets 10-second TTL on <code>keycard</code> hash after publish.</p>
+<p><strong>Publishes:</strong></p>
+<ul>
+<li><code>keycard:events</code> - teach-in progress (<code>mode-entered</code>, <code>mode-exited</code>, <code>card-learned:&lt;uid&gt;</code>, <code>rejected:already-authorized:&lt;uid&gt;</code>, <code>error:save-failed:&lt;uid&gt;</code>)</li>
+</ul>
 <p><strong>Reads:</strong> None (hardware-driven)</p>
+<p><strong>Consumes queues:</strong></p>
+<ul>
+<li><code>scooter:keycard</code> → "list", "count", "add:<uid>", "remove:<uid>" (and the master commands)</li>
+</ul>
 <p><strong>Hardware access:</strong> NFC via PN7150, I2C LED controller LP5562</p>
 <hr />
 <h3 id="bluetooth-service">bluetooth-service<a class="headerlink" href="#bluetooth-service" title="Permanent link">&para;</a></h3>
@@ -2477,7 +2491,11 @@ the rail.</p>
 | <code>system</code> | <code>mdb-version</code> (from nRF), <code>nrf-fw-version</code> | <code>system</code> |
 | <code>engine-ecu</code> | <code>odometer</code> (from nRF) | <code>engine-ecu</code> |
 | <code>ble</code> | status fields, <code>pin-code</code>, <code>firmware-update-status</code> | <code>ble</code> |
-| <code>ble:fault</code> | fault codes (Redis Set) | <code>ble</code> (payload: "fault") |</p>
+| <code>ble:fault</code> | fault codes (Redis Set) | <code>ble</code> (payload: "fault") |
+| <code>cb-battery:alert</code>, <code>cb-battery:fault</code> | auxiliary-battery alerts and faults | same-named channels |
+| <code>navigation</code> | destination fields from the phone (<code>destination</code>, <code>latitude</code>, <code>longitude</code>, <code>address</code>) | <code>navigation</code> |
+| <code>scooter</code> | <code>temperature</code> (nRF die temperature, tenths of a degree) | <code>scooter</code> |
+| <code>settings</code>, <code>usb</code>, <code>power-mux</code>, <code>power:inhibits</code> | read or written in passing (settings values, UMS mode, mux input, the DFU inhibitor) | respective channels |</p>
 <p><strong>Reads:</strong></p>
 <ul>
 <li><code>vehicle/state</code>, <code>vehicle/seatbox:lock</code>, <code>vehicle/handlebar:lock-sensor</code></li>
@@ -2494,7 +2512,7 @@ the rail.</p>
 </ul>
 <p><strong>Consumes queues:</strong></p>
 <ul>
-<li><code>scooter:bluetooth</code> → BLE commands ("advertising-start-with-whitelisting", "advertising-restart-no-whitelisting", "advertising-stop", "delete-bond", "delete-all-bonds", "remove", "firmware-update")</li>
+<li><code>scooter:bluetooth</code> → BLE commands ("advertising-start-with-whitelisting", "advertising-restart-no-whitelisting", "advertising-stop", "delete-bond", "delete-all-bonds", "remove", "firmware-update", "ltc-enable", "ltc-disable", "ltc-force-enable", "ltc-force-disable", "ltc-status", "data-stream-sync")</li>
 </ul>
 <p><strong>Hardware access:</strong> UART via usock to nRF52 at <code>/var/run/bluetooth-service.sock</code> or similar</p>
 <hr />
@@ -2570,14 +2588,24 @@ the rail.</p>
 | <code>modem</code> | modem status fields | <code>modem</code> |
 | <code>gps</code> | location data (<code>lat</code>, <code>lon</code>, <code>accuracy</code>, <code>speed</code>, <code>heading</code>, <code>altitude</code>, <code>updated</code>, <code>timestamp</code>) | <code>gps</code> (payload: "timestamp" on recovery, no publish on regular update) |
 | <code>internet:fault</code> | fault codes (Redis Set) | <code>internet</code> (payload: "fault") |
+| <code>cell-location</code> | cell-based location estimate (silent write) | — |
+| <code>internet-usage</code> | <code>rx-bytes</code>, <code>tx-bytes</code>, <code>rx-bytes-roaming</code>, <code>tx-bytes-roaming</code>, <code>since</code> (silent write) | — |
+| <code>sms</code> | last SMS state | <code>sms</code> |
 | <code>events:faults</code> | modem fault events (Redis Stream) | — |</p>
 <p><strong>Reads:</strong></p>
 <ul>
 <li><code>vehicle/state</code> (via HashWatcher, for hibernation behavior)</li>
+<li><code>settings</code> (SIM, APN and connectivity fields, watched at startup)</li>
+</ul>
+<p><strong>Publishes (channel only):</strong></p>
+<ul>
+<li><code>gps:tpv</code> - a fresh GPS fix as JSON</li>
+<li><code>sms:received</code>, <code>sms:sent</code> - SMS payloads (also appended to the same-named streams)</li>
 </ul>
 <p><strong>Consumes queues:</strong></p>
 <ul>
 <li><code>scooter:modem</code> → "disable", "enable"</li>
+<li><code>scooter:sms</code> → JSON <code>{"to", "text"}</code></li>
 </ul>
 <p><strong>Hardware access:</strong> ModemManager via D-Bus, GPIO modem power, USB</p>
 <hr />
@@ -2612,7 +2640,9 @@ the rail.</p>
 <p><strong>Writes:</strong>
 | Hash | Fields | Channel |
 |------|--------|---------|
-| <code>alarm</code> | <code>status</code> ("disabled", "disarmed", "armed", "level-1-triggered", "level-2-triggered") | <code>alarm</code> |</p>
+| <code>alarm</code> | <code>status</code> ("disabled", "disarmed", "armed", "level-1-triggered", "level-2-triggered"), <code>alarm-active</code>, <code>trigger:source</code>, <code>trigger:timestamp</code> | <code>alarm</code> |
+| <code>settings</code> | <code>alarm.enabled</code>, <code>alarm.honk</code>, <code>alarm.duration</code>, <code>alarm.seatbox-trigger</code>, <code>alarm.hairtrigger</code>, <code>alarm.hairtrigger-duration</code>, <code>alarm.l1-cooldown</code> | <code>settings</code> |
+| <code>power:inhibits</code> | <code>alarm-active</code> (block) | <code>power:inhibits</code> |</p>
 <p><strong>Produces queues (LPUSH):</strong></p>
 <ul>
 <li><code>scooter:horn</code> → "on", "off"</li>
@@ -2641,6 +2671,7 @@ the rail.</p>
 <li><code>settings</code> channel</li>
 <li><code>power-manager</code> channel (state field — drives hibernation handshake)</li>
 <li><code>motion:interrupt</code> channel (JSON envelope <code>{type, timestamp, engine}</code>)</li>
+<li><code>buttons</code> channel (button events that can trigger the alarm)</li>
 </ul>
 <p><strong>Consumes queues:</strong></p>
 <ul>
@@ -2697,7 +2728,7 @@ overridden off or pinned to a fixed level.</p>
 <h3 id="uplink-service">uplink-service<a class="headerlink" href="#uplink-service" title="Permanent link">&para;</a></h3>
 <p><strong>Reads (telemetry, HGETALL):</strong></p>
 <ul>
-<li><code>vehicle</code>, <code>battery:0</code>, <code>battery:1</code>, <code>aux-battery</code>, <code>cb-battery</code>, <code>engine-ecu</code>, <code>power-manager</code>, <code>internet</code>, <code>modem</code>, <code>gps</code>, <code>keycard</code>, <code>ble</code>, <code>dashboard</code>, <code>system</code></li>
+<li><code>vehicle</code>, <code>battery:0</code>, <code>battery:1</code>, <code>aux-battery</code>, <code>cb-battery</code>, <code>engine-ecu</code>, <code>power-manager</code>, <code>power-mux</code>, <code>internet</code>, <code>modem</code>, <code>gps</code>, <code>keycard</code>, <code>ble</code>, <code>dashboard</code>, <code>system</code>, <code>alarm</code>, <code>navigation</code>, <code>ota</code>, <code>scooter</code></li>
 </ul>
 <p><strong>Produces queues (LPUSH) — from remote server commands:</strong></p>
 <ul>
@@ -2707,6 +2738,7 @@ overridden off or pinned to a fixed level.</p>
 <li><code>scooter:blinker</code> → "left", "right", "both", "off"</li>
 <li><code>scooter:hardware</code> → "dashboard:on/off", "engine:on/off", "handlebar:lock/unlock"</li>
 <li><code>scooter:power</code> → "reboot", "hibernate", "hibernate-manual"</li>
+<li><code>scooter:alarm</code> → "arm", "disarm", "enable", "disable", "stop"</li>
 </ul>
 <hr />
 <h3 id="ums-service">ums-service<a class="headerlink" href="#ums-service" title="Permanent link">&para;</a></h3>
@@ -2724,7 +2756,7 @@ overridden off or pinned to a fixed level.</p>
 <p><strong>Reads (HGETALL / HGET):</strong> All state hashes for display</p>
 <p><strong>Produces queues (LPUSH):</strong></p>
 <ul>
-<li><code>scooter:state</code>, <code>scooter:seatbox</code>, <code>scooter:horn</code>, <code>scooter:blinker</code>, <code>scooter:hardware</code>, <code>scooter:power</code>, <code>scooter:alarm</code>, <code>scooter:led:cue</code>, <code>scooter:led:fade</code>, <code>settings:overlay</code> (<code>apply:service</code>, <code>clear:service</code> via <code>lsc service-mode on|off</code>)</li>
+<li><code>scooter:state</code>, <code>scooter:seatbox</code>, <code>scooter:horn</code>, <code>scooter:blinker</code>, <code>scooter:hardware</code>, <code>scooter:power</code>, <code>scooter:alarm</code>, <code>scooter:led:cue</code>, <code>scooter:led:fade</code>, <code>scooter:modem</code>, <code>scooter:update:&lt;component&gt;</code>, <code>settings:overlay</code> (<code>apply:service</code>, <code>clear:service</code> via <code>lsc service-mode on|off</code>)</li>
 </ul>
 <hr />
 <h2 id="complete-redis-key-inventory">Complete Redis Key Inventory<a class="headerlink" href="#complete-redis-key-inventory" title="Permanent link">&para;</a></h2>
@@ -2785,12 +2817,12 @@ overridden off or pinned to a fixed level.</p>
 </tr>
 <tr>
 <td><code>system</code></td>
-<td>vehicle-service (cpu:governor), bluetooth-service (mdb-version, nrf-fw-version), pm-service (cpu:governor)</td>
-<td>bluetooth-service, uplink-service, scootui</td>
+<td>vehicle-service (cpu:governor, usb0-gate), bluetooth-service (mdb-version, nrf-fw-version), pm-service (cpu:governor), keycard-service (keycard counts)</td>
+<td>bluetooth-service, uplink-service, scootui, vehicle-service</td>
 </tr>
 <tr>
 <td><code>ota</code></td>
-<td>update-service</td>
+<td>update-service (incl. <code>heartbeat:&lt;component&gt;</code>)</td>
 <td>vehicle-service (reads status), update-service (self), scootui</td>
 </tr>
 <tr>
@@ -2812,6 +2844,11 @@ overridden off or pinned to a fixed level.</p>
 <td><code>alarm</code></td>
 <td>alarm-service</td>
 <td>lsc, monitoring</td>
+</tr>
+<tr>
+<td><code>maps</code></td>
+<td>scootui-qt (metadata), ums-service (tile transfer)</td>
+<td>scootui, monitoring</td>
 </tr>
 <tr>
 <td><code>settings</code></td>
@@ -2869,6 +2906,11 @@ overridden off or pinned to a fixed level.</p>
 <td><code>ble:fault</code></td>
 <td>bluetooth-service</td>
 <td>scootui</td>
+</tr>
+<tr>
+<td><code>engine-ecu:fault</code></td>
+<td>ecu-service</td>
+<td>scootui, monitoring</td>
 </tr>
 </tbody>
 </table>
@@ -2937,7 +2979,7 @@ overridden off or pinned to a fixed level.</p>
 <tr>
 <td><code>scooter:update:&lt;component&gt;</code></td>
 <td>update-service</td>
-<td>update-service (self check-now)</td>
+<td>update-service (self check-now), lsc</td>
 </tr>
 <tr>
 <td><code>scooter:hardware</code></td>
@@ -2957,7 +2999,7 @@ overridden off or pinned to a fixed level.</p>
 <tr>
 <td><code>scooter:modem</code></td>
 <td>modem-service</td>
-<td>pm-service</td>
+<td>pm-service, lsc</td>
 </tr>
 <tr>
 <td><code>scooter:bluetooth</code></td>
@@ -2967,7 +3009,27 @@ overridden off or pinned to a fixed level.</p>
 <tr>
 <td><code>scooter:alarm</code></td>
 <td>alarm-service</td>
-<td>lsc</td>
+<td>lsc, uplink-service</td>
+</tr>
+<tr>
+<td><code>scooter:keycard</code></td>
+<td>keycard-service</td>
+<td>lsc, bluetooth-service</td>
+</tr>
+<tr>
+<td><code>scooter:hop-on</code></td>
+<td>vehicle-service</td>
+<td>scootui</td>
+</tr>
+<tr>
+<td><code>scooter:dbc-hold</code></td>
+<td>vehicle-service</td>
+<td>scootui</td>
+</tr>
+<tr>
+<td><code>scooter:sms</code></td>
+<td>modem-service</td>
+<td>external clients</td>
 </tr>
 <tr>
 <td><code>settings:overlay</code></td>
@@ -2977,7 +3039,7 @@ overridden off or pinned to a fixed level.</p>
 <tr>
 <td><code>power:inhibits</code></td>
 <td>pm-service inhibitor manager</td>
-<td>update-service, vehicle-service, modem-service (hold pm inhibitors)</td>
+<td>update-service, vehicle-service, modem-service, alarm-service, bluetooth-service (hold pm inhibitors)</td>
 </tr>
 </tbody>
 </table>
@@ -3015,6 +3077,18 @@ overridden off or pinned to a fixed level.</p>
 <td>suspend-only</td>
 <td>vehicle-service</td>
 <td>the dashboard is mid map or tile download</td>
+</tr>
+<tr>
+<td><code>alarm-active</code></td>
+<td>block</td>
+<td>alarm-service</td>
+<td>an alarm is sounding</td>
+</tr>
+<tr>
+<td><code>modem-active</code></td>
+<td>block</td>
+<td>modem-service</td>
+<td>the modem is powered</td>
 </tr>
 </tbody>
 </table>
