@@ -49,8 +49,8 @@ Usage of ecu-service:
 - `kers-accepted-voltage` - EBS regen voltage cap the ECU accepted, in mV (Bosch only; 0 otherwise). The ECU echoes this after clamping the EBS Set command; it is the stored config, not a live measurement. Distinct from the commanded `engine-ecu.kers-voltage` setpoint.
 - `kers-accepted-current` - EBS regen current limit the ECU accepted, in mA (Bosch only; 0 otherwise). Distinct from the commanded `engine-ecu.kers-power` setpoint.
 - `regen-available` - Derived ("on"/"off"): whether regen can happen right now.
-- `regen-reason` - Derived: why regen is unavailable ("none"/"cold"/"hot"/"off"/"standstill"/"full"). "standstill" means wheel RPM is below the ECU's regen engage deadband (~90 wheel RPM, ~7 km/h). "full" means the pack is at its voltage cap. Empirically derived envelope; non-Bosch controllers report gating only.
-- `regen-expected` - Derived: expected regen current envelope in mA (0 on non-Bosch controllers). `motor:current` remains the real-measurement source for actual regen.
+- `regen-reason` - Derived: why regen is unavailable ("none"/"cold"/"hot"/"off"/"standstill"/"full"). "standstill" means wheel RPM is below the ECU's regen engage deadband (~90 wheel RPM, ~7 km/h). "full" means the pack is at its voltage cap. Empirically derived envelope.
+- `regen-expected` - Derived: expected regen current envelope in mA. `motor:current` remains the real-measurement source for actual regen.
 - `ecu-status` - ECU enable state ("enabled"/"disabled"), decoded from the Status4 paired enable/disable bits
 - `boost-status` - Boost enable state ("enabled"/"disabled"), same Status4 signal as `boost`
 - `gear-mode` - Gear-mode enable state ("enabled"/"disabled"), from Status4
@@ -166,13 +166,22 @@ The service talks to a Bosch ECU over CAN.
 
 ### CAN Bus Setup
 
-The CAN interface must be configured before the service starts:
+The bus runs at 125 kbit/s. The interface must be configured before the service
+starts:
 ```bash
-ip link set can0 type can bitrate 250000
+ip link set can0 type can bitrate 125000 restart-ms 100
 ip link set can0 up
 ```
 
-This is typically done by a systemd service or udev rule.
+Two things do this, and they have to agree. `librescoot-netconfig.service`
+(a oneshot from the `mdb-netconfig` recipe) runs `/usr/sbin/librescoot-netconfig`,
+which sets the bitrate and raises the link. systemd-networkd then reconfigures
+`can0` from `/etc/systemd/network/20-can0.network`, which carries the same
+`BitRate=125000` along with `RestartSec=100ms`. The restart setting has to be in
+the networkd file as well as the script, because networkd's reconfigure resets
+what the script set: without it the controller latches bus-off and stays there,
+since anything the MDB sends while the ECU is unpowered goes unacknowledged and
+drives the TX error counter to 256.
 
 ## Observable Behavior
 
@@ -249,30 +258,37 @@ The service manages KERS based on battery temperature and vehicle state:
 
 #### Fault Detection
 
-The service monitors ECU fault codes and manages them through Redis. Faults are specific to each ECU type:
+The service monitors ECU fault codes and manages them through Redis. The ECU
+reports one fault at a time as a sequential ordinal, not as a bit mask, and the
+service maps it to a description and a severity:
 
-**Common Faults (Both ECU Types):**
+| Code | Fault | Severity |
+|------|-------|----------|
+| 1 | Battery over-voltage | critical |
+| 2 | Battery under-voltage | critical |
+| 3 | Motor short-circuit | critical |
+| 4 | Motor stalled | critical |
+| 5 | Hall sensor abnormal | critical |
+| 6 | MOSFET check error | critical |
+| 7 | Motor open-circuit | critical |
+| 10 | Power-on self-check error | critical |
+| 11 | Over-temperature | critical |
+| 12 | Throttle abnormal | critical |
+| 13 | Motor temperature protection | warning |
+| 14 | Throttle active at power-up | warning |
+| 16 | Internal 15V abnormal | critical |
+| 20 | ECU communication lost | critical |
 
-- Battery over-voltage / under-voltage
-- Motor stalled
-- Hall sensor abnormal
-- Throttle abnormal
-- Power-on self-check error
-- Over-temperature
-- Internal 15V abnormal
+Code 20 (E20) is synthetic. It is raised by the comm-lost watchdog when the ECU
+should be powered but has gone quiet, and is not a code the ECU reports. A code
+with no entry in the table is logged once as unknown rather than being reported
+as a healthy vehicle.
 
-**Bosch-Specific Faults:**
-
-- Motor short-circuit
-- Motor open-circuit
-- MOSFET check error
-- Motor temperature protection
-- Throttle active at power-up
-
-**Votol-Specific Fault Mapping:**
-
-- Fault codes are bit-mapped (0x01, 0x02, 0x04, etc.)
-- Subset of common faults supported
+Code 15 is missing from the table on purpose. The ECU uses it to report that the
+engine brake line is asserted, which the vehicle does itself in every state
+except drive as the interlock that stops a parked scooter riding off. It never
+reaches `fault:code`; the service logs its edges instead, so it does not toast
+the rider every time they park.
 
 **Fault Handling:**
 
@@ -296,7 +312,7 @@ The service calculates and tracks power consumption and recovery:
 The service logs to journald (or stdout when not running under systemd). Common log patterns:
 
 - **Startup:**
-  - Selected ECU type (Bosch or Votol)
+  - Service version
   - Redis connection status
   - Component initialization (Battery, IPC TX/RX, KERS, Diagnostics, ECU)
   - Default Redis state written

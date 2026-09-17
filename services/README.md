@@ -12,7 +12,6 @@ Librescoot provides the open-source services that run on the scooter. All servic
 | [librescoot-battery](librescoot-battery.md) | Main battery monitoring via NFC | `battery:0`, `battery:1` | PN7150 NFC readers (I2C), Redis |
 | [librescoot-vehicle](librescoot-vehicle.md) | Vehicle state machine coordinator | `vehicle` | GPIO inputs, PWM outputs, Redis |
 | [librescoot-ecu](librescoot-ecu.md) | Motor controller interface | `engine-ecu` | ECU (CAN bus), Redis |
-| [librescoot-events](librescoot-events.md) | Normalised event bus and optional rules (MDB nightly packaging; not 1.3.1 stable) | `extensions`, `extensions:pending` | Redis, optional CAN transmit |
 | [librescoot-keycard](librescoot-keycard.md) | NFC keycard authentication | `keycard` | PN7150 (I2C), LP5562 LED (I2C), Redis |
 | [librescoot-modem](librescoot-modem.md) | Cellular and GPS | `internet`, `gps`, `modem` | ModemManager, gpsd, Redis |
 | [librescoot-pm](librescoot-pm.md) | System power management | `power-manager` | systemd-logind (D-Bus), Redis |
@@ -20,10 +19,8 @@ Librescoot provides the open-source services that run on the scooter. All servic
 | [librescoot-motion](librescoot-motion.md) | BMX055 IMU owner — sensor telemetry, magnetic heading, motion-engine events; reactively re-derives chip profile from `alarm` + `power-manager` state; hosts `motion:rpc` for synchronous handshakes | `motion` | BMX055 (I2C), Redis |
 | [librescoot-alarm](librescoot-alarm.md) | Motion-based alarm FSM (consumer of motion-service) | `alarm` | motion-service, Redis |
 | [librescoot-settings](librescoot-settings.md) | Persistent settings sync | `settings` | NetworkManager, Redis |
-| [librescoot-trip](librescoot-trip.md) | Durable trip history, trip counter, and retention | `trip`, `trip:counter`, `trip:expunge` | SQLite, Redis |
 | [librescoot-ums](librescoot-ums.md) | USB Mass Storage / file transfer | `usb` | USB gadget (g_ether/g_mass_storage), Redis |
 | [librescoot-update](librescoot-update.md) | OTA update management (MDB + DBC) | `ota` | Mender, Redis, release index |
-| [librescoot-lsd](librescoot-lsd.md) | Web management interface on the usb0 network (MDB only) | `settings`, `navigation` | Redis, systemd, lsc |
 
 ## Service Architecture
 
@@ -42,13 +39,8 @@ graph TB
     MOT["motion-service<br/>BMX055 IMU + Heading"]
     ALM["alarm-service<br/>Motion Alarm FSM"]
     SET["settings-service<br/>Config Sync"]
-    TRIP["trip-service<br/>Trip history, counter and retention"]
     UMS["ums-service<br/>USB Mass Storage"]
     UPD["update-service<br/>OTA Updates"]
-    EVT["event-service<br/>State adapter + optional rules"]
-    RULES["/data/extensions<br/>TOML + enabled overrides"]
-    EXTCLI["lsc ext"]
-    EXEC["Configured executables<br/>only with exec rules"]
 
     LOGIND["systemd-logind<br/>D-Bus"]
     NRF["nRF52840<br/>UART"]
@@ -72,17 +64,8 @@ graph TB
     MOT <--> Redis
     ALM <--> Redis
     SET <--> Redis
-    TRIP <--> Redis
     UMS <--> Redis
     UPD <--> Redis
-    Redis -->|Watched state and input channels| EVT
-    EVT -->|events stream, ev topics, extension hashes| Redis
-    EVT -.->|Configured rules only: LPUSH| Redis
-    RULES --> EVT
-    EXTCLI -->|extensions RPC| Redis
-    EVT -.->|Management: desired config only| RULES
-    EVT -.->|Configured rules only| EXEC
-    EVT -.->|Configured CAN rules only: transmit| ECU
 
     PM <--> LOGIND
     BT <--> NRF
@@ -104,15 +87,6 @@ Services publish events to Redis channels when state changes:
 - `PUBLISH <hash-name> <field>` notifies subscribers of field changes
 - Individual fields may publish separately (e.g., `PUBLISH vehicle state`)
 - Dashboard and other services subscribe to relevant channels
-
-### Normalised Event Bus
-
-[event-service](librescoot-events.md) appends derived events to the `events`
-stream and publishes JSON on `ev:<topic>`. Those are not hashes. Its optional
-rules consume selected live topics and may push to configured command lists
-or run executables or transmit CAN frames. Without rules it makes no such commands and opens no
-additional `ev:*` subscription. This service is packaged for MDB nightly
-builds ahead of 1.4.0, not included in 1.3.1 stable.
 
 ### Command Lists
 Command producer services use LPUSH, consumer services use BRPOP:

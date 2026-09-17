@@ -90,7 +90,7 @@ pm-service subscribes to the `power:inhibits` channel and syncs entries into its
 
 - `pm.hibernation-timer` - Inactivity-based hibernation timer duration in seconds (0 = disabled)
 - `pm.default-state` - Default target power state when idle (`run` / `suspend`)
-- `pm.suspend-when-online` - Bool, default `true`. Only matters when no main battery is present: a pack present (or active) in either slot always blocks suspend. With no main battery, the default (`true`) permits suspend even while remotely reachable. Set `false` to read `remote-access[status]` live at the decision point and stay awake while any provider is connected. A five-minute grace after boot and every resume lets providers reconnect; Redis read failures fail safe by keeping the scooter awake. The guard only applies to the `suspend` target (not hibernate/reboot). Present and active are read live from Redis at the decision point because pub/sub state is lost across a suspend freeze.
+- `pm.suspend-when-online` - Bool, default `true`. Only matters when no main battery is present: a pack present (or active) in either slot always blocks suspend (`Cannot enter suspend state: a main battery is present or active`), independent of this setting. With no main battery, the default (`true`) lets the scooter suspend even while online. Set `false` to keep an online scooter awake so cloud commands can still reach it, which blocks suspend with `Suspend blocked: no main battery but online and pm.suspend-when-online disabled`. The guard only applies to the `suspend` target (not hibernate/reboot). Present and active are read live from Redis at the decision point because pub/sub state is lost across a suspend freeze.
 - `pm.scheduled-hibernate-enabled` - Bool: enable cron-driven scheduled hibernation
 - `pm.scheduled-hibernate-cron` - 5-field cron expression (e.g. `0 22 * * *`)
 - `pm.scheduled-hibernate-duration` - Wake-by duration (Go duration syntax: `8h`, `30m`, ...)
@@ -146,7 +146,7 @@ pm-service subscribes to the `power:inhibits` channel and syncs entries into its
 - `battery:1` -> `state`, `present`, `charge` - Battery slot 1 state monitoring plus `present`/`charge` for the last-ditch hibernate inputs
 - `cb-battery` -> `charge` - CBB charge, last-ditch hibernate input
 - `aux-battery` -> `voltage` - Aux 12V rail voltage (millivolts), last-ditch hibernate input
-- `remote-access` -> `status` - Read live (not watched) at each suspend decision for the `pm.suspend-when-online` guard
+- `internet` -> `status` - Tracks connectivity (`connected` => online) for the `pm.suspend-when-online` guard
 - `power-manager` -> `wake-timer-armed`, `power-state-sent` - Wake-timer ACK and the nRF suspend-ACK from the nRF52 (both written by bluetooth-service)
 - `settings` -> `pm.suspend-when-online` (among the other `pm.*` fields above) - re-read on change
 
@@ -513,11 +513,10 @@ Use `journalctl -u librescoot-pm.service` to view logs.
 
 **Hibernation Scheduler (`internal/hibernation/scheduler.go`)**
 
-- Cron-driven scheduler for `pm.scheduled-hibernate-*` settings (uses `github.com/robfig/cron/v3`, standard 5-field parser). Expressions whose consecutive occurrences are closer than 15 min are rejected at configuration time (the previous expression stays in effect), because a sub-15-min cadence is indistinguishable from a hibernate/wake loop across poweroffs
-- Latches a wall-clock validity gate on **either** a confirmed GPS clock step (the `clock` hash that modem-service writes after a successful `chronyc settime`) **or** chronyd converging on a real external reference (`chronyc tracking` with `Leap status: Normal` and a reference ID outside `127.0.0.0/8`, so chrony's `local`/`manual` pseudo-sources do not count). Both paths additionally require a reading past the plausibility floor, the newer of `/etc/build-timestamp` and the fake-hwclock saved time (`/data` or `/etc/fake-hwclock.data`). A cron occurrence that elapsed under the gate is caught up once it opens, if its wake-by target is still in the future
-- Rejects cron fires for the first 15 min of uptime after a wake from a scheduled hibernation. The fact that the last shutdown was scheduled is persisted as a flag in `/data` (not a timestamp, since the clock is untrusted across the poweroff); the guard itself is monotonic-uptime based
+- Cron-driven scheduler for `pm.scheduled-hibernate-*` settings (uses `github.com/robfig/cron/v3`, standard 5-field parser)
+- Latches a wall-clock validity gate based on `gps.active`; suppresses fires until first observed `"true"`
 - Defers cron fires while the vehicle is not in `stand-by` and dispatches on the next standby transition with the remaining time until the original wake-by target
-- 30 s background monitor detects wall-clock jumps (wall time vs monotonic time, so external `CLOCK_REALTIME` steps are visible) and rebuilds the cron entry / re-evaluates pending deferred wakes accordingly
+- 30 s background monitor detects wall-clock jumps and rebuilds the cron entry / re-evaluates pending deferred wakes accordingly
 
 **Service Coordinator (`internal/service/service.go`)**
 

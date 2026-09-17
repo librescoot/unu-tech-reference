@@ -25,8 +25,12 @@ UMS_MENDER_TIMEOUT=15m       Per-file timeout for Mender update transfers (envir
 **Fields written:**
 
 - `status` - Service status (`idle`, `preparing`, `active`, `processing`, `awaiting-reboot`, `rebooting`)
-  - `awaiting-reboot` covers the hand-off to update-service and installation. After installation completes and the vehicle-state safety gate passes, `rebooting` is published briefly before the reboot or DBC power-cycle command. The status returns to `idle` when the trigger fails, the wait fails/times out, or a new UMS session cancels the pending operation.
-- `step` - Current processing step (`settings`, `wireguard`, `radio-gaga`, `uplink-service`, `onboot`, `updates`, `maps`, or empty). The script stage runs without setting `step`.
+  - `awaiting-reboot` covers the hand-off to update-service and installation. While it is set, `step` names what the wait is on: `waiting-mdb`, `waiting-dbc`, `waiting-dbc+mdb`, then `waiting-vehicle-state`. After installation completes and the vehicle-state safety gate passes, `rebooting` is published briefly before the reboot or DBC power-cycle command. The status returns to `idle` when the trigger fails, the wait fails/times out, or a new UMS session cancels the pending operation.
+- `step` - Current processing step (`settings`, `wireguard`, `radio-gaga`, `uplink-service`, `onboot`, `updates`, `maps`, `scripts`, or empty)
+- `last-result` - Outcome of the last reboot phase (`reboot-triggered`, `timeout`, `install-error`, `vehicle-state`, or `error`)
+- `last-result-detail` - Human-readable detail for that outcome
+- `last-result-time` - RFC3339 time the outcome was recorded
+  - All three are cleared on the next UMS entry. `lsc usb status` prints them.
 - `progress` - Upload progress percentage (0–100) during file transfers
 - `detail` - Human-readable transfer sub-step (e.g. `map.mbtiles (120/380 MB)`)
 
@@ -112,10 +116,8 @@ Before mounting, the service checks the image with `fsck.fat`. Recoverable error
 │   └── config.yaml      # copied from /data/uplink-service/config.yaml
 ├── onboot.sh            # copied from the on-boot script if present
 ├── system-update/       # place .mender or .delta update files here
-│   ├── librescoot-unu-mdb-*.mender
-│   ├── librescoot-unu-mdb-*.delta
-│   ├── librescoot-unu-dbc-*.mender
-│   └── librescoot-unu-dbc-*.delta
+│   ├── librescoot-mdb-*.mender
+│   └── librescoot-dbc-*.mender
 ├── maps/                # place map files here
 │   ├── *.mbtiles
 │   └── *tiles.tar or valhalla_tiles_*.tar, plain or .zst
@@ -151,7 +153,7 @@ into place, and an untouched file is a no-op.
 3. **radio-gaga** - copies `radio-gaga/config.yaml` back to `/data/radio-gaga/`, restarts `radio-gaga.service` if changed
 4. **uplink-service** - copies `uplink-service/config.yaml` back to `/data/uplink-service/`, restarts `librescoot-uplink.service` if changed
 5. **onboot** - copies `onboot.sh` back into place
-6. **Updates** - update files for each board are staged in that board's own update directory (MDB `/data/ota/mdb`; DBC transferred to `/data/ota/dbc`), then one path-free `apply-staged-updates` command is pushed per board. Several `.delta` files for one board are applied by update-service as a single chain: one assemble, one install, one reboot. A board whose drop mixes a newer `.mender` with a `.delta`, or contains two or more newer `.mender` files, is refused: nothing is staged for that board, the other board still proceeds
+6. **Updates** - MDB `.mender`/`.delta` files installed locally via `scooter:update:mdb`; DBC `.mender`/`.delta` files transferred to DBC and queued via `scooter:update:dbc`
 7. **Maps** - transfers `.mbtiles` to `map.mbtiles.tmp` on the DBC and renames it into `/data/maps/map.mbtiles`, so the installed file is only ever a complete transfer; transfers Valhalla tile archives to `/data/valhalla/tiles.tar` on DBC. A `valhalla_tiles_*.tar.zst` is uploaded compressed and decompressed on the DBC, into a temp file that only replaces `tiles.tar` once the whole stream has decoded; the installed file is always the plain seekable tar, because Valhalla mmaps it as its `tile_extract`. After each artifact lands, the service reads it back on the DBC (`sha256sum` plus `stat`), records it in `/data/maps/metadata.json` and mirrors it into the [`maps`](../redis/README.md#installed-maps-maps---librescoot-only) hash. The region comes from the published filename (`tiles_<slug>.mbtiles`, `valhalla_tiles_<slug>.tar`); a renamed or generically named file clears the recorded region rather than leaving the previous one to describe tiles it no longer refers to
 8. **Scripts** - runs `scripts/mdb.sh` locally; transfers `scripts/dbc.sh` to DBC and runs it remotely
 9. Writes `ums_log.txt` to drive root, then cleans the drive (preserving `ums_log.txt`)
@@ -159,12 +161,7 @@ into place, and an untouched file is a no-op.
 Each step is independent: a failure is logged to `usb:log` and the remaining
 steps still run.
 
-**Post-update reboot:** if the exit processing queued an MDB or DBC update install, the service sets `status` to `awaiting-reboot` and a background watcher performs the install pushes and waits for completion. The wait is a 10-minute liveness window that is extended while an install is genuinely in progress (`downloading`, `preparing`, `installing`, or a DBC verifying its post-reboot commit), with a 2-hour overall cap; a window that expires with no install activity ends the wait and retains MDB reboot ownership as a fail-safe. A staged push that resolves to nothing applicable is reported by update-service as `staged-noop`: the cycle then finishes immediately as `nothing-to-install` and no reboot is triggered, since nothing was installed. Once the vehicle-state safety gate passes it publishes `rebooting`, allows the dashboard to paint that final phase, then triggers a reboot. The reboot is gated on the vehicle state being in an allowed set (`stand-by`, `parked`, `shutting-down`); if the state is anything else, the reboot is skipped. MDB updates reboot the MDB via `scooter:power`; DBC-only updates power-cycle the dashboard via `scooter:hardware`. The watcher is cancellable: re-entering UMS cancels a pending reboot. When no update is queued, `status` goes straight back to `idle` with no reboot.
-
-A refused board is reported in three places: the service log (journald and
-`ums_log.txt`), `usb.last-result` (set to `error`, visible through `lsc usb
-status`), and an `error`-severity event published on `scootui:notification` for
-the dashboard.
+**Post-update reboot:** if the exit processing queued an MDB or DBC update install, the service sets `status` to `awaiting-reboot` and a background watcher performs the install pushes and waits for completion (10 min timeout). Once the vehicle-state safety gate passes it publishes `rebooting`, allows the dashboard to paint that final phase, then triggers a reboot. The reboot is gated on the vehicle state being in an allowed set (`stand-by`, `parked`, `shutting-down`); if the state is anything else, the reboot is skipped. MDB updates reboot the MDB via `scooter:power`; DBC-only updates power-cycle the dashboard via `scooter:hardware`. The watcher is cancellable: re-entering UMS cancels a pending reboot. When no update is queued, `status` goes straight back to `idle` with no reboot. The outcome is recorded on `usb.last-result` with its detail and time, so a cycle that gave up says why.
 
 ## Hardware
 

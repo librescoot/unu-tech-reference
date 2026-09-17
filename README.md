@@ -2,12 +2,43 @@
 
 Reverse-engineered technical documentation of the unu Scooter Pro.
 
-## About this version
+## What changed in v1.3.1
 
-You are reading `dev`, which tracks the `main` branch of this repository and
-describes the current state of the code, including work that has not shipped in
-any release yet. For what a released image actually contains, pick that version
-from the selector above.
+- Timed wake from hibernation works again. pm-service keeps the nRF52 wake-timer
+  acknowledgement across an inhibitor bounce and restores the modem after an
+  aborted suspend, and nRF firmware v2.10.0-ls starts the wake timer when
+  hibernation starts instead of leaving it disarmed.
+- update-service refuses a full `.mender` for the version the board already runs
+  before writing anything, and keeps the DBC's pending-reboot flag across the
+  power-off, so a dashboard install is not lost when its power drops.
+- bluetooth-service applies the same-version refusal to a BLE OTA bundle at START,
+  answering `START_ACK 0x14` in one round trip instead of at install time.
+- The USB import stage accepts `.delta` update files and drops the `rpms/` tree,
+  which nothing used. A UMS-initiated MDB or DBC install now reports its reboot
+  wait and result instead of ending silently.
+- alarm-service suppresses the alarm for the duration of a USB mass-storage
+  session, which would otherwise trip the any-motion engine when the cable is
+  plugged or unplugged, and motion-service drops to its idle profile meanwhile.
+- The dashboard gains a configurable speedometer scale with warn and overspeed
+  thresholds, configurable road-name and speed-limit visibility, and battery
+  capacity and low-SOC rows. battery-service publishes that capacity, fault code
+  and low-SOC data, and `lsc` prints battery detail and UMS cycle results.
+- modem-service follows SIM insertion and removal, hardens GPS source startup,
+  and serializes GPS recovery with modem shutdown.
+- vehicle-service publishes the saved vehicle state before hardware init, so a
+  BLE client sees a state seconds earlier. uplink-service collects canonical
+  board versions for telemetry.
+- The MDB's PPP link to the DBC uses UART3 with SDMA.
+- `lsd`, the web management interface, is deferred and not part of this release.
+
+[Release notes](https://github.com/librescoot/librescoot/releases/tag/v1.3.1)
+
+### nRF firmware
+
+Ships nRF firmware **v2.10.0-ls**, up from v2.9.0-ls in v1.3.0.
+
+- The wake timer is armed when hibernation starts, so a scheduled hibernation
+  wake fires on time. This is the firmware half of the timed-wake fix above.
 
 ## System Architecture
 

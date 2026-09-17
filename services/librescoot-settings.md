@@ -130,15 +130,6 @@ Settings are organized by section. Examples:
 - `dashboard.maps-available` - Offline map tiles available (system-managed; default: false)
 - `dashboard.navigation-available` - Full navigation available (system-managed; default: false)
 
-**Trip settings:**
-
-- `trip.counter-reset` - Vehicle-wide display-counter reset policy: `ride`, `day`, `battery`, or `manual` (default: `ride`). TOML hydration and live Redis updates enforce this enum; invalid values are replaced by the last persisted valid value or the default.
-- `trip.expunge` - Atomic recorded-trip retention policy (default: `age:365d`): `never`, `age:<positive duration>` or positive whole days such as `365d`, `count:<canonical nonnegative trips>`, or `size:<canonical nonnegative bytes>`. Invalid forms, signs, whitespace, leading zeroes (apart from `0` for count/size), zero ages, and overflow are rejected.
-
-Trip-service consumes these fields. `trip.counter-reset` never removes recorded
-history; `trip.expunge` only selects completed/abandoned history for deletion.
-See [trip-service](librescoot-trip.md) for policy and recovery semantics.
-
 **ECU settings:**
 
 - `engine-ecu.kers` - KERS enable/disable ("enabled"/"disabled"; default: "enabled")
@@ -151,7 +142,14 @@ See [trip-service](librescoot-trip.md) for policy and recovery semantics.
 An overlay is a named set of key-value pairs that settings-service applies to the live `settings` hash in memory. Overlays are strictly non-persistent:
 
 - Overlay values are **never written to `/data/settings.toml`**. The user's base configuration is unchanged.
-- When an overlay is cleared, every key it touched is restored to its base value from the TOML file.
+- When an overlay is cleared, every key it touched is restored to the value it
+  had at capture time. For most keys that is the value loaded from the TOML
+  file. `scooter.usb0-policy` and `scooter.handlebar-unlocked` are declared
+  transient in the schema and never reach the TOML, so their base value is the
+  schema default (`auto` and `false`) that was hydrated into Redis at boot.
+  `LoadSettingsFromTOML` seeds its field map from `schema.Defaults()` before
+  overlaying the TOML, so both keys exist in the `settings` hash when the
+  overlay captures them and both are restored on clear.
 - Overlay values are re-applied automatically after reboot (settings-service re-applies active overlays on startup after loading the TOML).
 - An overlay stays active until explicitly cleared with `clear:<name>`.
 
@@ -187,15 +185,19 @@ shell can apply and clear the overlay from the handlebars.
 
 | Path | Command | Availability |
 |------|---------|--------------|
-| Menu > System > Service Mode | `apply:service` | Hidden while the overlay is active |
-| Menu root > Disable Service Mode | `clear:service` | First top-level entry, shown only while the overlay is active |
+| Menu > Settings > System > Service Mode | `apply:service` | Hidden while the overlay is active |
 | Debug screen, 3 s hold on the left brake | `clear:service` | Shown only while the overlay is active |
 
 The debug-screen hold matters because `dashboard.mode` is one of the overlaid
-keys. Leaving the debug screen writes `dashboard.mode`, settings-service sees a
-user edit to an overlaid key and re-asserts `debug`, and the dashboard lands
-back where it started. Until the overlay is cleared, the debug screen is where
-a scooter in service mode stays.
+keys. Were the dashboard to leave the debug screen, it would write
+`dashboard.mode` and settings-service would re-assert `debug` over it, so
+instead the dashboard suppresses its own exit gesture while the overlay is
+active rather than leave the screen and the key disagreeing. There is also no
+menu to fall back on: the menu opens only on the cluster and map screens, which
+is what makes the top-level "Disable Service Mode" entry unreachable in
+practice. Until the overlay is cleared, the debug screen is where a scooter in
+service mode stays, and the left-brake hold is the only way out of it from the
+handlebars.
 
 **No-clobber invariant:** `/data/settings.toml` always reflects the user's chosen values. Run `cat /data/settings.toml` while service mode is active to confirm the TOML is unchanged.
 
