@@ -147,9 +147,9 @@ pending tail rather than undoing completed actions.
 **Writes (hash → pub/sub channel):**
 | Hash | Fields | Channel |
 |------|--------|---------|
-| `vehicle` | `state`, `state:timestamp`, `blinker:switch`, `blinker:state`, `brake:left`, `brake:right`, `seatbox:lock`, `kickstand`, `handlebar:lock-sensor`, `handlebar:position`, `dashboard:power`, `dbc-updating`, `update:status`, `auto-standby-remaining` (deprecated), `auto-standby-deadline` | `vehicle` |
-| `system` | `cpu:governor` | `system` |
-| `dashboard` | `ready` (deletes on standby) | `dashboard` |
+| `vehicle` | `state`, `state:timestamp`, `blinker:switch`, `blinker:state`, `brake:left`, `brake:right`, `seatbox:lock`, `kickstand`, `handlebar:lock-sensor`, `handlebar:position`, `handlebar:lock-state`, `dashboard:power`, `main-power`, `engine-power`, `horn:button`, `seatbox:button`, `dbc-updating`, `update:status`, `auto-standby-remaining`, `auto-standby-deadline` | `vehicle` |
+| `system` | `cpu:governor`, `usb0-gate` | `system` |
+| `dashboard` | `ready` (deletes on standby), `backlight-enabled` | `dashboard` |
 | `vehicle:fault` | fault codes (Redis Set) | `vehicle` (payload: "fault") |
 | `events:faults` | fault events (Redis Stream) | — |
 
@@ -166,6 +166,8 @@ pending tail rather than undoing completed actions.
 - `keycard/authentication` (from keycard-service)
 - `settings/*` (any field, for scooter.*, alarm settings via watch)
 - `ota/status:mdb`, `ota/status:dbc` (checks OTA status on update commands)
+- `power-manager/state` (suspend/hibernate handshake)
+- `ble/status` (link state for lock-on-disconnect)
 
 **Consumes queues (BRPOP):**
 
@@ -177,6 +179,8 @@ pending tail rather than undoing completed actions.
 - `scooter:led:fade` → "channel:index" string
 - `scooter:update` → "start", "complete", "start-dbc", "complete-dbc"
 - `scooter:hardware` → "dashboard:on", "dashboard:off", "engine:on", "engine:off", "handlebar:lock", "handlebar:unlock" (and :force variants)
+- `scooter:hop-on` → "engage", "engage-learning", "release"
+- `scooter:dbc-hold` → "map-download", "release"
 
 **DBC update power hold.** `start-dbc` makes vehicle-service keep dashboard power up and
 defer the power cut that entering stand-by would normally perform, until `complete-dbc`
@@ -266,10 +270,20 @@ the rail.
 | Hash | Fields | Channel |
 |------|--------|---------|
 | `keycard` | `authentication` ("passed"), `type` ("scooter"), `uid` | `keycard` (payload: "authentication") |
+| `keycard` | `command-result` | `keycard` |
+| `system` | `keycard-master-count`, `keycard-authorized-count` | `system` |
 
 Note: Sets 10-second TTL on `keycard` hash after publish.
 
+**Publishes:**
+
+- `keycard:events` - teach-in progress (`mode-entered`, `mode-exited`, `card-learned:<uid>`, `rejected:already-authorized:<uid>`, `error:save-failed:<uid>`)
+
 **Reads:** None (hardware-driven)
+
+**Consumes queues:**
+
+- `scooter:keycard` → "list", "count", "add:<uid>", "remove:<uid>" (and the master commands)
 
 **Hardware access:** NFC via PN7150, I2C LED controller LP5562
 
@@ -284,6 +298,10 @@ Note: Sets 10-second TTL on `keycard` hash after publish.
 | `engine-ecu` | `odometer` (from nRF) | `engine-ecu` |
 | `ble` | status fields, `pin-code`, `firmware-update-status` | `ble` |
 | `ble:fault` | fault codes (Redis Set) | `ble` (payload: "fault") |
+| `cb-battery:alert`, `cb-battery:fault` | auxiliary-battery alerts and faults | same-named channels |
+| `navigation` | destination fields from the phone (`destination`, `latitude`, `longitude`, `address`) | `navigation` |
+| `scooter` | `temperature` (nRF die temperature, tenths of a degree) | `scooter` |
+| `settings`, `usb`, `power-mux`, `power:inhibits` | read or written in passing (settings values, UMS mode, mux input, the DFU inhibitor) | respective channels |
 
 **Reads:**
 
@@ -301,7 +319,7 @@ Note: Sets 10-second TTL on `keycard` hash after publish.
 
 **Consumes queues:**
 
-- `scooter:bluetooth` → BLE commands ("advertising-start-with-whitelisting", "advertising-restart-no-whitelisting", "advertising-stop", "delete-bond", "delete-all-bonds", "remove", "firmware-update")
+- `scooter:bluetooth` → BLE commands ("advertising-start-with-whitelisting", "advertising-restart-no-whitelisting", "advertising-stop", "delete-bond", "delete-all-bonds", "remove", "firmware-update", "ltc-enable", "ltc-disable", "ltc-force-enable", "ltc-force-disable", "ltc-status", "data-stream-sync")
 
 **Hardware access:** UART via usock to nRF52 at `/var/run/bluetooth-service.sock` or similar
 
@@ -419,15 +437,25 @@ units, retention safety, and the command contract.
 | `modem` | modem status fields | `modem` |
 | `gps` | location data (`lat`, `lon`, `accuracy`, `speed`, `heading`, `altitude`, `updated`, `timestamp`) | `gps` (payload: "timestamp" on recovery, no publish on regular update) |
 | `internet:fault` | fault codes (Redis Set) | `internet` (payload: "fault") |
+| `cell-location` | cell-based location estimate (silent write) | — |
+| `internet-usage` | `rx-bytes`, `tx-bytes`, `rx-bytes-roaming`, `tx-bytes-roaming`, `since` (silent write) | — |
+| `sms` | last SMS state | `sms` |
 | `events:faults` | modem fault events (Redis Stream) | — |
 
 **Reads:**
 
 - `vehicle/state` (via HashWatcher, for hibernation behavior)
+- `settings` (SIM, APN and connectivity fields, watched at startup)
+
+**Publishes (channel only):**
+
+- `gps:tpv` - a fresh GPS fix as JSON
+- `sms:received`, `sms:sent` - SMS payloads (also appended to the same-named streams)
 
 **Consumes queues:**
 
 - `scooter:modem` → "disable", "enable"
+- `scooter:sms` → JSON `{"to", "text"}`
 
 **Hardware access:** ModemManager via D-Bus, GPIO modem power, USB
 
@@ -474,7 +502,9 @@ Note: version-service does not publish on any channel. It runs once at boot via 
 **Writes:**
 | Hash | Fields | Channel |
 |------|--------|---------|
-| `alarm` | `status` ("disabled", "disarmed", "armed", "level-1-triggered", "level-2-triggered") | `alarm` |
+| `alarm` | `status` ("disabled", "disarmed", "armed", "level-1-triggered", "level-2-triggered"), `alarm-active`, `trigger:source`, `trigger:timestamp` | `alarm` |
+| `settings` | `alarm.enabled`, `alarm.honk`, `alarm.duration`, `alarm.seatbox-trigger`, `alarm.hairtrigger`, `alarm.hairtrigger-duration`, `alarm.l1-cooldown` | `settings` |
+| `power:inhibits` | `alarm-active` (block) | `power:inhibits` |
 
 **Produces queues (LPUSH):**
 
@@ -506,6 +536,7 @@ Note: version-service does not publish on any channel. It runs once at boot via 
 - `power-manager` channel (state field — drives hibernation handshake)
 - `usb` channel (mode field — suppresses the alarm during mass-storage sessions)
 - `motion:interrupt` channel (JSON envelope `{type, timestamp, engine}`)
+- `buttons` channel (button events that can trigger the alarm)
 
 **Consumes queues:**
 
@@ -575,7 +606,7 @@ overridden off or pinned to a fixed level.
 
 **Reads (telemetry, HGETALL):**
 
-- `vehicle`, `battery:0`, `battery:1`, `aux-battery`, `cb-battery`, `engine-ecu`, `power-manager`, `internet`, `modem`, `gps`, `keycard`, `ble`, `dashboard`, `system`
+- `vehicle`, `battery:0`, `battery:1`, `aux-battery`, `cb-battery`, `engine-ecu`, `power-manager`, `power-mux`, `internet`, `modem`, `gps`, `keycard`, `ble`, `dashboard`, `system`, `alarm`, `navigation`, `ota`, `scooter`
 
 **Produces queues (LPUSH) — from remote server commands:**
 
@@ -585,6 +616,7 @@ overridden off or pinned to a fixed level.
 - `scooter:blinker` → "left", "right", "both", "off"
 - `scooter:hardware` → "dashboard:on/off", "engine:on/off", "handlebar:lock/unlock"
 - `scooter:power` → "reboot", "hibernate", "hibernate-manual"
+- `scooter:alarm` → "arm", "disarm", "enable", "disable", "stop"
 
 ---
 
@@ -609,7 +641,7 @@ overridden off or pinned to a fixed level.
 
 **Produces queues (LPUSH):**
 
-- `scooter:state`, `scooter:seatbox`, `scooter:horn`, `scooter:blinker`, `scooter:hardware`, `scooter:power`, `scooter:alarm`, `scooter:led:cue`, `scooter:led:fade`, `settings:overlay` (`apply:service`, `clear:service` via `lsc service-mode on|off`)
+- `scooter:state`, `scooter:seatbox`, `scooter:horn`, `scooter:blinker`, `scooter:hardware`, `scooter:power`, `scooter:alarm`, `scooter:led:cue`, `scooter:led:fade`, `scooter:modem`, `scooter:update:<component>`, `settings:overlay` (`apply:service`, `clear:service` via `lsc service-mode on|off`)
 
 ---
 
@@ -628,13 +660,14 @@ overridden off or pinned to a fixed level.
 | `dashboard` | scootui (ready/serial-number/backlight-enabled), dbc-backlight (backlight/brightness), vehicle-service (backlight-enabled) | vehicle-service (ready), dbc-backlight (backlight-enabled), scootui (brightness) |
 | `power-manager` | pm-service | bluetooth-service, scootui, uplink-service |
 | `power-manager:busy-services` | pm-service | monitoring only |
-| `system` | vehicle-service (cpu:governor), bluetooth-service (mdb-version, nrf-fw-version), pm-service (cpu:governor) | bluetooth-service, uplink-service, scootui |
-| `ota` | update-service | vehicle-service (reads status), update-service (self), scootui |
+| `system` | vehicle-service (cpu:governor, usb0-gate), bluetooth-service (mdb-version, nrf-fw-version), pm-service (cpu:governor), keycard-service (keycard counts) | bluetooth-service, uplink-service, scootui, vehicle-service |
+| `ota` | update-service (incl. `heartbeat:<component>`) | vehicle-service (reads status), update-service (self), scootui |
 | `internet` | modem-service; radio-gaga/uplink-service (`unu-cloud` legacy) | scootui, uplink-service |
 | `remote-access` | radio-gaga, uplink-service, optional providers | pm-service (live `status` read), diagnostics |
 | `modem` | modem-service | scootui, uplink-service |
 | `gps` | modem-service | scootui, uplink-service |
 | `alarm` | alarm-service | lsc, monitoring |
+| `maps` | scootui-qt (metadata), ums-service (tile transfer) | scootui, monitoring |
 | `settings` | settings-service (from TOML), update-service (last-check-time) | vehicle-service, battery-service, ecu-service, alarm-service, pm-service, trip-service |
 | `trip` | trip-service | scootui, monitoring |
 | `trip:counter` | trip-service | scootui, bluetooth-service, monitoring |
@@ -662,6 +695,7 @@ Its own hash interfaces are:
 | `battery:1:fault` | battery-service | scootui |
 | `internet:fault` | modem-service | scootui |
 | `ble:fault` | bluetooth-service | scootui |
+| `engine-ecu:fault` | ecu-service | scootui, monitoring |
 
 ### Stream Keys
 
@@ -685,16 +719,20 @@ alone; the destination and value are entirely rule configuration.
 | `scooter:led:cue` | vehicle-service | lsc |
 | `scooter:led:fade` | vehicle-service | lsc |
 | `scooter:update` | vehicle-service | update-service |
-| `scooter:update:<component>` | update-service | update-service (self check-now) |
+| `scooter:update:<component>` | update-service | update-service (self check-now), lsc |
 | `scooter:hardware` | vehicle-service | lsc, scootui, uplink-service |
 | `scooter:power` | pm-service | lsc, vehicle-service, update-service, uplink-service, alarm-service |
 | `scooter:governor` | pm-service | vehicle-service (sends cpu governor changes) |
-| `scooter:modem` | modem-service | pm-service |
+| `scooter:modem` | modem-service | pm-service, lsc |
 | `scooter:bluetooth` | bluetooth-service | external/lsc |
 | `scooter:trip` | trip-service | bluetooth-service, trusted local clients |
-| `scooter:alarm` | alarm-service | lsc |
+| `scooter:alarm` | alarm-service | lsc, uplink-service |
+| `scooter:keycard` | keycard-service | lsc, bluetooth-service |
+| `scooter:hop-on` | vehicle-service | scootui |
+| `scooter:dbc-hold` | vehicle-service | scootui |
+| `scooter:sms` | modem-service | external clients |
 | `settings:overlay` | settings-service | lsc |
-| `power:inhibits` | pm-service inhibitor manager | update-service, vehicle-service, modem-service (hold pm inhibitors) |
+| `power:inhibits` | pm-service inhibitor manager | update-service, vehicle-service, modem-service, alarm-service, bluetooth-service (hold pm inhibitors) |
 
 Inhibitor ids worth knowing, because fleet tooling matches on their prefixes:
 
@@ -704,6 +742,8 @@ Inhibitor ids worth knowing, because fleet tooling matches on their prefixes:
 | `download:{component}`, `preparing:{component}`, `install:{component}` | delay | update-service | the corresponding update phase (advisory only, see below) |
 | `dbc-update` | suspend-only | vehicle-service | a DBC update holds dashboard power |
 | `map-download` | suspend-only | vehicle-service | the dashboard is mid map or tile download |
+| `alarm-active` | block | alarm-service | an alarm is sounding |
+| `modem-active` | block | modem-service | the modem is powered |
 
 `download-transfer` is what keeps the MDB out of suspend during an OTA. Without it
 pm-service suspends roughly a minute into stand-by and takes the modem with it, so a

@@ -51,6 +51,12 @@ hgetall vehicle
 | blinker:state | "on"/"off" | Blinker active state | "off" |
 | state | "stand-by"/"parked"/"hop-on"/"hop-on-learning"/"ready-to-drive"/"waiting-seatbox"/"shutting-down"/"updating"/"waiting-hibernation"/"waiting-hibernation-advanced"/"waiting-hibernation-seatbox"/"waiting-hibernation-confirm" | Vehicle operating state | "stand-by" |
 | auto-standby-deadline | integer (Unix timestamp) | When auto-standby will trigger (only present when timer active) | "1734567890" |
+| auto-standby-remaining | integer (sec) | Seconds left until auto-standby (absent when the timer is not running) | "900" |
+| engine-power | "on"/"off" | Motor controller power enable | "off" |
+| dashboard:power | "on"/"off" | Dashboard power state | "off" |
+| handlebar:lock-state | "locked"/"unlocked" | Handlebar lock state as last commanded or confirmed | "unlocked" |
+| dbc-updating | "true"/"false" | A DBC update is in progress | "false" |
+| update:status | string | Aggregated update status surfaced to the UI | "idle" |
 
 ### Engine ECU (`engine-ecu`)
 ```
@@ -104,6 +110,10 @@ Note: When battery is not present (`"present": "false"`), all fields will show d
 | temperature-state | string | Temperature status | "unknown" |
 | cycle-count | integer | Battery cycle count | "0" |
 | state-of-health | integer (%) | Battery health | "0" |
+| remaining-capacity | integer (mAh) | Remaining pack capacity | "0" |
+| full-capacity | integer (mAh) | Full pack capacity | "0" |
+| fault-code | integer | Pack fault code (0 when none) | "0" |
+| low-soc | "true"/"false" | Pack low-SOC flag | "false" |
 | serial-number | string | Battery serial number | "" |
 | manufacturing-date | string | Manufacturing date | "" |
 | fw-version | string | Firmware version | "" |
@@ -169,6 +179,7 @@ hgetall system
 | dbc-version | string | Dashboard computer version | "v1.15.0+430553" |
 | keycard-master-count | integer | Master keycards enrolled, written by keycard-service | "1" |
 | keycard-authorized-count | integer | Authorized keycards enrolled, written by keycard-service | "3" |
+| cpu:governor | string | Current CPU frequency governor | "ondemand" |
 | usb0-gate | string | This boot's usb0 gate decision, written by vehicle-service: `open` (link held up) or `closed` (link tracks `dashboard:power`). Absent until vehicle-service resolves the gate. | "closed" |
 
 ### Power Management (`power-manager`)
@@ -589,6 +600,8 @@ Librescoot adds persistent settings managed by the settings-service:
 | updates.dbc.releases-url | string | Release index base URL for DBC | "https://downloads.librescoot.org/releases" |
 | updates.dbc.last-check-time | string (ISO8601) | Last DBC update check timestamp | "2025-01-15T10:30:00Z" |
 | dashboard.show-raw-speed | "true"/"false" | Show raw uncorrected speed from ECU | "false" |
+| dashboard.show-road-name | string | Road-name display (always/map/navigating/never) | "always" |
+| dashboard.show-speed-limit | string | Speed-limit indicator visibility (always/map/navigating/over-limit/never) | "always" |
 | dashboard.speedometer.max-speed | integer (km/h) | Full-scale value of the speedometer arc; labels and range follow it, the arc geometry does not change | "60" |
 | dashboard.speedometer.warn-speed | integer (km/h) | Speed from which the speedometer fill ramps from blue towards purple | "55" |
 | dashboard.speedometer.overspeed | integer (km/h) | Speed above which the speedometer fill pulses purple and pink | "60" |
@@ -1383,6 +1396,56 @@ redis-cli -h 192.168.7.1 LPUSH scooter:governor performance
 ```
 
 **Available commands**: `ondemand`, `powersave`, `performance`
+
+### Hop-On Control (`scooter:hop-on`) - Librescoot Only
+
+Consumed by vehicle-service; the dashboard pushes these when the rider steps off briefly and again when they return.
+
+```bash
+redis-cli -h 192.168.7.1 LPUSH scooter:hop-on engage
+```
+
+**Available commands**: `engage`, `engage-learning`, `release`
+
+### Hardware Control (`scooter:hardware`) - Librescoot Only
+
+Consumed by vehicle-service for direct power and lock control without a state transition.
+
+```bash
+redis-cli -h 192.168.7.1 LPUSH scooter:hardware dashboard:off
+```
+
+**Available commands**: `dashboard:on`, `dashboard:off`, `engine:on`, `engine:off`, `handlebar:lock`, `handlebar:unlock` (with `:force` variants)
+
+### DBC Power Hold (`scooter:dbc-hold`) - Librescoot Only
+
+Consumed by vehicle-service; the dashboard asks it to keep the DBC powered while it downloads maps or tiles, then releases the hold.
+
+```bash
+redis-cli -h 192.168.7.1 LPUSH scooter:dbc-hold map-download
+```
+
+**Available commands**: `map-download`, `release`
+
+### LED Cue Playback (`scooter:led:cue`) - Librescoot Only
+
+Consumed by vehicle-service; plays a named cue from `/usr/share/led-curves/cues/`.
+
+```bash
+redis-cli -h 192.168.7.1 LPUSH scooter:led:cue 9
+```
+
+**Available commands**: an integer cue index
+
+### LED Fade Playback (`scooter:led:fade`) - Librescoot Only
+
+Consumed by vehicle-service; plays a fade on one PWM channel.
+
+```bash
+redis-cli -h 192.168.7.1 LPUSH scooter:led:fade 3:4
+```
+
+**Available commands**: `channel:fadeIndex`
 
 ### Command Channel Notes
 
