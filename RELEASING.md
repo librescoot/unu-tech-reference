@@ -131,13 +131,23 @@ Do not apply the same fix by hand on each branch. That is how the branches drift
 a correction verified against one release is not automatically true for another whose
 services are pinned to different commits.
 
-## Caveat: push release branches one at a time
+## Publishing is race-safe (there is no concurrency group)
 
-The deploy uses a single `mike-deploy` concurrency group. GitHub keeps only one
-*pending* run per group, so pushing several `docs/v*` branches at once leaves the
-last one pending and cancels the earlier ones. When bootstrapping or back-filling
-multiple versions, push them one at a time (or re-run the cancelled deploys
-sequentially from the Actions tab). Cutting one release at a time never hits this.
+Deploys and promotions may run concurrently. `.github/publish-gh-pages.sh`
+(always read from main, never from the pushed ref) fetches `origin/gh-pages`,
+re-bases the local branch onto it, writes mike's commit with the CNAME and
+redirect stubs folded in, then pushes **once** — retrying against the new head if
+another run pushed first. One push per run instead of mike's two, and no run can
+overwrite another's version.
+
+There is deliberately no concurrency group. GitHub keeps only one running plus
+one *pending* run per group, so a group does not queue back-to-back pushes — it
+silently cancels the earlier one. Pushing two snapshot branches together used to
+leave the site missing the first version until someone noticed.
+
+If the retries are exhausted (8 attempts, backing off) the run fails loudly with
+`failed to publish ... after N attempts`; just re-run it. Nothing is
+half-written: every attempt starts from the current remote head.
 
 ## Local preview
 

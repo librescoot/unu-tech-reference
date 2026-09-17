@@ -18,11 +18,11 @@ permissions:
   # mike pushes to gh-pages - needs write to repo contents.
   contents: write
 
-# Don't cancel in-progress deploys; mike fetches gh-pages, mutates it, pushes
-# back. Cancellation mid-flight could leave gh-pages in a weird state.
-concurrency:
-  group: mike-deploy
-  cancel-in-progress: false
+# No concurrency group on purpose. Publication is made race-safe inside the
+# reusable workflow (fetch, re-base onto origin/gh-pages, one push, retry), so
+# runs may overlap. A group would NOT be safe here anyway: GitHub keeps only one
+# running plus one pending run per group, so pushing two snapshot branches
+# back-to-back silently cancelled the first deploy instead of queueing it.
 
 jobs:
   run:
