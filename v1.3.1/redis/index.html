@@ -1373,6 +1373,61 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#hop-on-control-scooterhop-on-librescoot-only" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Hop-On Control (<code>scooter:hop-on</code>) - Librescoot Only
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hardware-control-scooterhardware-librescoot-only" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Hardware Control (<code>scooter:hardware</code>) - Librescoot Only
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dbc-power-hold-scooterdbc-hold-librescoot-only" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        DBC Power Hold (<code>scooter:dbc-hold</code>) - Librescoot Only
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#led-cue-playback-scooterledcue-librescoot-only" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        LED Cue Playback (<code>scooter:led:cue</code>) - Librescoot Only
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#led-fade-playback-scooterledfade-librescoot-only" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        LED Fade Playback (<code>scooter:led:fade</code>) - Librescoot Only
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#command-channel-notes" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
@@ -2888,6 +2943,61 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#hop-on-control-scooterhop-on-librescoot-only" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Hop-On Control (<code>scooter:hop-on</code>) - Librescoot Only
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hardware-control-scooterhardware-librescoot-only" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Hardware Control (<code>scooter:hardware</code>) - Librescoot Only
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dbc-power-hold-scooterdbc-hold-librescoot-only" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        DBC Power Hold (<code>scooter:dbc-hold</code>) - Librescoot Only
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#led-cue-playback-scooterledcue-librescoot-only" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        LED Cue Playback (<code>scooter:led:cue</code>) - Librescoot Only
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#led-fade-playback-scooterledfade-librescoot-only" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        LED Fade Playback (<code>scooter:led:fade</code>) - Librescoot Only
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#command-channel-notes" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
@@ -3107,6 +3217,42 @@ will not find it on 1.2 or later.</p>
 <td>integer (Unix timestamp)</td>
 <td>When auto-standby will trigger (only present when timer active)</td>
 <td>"1734567890"</td>
+</tr>
+<tr>
+<td>auto-standby-remaining</td>
+<td>integer (sec)</td>
+<td>Seconds left until auto-standby (absent when the timer is not running)</td>
+<td>"900"</td>
+</tr>
+<tr>
+<td>engine-power</td>
+<td>"on"/"off"</td>
+<td>Motor controller power enable</td>
+<td>"off"</td>
+</tr>
+<tr>
+<td>dashboard:power</td>
+<td>"on"/"off"</td>
+<td>Dashboard power state</td>
+<td>"off"</td>
+</tr>
+<tr>
+<td>handlebar:lock-state</td>
+<td>"locked"/"unlocked"</td>
+<td>Handlebar lock state as last commanded or confirmed</td>
+<td>"unlocked"</td>
+</tr>
+<tr>
+<td>dbc-updating</td>
+<td>"true"/"false"</td>
+<td>A DBC update is in progress</td>
+<td>"false"</td>
+</tr>
+<tr>
+<td>update:status</td>
+<td>string</td>
+<td>Aggregated update status surfaced to the UI</td>
+<td>"idle"</td>
 </tr>
 </tbody>
 </table>
@@ -3337,6 +3483,30 @@ will not find it on 1.2 or later.</p>
 <td>integer (%)</td>
 <td>Battery health</td>
 <td>"0"</td>
+</tr>
+<tr>
+<td>remaining-capacity</td>
+<td>integer (mAh)</td>
+<td>Remaining pack capacity</td>
+<td>"0"</td>
+</tr>
+<tr>
+<td>full-capacity</td>
+<td>integer (mAh)</td>
+<td>Full pack capacity</td>
+<td>"0"</td>
+</tr>
+<tr>
+<td>fault-code</td>
+<td>integer</td>
+<td>Pack fault code (0 when none)</td>
+<td>"0"</td>
+</tr>
+<tr>
+<td>low-soc</td>
+<td>"true"/"false"</td>
+<td>Pack low-SOC flag</td>
+<td>"false"</td>
 </tr>
 <tr>
 <td>serial-number</td>
@@ -3573,6 +3743,12 @@ by bluetooth-service. Also published on the <code>scooter</code> channel.</p>
 <td>integer</td>
 <td>Authorized keycards enrolled, written by keycard-service</td>
 <td>"3"</td>
+</tr>
+<tr>
+<td>cpu:governor</td>
+<td>string</td>
+<td>Current CPU frequency governor</td>
+<td>"ondemand"</td>
 </tr>
 <tr>
 <td>usb0-gate</td>
@@ -4538,6 +4714,18 @@ all three writers in the shape scootui-qt's <code>MapMetadata</code> defines.</p
 <td>"true"/"false"</td>
 <td>Show raw uncorrected speed from ECU</td>
 <td>"false"</td>
+</tr>
+<tr>
+<td>dashboard.show-road-name</td>
+<td>string</td>
+<td>Road-name display (always/map/navigating/never)</td>
+<td>"always"</td>
+</tr>
+<tr>
+<td>dashboard.show-speed-limit</td>
+<td>string</td>
+<td>Speed-limit indicator visibility (always/map/navigating/over-limit/never)</td>
+<td>"always"</td>
 </tr>
 <tr>
 <td>dashboard.speedometer.max-speed</td>
@@ -5717,6 +5905,31 @@ price a channel switch before asking the rider to confirm.</p>
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-44-1"><a id="__codelineno-44-1" name="__codelineno-44-1" href="#__codelineno-44-1"></a>redis-cli<span class="w"> </span>-h<span class="w"> </span><span class="m">192</span>.168.7.1<span class="w"> </span>LPUSH<span class="w"> </span>scooter:governor<span class="w"> </span>performance
 </span></code></pre></div>
 <p><strong>Available commands</strong>: <code>ondemand</code>, <code>powersave</code>, <code>performance</code></p>
+<h3 id="hop-on-control-scooterhop-on-librescoot-only">Hop-On Control (<code>scooter:hop-on</code>) - Librescoot Only<a class="headerlink" href="#hop-on-control-scooterhop-on-librescoot-only" title="Permanent link">&para;</a></h3>
+<p>Consumed by vehicle-service; the dashboard pushes these when the rider steps off briefly and again when they return.</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-45-1"><a id="__codelineno-45-1" name="__codelineno-45-1" href="#__codelineno-45-1"></a>redis-cli<span class="w"> </span>-h<span class="w"> </span><span class="m">192</span>.168.7.1<span class="w"> </span>LPUSH<span class="w"> </span>scooter:hop-on<span class="w"> </span>engage
+</span></code></pre></div>
+<p><strong>Available commands</strong>: <code>engage</code>, <code>engage-learning</code>, <code>release</code></p>
+<h3 id="hardware-control-scooterhardware-librescoot-only">Hardware Control (<code>scooter:hardware</code>) - Librescoot Only<a class="headerlink" href="#hardware-control-scooterhardware-librescoot-only" title="Permanent link">&para;</a></h3>
+<p>Consumed by vehicle-service for direct power and lock control without a state transition.</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-46-1"><a id="__codelineno-46-1" name="__codelineno-46-1" href="#__codelineno-46-1"></a>redis-cli<span class="w"> </span>-h<span class="w"> </span><span class="m">192</span>.168.7.1<span class="w"> </span>LPUSH<span class="w"> </span>scooter:hardware<span class="w"> </span>dashboard:off
+</span></code></pre></div>
+<p><strong>Available commands</strong>: <code>dashboard:on</code>, <code>dashboard:off</code>, <code>engine:on</code>, <code>engine:off</code>, <code>handlebar:lock</code>, <code>handlebar:unlock</code> (with <code>:force</code> variants)</p>
+<h3 id="dbc-power-hold-scooterdbc-hold-librescoot-only">DBC Power Hold (<code>scooter:dbc-hold</code>) - Librescoot Only<a class="headerlink" href="#dbc-power-hold-scooterdbc-hold-librescoot-only" title="Permanent link">&para;</a></h3>
+<p>Consumed by vehicle-service; the dashboard asks it to keep the DBC powered while it downloads maps or tiles, then releases the hold.</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-47-1"><a id="__codelineno-47-1" name="__codelineno-47-1" href="#__codelineno-47-1"></a>redis-cli<span class="w"> </span>-h<span class="w"> </span><span class="m">192</span>.168.7.1<span class="w"> </span>LPUSH<span class="w"> </span>scooter:dbc-hold<span class="w"> </span>map-download
+</span></code></pre></div>
+<p><strong>Available commands</strong>: <code>map-download</code>, <code>release</code></p>
+<h3 id="led-cue-playback-scooterledcue-librescoot-only">LED Cue Playback (<code>scooter:led:cue</code>) - Librescoot Only<a class="headerlink" href="#led-cue-playback-scooterledcue-librescoot-only" title="Permanent link">&para;</a></h3>
+<p>Consumed by vehicle-service; plays a named cue from <code>/usr/share/led-curves/cues/</code>.</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-48-1"><a id="__codelineno-48-1" name="__codelineno-48-1" href="#__codelineno-48-1"></a>redis-cli<span class="w"> </span>-h<span class="w"> </span><span class="m">192</span>.168.7.1<span class="w"> </span>LPUSH<span class="w"> </span>scooter:led:cue<span class="w"> </span><span class="m">9</span>
+</span></code></pre></div>
+<p><strong>Available commands</strong>: an integer cue index</p>
+<h3 id="led-fade-playback-scooterledfade-librescoot-only">LED Fade Playback (<code>scooter:led:fade</code>) - Librescoot Only<a class="headerlink" href="#led-fade-playback-scooterledfade-librescoot-only" title="Permanent link">&para;</a></h3>
+<p>Consumed by vehicle-service; plays a fade on one PWM channel.</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-49-1"><a id="__codelineno-49-1" name="__codelineno-49-1" href="#__codelineno-49-1"></a>redis-cli<span class="w"> </span>-h<span class="w"> </span><span class="m">192</span>.168.7.1<span class="w"> </span>LPUSH<span class="w"> </span>scooter:led:fade<span class="w"> </span><span class="m">3</span>:4
+</span></code></pre></div>
+<p><strong>Available commands</strong>: <code>channel:fadeIndex</code></p>
 <h3 id="command-channel-notes">Command Channel Notes<a class="headerlink" href="#command-channel-notes" title="Permanent link">&para;</a></h3>
 <ul>
 <li>Commands use the <code>LPUSH</code> operation to queue requests</li>
