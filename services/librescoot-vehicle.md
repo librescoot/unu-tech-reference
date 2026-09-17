@@ -298,6 +298,49 @@ Will manually transition to `ready-to-drive` and blink the main light once for c
 2. Immediately transitions to `stand-by` without handlebar locking
 3. Used for emergency shutdown or special cases (e.g., DBC update)
 
+#### Lock on Bluetooth Disconnect
+
+`scooter.lock-on-bluetooth-disconnect-seconds` (settings hash, integer seconds,
+default `0` = disabled) locks the scooter when the connected phone walks away.
+The value is a grace period, not a separate timeout or state: on expiry the
+existing auto-standby path runs (`parked` -> `shutting-down` -> `stand-by`).
+
+**Value handling.** `0` disables the feature; any value above `0` enables it.
+Non-zero values below 5 are clamped up to 5 (`minLockOnDisconnectSeconds`), and
+negative values are treated as `0`. The same clamp applies on the startup read and
+on a `settings` update.
+
+**Arming.** vehicle-service watches the `ble` hash `status` field. It arms a
+countdown only when all of these hold at the moment the field changes:
+
+1. the new status is `disconnected` and the previous status was `connected` (a
+   real drop edge),
+2. the FSM leaf is exactly `parked` (not `hop-on`, `hop-on-learning`, or
+   `ready-to-drive`),
+3. the setting is above `0`, and
+4. no countdown is already armed.
+
+Because the trigger is the edge, the phone must still be connected when the
+scooter becomes `parked`. A scooter that is already `parked` with the phone
+disconnected (for example a keycard unlock with no phone present) never arms.
+
+**Countdown.** Arming cancels the idle auto-standby timer and starts the shared
+standby countdown for the configured grace period. This publishes the same
+`vehicle` fields (`auto-standby-deadline`, `auto-standby-remaining`) as idle
+auto-standby, so the dashboard's existing countdown overlay renders it (it shows
+only the final 60 s). Expiry fires `EvAutoStandbyTimeout`, identical to idle
+auto-standby, so the feature introduces no new state or FSM transition.
+
+**Cancelling.** A `disconnected` -> `connected` reconnect during the countdown
+cancels it. So does any rider interaction (brake, kickstand, seatbox button) via
+`resetAutoStandbyTimer`, which clears the countdown regardless of whether idle
+auto-standby is enabled. After a cancel the idle auto-standby timer is re-armed
+only when still `parked` and `scooter.auto-standby-seconds` is above `0`. Entering
+or leaving the `at-rest` family also clears an armed countdown.
+
+This is independent of `scooter.auto-standby-seconds`; either setting can be
+enabled without the other.
+
 #### Hibernation Sequence
 
 **Brake-lever hibernation** (can be disabled via `settings` hash `scooter.brake-hibernation` = "disabled"):
@@ -571,6 +614,7 @@ Three keycard taps while holding brake lever triggers immediate transition to st
 The service responds to settings changes via PUBSUB:
 
 - `scooter.brake-hibernation`: "enabled" or "disabled"
+- `scooter.lock-on-bluetooth-disconnect-seconds`: integer seconds; `0` disables
 - Changes take effect immediately
 - Active hibernation sequences are cancelled when disabled
 
