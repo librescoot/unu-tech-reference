@@ -5675,7 +5675,7 @@ also reflected in the <code>sms</code> hash (<code>state</code> goes <code>sendi
 component's <code>variant_id</code> and the size of its <code>.mender</code> artifact, into the <code>ota</code> hash's
 <code>preview-*</code> fields. It sets nothing and downloads nothing; the dashboard uses it to
 price a channel switch before asking the rider to confirm.</p>
-<p>The shared <code>scooter:update</code> list is consumed by <strong>vehicle-service</strong>, not the updaters: update-service pushes lifecycle commands (<code>start</code>, <code>complete</code>, <code>start-dbc</code>, <code>complete-dbc</code>) there to drive the vehicle's <code>updating</code> state.</p>
+<p>The shared <code>scooter:update</code> list is consumed by <strong>vehicle-service</strong>, not the updaters: update-service pushes the DBC lifecycle commands <code>start-dbc</code> and <code>complete-dbc</code> there to drive the vehicle's <code>updating</code> state. vehicle-service also accepts the legacy <code>start</code> and <code>complete</code>.</p>
 <p>See <a href="../services/librescoot-update/">update-service documentation</a>.</p>
 <h3 id="settings-overlay-control-settingsoverlay-librescoot-only">Settings Overlay Control (<code>settings:overlay</code>) - Librescoot Only<a class="headerlink" href="#settings-overlay-control-settingsoverlay-librescoot-only" title="Permanent link">&para;</a></h3>
 <p>Apply or clear a named settings overlay. See <a href="#settings-overlay-commands-settingsoverlay---librescoot-only">Settings Overlay Commands</a> above for full details.</p>
