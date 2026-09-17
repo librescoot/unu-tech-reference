@@ -1977,7 +1977,7 @@
 <ul>
 <li><code>status</code> - Service status (<code>idle</code>, <code>preparing</code>, <code>active</code>, <code>processing</code>, <code>awaiting-reboot</code>, <code>rebooting</code>)</li>
 <li><code>awaiting-reboot</code> covers the hand-off to update-service and installation. While it is set, <code>step</code> names what the wait is on: <code>waiting-mdb</code>, <code>waiting-dbc</code>, <code>waiting-dbc+mdb</code>, then <code>waiting-vehicle-state</code>. After installation completes and the vehicle-state safety gate passes, <code>rebooting</code> is published briefly before the reboot or DBC power-cycle command. The status returns to <code>idle</code> when the trigger fails, the wait fails/times out, or a new UMS session cancels the pending operation.</li>
-<li><code>step</code> - Current processing step (<code>settings</code>, <code>wireguard</code>, <code>radio-gaga</code>, <code>uplink-service</code>, <code>onboot</code>, <code>updates</code>, <code>maps</code>, or empty). The script stage runs without setting <code>step</code>.</li>
+<li><code>step</code> - Current processing step (<code>settings</code>, <code>wireguard</code>, <code>radio-gaga</code>, <code>uplink-service</code>, <code>onboot</code>, <code>updates</code>, <code>maps</code>, <code>scripts</code>, or empty)</li>
 <li><code>last-result</code> - Outcome of the last reboot phase (<code>reboot-triggered</code>, <code>timeout</code>, <code>install-error</code>, <code>vehicle-state</code>, or <code>error</code>)</li>
 <li><code>last-result-detail</code> - Human-readable detail for that outcome</li>
 <li><code>last-result-time</code> - RFC3339 time the outcome was recorded</li>

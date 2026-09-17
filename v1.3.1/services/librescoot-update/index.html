@@ -2312,6 +2312,10 @@ A consumer that needs to distinguish a failed update from no update has to read
 <td>A delta arrived with no local <code>.mender</code> for the running version to apply it against</td>
 </tr>
 <tr>
+<td><code>delta-base-mismatch</code></td>
+<td>A delta was built against a different base image than the one installed, so it cannot be applied</td>
+</tr>
+<tr>
 <td><code>delta-rejected</code></td>
 <td>A delta does not apply to the installed version (wrong channel, or not newer)</td>
 </tr>
