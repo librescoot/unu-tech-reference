@@ -95,6 +95,8 @@ first lets the in-flight entry observe it and abandon itself.
 `scootui-qt` mirrors this on the UMS overlay, labelling the left-brake hold
 `Cancel` while `status` is `preparing` and `Exit` otherwise.
 
+Before mounting, the service checks the image with `fsck.fat`. Recoverable errors are repaired in place. An image with no valid FAT boot sector, or one that stays inconsistent after repair, is discarded and recreated empty: any files staged on it are lost, and the cycle fails with an instruction to reconnect the drive and copy them again.
+
 ## Virtual Drive
 
 1 GB FAT32 image at `/data/usb.drive`:
@@ -150,7 +152,7 @@ into place, and an untouched file is a no-op.
 4. **uplink-service** - copies `uplink-service/config.yaml` back to `/data/uplink-service/`, restarts `librescoot-uplink.service` if changed
 5. **onboot** - copies `onboot.sh` back into place
 6. **Updates** - update files for each board are staged in that board's own update directory (MDB `/data/ota/mdb`; DBC transferred to `/data/ota/dbc`), then one path-free `apply-staged-updates` command is pushed per board. Several `.delta` files for one board are applied by update-service as a single chain: one assemble, one install, one reboot. A board whose drop mixes a newer `.mender` with a `.delta`, or contains two or more newer `.mender` files, is refused: nothing is staged for that board, the other board still proceeds
-7. **Maps** - transfers `.mbtiles` to `/data/maps/map.mbtiles` on DBC; transfers Valhalla tile archives to `/data/valhalla/tiles.tar` on DBC. A `valhalla_tiles_*.tar.zst` is uploaded compressed and decompressed on the DBC, into a temp file that only replaces `tiles.tar` once the whole stream has decoded; the installed file is always the plain seekable tar, because Valhalla mmaps it as its `tile_extract`. After each artifact lands, the service reads it back on the DBC (`sha256sum` plus `stat`), records it in `/data/maps/metadata.json` and mirrors it into the [`maps`](../redis/README.md#installed-maps-maps---librescoot-only) hash. The region comes from the published filename (`tiles_<slug>.mbtiles`, `valhalla_tiles_<slug>.tar`); a renamed or generically named file clears the recorded region rather than leaving the previous one to describe tiles it no longer refers to
+7. **Maps** - transfers `.mbtiles` to `map.mbtiles.tmp` on the DBC and renames it into `/data/maps/map.mbtiles`, so the installed file is only ever a complete transfer; transfers Valhalla tile archives to `/data/valhalla/tiles.tar` on DBC. A `valhalla_tiles_*.tar.zst` is uploaded compressed and decompressed on the DBC, into a temp file that only replaces `tiles.tar` once the whole stream has decoded; the installed file is always the plain seekable tar, because Valhalla mmaps it as its `tile_extract`. After each artifact lands, the service reads it back on the DBC (`sha256sum` plus `stat`), records it in `/data/maps/metadata.json` and mirrors it into the [`maps`](../redis/README.md#installed-maps-maps---librescoot-only) hash. The region comes from the published filename (`tiles_<slug>.mbtiles`, `valhalla_tiles_<slug>.tar`); a renamed or generically named file clears the recorded region rather than leaving the previous one to describe tiles it no longer refers to
 8. **Scripts** - runs `scripts/mdb.sh` locally; transfers `scripts/dbc.sh` to DBC and runs it remotely
 9. Writes `ums_log.txt` to drive root, then cleans the drive (preserving `ums_log.txt`)
 
@@ -167,6 +169,7 @@ the dashboard.
 ## Hardware
 
 - **Network mode:** `g_ether` kernel module
+- **Link state:** switching into UMS records whether `usb0` was up. Switching back brings `g_ether` back but re-enables `usb0` only if it had been up on entry, so a deliberately down link stays down.
 - **UMS mode:** `g_mass_storage` kernel module
 - Requires root for `modprobe`/`rmmod` operations
 - DBC file transfers: HTTP PUT to port 8080 on `192.168.7.2` (primary); SCP fallback. MDB serves staging files over HTTP at `192.168.7.1:31337`.

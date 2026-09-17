@@ -11,9 +11,13 @@ Manages over-the-air (OTA) updates for MDB and DBC components. Runs as two separ
   --redis-addr string        Redis server address (default: localhost:6379)
   --channel string           Update channel: stable, testing, nightly (inferred from the installed version if unset; explicit installs still work without a channel)
   --releases-url string      Release index base URL (default: https://downloads.librescoot.org/releases)
-  --check-interval duration  Interval between update checks; 0 to disable (default: 6h)
+  --check-interval duration  Interval between update checks; 0 or "never" to disable (default: 6h)
   --download-dir string      OTA file download directory (default: /data/ota/{component})
+  --download-max-duration duration   Wall-clock cap on a single download attempt (default: 1h; 0 to disable)
+  --download-stall-window duration   Rolling window for the download throughput floor (default: 2m; 0 to disable)
+  --download-stall-min-bytes int64   Bytes that must arrive within each stall window (default: 65536)
   --dry-run                  Log reboot actions instead of executing them
+  --version                  Print version and exit
   --boot-update              Enable boot partition updates
   --boot-mount string        Boot partition mount point (default: /uboot)
   --boot-device string       eMMC boot0 device /dev/mmcblkNboot0 (auto-detected if empty)
@@ -386,8 +390,8 @@ Configured via `updates.{component}.method` in Redis settings. Default is `delta
 
 ## Reboot Behavior
 
-- **MDB**: waits until vehicle is in stand-by state for 3 minutes, then triggers reboot via `scooter:power`
-- **DBC**: sets status to `pending-reboot`; reboot applied on next natural power-on (no active trigger)
+- **MDB**: waits until vehicle is in stand-by state for 3 minutes, then triggers reboot via `scooter:power`. The 3-minute requirement applies to periodic checks; a manually requested update (`check-now`, `update-from-file:`, `update-from-url:`) reboots as soon as the vehicle is in stand-by.
+- **DBC**: sets status to `pending-reboot`; reboot applied on next natural power-on (no active trigger). When the dashboard powers off, the MDB clears only a DBC `downloading` or `preparing` status. `pending-reboot` is kept for the DBC's own recovery on the next power-on, and it does not block MDB orchestration of the DBC.
 - With `--dry-run`: logs reboot intent only
 
 ## File Locations
