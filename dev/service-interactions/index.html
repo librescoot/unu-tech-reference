@@ -1219,17 +1219,6 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#gap-2-settings-service-does-not-publish-when-loading-settings-at-boot-high-bug" class="md-nav__link">
-    <span class="md-ellipsis">
-      <span class="md-typeset">
-        GAP-2: settings-service does not PUBLISH when loading settings at boot (High Bug)
-      </span>
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
   <a href="#gap-3-battery-service-subscribes-to-vehicle-channel-but-misses-seatboxopened-event-normal" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
@@ -1241,32 +1230,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#gap-4-pm-service-reads-battery0-only-ignores-battery1-state-normal" class="md-nav__link">
-    <span class="md-ellipsis">
-      <span class="md-typeset">
-        GAP-4: pm-service reads <code>battery:0</code> only, ignores battery:1 state (Normal)
-      </span>
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
   <a href="#gap-5-startup-race-vehicle-service-subscribes-after-reading-initial-dashboard-state-low" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
         GAP-5: Startup race, vehicle-service subscribes after reading initial dashboard state (Low)
-      </span>
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#gap-6-ecu-service-uses-go-redis-v8-all-others-use-v9-low" class="md-nav__link">
-    <span class="md-ellipsis">
-      <span class="md-typeset">
-        GAP-6: ecu-service uses go-redis v8, all others use v9 (Low)
       </span>
     </span>
   </a>
@@ -2225,17 +2192,6 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#gap-2-settings-service-does-not-publish-when-loading-settings-at-boot-high-bug" class="md-nav__link">
-    <span class="md-ellipsis">
-      <span class="md-typeset">
-        GAP-2: settings-service does not PUBLISH when loading settings at boot (High Bug)
-      </span>
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
   <a href="#gap-3-battery-service-subscribes-to-vehicle-channel-but-misses-seatboxopened-event-normal" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
@@ -2247,32 +2203,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#gap-4-pm-service-reads-battery0-only-ignores-battery1-state-normal" class="md-nav__link">
-    <span class="md-ellipsis">
-      <span class="md-typeset">
-        GAP-4: pm-service reads <code>battery:0</code> only, ignores battery:1 state (Normal)
-      </span>
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
   <a href="#gap-5-startup-race-vehicle-service-subscribes-after-reading-initial-dashboard-state-low" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
         GAP-5: Startup race, vehicle-service subscribes after reading initial dashboard state (Low)
-      </span>
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#gap-6-ecu-service-uses-go-redis-v8-all-others-use-v9-low" class="md-nav__link">
-    <span class="md-ellipsis">
-      <span class="md-typeset">
-        GAP-6: ecu-service uses go-redis v8, all others use v9 (Low)
       </span>
     </span>
   </a>
@@ -2447,7 +2381,7 @@
 </span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>                    ─────────────────────────────────────────────
 </span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a> vehicle-service ──writes──&gt; vehicle, system, dashboard, vehicle:fault, events:faults
 </span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a> battery-service ──writes──&gt; battery:0, battery:1, battery:N:fault
-</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a> ecu-service ────writes──&gt; engine-ecu  (WARNING: publishes to broken channels, see gaps)
+</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a> ecu-service ────writes──&gt; engine-ecu
 </span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a> keycard-service ─writes──&gt; keycard  (with 10s TTL)
 </span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a> bluetooth-service writes──&gt; ble, ble:fault, system (mdb-version, nrf-fw-version), engine-ecu (odometer)
 </span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a> pm-service ─────writes──&gt; power-manager, power-manager:busy-services, system (cpu:governor)
@@ -2457,7 +2391,7 @@
 </span><span id="__span-0-15"><a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a> alarm-service ──writes──&gt; alarm
 </span><span id="__span-0-16"><a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a> event-service ──writes──&gt; extensions, extensions:pending (MDB nightly packaging; not 1.3.1 stable)
 </span><span id="__span-0-17"><a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a> version-service  writes──&gt; version:mdb (MDB), version:dbc (DBC)  (one-shot at boot, no pub/sub notification)
-</span><span id="__span-0-18"><a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a> settings-service writes──&gt; settings  (WARNING: no PUBLISH on initial load, see gaps)
+</span><span id="__span-0-18"><a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a> settings-service writes──&gt; settings  (publishes one notification per field at load too)
 </span><span id="__span-0-19"><a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a> trip-service ─────writes──&gt; trip, trip:counter, trip:expunge; leases trip:ready
 </span><span id="__span-0-20"><a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a> update-service ──writes──&gt; ota  (status:*, update-version:*, download-progress:*, etc.)
 </span><span id="__span-0-21"><a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a> ums-service ────writes──&gt; usb
@@ -2465,7 +2399,7 @@
 </span><span id="__span-0-23"><a id="__codelineno-0-23" name="__codelineno-0-23" href="#__codelineno-0-23"></a>
 </span><span id="__span-0-24"><a id="__codelineno-0-24" name="__codelineno-0-24" href="#__codelineno-0-24"></a>                    Lists (command queues, LPUSH/BRPOP)
 </span><span id="__span-0-25"><a id="__codelineno-0-25" name="__codelineno-0-25" href="#__codelineno-0-25"></a>                    ────────────────────────────────────
-</span><span id="__span-0-26"><a id="__codelineno-0-26" name="__codelineno-0-26" href="#__codelineno-0-26"></a> scooter:state   ── vehicle-service reads ── lsc, scootui, uplink-service, alarm-service write
+</span><span id="__span-0-26"><a id="__codelineno-0-26" name="__codelineno-0-26" href="#__codelineno-0-26"></a> scooter:state   ── vehicle-service reads ── lsc, scootui, uplink-service write
 </span><span id="__span-0-27"><a id="__codelineno-0-27" name="__codelineno-0-27" href="#__codelineno-0-27"></a> scooter:seatbox ── vehicle-service reads ── lsc, scootui, uplink-service write
 </span><span id="__span-0-28"><a id="__codelineno-0-28" name="__codelineno-0-28" href="#__codelineno-0-28"></a> scooter:horn    ── vehicle-service reads ── lsc, scootui, uplink-service, alarm-service write
 </span><span id="__span-0-29"><a id="__codelineno-0-29" name="__codelineno-0-29" href="#__codelineno-0-29"></a> scooter:blinker ── vehicle-service reads ── lsc, scootui, uplink-service, alarm-service write
@@ -2473,7 +2407,7 @@
 </span><span id="__span-0-31"><a id="__codelineno-0-31" name="__codelineno-0-31" href="#__codelineno-0-31"></a> scooter:led:fade── vehicle-service reads ── lsc writes
 </span><span id="__span-0-32"><a id="__codelineno-0-32" name="__codelineno-0-32" href="#__codelineno-0-32"></a> scooter:update  ── vehicle-service reads ── update-service writes (start-dbc, complete-dbc)
 </span><span id="__span-0-33"><a id="__codelineno-0-33" name="__codelineno-0-33" href="#__codelineno-0-33"></a> scooter:hardware── vehicle-service reads ── lsc, scootui, uplink-service write
-</span><span id="__span-0-34"><a id="__codelineno-0-34" name="__codelineno-0-34" href="#__codelineno-0-34"></a> scooter:power   ── pm-service reads      ── lsc, update-service, uplink-service write
+</span><span id="__span-0-34"><a id="__codelineno-0-34" name="__codelineno-0-34" href="#__codelineno-0-34"></a> scooter:power   ── pm-service reads      ── lsc, vehicle-service, update-service, uplink-service, alarm-service write
 </span><span id="__span-0-35"><a id="__codelineno-0-35" name="__codelineno-0-35" href="#__codelineno-0-35"></a> scooter:governor── pm-service reads      ── vehicle-service writes
 </span><span id="__span-0-36"><a id="__codelineno-0-36" name="__codelineno-0-36" href="#__codelineno-0-36"></a> scooter:modem   ── modem-service reads   ── pm-service writes ("disable")
 </span><span id="__span-0-37"><a id="__codelineno-0-37" name="__codelineno-0-37" href="#__codelineno-0-37"></a> scooter:bluetooth─ bluetooth-service reads─ (firmware-update and BLE commands)
@@ -2506,7 +2440,7 @@
 </span><span id="__span-0-64"><a id="__codelineno-0-64" name="__codelineno-0-64" href="#__codelineno-0-64"></a> trip:completed ← published by trip-service (completed trip notification)
 </span><span id="__span-0-65"><a id="__codelineno-0-65" name="__codelineno-0-65" href="#__codelineno-0-65"></a> trip:command-result ← published by trip-service (correlated counter-reset JSON result)
 </span><span id="__span-0-66"><a id="__codelineno-0-66" name="__codelineno-0-66" href="#__codelineno-0-66"></a> usb           ← published by ums-service
-</span><span id="__span-0-67"><a id="__codelineno-0-67" name="__codelineno-0-67" href="#__codelineno-0-67"></a> settings      ← published externally (scootui, UMS updates); NOT by settings-service on load
+</span><span id="__span-0-67"><a id="__codelineno-0-67" name="__codelineno-0-67" href="#__codelineno-0-67"></a> settings      ← published by settings-service (one notification per field, including at boot), scootui, UMS updates
 </span><span id="__span-0-68"><a id="__codelineno-0-68" name="__codelineno-0-68" href="#__codelineno-0-68"></a> motion:sensors    ← published by motion-service (10 Hz IMU stream)
 </span><span id="__span-0-69"><a id="__codelineno-0-69" name="__codelineno-0-69" href="#__codelineno-0-69"></a> motion:heading    ← published by motion-service (5 Hz tilt-compensated mag heading)
 </span><span id="__span-0-70"><a id="__codelineno-0-70" name="__codelineno-0-70" href="#__codelineno-0-70"></a> motion:interrupt  ← published by motion-service (motion-engine edges + wake-hibernation)
@@ -2661,11 +2595,11 @@ the rail.</p>
 <p><strong>Writes:</strong>
 | Hash | Fields | Channel |
 |------|--------|---------|
-| <code>engine-ecu</code> | <code>motor:voltage</code>, <code>motor:current</code>, <code>rpm</code>, <code>speed</code>, <code>raw-speed</code>, <code>corrected-speed</code>, <code>throttle</code>, <code>brake</code>, <code>power</code>, <code>energy:consumed</code>, <code>energy:recovered</code> | (broken: see gaps) |
+| <code>engine-ecu</code> | <code>motor:voltage</code>, <code>motor:current</code>, <code>rpm</code>, <code>speed</code>, <code>raw-speed</code>, <code>corrected-speed</code>, <code>throttle</code>, <code>brake</code>, <code>power</code>, <code>energy:consumed</code>, <code>energy:recovered</code> | (throttle publishes on <code>engine-ecu</code>; the rest of this row does not) |
 | <code>engine-ecu</code> | <code>temperature</code>, <code>fault:code</code>, <code>fault:description</code> | (no publish) |
-| <code>engine-ecu</code> | <code>odometer</code> | (broken: see gaps) |
-| <code>engine-ecu</code> | <code>kers</code>, <code>boost</code> | (broken: see gaps) |
-| <code>engine-ecu</code> | <code>kers-reason-off</code> | (broken: see gaps) |
+| <code>engine-ecu</code> | <code>odometer</code> | <code>engine-ecu</code> |
+| <code>engine-ecu</code> | <code>kers</code>, <code>boost</code> | (kers publishes on <code>engine-ecu</code>; boost does not) |
+| <code>engine-ecu</code> | <code>kers-reason-off</code> | <code>engine-ecu</code> |
 | <code>engine-ecu</code> | <code>gear</code>, <code>fw-version</code> | (no publish) |</p>
 <p><strong>Reads:</strong></p>
 <ul>
@@ -2859,7 +2793,7 @@ units, retention safety, and the command contract.</p>
 <p><strong>Writes:</strong>
 | Hash | Fields | Channel |
 |------|--------|---------|
-| <code>settings</code> | All TOML fields including <code>scooter.*</code>, <code>cellular.*</code>, <code>updates.*</code>, <code>dashboard.*</code>, <code>alarm.*</code>, and <code>trip.*</code>; overlay-injected values (in-memory only, not persisted); <code>dashboard.service-mode-active</code> status field | NONE (critical gap — see gaps section) |</p>
+| <code>settings</code> | All TOML fields including <code>scooter.*</code>, <code>cellular.*</code>, <code>updates.*</code>, <code>dashboard.*</code>, <code>alarm.*</code>, and <code>trip.*</code>; overlay-injected values (in-memory only, not persisted); <code>dashboard.service-mode-active</code> status field | <code>settings</code> |</p>
 <p><strong>Reads:</strong></p>
 <ul>
 <li><code>settings/*</code> (all fields, to save back to TOML)</li>
@@ -2867,7 +2801,6 @@ units, retention safety, and the command contract.</p>
 <p><strong>Subscribes to:</strong></p>
 <ul>
 <li><code>settings</code> channel (to detect changes and flush to TOML)</li>
-<li><code>internet</code> channel (for WireGuard manager)</li>
 </ul>
 <p><strong>Consumes queues (BRPOP):</strong></p>
 <ul>
@@ -3273,7 +3206,7 @@ alone; the destination and value are entirely rule configuration.</p>
 <tr>
 <td><code>scooter:power</code></td>
 <td>pm-service</td>
-<td>lsc, update-service, uplink-service</td>
+<td>lsc, vehicle-service, update-service, uplink-service, alarm-service</td>
 </tr>
 <tr>
 <td><code>scooter:governor</code></td>
@@ -3398,31 +3331,16 @@ to <code>"engine-ecu"</code> ever saw them.</p>
 and corrected again in <code>e32d9db</code> (ecu-service v0.8.2). All five notifications
 now publish the field name on the <code>engine-ecu</code> channel, and there is a comment
 on the channel constant recording the convention.</p>
-<h3 id="gap-2-settings-service-does-not-publish-when-loading-settings-at-boot-high-bug">GAP-2: settings-service does not PUBLISH when loading settings at boot (High Bug)<a class="headerlink" href="#gap-2-settings-service-does-not-publish-when-loading-settings-at-boot-high-bug" title="Permanent link">&para;</a></h3>
-<p><strong>File:</strong> <code>settings-service/internal/redis/client.go</code></p>
-<p><code>ReplaceSettings()</code> and <code>SetSettings()</code> use DEL + HSET in a pipeline but never call PUBLISH. Services that subscribe to <code>settings</code> for startup configuration (vehicle-service, battery-service, ecu-service, alarm-service, pm-service) won't receive notifications when settings-service loads the TOML on boot.</p>
-<p>The services handle this by reading settings on startup directly (HGET), so they don't miss the initial values. However, if settings-service starts <strong>after</strong> these services (due to race or restart), the services will miss any new settings values because there's no PUBLISH to trigger a re-read.</p>
-<p><strong>Severity:</strong> High — services may silently use stale or default settings if settings-service restarts after them.</p>
 <h3 id="gap-3-battery-service-subscribes-to-vehicle-channel-but-misses-seatboxopened-event-normal">GAP-3: battery-service subscribes to <code>vehicle</code> channel but misses <code>seatbox:opened</code> event (Normal)<a class="headerlink" href="#gap-3-battery-service-subscribes-to-vehicle-channel-but-misses-seatboxopened-event-normal" title="Permanent link">&para;</a></h3>
 <p><strong>File:</strong> <code>battery-service/battery/service.go</code> lines 145–148</p>
 <p>battery-service handles <code>msg.Payload == "seatbox:lock"</code> (the field update) but not <code>"seatbox:opened"</code> (the event from <code>vehicle-service/PublishSeatboxOpened</code>). The alarm-service correctly handles the <code>"seatbox:opened"</code> event via its <code>OnEvent()</code> handler. Battery-service uses <code>seatbox:lock</code> field changes instead.</p>
 <p>This is mostly fine in practice since <code>seatbox:lock</code> changes from "closed" to "open" on the same operation. But the battery-service will see the lock change <strong>after</strong> the opened event, potentially creating a small timing window.</p>
 <p><strong>Severity:</strong> Low — functional but subtly different timing from intended protocol.</p>
-<h3 id="gap-4-pm-service-reads-battery0-only-ignores-battery1-state-normal">GAP-4: pm-service reads <code>battery:0</code> only, ignores battery:1 state (Normal)<a class="headerlink" href="#gap-4-pm-service-reads-battery0-only-ignores-battery1-state-normal" title="Permanent link">&para;</a></h3>
-<p><strong>File:</strong> <code>pm-service/internal/service/service.go</code> line 134</p>
-<p>pm-service only subscribes to <code>battery:0</code> state changes. For dual-battery configurations, if battery:0 becomes inactive but battery:1 is still active, pm-service will believe "battery is inactive" and may allow suspend. This is a potential data integrity risk in dual-battery setups.</p>
-<p><strong>Severity:</strong> Normal — relevant only for dual-battery mode, but could cause data loss on incorrect suspend.</p>
 <h3 id="gap-5-startup-race-vehicle-service-subscribes-after-reading-initial-dashboard-state-low">GAP-5: Startup race, vehicle-service subscribes after reading initial dashboard state (Low)<a class="headerlink" href="#gap-5-startup-race-vehicle-service-subscribes-after-reading-initial-dashboard-state-low" title="Permanent link">&para;</a></h3>
 <p><strong>File:</strong> <code>vehicle-service/internal/messaging/redis.go</code> lines 102–115</p>
 <p>vehicle-service reads <code>dashboard/ready</code> in <code>Connect()</code> and then starts the <code>dashboardWatcher</code> later in <code>StartListening()</code>. There is a window between the initial read and the subscription where <code>dashboard/ready</code> could change (scootui publishes) without vehicle-service noticing.</p>
 <p>This is not critical because scootui publishes <code>ready=true</code> only once at startup, and vehicle-service's <code>Connect()</code> runs very early. But if scootui restarts after vehicle-service has already initialized, vehicle-service subscribes correctly via <code>dashboardWatcher</code> and will catch the new publication.</p>
 <p><strong>Severity:</strong> Low — timing window is small and consequences are benign (vehicle would need a keycard auth to advance state anyway).</p>
-<h3 id="gap-6-ecu-service-uses-go-redis-v8-all-others-use-v9-low">GAP-6: ecu-service uses go-redis v8, all others use v9 (Low)<a class="headerlink" href="#gap-6-ecu-service-uses-go-redis-v8-all-others-use-v9-low" title="Permanent link">&para;</a></h3>
-<p><strong>File:</strong> <code>ecu-service/ipc_rx.go</code>, <code>ipc_tx.go</code></p>
-<div class="language-go highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="kn">import</span><span class="w"> </span><span class="s">"github.com/go-redis/redis/v8"</span>
-</span></code></pre></div>
-<p>All other services use <code>github.com/redis/go-redis/v9</code> (the renamed, actively maintained version). v8 uses a different import path and context handling. This creates a maintenance burden and prevents ecu-service from using the shared redis-ipc library.</p>
-<p><strong>Severity:</strong> Low — functional but creates maintenance debt.</p>
 <h3 id="gap-7-system-hash-has-two-conflicting-writers-for-cpugovernor-low">GAP-7: <code>system</code> hash has two conflicting writers for <code>cpu:governor</code> (Low)<a class="headerlink" href="#gap-7-system-hash-has-two-conflicting-writers-for-cpugovernor-low" title="Permanent link">&para;</a></h3>
 <p>Both <code>vehicle-service</code> (<code>redis.go:576</code>) and <code>pm-service</code> (<code>service.go:812</code>) write to <code>system/cpu:governor</code>. If they write different values concurrently, or if one doesn't know about the other's write, the hash value could be misleading. Currently pm-service handles the actual sysfs write and publishes to the hash; vehicle-service also writes to the hash when it sends the governor command to pm-service via <code>scooter:governor</code>. This double-write is redundant at best.</p>
 <p><strong>Severity:</strong> Low — the value in Redis may be briefly inconsistent between the command send and the pm-service processing it.</p>
@@ -3443,34 +3361,10 @@ on the channel constant recording the convention.</p>
 </thead>
 <tbody>
 <tr>
-<td>1</td>
-<td>High</td>
-<td>ecu-service</td>
-<td>Publishes to broken channel names with spaces — all throttle/kers/speed notifications silently dropped</td>
-</tr>
-<tr>
-<td>2</td>
-<td>High</td>
-<td>settings-service</td>
-<td>No PUBLISH when loading settings from TOML — services miss initial settings on settings-service restart</td>
-</tr>
-<tr>
-<td>3</td>
-<td>Normal</td>
-<td>pm-service</td>
-<td>Only tracks <code>battery:0</code> state, dual-battery suspend guard incomplete</td>
-</tr>
-<tr>
 <td>4</td>
 <td>Low</td>
 <td>vehicle-service</td>
 <td>Tiny startup race between initial dashboard state read and subscription</td>
-</tr>
-<tr>
-<td>5</td>
-<td>Low</td>
-<td>ecu-service</td>
-<td>Uses go-redis v8 while all others use v9, maintenance burden</td>
 </tr>
 <tr>
 <td>6</td>

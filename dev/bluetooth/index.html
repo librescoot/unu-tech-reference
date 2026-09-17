@@ -1832,7 +1832,7 @@ unbonded client. Unlock it (<code>parked</code>) to pair a new one.</p>
 redis-cli lpush scooter:bluetooth advertising-start-with-whitelisting
 redis-cli lpush scooter:bluetooth advertising-stop
 </code></pre></div>
-<p>The override does not survive the next vehicle state change, which recomputes the mode.</p>
+<p>The override does not survive the next change of advertising-mode class (<code>parked</code> and anything else), a disconnect, or a bond change, each of which recomputes the mode from the vehicle state. A transition between two whitelist-only states leaves it in place.</p>
 <h3 id="internal-uuid-ranges-not-gatt">Internal UUID ranges (not GATT)<a class="headerlink" href="#internal-uuid-ranges-not-gatt" title="Permanent link">&para;</a></h3>
 <p>Some UUIDs in this range address messages on the internal MDB to nRF52 link rather
 than characteristics. They are not part of the GATT table: no client can discover,
@@ -2219,6 +2219,31 @@ for a service that failed to appear.</p>
 <td><code>alarm:ok</code></td>
 </tr>
 <tr>
+<td><code>ltc:enable</code></td>
+<td>Safe-enable the LTC4020 auxiliary charger</td>
+<td><code>ltc:ok</code></td>
+</tr>
+<tr>
+<td><code>ltc:disable</code></td>
+<td>Disable the LTC4020 auxiliary charger</td>
+<td><code>ltc:ok</code></td>
+</tr>
+<tr>
+<td><code>ltc:force-enable</code></td>
+<td>Force-enable the auxiliary charger, bypassing the safety check</td>
+<td><code>ltc:ok</code></td>
+</tr>
+<tr>
+<td><code>ltc:force-disable</code></td>
+<td>Force-disable the auxiliary charger</td>
+<td><code>ltc:ok</code></td>
+</tr>
+<tr>
+<td><code>ltc:status</code></td>
+<td>Query the LTC4020 charger state</td>
+<td><code>ltc:status:on</code> or <code>ltc:status:off</code></td>
+</tr>
+<tr>
 <td><code>pm:hibernate-for &lt;duration&gt;</code></td>
 <td>Hibernate for the given duration (Go syntax: <code>30s</code>, <code>10m</code>, <code>8h</code>); nRF52 wakes the iMX6 after the duration</td>
 <td><code>pm:ok</code></td>
@@ -2237,6 +2262,16 @@ for a service that failed to appear.</p>
 <td><code>status:navigation-available</code></td>
 <td>Query if routing engine is available</td>
 <td><code>status:navigation-available:true</code> or <code>false</code></td>
+</tr>
+<tr>
+<td><code>status:version:mdb</code></td>
+<td>Query the installed MDB OS image version</td>
+<td><code>status:version:mdb:&lt;version&gt;</code></td>
+</tr>
+<tr>
+<td><code>status:version:dbc</code></td>
+<td>Query the installed DBC OS image version</td>
+<td><code>status:version:dbc:&lt;version&gt;</code></td>
 </tr>
 <tr>
 <td><code>ble:forget</code></td>

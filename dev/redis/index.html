@@ -3266,7 +3266,7 @@ will not find it on 1.2 or later.</p>
 </tr>
 <tr>
 <td>state</td>
-<td>"stand-by"/"parked"/"hop-on"/"hop-on-learning"/"ready-to-drive"/"waiting-seatbox"/"shutting-down"/"updating"/"waiting-hibernation"/"waiting-hibernation-seatbox"/"waiting-hibernation-confirm"</td>
+<td>"stand-by"/"parked"/"hop-on"/"hop-on-learning"/"ready-to-drive"/"waiting-seatbox"/"shutting-down"/"updating"/"waiting-hibernation"/"waiting-hibernation-advanced"/"waiting-hibernation-seatbox"/"waiting-hibernation-confirm"</td>
 <td>Vehicle operating state</td>
 <td>"stand-by"</td>
 </tr>
@@ -4199,6 +4199,12 @@ all three writers in the shape scootui-qt's <code>MapMetadata</code> defines.</p
 <td>Pairing PIN code (temporary, removed after pairing)</td>
 <td>"123456"</td>
 </tr>
+<tr>
+<td>firmware-update-status</td>
+<td>string</td>
+<td>Progress of an nRF52 firmware update, written during <code>firmware-update</code></td>
+<td>"idle"</td>
+</tr>
 </tbody>
 </table>
 <h4 id="bluetooth-commands">Bluetooth Commands<a class="headerlink" href="#bluetooth-commands" title="Permanent link">&para;</a></h4>
@@ -4678,9 +4684,9 @@ never changes the counter.</p>
 <td>"15"</td>
 </tr>
 <tr>
-<td>battery.ignore-seatbox</td>
+<td>scooter.battery-keep-active-on-seatbox-open</td>
 <td>"true"/"false"</td>
-<td>Ignore seatbox state for battery management</td>
+<td>Keep a running battery powered across a seatbox open</td>
 <td>"false"</td>
 </tr>
 <tr>
@@ -4702,15 +4708,9 @@ never changes the counter.</p>
 <td>"internet.provider.com"</td>
 </tr>
 <tr>
-<td>hibernation-timer</td>
-<td>integer (sec)</td>
-<td>Hibernation timeout (0=disabled)</td>
-<td>"259200"</td>
-</tr>
-<tr>
 <td>pm.hibernation-timer</td>
 <td>integer (sec)</td>
-<td>New name for hibernation-timer (idle-driven auto-hibernate; 0=disabled)</td>
+<td>Hibernation timeout for idle-driven auto-hibernate (0=disabled)</td>
 <td>"259200"</td>
 </tr>
 <tr>
@@ -4872,7 +4872,7 @@ never changes the counter.</p>
 <tr>
 <td>dashboard.show-clock</td>
 <td>string</td>
-<td>Clock visibility (always/never)</td>
+<td>Clock visibility (always/date-time/alternate/never)</td>
 <td>"always"</td>
 </tr>
 <tr>
@@ -4902,7 +4902,7 @@ never changes the counter.</p>
 <tr>
 <td>dashboard.battery-display-mode</td>
 <td>string</td>
-<td>Battery display mode (percentage/range)</td>
+<td>Battery display mode (percentage/range/icon)</td>
 <td>"percentage"</td>
 </tr>
 <tr>
@@ -4926,7 +4926,7 @@ never changes the counter.</p>
 <tr>
 <td>dashboard.mode</td>
 <td>string</td>
-<td>Default screen mode (speedometer/navigation)</td>
+<td>Default screen mode (speedometer/navigation/debug)</td>
 <td>"speedometer"</td>
 </tr>
 <tr>
@@ -5123,8 +5123,8 @@ disarms: they describe the most recent trigger, not the current state.</p>
 </table>
 <p><strong>Pub/sub channels:</strong></p>
 <ul>
-<li><code>motion:sensors</code> (10 Hz) - JSON sensor reading: <code>timestamp</code>, <code>accel</code>, <code>gyro</code>, optional <code>mag</code>, each axis as <code>{x, y, z, magnitude, unit}</code></li>
-<li><code>motion:heading</code> (5 Hz) - JSON heading payload (<code>heading_deg</code>, <code>accuracy_deg</code>, <code>tilt_deg</code>, ...)</li>
+<li><code>motion:sensors</code> (5 Hz while parked or ready-to-drive, 1 Hz otherwise) - JSON sensor reading: <code>timestamp</code>, <code>accel</code>, <code>gyro</code>, optional <code>mag</code>, each axis as <code>{x, y, z, magnitude, unit}</code></li>
+<li><code>motion:heading</code> (same cadence as <code>motion:sensors</code>) - JSON heading payload (<code>heading_deg</code>, <code>accuracy_deg</code>, <code>tilt_deg</code>, ...)</li>
 <li><code>motion:interrupt</code> - JSON motion event: <code>{"type": "edge"|"wake-hibernation", "timestamp": ..., "engine": "any-motion"|"slow-motion"}</code></li>
 <li><code>motion:ready</code> - fired once at startup after the first profile-apply; payload is a unix-ms timestamp</li>
 </ul>
@@ -5244,7 +5244,7 @@ the backlight is overridden off or pinned to a fixed level.</p>
 <tr>
 <td>error-state</td>
 <td>string</td>
-<td>Consolidated error state ("ok"/"powered-off"/"sim-missing"/"sim-inactive"/"sim-locked"/"registration-denied"/"registration-failed"/"disconnected"/"no-modem"/"status-error")</td>
+<td>Consolidated error state ("ok"/"powered-off"/"sim-missing"/"sim-inactive"/"sim-locked"/"registration-denied"/"registration-failed"/"disconnected"/"no-modem"/"modem-disappeared")</td>
 <td>"ok"</td>
 </tr>
 <tr>
@@ -5496,6 +5496,18 @@ its stored total and restarted the baseline.</p>
 <td>string</td>
 <td>DBC target version</td>
 <td>"20251008t143210"</td>
+</tr>
+<tr>
+<td>update-method:{mdb,dbc}</td>
+<td>string</td>
+<td>Method the running operation uses (<code>full</code> or <code>delta</code>)</td>
+<td>"delta"</td>
+</tr>
+<tr>
+<td>install-progress:{mdb,dbc}</td>
+<td>integer (0-100)</td>
+<td>Install progress</td>
+<td>"0"</td>
 </tr>
 <tr>
 <td>download-progress:mdb</td>
@@ -5927,12 +5939,8 @@ request limits, revision checks, disabled-tail behavior and timeout handling.</p
 <p>Stream of system fault events using XADD:</p>
 <div class="language-text highlight"><pre><span></span><code><span id="__span-36-1"><a id="__codelineno-36-1" name="__codelineno-36-1" href="#__codelineno-36-1"></a>XREAD STREAMS events:faults 0
 </span></code></pre></div>
-<p>Each entry contains:</p>
-<ul>
-<li><code>group</code> - Component group (e.g., "cb-battery", "modem")</li>
-<li><code>code</code> - Fault code</li>
-<li><code>description</code> - Human-readable fault description</li>
-</ul>
+<p>A raise entry carries <code>group</code>, <code>code</code> and <code>description</code>. A clear entry carries
+only <code>group</code> and <code>code</code>, with the code negated (<code>"-&lt;code&gt;"</code>) and no description.</p>
 <h2 id="command-channels">Command Channels<a class="headerlink" href="#command-channels" title="Permanent link">&para;</a></h2>
 <p>The scooter accepts control commands via Redis list-based channels using <code>LPUSH</code>. Commands are queued and processed by the vehicle service.</p>
 <h3 id="scooter-state-control-scooterstate">Scooter State Control (<code>scooter:state</code>)<a class="headerlink" href="#scooter-state-control-scooterstate" title="Permanent link">&para;</a></h3>

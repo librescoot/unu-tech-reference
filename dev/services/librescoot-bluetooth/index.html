@@ -2855,6 +2855,7 @@
 <li><code>ltc-force-disable</code> - Force-disable LTC4020 aux charger</li>
 <li><code>ltc-status</code> - Query LTC4020 charger status</li>
 <li><code>firmware-update</code> - Trigger immediate nRF firmware update</li>
+<li><code>data-stream-sync</code> - Sync the nRF data stream (internal; not used by the phone app)</li>
 </ul>
 <h3 id="clearing-paired-phones">Clearing paired phones<a class="headerlink" href="#clearing-paired-phones" title="Permanent link">&para;</a></h3>
 <p>A scooter keeps a bond for every phone that has ever paired with it, and the
@@ -3144,7 +3145,7 @@ Messages are CBOR-encoded maps with structure:
 <li><code>alarm:start:&lt;N&gt;</code> → <code>LPUSH scooter:alarm start:&lt;N&gt;</code></li>
 <li><code>alarm:stop</code> → <code>LPUSH scooter:alarm stop</code></li>
 </ul>
-<p>The alarm-service processes the command and the response (<code>alarm:ok</code>) is returned via EXTENDED_RESPONSE (0x0402).</p>
+<p>The command is LPUSHed to <code>scooter:alarm</code> for alarm-service; bluetooth-service itself acknowledges the queueing with <code>alarm:ok</code> via EXTENDED_RESPONSE (0x0402), so the response does not mean alarm-service has acted.</p>
 <p><strong>Power management:</strong></p>
 <ul>
 <li><code>pm:hibernate-for &lt;duration&gt;</code> -&gt; arms a one-shot hibernation that wakes after the given duration. Duration uses Go <code>time.ParseDuration</code> syntax (e.g. "8h", "30m", "120s"); it is converted to whole seconds and forwarded as <code>LPUSH scooter:power hibernate-for:&lt;seconds&gt;</code>.</li>
