@@ -2108,7 +2108,7 @@
 <ul>
 <li><strong>battery-service</strong> is independent - monitors batteries via NFC, writes to <code>battery:0/1</code>, subscribes to <code>vehicle:state</code> and <code>vehicle:seatbox:lock</code></li>
 <li><strong>bluetooth-service</strong> reads from <code>battery:*</code> and <code>vehicle</code> but doesn't write to them</li>
-<li><strong>vehicle-service</strong> reads from <code>battery:*</code>, <code>dashboard</code>, <code>keycard</code> but doesn't write to them</li>
+<li><strong>vehicle-service</strong> reads from <code>dashboard</code>, <code>keycard</code>, <code>settings</code>, <code>ota</code>, <code>power-manager</code>, <code>ble</code> and <code>system</code>, and writes <code>dashboard</code> (<code>ready</code>, <code>backlight-enabled</code>), <code>system</code> (<code>cpu:governor</code>, <code>usb0-gate</code>) and <code>vehicle:fault</code></li>
 <li><strong>Power management</strong> fields in <code>power-manager</code> are written by both <code>pm-service</code> and <code>bluetooth-service</code> (nRF-related fields)</li>
 <li><strong>alarm-service</strong> monitors <code>vehicle</code> state, publishes <code>alarm[status]</code> which motion-service reacts to, calls <code>prepare-hibernation</code> on <code>motion:rpc</code>, and sends commands to <code>scooter:horn</code> and <code>scooter:blinker</code></li>
 <li><strong>settings-service</strong> syncs Redis <code>settings</code> hash with <code>/data/settings.toml</code> and manages NetworkManager connections</li>
