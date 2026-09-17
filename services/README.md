@@ -131,7 +131,7 @@ Services store state in Redis hashes:
 ### Key Service Relationships
 - **battery-service** is independent - monitors batteries via NFC, writes to `battery:0/1`, subscribes to `vehicle:state` and `vehicle:seatbox:lock`
 - **bluetooth-service** reads from `battery:*` and `vehicle` but doesn't write to them
-- **vehicle-service** reads from `battery:*`, `dashboard`, `keycard` but doesn't write to them
+- **vehicle-service** reads from `dashboard`, `keycard`, `settings`, `ota`, `power-manager`, `ble` and `system`, and writes `dashboard` (`ready`, `backlight-enabled`), `system` (`cpu:governor`, `usb0-gate`) and `vehicle:fault`
 - **Power management** fields in `power-manager` are written by both `pm-service` and `bluetooth-service` (nRF-related fields)
 - **alarm-service** monitors `vehicle` state, publishes `alarm[status]` which motion-service reacts to, calls `prepare-hibernation` on `motion:rpc`, and sends commands to `scooter:horn` and `scooter:blinker`
 - **settings-service** syncs Redis `settings` hash with `/data/settings.toml` and manages NetworkManager connections

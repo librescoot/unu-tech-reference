@@ -49,7 +49,7 @@ The mode can be overridden at runtime:
     redis-cli lpush scooter:bluetooth advertising-start-with-whitelisting
     redis-cli lpush scooter:bluetooth advertising-stop
 
-The override does not survive the next vehicle state change, which recomputes the mode.
+The override does not survive the next change of advertising-mode class (`parked` and anything else), a disconnect, or a bond change, each of which recomputes the mode from the vehicle state. A transition between two whitelist-only states leaves it in place.
 
 ### Internal UUID ranges (not GATT)
 
@@ -178,10 +178,17 @@ Unified extensible command/response channel for phone app interaction
 | `alarm:disarm` | Disarm alarm | `alarm:ok` |
 | `alarm:start` / `alarm:start:<N>` | Trigger alarm; duration in seconds, default from settings | `alarm:ok` |
 | `alarm:stop` | Stop active alarm | `alarm:ok` |
+| `ltc:enable` | Safe-enable the LTC4020 auxiliary charger | `ltc:ok` |
+| `ltc:disable` | Disable the LTC4020 auxiliary charger | `ltc:ok` |
+| `ltc:force-enable` | Force-enable the auxiliary charger, bypassing the safety check | `ltc:ok` |
+| `ltc:force-disable` | Force-disable the auxiliary charger | `ltc:ok` |
+| `ltc:status` | Query the LTC4020 charger state | `ltc:status:on` or `ltc:status:off` |
 | `pm:hibernate-for <duration>` | Hibernate for the given duration (Go syntax: `30s`, `10m`, `8h`); nRF52 wakes the iMX6 after the duration | `pm:ok` |
 | `pm:hibernate-cancel` | Cancel a pending hibernate-for and disarm the wake timer | `pm:ok` |
 | `status:maps-available` | Query if offline maps are installed | `status:maps-available:true` or `false` |
 | `status:navigation-available` | Query if routing engine is available | `status:navigation-available:true` or `false` |
+| `status:version:mdb` | Query the installed MDB OS image version | `status:version:mdb:<version>` |
+| `status:version:dbc` | Query the installed DBC OS image version | `status:version:dbc:<version>` |
 | `ble:forget` | Ask the scooter to forget the phone sending the command, so an app's "forget this scooter" clears both halves of the bond. Ends the connection it arrives on. Needs nRF v2.8.0-ls or later, so probe `cap:ble` first | `ble:forget:ok`, or `ble:error:unsupported` |
 | `cap:ext` | One complete current high-level capability registry | `cap:ext:<group>[:<group>...]` |
 | `cap:list` | Legacy enumerated capability categories | `cap:count:<n>` then exactly `<n>` `cap:<name>` notifications |

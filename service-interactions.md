@@ -12,7 +12,7 @@ Generated from source analysis of all service repositories.
                     ─────────────────────────────────────────────
  vehicle-service ──writes──> vehicle, system, dashboard, vehicle:fault, events:faults
  battery-service ──writes──> battery:0, battery:1, battery:N:fault
- ecu-service ────writes──> engine-ecu  (WARNING: publishes to broken channels, see gaps)
+ ecu-service ────writes──> engine-ecu
  keycard-service ─writes──> keycard  (with 10s TTL)
  bluetooth-service writes──> ble, ble:fault, system (mdb-version, nrf-fw-version), engine-ecu (odometer)
  pm-service ─────writes──> power-manager, power-manager:busy-services, system (cpu:governor)
@@ -22,7 +22,7 @@ Generated from source analysis of all service repositories.
  alarm-service ──writes──> alarm
  event-service ──writes──> extensions, extensions:pending (MDB nightly packaging; not 1.3.1 stable)
  version-service  writes──> version:mdb (MDB), version:dbc (DBC)  (one-shot at boot, no pub/sub notification)
- settings-service writes──> settings  (WARNING: no PUBLISH on initial load, see gaps)
+ settings-service writes──> settings  (publishes one notification per field at load too)
  trip-service ─────writes──> trip, trip:counter, trip:expunge; leases trip:ready
  update-service ──writes──> ota  (status:*, update-version:*, download-progress:*, etc.)
  ums-service ────writes──> usb
@@ -30,7 +30,7 @@ Generated from source analysis of all service repositories.
 
                     Lists (command queues, LPUSH/BRPOP)
                     ────────────────────────────────────
- scooter:state   ── vehicle-service reads ── lsc, scootui, uplink-service, alarm-service write
+ scooter:state   ── vehicle-service reads ── lsc, scootui, uplink-service write
  scooter:seatbox ── vehicle-service reads ── lsc, scootui, uplink-service write
  scooter:horn    ── vehicle-service reads ── lsc, scootui, uplink-service, alarm-service write
  scooter:blinker ── vehicle-service reads ── lsc, scootui, uplink-service, alarm-service write
@@ -38,7 +38,7 @@ Generated from source analysis of all service repositories.
  scooter:led:fade── vehicle-service reads ── lsc writes
  scooter:update  ── vehicle-service reads ── update-service writes (start-dbc, complete-dbc)
  scooter:hardware── vehicle-service reads ── lsc, scootui, uplink-service write
- scooter:power   ── pm-service reads      ── lsc, update-service, uplink-service write
+ scooter:power   ── pm-service reads      ── lsc, vehicle-service, update-service, uplink-service, alarm-service write
  scooter:governor── pm-service reads      ── vehicle-service writes
  scooter:modem   ── modem-service reads   ── pm-service writes ("disable")
  scooter:bluetooth─ bluetooth-service reads─ (firmware-update and BLE commands)
@@ -71,7 +71,7 @@ Generated from source analysis of all service repositories.
  trip:completed ← published by trip-service (completed trip notification)
  trip:command-result ← published by trip-service (correlated counter-reset JSON result)
  usb           ← published by ums-service
- settings      ← published externally (scootui, UMS updates); NOT by settings-service on load
+ settings      ← published by settings-service (one notification per field, including at boot), scootui, UMS updates
  motion:sensors    ← published by motion-service (10 Hz IMU stream)
  motion:heading    ← published by motion-service (5 Hz tilt-compensated mag heading)
  motion:interrupt  ← published by motion-service (motion-engine edges + wake-hibernation)
@@ -236,11 +236,11 @@ the rail.
 **Writes:**
 | Hash | Fields | Channel |
 |------|--------|---------|
-| `engine-ecu` | `motor:voltage`, `motor:current`, `rpm`, `speed`, `raw-speed`, `corrected-speed`, `throttle`, `brake`, `power`, `energy:consumed`, `energy:recovered` | (broken: see gaps) |
+| `engine-ecu` | `motor:voltage`, `motor:current`, `rpm`, `speed`, `raw-speed`, `corrected-speed`, `throttle`, `brake`, `power`, `energy:consumed`, `energy:recovered` | (throttle publishes on `engine-ecu`; the rest of this row does not) |
 | `engine-ecu` | `temperature`, `fault:code`, `fault:description` | (no publish) |
-| `engine-ecu` | `odometer` | (broken: see gaps) |
-| `engine-ecu` | `kers`, `boost` | (broken: see gaps) |
-| `engine-ecu` | `kers-reason-off` | (broken: see gaps) |
+| `engine-ecu` | `odometer` | `engine-ecu` |
+| `engine-ecu` | `kers`, `boost` | (kers publishes on `engine-ecu`; boost does not) |
+| `engine-ecu` | `kers-reason-off` | `engine-ecu` |
 | `engine-ecu` | `gear`, `fw-version` | (no publish) |
 
 **Reads:**
@@ -451,7 +451,7 @@ Note: version-service does not publish on any channel. It runs once at boot via 
 **Writes:**
 | Hash | Fields | Channel |
 |------|--------|---------|
-| `settings` | All TOML fields including `scooter.*`, `cellular.*`, `updates.*`, `dashboard.*`, `alarm.*`, and `trip.*`; overlay-injected values (in-memory only, not persisted); `dashboard.service-mode-active` status field | NONE (critical gap — see gaps section) |
+| `settings` | All TOML fields including `scooter.*`, `cellular.*`, `updates.*`, `dashboard.*`, `alarm.*`, and `trip.*`; overlay-injected values (in-memory only, not persisted); `dashboard.service-mode-active` status field | `settings` |
 
 **Reads:**
 
@@ -460,7 +460,6 @@ Note: version-service does not publish on any channel. It runs once at boot via 
 **Subscribes to:**
 
 - `settings` channel (to detect changes and flush to TOML)
-- `internet` channel (for WireGuard manager)
 
 **Consumes queues (BRPOP):**
 
@@ -688,7 +687,7 @@ alone; the destination and value are entirely rule configuration.
 | `scooter:update` | vehicle-service | update-service |
 | `scooter:update:<component>` | update-service | update-service (self check-now) |
 | `scooter:hardware` | vehicle-service | lsc, scootui, uplink-service |
-| `scooter:power` | pm-service | lsc, update-service, uplink-service |
+| `scooter:power` | pm-service | lsc, vehicle-service, update-service, uplink-service, alarm-service |
 | `scooter:governor` | pm-service | vehicle-service (sends cpu governor changes) |
 | `scooter:modem` | modem-service | pm-service |
 | `scooter:bluetooth` | bluetooth-service | external/lsc |
@@ -748,16 +747,6 @@ and corrected again in `e32d9db` (ecu-service v0.8.2). All five notifications
 now publish the field name on the `engine-ecu` channel, and there is a comment
 on the channel constant recording the convention.
 
-### GAP-2: settings-service does not PUBLISH when loading settings at boot (High Bug)
-
-**File:** `settings-service/internal/redis/client.go`
-
-`ReplaceSettings()` and `SetSettings()` use DEL + HSET in a pipeline but never call PUBLISH. Services that subscribe to `settings` for startup configuration (vehicle-service, battery-service, ecu-service, alarm-service, pm-service) won't receive notifications when settings-service loads the TOML on boot.
-
-The services handle this by reading settings on startup directly (HGET), so they don't miss the initial values. However, if settings-service starts **after** these services (due to race or restart), the services will miss any new settings values because there's no PUBLISH to trigger a re-read.
-
-**Severity:** High — services may silently use stale or default settings if settings-service restarts after them.
-
 ### GAP-3: battery-service subscribes to `vehicle` channel but misses `seatbox:opened` event (Normal)
 
 **File:** `battery-service/battery/service.go` lines 145–148
@@ -768,14 +757,6 @@ This is mostly fine in practice since `seatbox:lock` changes from "closed" to "o
 
 **Severity:** Low — functional but subtly different timing from intended protocol.
 
-### GAP-4: pm-service reads `battery:0` only, ignores battery:1 state (Normal)
-
-**File:** `pm-service/internal/service/service.go` line 134
-
-pm-service only subscribes to `battery:0` state changes. For dual-battery configurations, if battery:0 becomes inactive but battery:1 is still active, pm-service will believe "battery is inactive" and may allow suspend. This is a potential data integrity risk in dual-battery setups.
-
-**Severity:** Normal — relevant only for dual-battery mode, but could cause data loss on incorrect suspend.
-
 ### GAP-5: Startup race, vehicle-service subscribes after reading initial dashboard state (Low)
 
 **File:** `vehicle-service/internal/messaging/redis.go` lines 102–115
@@ -785,18 +766,6 @@ vehicle-service reads `dashboard/ready` in `Connect()` and then starts the `dash
 This is not critical because scootui publishes `ready=true` only once at startup, and vehicle-service's `Connect()` runs very early. But if scootui restarts after vehicle-service has already initialized, vehicle-service subscribes correctly via `dashboardWatcher` and will catch the new publication.
 
 **Severity:** Low — timing window is small and consequences are benign (vehicle would need a keycard auth to advance state anyway).
-
-### GAP-6: ecu-service uses go-redis v8, all others use v9 (Low)
-
-**File:** `ecu-service/ipc_rx.go`, `ipc_tx.go`
-
-```go
-import "github.com/go-redis/redis/v8"
-```
-
-All other services use `github.com/redis/go-redis/v9` (the renamed, actively maintained version). v8 uses a different import path and context handling. This creates a maintenance burden and prevents ecu-service from using the shared redis-ipc library.
-
-**Severity:** Low — functional but creates maintenance debt.
 
 ### GAP-7: `system` hash has two conflicting writers for `cpu:governor` (Low)
 
@@ -818,10 +787,6 @@ keycard-service sets a 10-second TTL on the `keycard` hash. vehicle-service subs
 
 | # | Severity | Service | Issue |
 |---|----------|---------|-------|
-| 1 | High | ecu-service | Publishes to broken channel names with spaces — all throttle/kers/speed notifications silently dropped |
-| 2 | High | settings-service | No PUBLISH when loading settings from TOML — services miss initial settings on settings-service restart |
-| 3 | Normal | pm-service | Only tracks `battery:0` state, dual-battery suspend guard incomplete |
 | 4 | Low | vehicle-service | Tiny startup race between initial dashboard state read and subscription |
-| 5 | Low | ecu-service | Uses go-redis v8 while all others use v9, maintenance burden |
 | 6 | Low | vehicle+pm | Double-write to `system/cpu:governor`, minor inconsistency window |
 | 7 | Low | keycard-service | 10s TTL with no keyspace notification support for expiry |

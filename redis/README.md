@@ -49,7 +49,7 @@ hgetall vehicle
 | brake:right | "on"/"off" | Right brake state | "off" |
 | blinker:switch | "left"/"right"/"both"/"off" | Blinker switch position | "off" |
 | blinker:state | "on"/"off" | Blinker active state | "off" |
-| state | "stand-by"/"parked"/"hop-on"/"hop-on-learning"/"ready-to-drive"/"waiting-seatbox"/"shutting-down"/"updating"/"waiting-hibernation"/"waiting-hibernation-seatbox"/"waiting-hibernation-confirm" | Vehicle operating state | "stand-by" |
+| state | "stand-by"/"parked"/"hop-on"/"hop-on-learning"/"ready-to-drive"/"waiting-seatbox"/"shutting-down"/"updating"/"waiting-hibernation"/"waiting-hibernation-advanced"/"waiting-hibernation-seatbox"/"waiting-hibernation-confirm" | Vehicle operating state | "stand-by" |
 | auto-standby-deadline | integer (Unix timestamp) | When auto-standby will trigger (only present when timer active) | "1734567890" |
 
 ### Engine ECU (`engine-ecu`)
@@ -340,6 +340,7 @@ hgetall ble
 | mac-address | string | Bluetooth MAC address (lowercase with colons) | "ce:df:f6:c0:ff:ee" |
 | status | string | Connection status | "disconnected" |
 | pin-code | string | Pairing PIN code (temporary, removed after pairing) | "123456" |
+| firmware-update-status | string | Progress of an nRF52 firmware update, written during `firmware-update` | "idle" |
 
 #### Bluetooth Commands
 
@@ -560,12 +561,11 @@ Librescoot adds persistent settings managed by the settings-service:
 | alarm.hairtrigger | "true"/"false" | Hair trigger mode (immediate short alarm on first motion) | "false" |
 | alarm.hairtrigger-duration | integer (sec) | Hair trigger alarm duration in seconds | "3" |
 | alarm.l1-cooldown | integer (sec) | Level 1 cooldown duration in seconds | "15" |
-| battery.ignore-seatbox | "true"/"false" | Ignore seatbox state for battery management | "false" |
+| scooter.battery-keep-active-on-seatbox-open | "true"/"false" | Keep a running battery powered across a seatbox open | "false" |
 | trip.counter-reset | enum | Vehicle-wide counter reset policy: `ride`, `day`, `battery`, or `manual` | "ride" |
 | trip.expunge | string | Atomic completed/abandoned trip-history retention policy: `never`, `age:<duration>`, `count:<trips>`, or `size:<bytes>` | "age:365d" |
 | cellular.apn | string | Cellular APN | "internet.provider.com" |
-| hibernation-timer | integer (sec) | Hibernation timeout (0=disabled) | "259200" |
-| pm.hibernation-timer | integer (sec) | New name for hibernation-timer (idle-driven auto-hibernate; 0=disabled) | "259200" |
+| pm.hibernation-timer | integer (sec) | Hibernation timeout for idle-driven auto-hibernate (0=disabled) | "259200" |
 | pm.default-state | string | Default target power state when idle (run / suspend) | "suspend" |
 | pm.suspend-when-online | "true"/"false" | With no main battery present, allow suspend even while online (default true; set false to keep an online scooter awake). A present/active main battery always blocks suspend regardless | "false" |
 | pm.scheduled-hibernate-enabled | "true"/"false" | Enable cron-driven scheduled hibernation | "true" |
@@ -592,16 +592,16 @@ Librescoot adds persistent settings managed by the settings-service:
 | dashboard.speedometer.max-speed | integer (km/h) | Full-scale value of the speedometer arc; labels and range follow it, the arc geometry does not change | "60" |
 | dashboard.speedometer.warn-speed | integer (km/h) | Speed from which the speedometer fill ramps from blue towards purple | "55" |
 | dashboard.speedometer.overspeed | integer (km/h) | Speed above which the speedometer fill pulses purple and pink | "60" |
-| dashboard.show-clock | string | Clock visibility (always/never) | "always" |
+| dashboard.show-clock | string | Clock visibility (always/date-time/alternate/never) | "always" |
 | dashboard.show-gps | string | GPS indicator visibility (always/active-or-error/error/never) | "error" |
 | dashboard.show-bluetooth | string | Bluetooth indicator visibility | "active-or-error" |
 | dashboard.show-cloud | string | Cloud indicator visibility (hidden unless `internet[unu-cloud]` is present) | "active-or-error" |
 | dashboard.show-internet | string | Internet indicator visibility (gated on `internet[connectivity]`) | "active-or-error" |
-| dashboard.battery-display-mode | string | Battery display mode (percentage/range) | "percentage" |
+| dashboard.battery-display-mode | string | Battery display mode (percentage/range/icon) | "percentage" |
 | dashboard.map.type | string | Map tile source (online/offline) | "offline" |
 | dashboard.map.render-mode | string | Map rendering mode (vector/raster) | "raster" |
 | dashboard.theme | string | UI theme (light/dark/auto) | "dark" |
-| dashboard.mode | string | Default screen mode (speedometer/navigation) | "speedometer" |
+| dashboard.mode | string | Default screen mode (speedometer/navigation/debug) | "speedometer" |
 | dashboard.valhalla-url | string | Valhalla routing service endpoint | "http://localhost:8002/" |
 
 The full settings schema (types, defaults, ranges, labels) is served as a JSON document in the `settings:schema` key by settings-service:
@@ -705,8 +705,8 @@ motion-service owns the BMX055 9-axis IMU and publishes its state here. The lega
 
 **Pub/sub channels:**
 
-- `motion:sensors` (10 Hz) - JSON sensor reading: `timestamp`, `accel`, `gyro`, optional `mag`, each axis as `{x, y, z, magnitude, unit}`
-- `motion:heading` (5 Hz) - JSON heading payload (`heading_deg`, `accuracy_deg`, `tilt_deg`, ...)
+- `motion:sensors` (5 Hz while parked or ready-to-drive, 1 Hz otherwise) - JSON sensor reading: `timestamp`, `accel`, `gyro`, optional `mag`, each axis as `{x, y, z, magnitude, unit}`
+- `motion:heading` (same cadence as `motion:sensors`) - JSON heading payload (`heading_deg`, `accuracy_deg`, `tilt_deg`, ...)
 - `motion:interrupt` - JSON motion event: `{"type": "edge"|"wake-hibernation", "timestamp": ..., "engine": "any-motion"|"slow-motion"}`
 - `motion:ready` - fired once at startup after the first profile-apply; payload is a unix-ms timestamp
 
@@ -765,7 +765,7 @@ hgetall modem
 | operator-code | string | Network operator code | "26201" |
 | is-roaming | "true"/"false" | Roaming status | "false" |
 | registration-fail | string | Registration failure reason | "" |
-| error-state | string | Consolidated error state ("ok"/"powered-off"/"sim-missing"/"sim-inactive"/"sim-locked"/"registration-denied"/"registration-failed"/"disconnected"/"no-modem"/"status-error") | "ok" |
+| error-state | string | Consolidated error state ("ok"/"powered-off"/"sim-missing"/"sim-inactive"/"sim-locked"/"registration-denied"/"registration-failed"/"disconnected"/"no-modem"/"modem-disappeared") | "ok" |
 | pin-action | string | Outcome of the last SIM PIN reconcile ("unconfigured"/"ok"/"unlocked"/"lock-enabled"/"wrong-pin"/"low-retries-bail"/"puk-required"/"error") | "ok" |
 | apn-action | string | Outcome of the last APN reconcile ("no-sim"/"unconfigured"/"ok"/"applied"/"iccid-changed-cleared"/"error") | "ok" |
 
@@ -888,6 +888,8 @@ Librescoot adds per-component update tracking:
 | status:dbc | string | DBC update status | "idle" |
 | update-version:mdb | string | MDB target version | "20251009t162327" |
 | update-version:dbc | string | DBC target version | "20251008t143210" |
+| update-method:{mdb,dbc} | string | Method the running operation uses (`full` or `delta`) | "delta" |
+| install-progress:{mdb,dbc} | integer (0-100) | Install progress | "0" |
 | download-progress:mdb | integer (0-100) | MDB download progress | "45" |
 | download-progress:dbc | integer (0-100) | DBC download progress | "0" |
 | download-bytes:mdb | integer | MDB bytes downloaded | "47185920" |
@@ -1141,11 +1143,8 @@ Stream of system fault events using XADD:
 XREAD STREAMS events:faults 0
 ```
 
-Each entry contains:
-
-- `group` - Component group (e.g., "cb-battery", "modem")
-- `code` - Fault code
-- `description` - Human-readable fault description
+A raise entry carries `group`, `code` and `description`. A clear entry carries
+only `group` and `code`, with the code negated (`"-<code>"`) and no description.
 
 ## Command Channels
 

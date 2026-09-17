@@ -191,6 +191,7 @@ The service consumes commands from:
 - `ltc-force-disable` - Force-disable LTC4020 aux charger
 - `ltc-status` - Query LTC4020 charger status
 - `firmware-update` - Trigger immediate nRF firmware update
+- `data-stream-sync` - Sync the nRF data stream (internal; not used by the phone app)
 
 ### Clearing paired phones
 
@@ -485,7 +486,7 @@ Extended commands arrive as string payloads via the EXTENDED_COMMAND BLE charact
 - `alarm:start:<N>` → `LPUSH scooter:alarm start:<N>`
 - `alarm:stop` → `LPUSH scooter:alarm stop`
 
-The alarm-service processes the command and the response (`alarm:ok`) is returned via EXTENDED_RESPONSE (0x0402).
+The command is LPUSHed to `scooter:alarm` for alarm-service; bluetooth-service itself acknowledges the queueing with `alarm:ok` via EXTENDED_RESPONSE (0x0402), so the response does not mean alarm-service has acted.
 
 **Power management:**
 
