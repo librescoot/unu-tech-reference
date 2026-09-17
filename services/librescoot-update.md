@@ -297,7 +297,7 @@ stable checks continue to reject downgrades.
   - `update-from-url:https://...#sha256=<hex>` - with checksum
   - the legacy checksum form `:sha256:<hex>` is still accepted; `#sha256=` is preferred (keeps the source a valid URL)
 
-Lifecycle commands (`start`, `complete`, `start-dbc`, `complete-dbc`) are **published** to the shared `scooter:update` list, which vehicle-service consumes to drive its `updating` state. update-service does not listen there itself.
+Lifecycle commands (`start-dbc`, `complete-dbc`) are **published** to the shared `scooter:update` list, which vehicle-service consumes to drive its `updating` state; vehicle-service also accepts the legacy `start` and `complete`. update-service does not listen there itself.
 
 ### Lists published (LPUSH)
 

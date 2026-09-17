@@ -1357,7 +1357,7 @@ legitimately staged image. A refused set installs nothing and is reported throug
 additionally reports its own refusals in `usb.last-result` and as an `error` event on
 `scootui:notification`.
 
-The shared `scooter:update` list is consumed by **vehicle-service**, not the updaters: update-service pushes lifecycle commands (`start`, `complete`, `start-dbc`, `complete-dbc`) there to drive the vehicle's `updating` state.
+The shared `scooter:update` list is consumed by **vehicle-service**, not the updaters: update-service pushes the DBC lifecycle commands `start-dbc` and `complete-dbc` there to drive the vehicle's `updating` state. vehicle-service also accepts the legacy `start` and `complete`.
 
 See [update-service documentation](../services/librescoot-update.md).
 
