@@ -136,15 +136,21 @@ jobs:
       - name: Deploy version
         run: mike deploy --push "${{ steps.ver.outputs.version }}"
 
-      - name: Re-stamp CNAME on gh-pages
+      - name: Stamp CNAME and pre-mike redirect stubs on gh-pages
         run: |
-          git fetch origin gh-pages
+          git fetch origin gh-pages main
           git worktree add /tmp/ghpages origin/gh-pages
           cd /tmp/ghpages
           if [ "$(cat CNAME 2>/dev/null)" != "reference.librescoot.org" ]; then
             echo "reference.librescoot.org" > CNAME
-            git add CNAME
-            git commit -m "ci: ensure CNAME is reference.librescoot.org"
+          fi
+          # The stub list comes from main, not from the pushed ref: a frozen
+          # docs/vX.Y.Z branch will never carry this script, and the result
+          # has to be identical whichever ref triggered the run.
+          git show origin/main:.github/restore-legacy-urls.py | python3 - .
+          if [ -n "$(git status --porcelain)" ]; then
+            git add -A
+            git commit -m "ci: stamp CNAME and pre-mike redirect stubs"
             git push origin HEAD:gh-pages
           fi
 
@@ -189,14 +195,20 @@ jobs:
           mike alias --push --update-aliases "${{ inputs.promote }}" stable latest
           mike set-default --push latest
 
-      - name: Re-stamp CNAME on gh-pages
+      - name: Stamp CNAME and pre-mike redirect stubs on gh-pages
         run: |
-          git fetch origin gh-pages
+          git fetch origin gh-pages main
           git worktree add /tmp/ghpages origin/gh-pages
           cd /tmp/ghpages
           if [ "$(cat CNAME 2>/dev/null)" != "reference.librescoot.org" ]; then
             echo "reference.librescoot.org" > CNAME
-            git add CNAME
-            git commit -m "ci: ensure CNAME is reference.librescoot.org"
+          fi
+          # Promotion moves the alias, and the stubs resolve through it, so
+          # they need no rewriting - only re-checking, in case this is the
+          # first deploy that carries the script.
+          git show origin/main:.github/restore-legacy-urls.py | python3 - .
+          if [ -n "$(git status --porcelain)" ]; then
+            git add -A
+            git commit -m "ci: stamp CNAME and pre-mike redirect stubs"
             git push origin HEAD:gh-pages
           fi
