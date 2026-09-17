@@ -159,6 +159,7 @@ Values `error:{component}` takes, with `error-message:{component}` carrying the 
 | `image-too-large` | The artifact's rootfs payload is larger than the rootfs slot it would be written to. Checked before installation starts, so nothing is written |
 | `install-failed` | `mender-update install` failed |
 | `no-base-image` | A delta arrived with no local `.mender` for the running version to apply it against |
+| `delta-base-mismatch` | A delta was built against a different base image than the one installed, so it cannot be applied |
 | `delta-rejected` | A delta does not apply to the installed version (wrong channel, or not newer) |
 | `delta-apply-failed` | Applying a locally delivered delta failed |
 | `delta-base-mismatch` | A delta was built for a base image other than the staged one it was applied against |
