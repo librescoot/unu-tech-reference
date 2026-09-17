@@ -799,9 +799,9 @@ This is mostly fine in practice since `seatbox:lock` changes from "closed" to "o
 
 ### GAP-5: Startup race, vehicle-service subscribes after reading initial dashboard state (Low)
 
-**File:** `vehicle-service/internal/messaging/redis.go` lines 102–115
+**File:** `vehicle-service/internal/messaging/redis.go:114` (the read, in `Connect()`) and `:165` (`dashboardWatcher.Start()`, in `StartListening()`)
 
-vehicle-service reads `dashboard/ready` in `Connect()` and then starts the `dashboardWatcher` later in `StartListening()`. There is a window between the initial read and the subscription where `dashboard/ready` could change (scootui publishes) without vehicle-service noticing.
+vehicle-service reads `dashboard/ready` in `Connect()` and subscribes later in `StartListening()`. `HashWatcher.Start()` only subscribes; it does not re-read the hash. A change landing between the read and the subscribe is therefore missed. redis-ipc's other entry point, `StartWithSync()`, subscribes first and then runs the `HGETALL` — the settings watcher uses it for exactly this reason — so the window here is a choice rather than something the library forces.
 
 This is not critical because scootui publishes `ready=true` only once at startup, and vehicle-service's `Connect()` runs very early. But if scootui restarts after vehicle-service has already initialized, vehicle-service subscribes correctly via `dashboardWatcher` and will catch the new publication.
 
