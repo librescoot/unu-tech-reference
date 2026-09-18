@@ -149,6 +149,12 @@ If the retries are exhausted (8 attempts, backing off) the run fails loudly with
 `failed to publish ... after N attempts`; just re-run it. Nothing is
 half-written: every attempt starts from the current remote head.
 
+Snapshots cut before this change still carry the old caller stub with the
+`mike-deploy` group. Replaying their trim commit onto `main` (see
+[Propagating a fix to every version](#propagating-a-fix-to-every-version)) picks
+up the current stub. Their group only serializes runs those branches trigger, so
+until then the risk is limited to pushing two of those old branches at once.
+
 ## Local preview
 
 ```bash
