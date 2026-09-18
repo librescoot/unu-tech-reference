@@ -441,15 +441,19 @@ Command results land in the `keycard` hash field `command-result`. During teach-
 hgetall navigation
 ```
 
-Destination for the dashboard's navigation mode. Written by bluetooth-service (BLE nav commands) and `lsc nav`; consumed by scootui-qt.
+Destination, or multi-hop plan, for the dashboard's navigation mode. Written by bluetooth-service (BLE nav commands), uplink-service (cloud `navigate` command), and `lsc nav`; consumed by scootui-qt.
 
 | Field | Type | Description | Example |
 |-------|------|-------------|----------|
-| destination | "lat,lon" | Destination coordinates (6 decimal places) | "52.520008,13.404954" |
-| latitude | string | Destination latitude | "52.520008" |
-| longitude | string | Destination longitude | "13.404954" |
-| address | string | Human-readable destination name (optional) | "Alexanderplatz" |
+| destination | "lat,lon" | Current target coordinates (6 decimal places) | "52.520008,13.404954" |
+| latitude | string | Current target latitude | "52.520008" |
+| longitude | string | Current target longitude | "13.404954" |
+| address | string | Human-readable current target name (optional) | "Alexanderplatz" |
 | timestamp | string | Last destination update | "2026-06-11T12:00:00Z" |
+| waypoints | string (JSON) | Ordered multi-hop stops. The dashboard reads `lat`/`lon`; cloud and app writers may also send `latitude`/`longitude` and `label`/`name` | `[{"lat":52.51,"lon":13.41,"label":"Work"},{"lat":52.52,"lon":13.42}]` |
+| current-step | integer | Index into `waypoints` of the stop being guided to | "0" |
+
+Without `waypoints`, the destination fields describe a single-stop trip. With `waypoints`, they describe the stop at `current-step` and the dashboard walks the list one hop at a time: it routes to each stop, asks whether to continue, and advances on confirmation, on a short timeout, or on a skip. The dashboard writes `waypoints` and `current-step` back as it advances, and clears them when the trip finishes.
 
 Clearing navigation sets all fields to empty strings rather than deleting them, so hash watchers get notified.
 
@@ -617,6 +621,8 @@ Librescoot adds persistent settings managed by the settings-service:
 | dashboard.theme | string | UI theme (light/dark/auto) | "dark" |
 | dashboard.mode | string | Default screen mode (speedometer/navigation/debug) | "speedometer" |
 | dashboard.valhalla-url | string | Valhalla routing service endpoint | "http://localhost:8002/" |
+
+The active multi-hop plan is also persisted under `dashboard.route-plan.*`: indexed stops (`dashboard.route-plan.<n>.latitude|longitude|label|reached`) plus `current-step`, `active`, and `updated-at`. scootui-qt writes them, and settings-service stores them in `/data/settings.toml`, so a partial trip survives a reboot; the `navigation` hash itself does not, since Redis is volatile.
 
 The full settings schema (types, defaults, ranges, labels) is served as a JSON document in the `settings:schema` key by settings-service:
 
