@@ -587,6 +587,7 @@ Librescoot adds persistent settings managed by the settings-service:
 | scooter.auto-standby-seconds | integer (sec) | Auto-lock timeout when parked (0=disabled) | "0" |
 | scooter.lock-on-bluetooth-disconnect-seconds | integer (sec) | Lock (enter stand-by) this many seconds after the connected phone's Bluetooth disconnects while parked (0=disabled; floored at 5 when set) | "0" |
 | scooter.brake-hibernation | "enabled"/"disabled" | Enable brake lever hibernation | "enabled" |
+| scooter.open-seatbox-on-unlock | "true"/"false" | Open the seatbox whenever an unlock lands: an `unlock` request (app, cloud, or CLI), a keycard tap in stand-by or hop-on, or a hop-on release. There is no close command, so the lid has to be pushed shut, and an open seatbox makes a lock request wait in `waiting-seatbox` first | "false" |
 | updates.mdb.channel | string | MDB update channel | "nightly" |
 | updates.mdb.check-interval | duration | MDB update check interval ("never" to disable) | "6h" |
 | updates.mdb.dry-run | "true"/"false" | MDB update dry-run mode | "false" |

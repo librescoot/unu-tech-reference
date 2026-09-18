@@ -426,6 +426,21 @@ transition behaves exactly as before.
 - Button events published to `buttons` channel for UI feedback
 - Pressing seatbox button cancels any active hibernation sequence
 
+**Open on unlock** (`scooter.open-seatbox-on-unlock`, default false):
+
+When enabled, an unlock that actually lands opens the seatbox with the same
+200 ms pulse and `vehicle` -> `seatbox:opened` event as the button and the
+`open` command. It hangs off the unlock transitions, so it covers every unlock
+path: an `unlock` request from the app, cloud, or CLI, a keycard tap in
+`stand-by` or `hop-on`, and a hop-on combo release. It does not fire for a
+keycard tap that locks, for raising the kickstand, or for any other way the
+machine enters `parked`.
+
+There is no close command. The lid has to be pushed shut by hand, and while it
+is open a `lock` request waits in `waiting-seatbox` for its 30 s timeout before
+shutting down. This setting has no dashboard UI; set it with
+`lsc settings set scooter.open-seatbox-on-unlock true`.
+
 #### Brake Control
 
 **Brake state handling:**
