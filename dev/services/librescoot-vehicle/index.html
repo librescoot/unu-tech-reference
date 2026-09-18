@@ -3114,6 +3114,18 @@ transition behaves exactly as before.</p>
 <li>Button events published to <code>buttons</code> channel for UI feedback</li>
 <li>Pressing seatbox button cancels any active hibernation sequence</li>
 </ul>
+<p><strong>Open on unlock</strong> (<code>scooter.open-seatbox-on-unlock</code>, default false):</p>
+<p>When enabled, an unlock that actually lands opens the seatbox with the same
+200 ms pulse and <code>vehicle</code> -&gt; <code>seatbox:opened</code> event as the button and the
+<code>open</code> command. It hangs off the unlock transitions, so it covers every unlock
+path: an <code>unlock</code> request from the app, cloud, or CLI, a keycard tap in
+<code>stand-by</code> or <code>hop-on</code>, and a hop-on combo release. It does not fire for a
+keycard tap that locks, for raising the kickstand, or for any other way the
+machine enters <code>parked</code>.</p>
+<p>There is no close command. The lid has to be pushed shut by hand, and while it
+is open a <code>lock</code> request waits in <code>waiting-seatbox</code> for its 30 s timeout before
+shutting down. This setting has no dashboard UI; set it with
+<code>lsc settings set scooter.open-seatbox-on-unlock true</code>.</p>
 <h4 id="brake-control">Brake Control<a class="headerlink" href="#brake-control" title="Permanent link">&para;</a></h4>
 <p><strong>Brake state handling:</strong></p>
 <ul>
