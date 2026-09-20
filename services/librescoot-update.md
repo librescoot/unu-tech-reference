@@ -95,6 +95,9 @@ All fields are namespaced by component (`mdb` or `dbc`):
 | `status:{component}` | Current update status | `idle`, `downloading`, `preparing`, `installing`, `pending-reboot`, `staged-noop`, `error` |
 | `update-version:{component}` | Target version being installed | e.g. `20251009t162327` |
 | `update-method:{component}` | Update method in use | `full`, `delta` |
+| `preflight-result:dbc` | MDB's advisory DBC availability assessment | `available`, `up-to-date`, `no-release`, `unknown` |
+| `preflight-version:dbc` | DBC release tag considered by the MDB preflight | Release tag or empty |
+| `preflight-time:dbc` | When the MDB published that DBC preflight | RFC3339 with fractional seconds |
 | `download-progress:{component}` | Download progress (0–100) | Integer or empty |
 | `download-bytes:{component}` | Bytes downloaded | Integer or empty |
 | `download-total:{component}` | Total download size in bytes | Integer or empty |
@@ -148,6 +151,33 @@ these fields; a second writer would race the first on the same two keys.
 An `error` on either component maps to the empty pair, not to a distinct flat value.
 A consumer that needs to distinguish a failed update from no update has to read
 `error:{component}`.
+
+#### MDB DBC preflight
+
+On every MDB check that successfully retrieves the release index, with
+`updates.mdb.orchestrate-dbc=true`, the MDB uses the cached DBC variant, version,
+and channel to publish the
+three `preflight-*` fields above. They are advisory and must not be treated as
+a DBC installation plan: while the dashboard is off, its Redis facts can be
+missing or stale. `available` means the cached facts identify a newer matching
+release; `up-to-date` means they identify the latest matching release;
+`no-release` means the selected release index is empty; and `unknown` means the
+MDB cannot safely decide. The DBC's own update-service always makes the final
+decision after it boots.
+
+The MDB wakes the DBC only for `available` or `unknown`, and only while the
+vehicle is in `stand-by`; it queues the DBC's `check-now` after wake. The fields
+are written atomically with `preflight-time:dbc`, which lets a caller correlate
+them to the MDB check it started. They are deliberately separate from
+`status:dbc` and `update-version:dbc`: those fields describe only a real DBC
+update lifecycle.
+
+`lsc ota check` without a board argument is orchestration-aware when that
+setting is enabled. It sends `check-now` to MDB only, waits for this fresh
+preflight result, and reports `available`, `up-to-date`, or `no-release` before
+the DBC has booted. An `unknown` result stays pending while the DBC performs its
+own check. `lsc ota check dbc` remains a direct DBC request and does not power
+the dashboard on.
 
 #### Error types
 
