@@ -918,8 +918,10 @@ Librescoot adds per-component update tracking:
 | download-total:dbc | integer | DBC total download size | "0" |
 | error:mdb | string | MDB error type | "" |
 | error:dbc | string | DBC error type | "" |
-| error-message:mdb | string | MDB error message | "" |
-| error-message:dbc | string | DBC error message | "" |
+| error-message:mdb | string | Latest MDB error message | "" |
+| error-message:dbc | string | Latest DBC error message | "" |
+| error-history:mdb | string | Newline-separated MDB error messages from the current operation | "" |
+| error-history:dbc | string | Newline-separated DBC error messages from the current operation | "" |
 | download-abort-reason:{mdb,dbc} | string | Why a download was abandoned as too slow | "stalled" |
 | download-skip-checks:{mdb,dbc} | integer | Update checks still to be skipped before retrying | "4" |
 | heartbeat:{mdb,dbc} | integer (unix seconds) | Refreshed every 30s while an operation runs | "1786298400" |
