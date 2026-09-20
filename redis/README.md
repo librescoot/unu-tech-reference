@@ -920,8 +920,7 @@ Librescoot adds per-component update tracking:
 | error:dbc | string | DBC error type | "" |
 | error-message:mdb | string | Latest MDB error message | "" |
 | error-message:dbc | string | Latest DBC error message | "" |
-| error-history:mdb | string | Newline-separated MDB error messages from the current operation | "" |
-| error-history:dbc | string | Newline-separated DBC error messages from the current operation | "" |
+| error-event:{mdb,dbc} | string | Opaque token changed whenever `ota:errors` advances for the component | "1789938112345678900" |
 | download-abort-reason:{mdb,dbc} | string | Why a download was abandoned as too slow | "stalled" |
 | download-skip-checks:{mdb,dbc} | integer | Update checks still to be skipped before retrying | "4" |
 | heartbeat:{mdb,dbc} | integer (unix seconds) | Refreshed every 30s while an operation runs | "1786298400" |
@@ -931,6 +930,12 @@ Librescoot adds per-component update tracking:
 | preview-size:{mdb,dbc} | integer | Size of that release's full `.mender` artifact (`ready` only) | "401234432" |
 | status | string | Flat status, not namespaced, stock convention | "downloading-updates" |
 | update-type | string | Whether the flat status blocks use of the vehicle | "blocking" |
+
+The `ota:errors` Redis Stream is the authoritative update-error history and is
+approximately trimmed to 200 entries. Error entries contain `event=error`,
+`component`, `code`, and `message`. Lifecycle boundaries contain `event=reset`
+and `component`; read newest-first through the latest reset for the component
+to reconstruct its current operation.
 
 **Update status values:** `idle`, `downloading`, `preparing`, `installing`, `pending-reboot`, `staged-noop`, `error`
 

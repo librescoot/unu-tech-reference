@@ -104,13 +104,19 @@ All fields are namespaced by component (`mdb` or `dbc`):
 | `install-progress:{component}` | Install/delta application progress (0–100) | Integer or empty |
 | `error:{component}` | Latest error type when status is `error` | See [Error types](#error-types) |
 | `error-message:{component}` | Latest human-readable error detail | String or empty |
-| `error-history:{component}` | Failure messages from the current operation, including fallback failures | Newline-separated strings, or empty |
+| `error-event:{component}` | Opaque token changed whenever an error is appended to `ota:errors` | Integer string, or empty |
 | `download-abort-reason:{component}` | Why a download was abandoned for being too slow | `stalled`, `budget-exceeded`, or empty |
 | `download-skip-checks:{component}` | Update checks still to be skipped before another download is attempted | Integer, or empty when no backoff applies |
 | `heartbeat:{component}` | Unix seconds, refreshed while an update operation is running | Integer or empty |
 
-Two fields on the same hash are **not** namespaced, and describe the vehicle rather
-than one board:
+Error history is the `ota:errors` Redis Stream. Each failure is appended with
+`event=error`, `component`, `code`, and `message`. Returning a component to a
+fresh lifecycle appends `event=reset` with its `component`. Consumers read the
+stream newest-first and collect error entries for a component until its latest
+reset. The stream is approximately trimmed to 200 entries.
+
+Two fields on the same hash are **not** namespaced, and describe the vehicle
+rather than one board:
 
 | Field | Description | Values |
 |-------|-------------|--------|
@@ -182,7 +188,7 @@ the dashboard on.
 
 #### Error types
 
-Values `error:{component}` takes, with `error-message:{component}` carrying the latest detail. `error-history:{component}` preserves the messages from the operation so a later fallback failure does not hide the original cause.
+Values `error:{component}` takes, with `error-message:{component}` carrying the latest detail. The `ota:errors` stream preserves every occurrence so a later fallback failure does not hide the original cause.
 
 | Value | Meaning |
 |-------|---------|

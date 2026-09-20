@@ -396,8 +396,12 @@ units, retention safety, and the command contract.
 **Writes:**
 | Hash | Fields | Channel |
 |------|--------|---------|
-| `ota` | `status:<component>`, `update-version:<component>`, `download-progress:<component>`, `download-bytes:<component>`, `download-total:<component>`, `install-progress:<component>`, `error:<component>`, `error-message:<component>`, `update-method:<component>` | `ota` |
+| `ota` | `status:<component>`, `update-version:<component>`, `download-progress:<component>`, `download-bytes:<component>`, `download-total:<component>`, `install-progress:<component>`, `error:<component>`, `error-message:<component>`, `error-event:<component>`, `update-method:<component>` | `ota` |
 | `settings` | `updates.<component>.last-check-time` | `settings` |
+
+Update errors are also appended to the `ota:errors` Redis Stream. Each error
+entry carries `event=error`, `component`, `code`, and `message`; `event=reset`
+marks a new lifecycle for one component.
 
 **Reads:**
 
