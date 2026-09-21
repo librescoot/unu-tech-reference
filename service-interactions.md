@@ -42,10 +42,10 @@ Generated from source analysis of all service repositories.
  scooter:governor── pm-service reads      ── vehicle-service writes
  scooter:modem   ── modem-service reads   ── pm-service writes ("disable")
  scooter:bluetooth─ bluetooth-service reads─ (firmware-update and BLE commands)
- scooter:trip    ── trip-service reads ── bluetooth-service and local clients write JSON counter resets
+ scooter:trip    ── trip-service reads ── bluetooth-service, uplink-service, and local clients write JSON counter resets
  scooter:alarm   ── alarm-service reads   ── lsc writes
  settings:overlay── settings-service reads ── lsc writes (apply:service, clear:service)
- scooter:update:<component> ── update-service reads ── update-service writes (check-now)
+ scooter:update:<component> ── update-service reads ── update-service, lsc, uplink-service write (check-now)
  power:inhibits  ── pm-service inhibitor redis listener reads ── (external inhibitors write)
 
                     Pub/Sub channels (notifications only; consumers HGET after receiving)
@@ -300,7 +300,7 @@ Note: Sets 10-second TTL on `keycard` hash after publish.
 | `ble:fault` | fault codes (Redis Set) | `ble` (payload: "fault") |
 | `cb-battery:alert`, `cb-battery:fault` | auxiliary-battery alerts and faults | same-named channels |
 | `navigation` | destination fields from the phone (`destination`, `latitude`, `longitude`, `address`) | `navigation` |
-| `scooter` | `temperature` (nRF die temperature, tenths of a degree) | `scooter` |
+| `scooter` | `temperature` (ambient °C from the nRF external temperature sensor, one decimal) | `scooter` |
 | `settings`, `usb`, `power-mux`, `power:inhibits` | read or written in passing (settings values, UMS mode, mux input, the DFU inhibitor) | respective channels |
 
 **Reads:**
@@ -610,7 +610,13 @@ overridden off or pinned to a fixed level.
 
 **Reads (telemetry, HGETALL):**
 
-- `vehicle`, `battery:0`, `battery:1`, `aux-battery`, `cb-battery`, `engine-ecu`, `power-manager`, `power-mux`, `internet`, `modem`, `gps`, `keycard`, `ble`, `dashboard`, `system`, `alarm`, `navigation`, `ota`, `scooter`
+- `vehicle`, `battery:0`, `battery:1`, `aux-battery`, `cb-battery`, `engine-ecu`, `power-manager`, `power-manager:busy-services`, `power-mux`, `internet`, `modem`, `gps`, `keycard`, `ble`, `dashboard`, `system`, `version:mdb`, `version:dbc`, `alarm`, `navigation`, `ota`, `scooter`, `trip`, `trip:counter`, `usb`, `remote-access`
+- `settings` — allowlisted fields only (`updates.*`, `pm.*`, `alarm.*`, `trip.*`, `engine-ecu.*`, `dashboard.service-mode-active`, `scooter.developer-mode`, `scooter.dual-battery`); credentials, APN values, and saved/recent locations stay on the vehicle, as does any key added to the schema later
+- `events:faults` and `ota:errors` streams (fault and update-failure notifications; only `event=error` entries become cloud events)
+
+**Writes (hashes):**
+
+- `remote-access.uplink-service` → "connected" / "disconnected" (mirrored to the legacy `internet.unu-cloud` field)
 
 **Produces queues (LPUSH) — from remote server commands:**
 
@@ -621,6 +627,9 @@ overridden off or pinned to a fixed level.
 - `scooter:hardware` → "dashboard:on/off", "engine:on/off", "handlebar:lock/unlock"
 - `scooter:power` → "reboot", "hibernate", "hibernate-manual"
 - `scooter:alarm` → "arm", "disarm", "enable", "disable", "stop"
+- `scooter:keycard` → keycard management commands (serialized: one request in flight, results correlated via `keycard[command-result]`)
+- `scooter:trip` → JSON `counter.reset` request (`trip_reset` command, `source` "uplink")
+- `scooter:update:<component>` → "check-now" (`update_check` command; a both-board request collapses to the MDB when `settings[updates.mdb.orchestrate-dbc]` is on)
 
 ---
 
@@ -663,23 +672,24 @@ overridden off or pinned to a fixed level.
 | `ble` | bluetooth-service | scootui, uplink-service |
 | `dashboard` | scootui (ready/serial-number/backlight-enabled), dbc-backlight (backlight/brightness), vehicle-service (backlight-enabled) | vehicle-service (ready), dbc-backlight (backlight-enabled), scootui (brightness) |
 | `power-manager` | pm-service | bluetooth-service, scootui, uplink-service |
-| `power-manager:busy-services` | pm-service | monitoring only |
+| `power-manager:busy-services` | pm-service | uplink-service, monitoring |
 | `system` | vehicle-service (cpu:governor, usb0-gate), bluetooth-service (mdb-version, nrf-fw-version), pm-service (cpu:governor), keycard-service (keycard counts) | bluetooth-service, uplink-service, scootui, vehicle-service |
 | `ota` | update-service (incl. `heartbeat:<component>`) | vehicle-service (reads status), update-service (self), scootui |
 | `internet` | modem-service; radio-gaga/uplink-service (`unu-cloud` legacy) | scootui, uplink-service |
-| `remote-access` | radio-gaga, uplink-service, optional providers | pm-service (live provider-field aggregation), diagnostics |
+| `remote-access` | radio-gaga, uplink-service, optional providers | pm-service (live provider-field aggregation), uplink-service, diagnostics |
 | `modem` | modem-service | scootui, uplink-service |
 | `gps` | modem-service | scootui, uplink-service |
 | `alarm` | alarm-service | lsc, monitoring |
 | `maps` | scootui-qt (metadata), ums-service (tile transfer) | scootui, monitoring |
-| `settings` | settings-service (from TOML), update-service (last-check-time) | vehicle-service, battery-service, ecu-service, alarm-service, pm-service, trip-service |
-| `trip` | trip-service | scootui, monitoring |
-| `trip:counter` | trip-service | scootui, bluetooth-service, monitoring |
+| `settings` | settings-service (from TOML), update-service (last-check-time) | vehicle-service, battery-service, ecu-service, alarm-service, pm-service, trip-service, uplink-service (allowlisted fields only) |
+| `trip` | trip-service | scootui, uplink-service, monitoring |
+| `trip:counter` | trip-service | scootui, bluetooth-service, uplink-service, monitoring |
 | `trip:expunge` | trip-service | scootui, monitoring |
 | `trip:ready` | trip-service (90-second lease) | bluetooth-service capability discovery |
 | `os-release` | version-service (one-shot) | Nothing (dead key — see gaps) |
-| `usb` | ums-service | ums-service (self), scootui, alarm-service |
+| `usb` | ums-service | ums-service (self), scootui, alarm-service, uplink-service |
 | `motion` | motion-service | alarm-service (wake-cause), scootui (heading), monitoring |
+| `scooter` | bluetooth-service (temperature, relayed from the nRF) | uplink-service, monitoring |
 
 event-service additionally reads the watched hashes listed in its
 [per-service entry](#event-service), including `aux-battery` and `cb-battery`.
@@ -705,7 +715,8 @@ Its own hash interfaces are:
 
 | Key | Writers | Readers |
 |-----|---------|---------|
-| `events:faults` | vehicle-service, modem-service | uplink-service (via HGetAll — see gaps) |
+| `events:faults` | vehicle-service, modem-service | uplink-service (stream consumer) |
+| `ota:errors` | update-service | uplink-service (stream consumer), diagnostics |
 | `events` | event-service adapter | Event-history consumers; rules use live `ev:<topic>` Pub/Sub instead |
 
 ### List Keys (Command Queues)
@@ -723,15 +734,15 @@ alone; the destination and value are entirely rule configuration.
 | `scooter:led:cue` | vehicle-service | lsc |
 | `scooter:led:fade` | vehicle-service | lsc |
 | `scooter:update` | vehicle-service | update-service |
-| `scooter:update:<component>` | update-service | update-service (self check-now), lsc |
+| `scooter:update:<component>` | update-service | update-service (self check-now), lsc, uplink-service |
 | `scooter:hardware` | vehicle-service | lsc, scootui, uplink-service |
 | `scooter:power` | pm-service | lsc, vehicle-service, update-service, uplink-service, alarm-service |
 | `scooter:governor` | pm-service | vehicle-service (sends cpu governor changes) |
 | `scooter:modem` | modem-service | pm-service, lsc |
 | `scooter:bluetooth` | bluetooth-service | external/lsc |
-| `scooter:trip` | trip-service | bluetooth-service, trusted local clients |
+| `scooter:trip` | trip-service | bluetooth-service, uplink-service, trusted local clients |
 | `scooter:alarm` | alarm-service | lsc, uplink-service |
-| `scooter:keycard` | keycard-service | lsc, bluetooth-service |
+| `scooter:keycard` | keycard-service | lsc, bluetooth-service, uplink-service |
 | `scooter:hop-on` | vehicle-service | scootui |
 | `scooter:dbc-hold` | vehicle-service | scootui |
 | `scooter:sms` | modem-service | external clients |

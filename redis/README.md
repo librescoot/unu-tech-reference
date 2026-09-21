@@ -430,6 +430,10 @@ redis-cli -h 192.168.7.1 LPUSH scooter:keycard learn:start
 
 **Available commands**: `list`, `count`, `add:<uid>`, `remove:<uid>`, `set-master:<uid>` (`NONE` to disable), `learn:start`, `learn:stop`, `learn:master:start`, `learn:master:stop`, `reset`
 
+Writers: `lsc`, bluetooth-service (BLE-initiated management), and uplink-service
+(the cloud keycard commands, serialized with one request in flight so results
+correlate with the request that caused them).
+
 Command results land in the `keycard` hash field `command-result`. During teach-in flows, per-tap progress events (`card-learned:<uid>`, `master-learned:<uid>`, `mode-entered:master`, ...) are published on the `keycard:events` channel. See [keycard-service documentation](../services/librescoot-keycard.md).
 
 ### Navigation (`navigation`)
@@ -523,6 +527,9 @@ and `last-error` is a bounded diagnostic string.
 
 Counter commands use the `scooter:trip` list with JSON
 `{"id":"…","op":"counter.reset","source":"…","expires-at":<unix-ms>}`.
+`source` names the requester: bluetooth-service relays BLE-initiated resets,
+uplink-service's cloud `trip_reset` sends `"source":"uplink"`, and local
+clients use their own name.
 The required deadline must be in the future and at most 60 seconds ahead when
 consumed, preventing queued resets from executing after a later service
 restart. Already-expired attempts are discarded without a stale result, which
@@ -619,6 +626,13 @@ Librescoot adds persistent settings managed by the settings-service:
 | dashboard.valhalla-url | string | Valhalla routing service endpoint | "http://localhost:8002/" |
 
 The active multi-hop plan is also persisted under `dashboard.route-plan.*`: indexed stops (`dashboard.route-plan.<n>.latitude|longitude|label|reached`) plus `current-step`, `active`, and `updated-at`. scootui-qt writes them, and settings-service stores them in `/data/settings.toml`, so a partial trip survives a reboot; the `navigation` hash itself does not, since Redis is volatile.
+
+uplink-service mirrors only an allowlisted subset of these fields to the
+cloud: `updates.*`, `pm.*`, `alarm.*`, `trip.*`, `engine-ecu.*`,
+`dashboard.service-mode-active`, `scooter.developer-mode`, and
+`scooter.dual-battery`. Everything else — including `cellular.*` credentials
+and saved/recent locations — stays on the vehicle, as does any key added to
+the schema later.
 
 The full settings schema (types, defaults, ranges, labels) is served as a JSON document in the `settings:schema` key by settings-service:
 
@@ -932,7 +946,8 @@ The `ota:errors` Redis Stream is the authoritative update-error history and is
 approximately trimmed to 200 entries. Error entries contain `event=error`,
 `component`, `code`, and `message`. Lifecycle boundaries contain `event=reset`
 and `component`; read newest-first through the latest reset for the component
-to reconstruct its current operation.
+to reconstruct its current operation. uplink-service consumes new entries and
+forwards `event=error` ones to the cloud as events.
 
 **Update status values:** `idle`, `downloading`, `preparing`, `installing`, `pending-reboot`, `staged-noop`, `error`
 
@@ -1355,6 +1370,11 @@ redis-cli -h 192.168.7.1 LPUSH scooter:update:mdb apply-staged-updates
 ```
 
 **Per-component commands** (`scooter:update:mdb` / `scooter:update:dbc`): `check-now`, `preview-channel:<channel>`, `update-from-file:<path>[#sha256=<hex>]`, `update-from-url:<url>[#sha256=<hex>]`, `apply-staged-updates`
+
+`check-now` is queued by `lsc ota check` and by uplink-service's cloud
+`update_check` command. A both-board request from uplink-service collapses to
+`scooter:update:mdb` when `settings[updates.mdb.orchestrate-dbc]` is on, so the
+MDB's preflight decides whether to wake the DBC for its check.
 
 `preview-channel:<channel>` reports the latest release on `<channel>` for this
 component's `variant_id` and the size of its `.mender` artifact, into the `ota` hash's
