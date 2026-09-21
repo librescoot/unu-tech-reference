@@ -245,23 +245,19 @@ hgetall remote-access
 
 | Field | Type | Description | Example |
 |-------|------|-------------|----------|
-| status | `connected` / `disconnected` | Converged consumer contract: `connected` when any provider field is connected | "connected" |
 | radio-gaga | `connected` / `disconnected` | radio-gaga's live MQTT connection state | "connected" |
 | uplink-service | `connected` / `disconnected` | uplink-service's live connection state | "disconnected" |
 | *provider name* | `connected` / `disconnected` | Optional additional provider, for example a WireGuard hook | "connected" |
 
-Providers atomically write their own field and recompute `status` from every
-other field in the hash. The update is one Lua operation: if any provider is
-`connected`, `status` is `connected`; otherwise it is `disconnected`. This
-avoids both last-writer-wins collisions and the lost-update race of a client-side
-`HGETALL`/`HSET` recompute. Changed fields publish their field name on the
-`remote-access` channel. A direct writer of `status` still works alone, but a
-conforming provider may replace it with the recomputed value.
+Providers write only their own field and publish its name on the
+`remote-access` channel. Consumers determine overall reachability directly from
+the provider fields: if any field is `connected`, remote access is available.
 
 Provider fields intentionally have no TTL. Clean shutdown writes
 `disconnected`; a crash may leave stale `connected`, which errs toward keeping
-the scooter awake. pm-service reads `status` live at the suspend decision point
-and gives providers five minutes after boot and each resume to reconnect.
+the scooter awake. pm-service reads all provider fields live at the suspend
+decision point and gives providers five minutes after boot and each resume to
+reconnect.
 
 `internet[unu-cloud]` remains dual-written temporarily for existing dashboard
 and fleet telemetry consumers; it is not the reachability contract.
@@ -582,7 +578,7 @@ Librescoot adds persistent settings managed by the settings-service:
 | cellular.apn | string | Cellular APN | "internet.provider.com" |
 | pm.hibernation-timer | integer (sec) | Hibernation timeout for idle-driven auto-hibernate (0=disabled) | "259200" |
 | pm.default-state | string | Default target power state when idle (run / suspend) | "suspend" |
-| pm.suspend-when-online | "true"/"false" | Only relevant with no main battery present; a present/active main battery always blocks suspend. "Online" = an active remote-access provider (`remote-access[status] == connected`). Default true allows suspend while online; set false to keep the scooter awake while remote access is connected (drains the auxiliary battery within a few days) | "false" |
+| pm.suspend-when-online | "true"/"false" | Only relevant with no main battery present; a present/active main battery always blocks suspend. "Online" means any provider field in `remote-access` is `connected`. Default true allows suspend while online; set false to keep the scooter awake while remote access is connected (drains the auxiliary battery within a few days) | "false" |
 | pm.scheduled-hibernate-enabled | "true"/"false" | Enable cron-driven scheduled hibernation | "true" |
 | pm.scheduled-hibernate-cron | string | 5-field cron expression for scheduled hibernation | "0 22 * * *" |
 | pm.scheduled-hibernate-duration | duration | Wake-by duration applied at each cron fire | "8h" |

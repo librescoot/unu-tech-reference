@@ -17,7 +17,7 @@ Generated from source analysis of all service repositories.
  bluetooth-service writes──> ble, ble:fault, system (mdb-version, nrf-fw-version), engine-ecu (odometer)
  pm-service ─────writes──> power-manager, power-manager:busy-services, system (cpu:governor)
  modem-service ──writes──> internet, modem, gps, internet:fault, events:faults
- radio-gaga + uplink-service ─writes──> remote-access (atomic per-provider convergence)
+ radio-gaga + uplink-service ─writes──> remote-access (one field per provider)
  dbc-backlight ──writes──> dashboard (backlight, brightness, from the OPT3001)
  alarm-service ──writes──> alarm
  event-service ──writes──> extensions, extensions:pending (MDB nightly packaging; not 1.3.1 stable)
@@ -60,7 +60,7 @@ Generated from source analysis of all service repositories.
  system        ← published by vehicle-service (cpu:governor), bluetooth-service (mdb-version, nrf-fw-version)
  ota           ← published by update-service
  internet      ← published by modem-service, radio-gaga, uplink-service (legacy unu-cloud)
- remote-access ← published by radio-gaga and uplink-service (payload = provider or status)
+ remote-access ← published by radio-gaga and uplink-service (payload = provider)
  modem         ← published by modem-service
  gps           ← published by modem-service
  alarm         ← published by alarm-service
@@ -369,7 +369,7 @@ units, retention safety, and the command contract.
 - `vehicle/state` (watches for standby/parked/ready-to-drive transitions)
 - `battery:0/state` (watches for active/inactive)
 - `settings/hibernation-timer`
-- `remote-access/status` (live HGET at suspend decision; five-minute reconnect grace after boot/resume)
+- all fields in `remote-access` (live HGETALL at suspend decision; five-minute reconnect grace after boot/resume)
 
 **Subscribes to:**
 
@@ -667,7 +667,7 @@ overridden off or pinned to a fixed level.
 | `system` | vehicle-service (cpu:governor, usb0-gate), bluetooth-service (mdb-version, nrf-fw-version), pm-service (cpu:governor), keycard-service (keycard counts) | bluetooth-service, uplink-service, scootui, vehicle-service |
 | `ota` | update-service (incl. `heartbeat:<component>`) | vehicle-service (reads status), update-service (self), scootui |
 | `internet` | modem-service; radio-gaga/uplink-service (`unu-cloud` legacy) | scootui, uplink-service |
-| `remote-access` | radio-gaga, uplink-service, optional providers | pm-service (live `status` read), diagnostics |
+| `remote-access` | radio-gaga, uplink-service, optional providers | pm-service (live provider-field aggregation), diagnostics |
 | `modem` | modem-service | scootui, uplink-service |
 | `gps` | modem-service | scootui, uplink-service |
 | `alarm` | alarm-service | lsc, monitoring |

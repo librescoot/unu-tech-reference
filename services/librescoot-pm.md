@@ -90,7 +90,7 @@ pm-service subscribes to the `power:inhibits` channel and syncs entries into its
 
 - `pm.hibernation-timer` - Inactivity-based hibernation timer duration in seconds (0 = disabled)
 - `pm.default-state` - Default target power state when idle (`run` / `suspend`)
-- `pm.suspend-when-online` - Bool, default `true`. Only matters when no main battery is present: a pack present (or active) in either slot always blocks suspend. Here "online" means an active remote-access provider (`remote-access[status] == connected`, e.g. radio-gaga/Sunshine or uplink-service), not mere modem registration. With no main battery, the default (`true`) permits suspend even while remotely reachable. Set `false` to read `remote-access[status]` live at the decision point and stay awake while any provider is connected, keeping the scooter reachable without the main battery at the cost of draining the auxiliary battery within a few days. A five-minute grace after boot and every resume lets providers reconnect; Redis read failures fail safe by keeping the scooter awake. The guard only applies to the `suspend` target (not hibernate/reboot). Present and active are read live from Redis at the decision point because pub/sub state is lost across a suspend freeze.
+- `pm.suspend-when-online` - Bool, default `true`. Only matters when no main battery is present: a pack present (or active) in either slot always blocks suspend. Here "online" means that at least one provider field in `remote-access` is `connected` (e.g. radio-gaga/Sunshine, uplink-service, or a custom provider), not mere modem registration. With no main battery, the default (`true`) permits suspend even while remotely reachable. Set `false` to read all provider fields live at the decision point and stay awake while any provider is connected, keeping the scooter reachable without the main battery at the cost of draining the auxiliary battery within a few days. A five-minute grace after boot and every resume lets providers reconnect; Redis read failures fail safe by keeping the scooter awake. The guard only applies to the `suspend` target (not hibernate/reboot). Present and active are read live from Redis at the decision point because pub/sub state is lost across a suspend freeze.
 - `pm.scheduled-hibernate-enabled` - Bool: enable cron-driven scheduled hibernation
 - `pm.scheduled-hibernate-cron` - 5-field cron expression (e.g. `0 22 * * *`)
 - `pm.scheduled-hibernate-duration` - Wake-by duration (Go duration syntax: `8h`, `30m`, ...)
@@ -146,7 +146,7 @@ pm-service subscribes to the `power:inhibits` channel and syncs entries into its
 - `battery:1` -> `state`, `present`, `charge` - Battery slot 1 state monitoring plus `present`/`charge` for the last-ditch hibernate inputs
 - `cb-battery` -> `charge` - CBB charge, last-ditch hibernate input
 - `aux-battery` -> `voltage` - Aux 12V rail voltage (millivolts), last-ditch hibernate input
-- `remote-access` -> `status` - Read live (not watched) at each suspend decision for the `pm.suspend-when-online` guard
+- `remote-access` -> all provider fields - Read live with HGETALL (not watched) at each suspend decision for the `pm.suspend-when-online` guard
 - `power-manager` -> `wake-timer-armed`, `power-state-sent` - Wake-timer ACK and the nRF suspend-ACK from the nRF52 (both written by bluetooth-service)
 - `settings` -> `pm.suspend-when-online` (among the other `pm.*` fields above) - re-read on change
 
