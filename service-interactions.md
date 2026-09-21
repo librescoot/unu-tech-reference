@@ -687,6 +687,7 @@ overridden off or pinned to a fixed level.
 | `trip:expunge` | trip-service | scootui, monitoring |
 | `trip:ready` | trip-service (90-second lease) | bluetooth-service capability discovery |
 | `os-release` | version-service (one-shot) | Nothing (dead key — see gaps) |
+| `version:mdb`, `version:dbc` | version-service (one-shot `-hash version:<board>`: os-release fields, `serial_number`, `serial_number_real`), update-service (`version_id` after install) | uplink-service, lsc, scootui, bluetooth-service (watches `version:mdb`), update-service (self: `version_id`, `variant_id`) |
 | `usb` | ums-service | ums-service (self), scootui, alarm-service, uplink-service |
 | `motion` | motion-service | alarm-service (wake-cause), scootui (heading), monitoring |
 | `scooter` | bluetooth-service (temperature, relayed from the nRF) | uplink-service, monitoring |
