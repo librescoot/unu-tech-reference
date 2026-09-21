@@ -95,7 +95,7 @@ Generated from source analysis of all service repositories.
 
                     Streams (event log)
                     ───────────────────
- events:faults  ── written by vehicle-service, ecu-service, battery-service, modem-service, bluetooth-service; read by uplink-service (stream consumer)
+ events:faults  ── written by vehicle-service, ecu-service, battery-service, modem-service, bluetooth-service, keycard-service; read by scootui, lsc, uplink-service (stream consumer)
 ```
 
 ## Per-Service Detail
@@ -710,14 +710,21 @@ Its own hash interfaces are:
 | `battery:1:fault` | battery-service | scootui |
 | `internet:fault` | modem-service | scootui |
 | `ble:fault` | bluetooth-service | scootui |
+| `keycard:fault` | keycard-service | monitoring |
 | `engine-ecu:fault` | ecu-service | scootui, monitoring |
 
 ### Stream Keys
 
 | Key | Writers | Readers |
 |-----|---------|---------|
-| `events:faults` | vehicle-service, modem-service | uplink-service (stream consumer) |
+| `events:faults` | vehicle-service, ecu-service, battery-service, modem-service, bluetooth-service, keycard-service | uplink-service (stream consumer), scootui, lsc |
 | `ota:errors` | update-service | uplink-service (stream consumer), diagnostics |
+
+Fault writers: vehicle-, bluetooth-, modem-, and keycard-service use
+redis-ipc's `FaultReporter`, which couples the `<group>:fault` set, the
+stream entry, and the pub/sub channel name; battery-service and ecu-service
+append to the stream directly. Readers must use stream commands — `XADD`
+entries are invisible to `HGETALL`.
 | `events` | event-service adapter | Event-history consumers; rules use live `ev:<topic>` Pub/Sub instead |
 
 ### List Keys (Command Queues)

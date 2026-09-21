@@ -1185,6 +1185,13 @@ XREAD STREAMS events:faults 0
 A raise entry carries `group`, `code` and `description`. A clear entry carries
 only `group` and `code`, with the code negated (`"-<code>"`) and no description.
 
+Writers: vehicle-service, bluetooth-service, modem-service, and
+keycard-service through redis-ipc's `FaultReporter` (which also maintains the
+`<group>:fault` set); battery-service and ecu-service append directly. New
+entries are tailed by scootui-qt (fault history), read by `lsc logs faults`
+and `lsc diag events`, and forwarded to the cloud by uplink-service as `fault`
+events. Use stream commands (`XRANGE`/`XREAD`), not `HGETALL`.
+
 ## Command Channels
 
 The scooter accepts control commands via Redis list-based channels using `LPUSH`. Commands are queued and processed by the vehicle service.
