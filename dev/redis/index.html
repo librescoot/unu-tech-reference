@@ -6175,6 +6175,12 @@ request limits, revision checks, disabled-tail behavior and timeout handling.</p
 </span></code></pre></div>
 <p>A raise entry carries <code>group</code>, <code>code</code> and <code>description</code>. A clear entry carries
 only <code>group</code> and <code>code</code>, with the code negated (<code>"-&lt;code&gt;"</code>) and no description.</p>
+<p>Writers: vehicle-service, bluetooth-service, modem-service, and
+keycard-service through redis-ipc's <code>FaultReporter</code> (which also maintains the
+<code>&lt;group&gt;:fault</code> set); battery-service and ecu-service append directly. New
+entries are tailed by scootui-qt (fault history), read by <code>lsc logs faults</code>
+and <code>lsc diag events</code>, and forwarded to the cloud by uplink-service as <code>fault</code>
+events. Use stream commands (<code>XRANGE</code>/<code>XREAD</code>), not <code>HGETALL</code>.</p>
 <h2 id="command-channels">Command Channels<a class="headerlink" href="#command-channels" title="Permanent link">&para;</a></h2>
 <p>The scooter accepts control commands via Redis list-based channels using <code>LPUSH</code>. Commands are queued and processed by the vehicle service.</p>
 <h3 id="scooter-state-control-scooterstate">Scooter State Control (<code>scooter:state</code>)<a class="headerlink" href="#scooter-state-control-scooterstate" title="Permanent link">&para;</a></h3>

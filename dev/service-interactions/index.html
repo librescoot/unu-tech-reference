@@ -2474,7 +2474,7 @@
 </span><span id="__span-0-88"><a id="__codelineno-0-88" name="__codelineno-0-88" href="#__codelineno-0-88"></a>
 </span><span id="__span-0-89"><a id="__codelineno-0-89" name="__codelineno-0-89" href="#__codelineno-0-89"></a>                    Streams (event log)
 </span><span id="__span-0-90"><a id="__codelineno-0-90" name="__codelineno-0-90" href="#__codelineno-0-90"></a>                    ───────────────────
-</span><span id="__span-0-91"><a id="__codelineno-0-91" name="__codelineno-0-91" href="#__codelineno-0-91"></a> events:faults  ── written by vehicle-service, ecu-service, battery-service, modem-service, bluetooth-service; read by uplink-service (stream consumer)
+</span><span id="__span-0-91"><a id="__codelineno-0-91" name="__codelineno-0-91" href="#__codelineno-0-91"></a> events:faults  ── written by vehicle-service, ecu-service, battery-service, modem-service, bluetooth-service, keycard-service; read by scootui, lsc, uplink-service (stream consumer)
 </span></code></pre></div>
 <h2 id="per-service-detail">Per-Service Detail<a class="headerlink" href="#per-service-detail" title="Permanent link">&para;</a></h2>
 <h3 id="event-service">event-service<a class="headerlink" href="#event-service" title="Permanent link">&para;</a></h3>
@@ -3191,6 +3191,11 @@ Its own hash interfaces are:</p>
 <td>scootui</td>
 </tr>
 <tr>
+<td><code>keycard:fault</code></td>
+<td>keycard-service</td>
+<td>monitoring</td>
+</tr>
+<tr>
 <td><code>engine-ecu:fault</code></td>
 <td>ecu-service</td>
 <td>scootui, monitoring</td>
@@ -3209,21 +3214,22 @@ Its own hash interfaces are:</p>
 <tbody>
 <tr>
 <td><code>events:faults</code></td>
-<td>vehicle-service, modem-service</td>
-<td>uplink-service (stream consumer)</td>
+<td>vehicle-service, ecu-service, battery-service, modem-service, bluetooth-service, keycard-service</td>
+<td>uplink-service (stream consumer), scootui, lsc</td>
 </tr>
 <tr>
 <td><code>ota:errors</code></td>
 <td>update-service</td>
 <td>uplink-service (stream consumer), diagnostics</td>
 </tr>
-<tr>
-<td><code>events</code></td>
-<td>event-service adapter</td>
-<td>Event-history consumers; rules use live <code>ev:&lt;topic&gt;</code> Pub/Sub instead</td>
-</tr>
 </tbody>
 </table>
+<p>Fault writers: vehicle-, bluetooth-, modem-, and keycard-service use
+redis-ipc's <code>FaultReporter</code>, which couples the <code>&lt;group&gt;:fault</code> set, the
+stream entry, and the pub/sub channel name; battery-service and ecu-service
+append to the stream directly. Readers must use stream commands — <code>XADD</code>
+entries are invisible to <code>HGETALL</code>.
+| <code>events</code> | event-service adapter | Event-history consumers; rules use live <code>ev:&lt;topic&gt;</code> Pub/Sub instead |</p>
 <h3 id="list-keys-command-queues">List Keys (Command Queues)<a class="headerlink" href="#list-keys-command-queues" title="Permanent link">&para;</a></h3>
 <p>In addition to the producers below, event-service can write any list named
 by an installed <code>redis</code> rule. No command-list edge is enabled by the adapter
