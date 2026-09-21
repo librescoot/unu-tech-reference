@@ -743,7 +743,7 @@ Librescoot adds these fields to the dashboard hash:
 | Field | Type | Description | Example |
 |-------|------|-------------|----------|
 | brightness | float (lux) | Ambient light level from the OPT3001 | "42.00" |
-| backlight | integer | Current backlight brightness, 0 to 10240 | "9700" |
+| backlight | integer | Current backlight index, 0 to the kernel-reported maximum | "31200" |
 | backlight-enabled | string | Override; "false" forces the backlight to 0 | "true" |
 
 `dbc-backlight-service` on the DBC owns all three. It reads the OPT3001 through
@@ -752,7 +752,8 @@ lux-to-brightness curve, and writes the level it applied to `backlight`. Each
 write is followed by a `PUBLISH dashboard <field>`.
 
 `backlight` is an index into the interpolated step range the `pwm-backlight`
-device tree node exposes, not a raw duty cycle. `max_brightness` is 10240.
+device tree node exposes, not a raw duty cycle. The service reads the current
+`max_brightness` from sysfs at startup, so consumers must not hard-code a range.
 
 `backlight-enabled` is a hard override rather than a mode: false writes 0 and
 holds, true releases back to whatever the ambient level calls for. vehicle-service

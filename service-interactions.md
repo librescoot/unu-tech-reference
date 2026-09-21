@@ -555,7 +555,7 @@ Note: version-service does not publish on any channel. It runs once at boot via 
 **Writes:**
 | Hash | Fields | Channel |
 |------|--------|---------|
-| `dashboard` | `backlight` (int 0-10240), `brightness` (float lux) | `dashboard` |
+| `dashboard` | `backlight` (kernel-range int), `brightness` (float lux) | `dashboard` |
 
 **Reads:**
 
