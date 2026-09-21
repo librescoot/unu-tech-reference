@@ -45,7 +45,7 @@ Code defaults (applied when a key is absent):
 
 | Key | Default | Meaning |
 |-----|---------|---------|
-| `uplink.server_url` | — (required) | WebSocket URL of the uplink server (`uplink.fallback_url` exists in the config schema but is not read by the current connection logic) |
+| `uplink.server_url` | — (required) | WebSocket URL of the uplink server |
 | `uplink.keepalive_interval` | `5m` | Client keepalive cadence |
 | `uplink.reconnect_max_delay` | `5m` | Cap for the reconnect backoff |
 | `scooter.identifier` / `scooter.token` | — (required) | Server-issued credential presented in `auth` |
