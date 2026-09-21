@@ -4474,6 +4474,9 @@ all three writers in the shape scootui-qt's <code>MapMetadata</code> defines.</p
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-18-1"><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a>redis-cli<span class="w"> </span>-h<span class="w"> </span><span class="m">192</span>.168.7.1<span class="w"> </span>LPUSH<span class="w"> </span>scooter:keycard<span class="w"> </span>learn:start
 </span></code></pre></div>
 <p><strong>Available commands</strong>: <code>list</code>, <code>count</code>, <code>add:&lt;uid&gt;</code>, <code>remove:&lt;uid&gt;</code>, <code>set-master:&lt;uid&gt;</code> (<code>NONE</code> to disable), <code>learn:start</code>, <code>learn:stop</code>, <code>learn:master:start</code>, <code>learn:master:stop</code>, <code>reset</code></p>
+<p>Writers: <code>lsc</code>, bluetooth-service (BLE-initiated management), and uplink-service
+(the cloud keycard commands, serialized with one request in flight so results
+correlate with the request that caused them).</p>
 <p>Command results land in the <code>keycard</code> hash field <code>command-result</code>. During teach-in flows, per-tap progress events (<code>card-learned:&lt;uid&gt;</code>, <code>master-learned:&lt;uid&gt;</code>, <code>mode-entered:master</code>, ...) are published on the <code>keycard:events</code> channel. See <a href="../services/librescoot-keycard/">keycard-service documentation</a>.</p>
 <h3 id="navigation-navigation">Navigation (<code>navigation</code>)<a class="headerlink" href="#navigation-navigation" title="Permanent link">&para;</a></h3>
 <div class="language-text highlight"><pre><span></span><code><span id="__span-19-1"><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a>hgetall navigation
@@ -4710,6 +4713,9 @@ absent lease as evidence that the counter is available.</p>
 and <code>last-error</code> is a bounded diagnostic string.</p>
 <p>Counter commands use the <code>scooter:trip</code> list with JSON
 <code>{"id":"…","op":"counter.reset","source":"…","expires-at":&lt;unix-ms&gt;}</code>.
+<code>source</code> names the requester: bluetooth-service relays BLE-initiated resets,
+uplink-service's cloud <code>trip_reset</code> sends <code>"source":"uplink"</code>, and local
+clients use their own name.
 The required deadline must be in the future and at most 60 seconds ahead when
 consumed, preventing queued resets from executing after a later service
 restart. Already-expired attempts are discarded without a stale result, which
@@ -5146,6 +5152,12 @@ never changes the counter.</p>
 </tbody>
 </table>
 <p>The active multi-hop plan is also persisted under <code>dashboard.route-plan.*</code>: indexed stops (<code>dashboard.route-plan.&lt;n&gt;.latitude|longitude|label|reached</code>) plus <code>current-step</code>, <code>active</code>, and <code>updated-at</code>. scootui-qt writes them, and settings-service stores them in <code>/data/settings.toml</code>, so a partial trip survives a reboot; the <code>navigation</code> hash itself does not, since Redis is volatile.</p>
+<p>uplink-service mirrors only an allowlisted subset of these fields to the
+cloud: <code>updates.*</code>, <code>pm.*</code>, <code>alarm.*</code>, <code>trip.*</code>, <code>engine-ecu.*</code>,
+<code>dashboard.service-mode-active</code>, <code>scooter.developer-mode</code>, and
+<code>scooter.dual-battery</code>. Everything else — including <code>cellular.*</code> credentials
+and saved/recent locations — stays on the vehicle, as does any key added to
+the schema later.</p>
 <p>The full settings schema (types, defaults, ranges, labels) is served as a JSON document in the <code>settings:schema</code> key by settings-service:</p>
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-24-1"><a id="__codelineno-24-1" name="__codelineno-24-1" href="#__codelineno-24-1"></a>redis-cli<span class="w"> </span>-h<span class="w"> </span><span class="m">192</span>.168.7.1<span class="w"> </span>GET<span class="w"> </span>settings:schema
 </span></code></pre></div>
@@ -5845,7 +5857,8 @@ its stored total and restarted the baseline.</p>
 approximately trimmed to 200 entries. Error entries contain <code>event=error</code>,
 <code>component</code>, <code>code</code>, and <code>message</code>. Lifecycle boundaries contain <code>event=reset</code>
 and <code>component</code>; read newest-first through the latest reset for the component
-to reconstruct its current operation.</p>
+to reconstruct its current operation. uplink-service consumes new entries and
+forwards <code>event=error</code> ones to the cloud as events.</p>
 <p><strong>Update status values:</strong> <code>idle</code>, <code>downloading</code>, <code>preparing</code>, <code>installing</code>, <code>pending-reboot</code>, <code>staged-noop</code>, <code>error</code></p>
 <p><code>staged-noop</code> is terminal and not an error: an <code>apply-staged-updates</code> push found nothing applicable (the staged image is already the running version, or only unusable artifacts are staged), so nothing was installed and nothing needs rebooting. ums-service finishes the cycle on it without triggering a reboot.</p>
 <p><code>status</code> and <code>update-type</code> are the non-namespaced pair from the stock convention,
@@ -6296,6 +6309,10 @@ also reflected in the <code>sms</code> hash (<code>state</code> goes <code>sendi
 </span><span id="__span-45-15"><a id="__codelineno-45-15" name="__codelineno-45-15" href="#__codelineno-45-15"></a>redis-cli<span class="w"> </span>-h<span class="w"> </span><span class="m">192</span>.168.7.1<span class="w"> </span>LPUSH<span class="w"> </span>scooter:update:mdb<span class="w"> </span>apply-staged-updates
 </span></code></pre></div>
 <p><strong>Per-component commands</strong> (<code>scooter:update:mdb</code> / <code>scooter:update:dbc</code>): <code>check-now</code>, <code>preview-channel:&lt;channel&gt;</code>, <code>update-from-file:&lt;path&gt;[#sha256=&lt;hex&gt;]</code>, <code>update-from-url:&lt;url&gt;[#sha256=&lt;hex&gt;]</code>, <code>apply-staged-updates</code></p>
+<p><code>check-now</code> is queued by <code>lsc ota check</code> and by uplink-service's cloud
+<code>update_check</code> command. A both-board request from uplink-service collapses to
+<code>scooter:update:mdb</code> when <code>settings[updates.mdb.orchestrate-dbc]</code> is on, so the
+MDB's preflight decides whether to wake the DBC for its check.</p>
 <p><code>preview-channel:&lt;channel&gt;</code> reports the latest release on <code>&lt;channel&gt;</code> for this
 component's <code>variant_id</code> and the size of its <code>.mender</code> artifact, into the <code>ota</code> hash's
 <code>preview-*</code> fields. It sets nothing and downloads nothing; the dashboard uses it to

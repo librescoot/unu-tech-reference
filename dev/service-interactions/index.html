@@ -2421,10 +2421,10 @@
 </span><span id="__span-0-35"><a id="__codelineno-0-35" name="__codelineno-0-35" href="#__codelineno-0-35"></a> scooter:governor── pm-service reads      ── vehicle-service writes
 </span><span id="__span-0-36"><a id="__codelineno-0-36" name="__codelineno-0-36" href="#__codelineno-0-36"></a> scooter:modem   ── modem-service reads   ── pm-service writes ("disable")
 </span><span id="__span-0-37"><a id="__codelineno-0-37" name="__codelineno-0-37" href="#__codelineno-0-37"></a> scooter:bluetooth─ bluetooth-service reads─ (firmware-update and BLE commands)
-</span><span id="__span-0-38"><a id="__codelineno-0-38" name="__codelineno-0-38" href="#__codelineno-0-38"></a> scooter:trip    ── trip-service reads ── bluetooth-service and local clients write JSON counter resets
+</span><span id="__span-0-38"><a id="__codelineno-0-38" name="__codelineno-0-38" href="#__codelineno-0-38"></a> scooter:trip    ── trip-service reads ── bluetooth-service, uplink-service, and local clients write JSON counter resets
 </span><span id="__span-0-39"><a id="__codelineno-0-39" name="__codelineno-0-39" href="#__codelineno-0-39"></a> scooter:alarm   ── alarm-service reads   ── lsc writes
 </span><span id="__span-0-40"><a id="__codelineno-0-40" name="__codelineno-0-40" href="#__codelineno-0-40"></a> settings:overlay── settings-service reads ── lsc writes (apply:service, clear:service)
-</span><span id="__span-0-41"><a id="__codelineno-0-41" name="__codelineno-0-41" href="#__codelineno-0-41"></a> scooter:update:&lt;component&gt; ── update-service reads ── update-service writes (check-now)
+</span><span id="__span-0-41"><a id="__codelineno-0-41" name="__codelineno-0-41" href="#__codelineno-0-41"></a> scooter:update:&lt;component&gt; ── update-service reads ── update-service, lsc, uplink-service write (check-now)
 </span><span id="__span-0-42"><a id="__codelineno-0-42" name="__codelineno-0-42" href="#__codelineno-0-42"></a> power:inhibits  ── pm-service inhibitor redis listener reads ── (external inhibitors write)
 </span><span id="__span-0-43"><a id="__codelineno-0-43" name="__codelineno-0-43" href="#__codelineno-0-43"></a>
 </span><span id="__span-0-44"><a id="__codelineno-0-44" name="__codelineno-0-44" href="#__codelineno-0-44"></a>                    Pub/Sub channels (notifications only; consumers HGET after receiving)
@@ -2659,7 +2659,7 @@ the rail.</p>
 | <code>ble:fault</code> | fault codes (Redis Set) | <code>ble</code> (payload: "fault") |
 | <code>cb-battery:alert</code>, <code>cb-battery:fault</code> | auxiliary-battery alerts and faults | same-named channels |
 | <code>navigation</code> | destination fields from the phone (<code>destination</code>, <code>latitude</code>, <code>longitude</code>, <code>address</code>) | <code>navigation</code> |
-| <code>scooter</code> | <code>temperature</code> (nRF die temperature, tenths of a degree) | <code>scooter</code> |
+| <code>scooter</code> | <code>temperature</code> (ambient °C from the nRF external temperature sensor, one decimal) | <code>scooter</code> |
 | <code>settings</code>, <code>usb</code>, <code>power-mux</code>, <code>power:inhibits</code> | read or written in passing (settings values, UMS mode, mux input, the DFU inhibitor) | respective channels |</p>
 <p><strong>Reads:</strong></p>
 <ul>
@@ -2943,7 +2943,13 @@ overridden off or pinned to a fixed level.</p>
 <h3 id="uplink-service">uplink-service<a class="headerlink" href="#uplink-service" title="Permanent link">&para;</a></h3>
 <p><strong>Reads (telemetry, HGETALL):</strong></p>
 <ul>
-<li><code>vehicle</code>, <code>battery:0</code>, <code>battery:1</code>, <code>aux-battery</code>, <code>cb-battery</code>, <code>engine-ecu</code>, <code>power-manager</code>, <code>power-mux</code>, <code>internet</code>, <code>modem</code>, <code>gps</code>, <code>keycard</code>, <code>ble</code>, <code>dashboard</code>, <code>system</code>, <code>alarm</code>, <code>navigation</code>, <code>ota</code>, <code>scooter</code></li>
+<li><code>vehicle</code>, <code>battery:0</code>, <code>battery:1</code>, <code>aux-battery</code>, <code>cb-battery</code>, <code>engine-ecu</code>, <code>power-manager</code>, <code>power-manager:busy-services</code>, <code>power-mux</code>, <code>internet</code>, <code>modem</code>, <code>gps</code>, <code>keycard</code>, <code>ble</code>, <code>dashboard</code>, <code>system</code>, <code>version:mdb</code>, <code>version:dbc</code>, <code>alarm</code>, <code>navigation</code>, <code>ota</code>, <code>scooter</code>, <code>trip</code>, <code>trip:counter</code>, <code>usb</code>, <code>remote-access</code></li>
+<li><code>settings</code> — allowlisted fields only (<code>updates.*</code>, <code>pm.*</code>, <code>alarm.*</code>, <code>trip.*</code>, <code>engine-ecu.*</code>, <code>dashboard.service-mode-active</code>, <code>scooter.developer-mode</code>, <code>scooter.dual-battery</code>); credentials, APN values, and saved/recent locations stay on the vehicle, as does any key added to the schema later</li>
+<li><code>events:faults</code> and <code>ota:errors</code> streams (fault and update-failure notifications; only <code>event=error</code> entries become cloud events)</li>
+</ul>
+<p><strong>Writes (hashes):</strong></p>
+<ul>
+<li><code>remote-access.uplink-service</code> → "connected" / "disconnected" (mirrored to the legacy <code>internet.unu-cloud</code> field)</li>
 </ul>
 <p><strong>Produces queues (LPUSH) — from remote server commands:</strong></p>
 <ul>
@@ -2954,6 +2960,9 @@ overridden off or pinned to a fixed level.</p>
 <li><code>scooter:hardware</code> → "dashboard:on/off", "engine:on/off", "handlebar:lock/unlock"</li>
 <li><code>scooter:power</code> → "reboot", "hibernate", "hibernate-manual"</li>
 <li><code>scooter:alarm</code> → "arm", "disarm", "enable", "disable", "stop"</li>
+<li><code>scooter:keycard</code> → keycard management commands (serialized: one request in flight, results correlated via <code>keycard[command-result]</code>)</li>
+<li><code>scooter:trip</code> → JSON <code>counter.reset</code> request (<code>trip_reset</code> command, <code>source</code> "uplink")</li>
+<li><code>scooter:update:&lt;component&gt;</code> → "check-now" (<code>update_check</code> command; a both-board request collapses to the MDB when <code>settings[updates.mdb.orchestrate-dbc]</code> is on)</li>
 </ul>
 <hr />
 <h3 id="ums-service">ums-service<a class="headerlink" href="#ums-service" title="Permanent link">&para;</a></h3>
@@ -3028,7 +3037,7 @@ overridden off or pinned to a fixed level.</p>
 <tr>
 <td><code>power-manager:busy-services</code></td>
 <td>pm-service</td>
-<td>monitoring only</td>
+<td>uplink-service, monitoring</td>
 </tr>
 <tr>
 <td><code>system</code></td>
@@ -3048,7 +3057,7 @@ overridden off or pinned to a fixed level.</p>
 <tr>
 <td><code>remote-access</code></td>
 <td>radio-gaga, uplink-service, optional providers</td>
-<td>pm-service (live provider-field aggregation), diagnostics</td>
+<td>pm-service (live provider-field aggregation), uplink-service, diagnostics</td>
 </tr>
 <tr>
 <td><code>modem</code></td>
@@ -3073,17 +3082,17 @@ overridden off or pinned to a fixed level.</p>
 <tr>
 <td><code>settings</code></td>
 <td>settings-service (from TOML), update-service (last-check-time)</td>
-<td>vehicle-service, battery-service, ecu-service, alarm-service, pm-service, trip-service</td>
+<td>vehicle-service, battery-service, ecu-service, alarm-service, pm-service, trip-service, uplink-service (allowlisted fields only)</td>
 </tr>
 <tr>
 <td><code>trip</code></td>
 <td>trip-service</td>
-<td>scootui, monitoring</td>
+<td>scootui, uplink-service, monitoring</td>
 </tr>
 <tr>
 <td><code>trip:counter</code></td>
 <td>trip-service</td>
-<td>scootui, bluetooth-service, monitoring</td>
+<td>scootui, bluetooth-service, uplink-service, monitoring</td>
 </tr>
 <tr>
 <td><code>trip:expunge</code></td>
@@ -3101,14 +3110,24 @@ overridden off or pinned to a fixed level.</p>
 <td>Nothing (dead key — see gaps)</td>
 </tr>
 <tr>
+<td><code>version:mdb</code>, <code>version:dbc</code></td>
+<td>version-service (one-shot <code>-hash version:&lt;board&gt;</code>: os-release fields, <code>serial_number</code>, <code>serial_number_real</code>), update-service (<code>version_id</code> after install)</td>
+<td>uplink-service, lsc, scootui, bluetooth-service (watches <code>version:mdb</code>), update-service (self: <code>version_id</code>, <code>variant_id</code>)</td>
+</tr>
+<tr>
 <td><code>usb</code></td>
 <td>ums-service</td>
-<td>ums-service (self), scootui, alarm-service</td>
+<td>ums-service (self), scootui, alarm-service, uplink-service</td>
 </tr>
 <tr>
 <td><code>motion</code></td>
 <td>motion-service</td>
 <td>alarm-service (wake-cause), scootui (heading), monitoring</td>
+</tr>
+<tr>
+<td><code>scooter</code></td>
+<td>bluetooth-service (temperature, relayed from the nRF)</td>
+<td>uplink-service, monitoring</td>
 </tr>
 </tbody>
 </table>
@@ -3191,7 +3210,12 @@ Its own hash interfaces are:</p>
 <tr>
 <td><code>events:faults</code></td>
 <td>vehicle-service, modem-service</td>
-<td>uplink-service (via HGetAll — see gaps)</td>
+<td>uplink-service (stream consumer)</td>
+</tr>
+<tr>
+<td><code>ota:errors</code></td>
+<td>update-service</td>
+<td>uplink-service (stream consumer), diagnostics</td>
 </tr>
 <tr>
 <td><code>events</code></td>
@@ -3251,7 +3275,7 @@ alone; the destination and value are entirely rule configuration.</p>
 <tr>
 <td><code>scooter:update:&lt;component&gt;</code></td>
 <td>update-service</td>
-<td>update-service (self check-now), lsc</td>
+<td>update-service (self check-now), lsc, uplink-service</td>
 </tr>
 <tr>
 <td><code>scooter:hardware</code></td>
@@ -3281,7 +3305,7 @@ alone; the destination and value are entirely rule configuration.</p>
 <tr>
 <td><code>scooter:trip</code></td>
 <td>trip-service</td>
-<td>bluetooth-service, trusted local clients</td>
+<td>bluetooth-service, uplink-service, trusted local clients</td>
 </tr>
 <tr>
 <td><code>scooter:alarm</code></td>
@@ -3291,7 +3315,7 @@ alone; the destination and value are entirely rule configuration.</p>
 <tr>
 <td><code>scooter:keycard</code></td>
 <td>keycard-service</td>
-<td>lsc, bluetooth-service</td>
+<td>lsc, bluetooth-service, uplink-service</td>
 </tr>
 <tr>
 <td><code>scooter:hop-on</code></td>
