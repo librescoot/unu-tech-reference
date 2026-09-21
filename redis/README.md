@@ -582,7 +582,7 @@ Librescoot adds persistent settings managed by the settings-service:
 | cellular.apn | string | Cellular APN | "internet.provider.com" |
 | pm.hibernation-timer | integer (sec) | Hibernation timeout for idle-driven auto-hibernate (0=disabled) | "259200" |
 | pm.default-state | string | Default target power state when idle (run / suspend) | "suspend" |
-| pm.suspend-when-online | "true"/"false" | With no main battery present, allow suspend even while online (default true; set false to keep an online scooter awake). A present/active main battery always blocks suspend regardless | "false" |
+| pm.suspend-when-online | "true"/"false" | Only relevant with no main battery present; a present/active main battery always blocks suspend. "Online" = an active remote-access provider (`remote-access[status] == connected`). Default true allows suspend while online; set false to keep the scooter awake while remote access is connected (drains the auxiliary battery within a few days) | "false" |
 | pm.scheduled-hibernate-enabled | "true"/"false" | Enable cron-driven scheduled hibernation | "true" |
 | pm.scheduled-hibernate-cron | string | 5-field cron expression for scheduled hibernation | "0 22 * * *" |
 | pm.scheduled-hibernate-duration | duration | Wake-by duration applied at each cron fire | "8h" |
