@@ -56,6 +56,11 @@ nav = [
 
 [project.theme]
 language = "en"
+# Template overrides (share-card metadata in overrides/main.html) and the
+# favicon, which must be inside docs_dir at build time — deploy-prep.sh copies
+# assets/ there.
+custom_dir = "overrides"
+favicon = "assets/favicon.png"
 features = [
     "content.action.edit",
     "content.code.copy",
