@@ -276,9 +276,9 @@ than merely quiet.
 Two cautions for anyone building on that.
 
 `pending-reboot` is not a quiet operation, it is a finished one. A DBC install ends
-there and the heartbeat stops, legitimately, until the next power cycle applies the
-update. Only `downloading`, `preparing` and `installing` are states where a stopped
-heartbeat means something is wrong. A staleness test that says "non-terminal" without
+there and the heartbeat stops, legitimately, until a stand-by reboot or the next
+power cycle applies the update. Only `downloading`, `preparing` and `installing`
+are states where a stopped heartbeat means something is wrong. A staleness test that says "non-terminal" without
 naming those three will flag every successfully updated DBC.
 
 An absent heartbeat is not a stale one. Images before this field existed never write
@@ -428,7 +428,7 @@ Configured via `updates.{component}.method` in Redis settings. Default is `delta
 ## Reboot Behavior
 
 - **MDB**: waits until vehicle is in stand-by state for 3 minutes, then triggers reboot via `scooter:power`. The 3-minute requirement applies to periodic checks; a manually requested update (`check-now`, `update-from-file:`, `update-from-url:`) reboots as soon as the vehicle is in stand-by.
-- **DBC**: sets status to `pending-reboot`; reboot applied on next natural power-on (no active trigger). When the dashboard powers off, the MDB clears only a DBC `downloading` or `preparing` status. `pending-reboot` is kept for the DBC's own recovery on the next power-on, and it does not block MDB orchestration of the DBC.
+- **DBC**: sets status to `pending-reboot` and reboots itself once the vehicle is in `stand-by`. The local activation reboot is gated on `stand-by` alone — never `ready-to-drive` or `parked`, where the rider is present — so activation waits out the rider; a pending artifact that never gets its stand-by reboot still applies on the next power cycle. When the dashboard powers off, the MDB clears only a DBC `downloading` or `preparing` status. `pending-reboot` is kept for the DBC's own recovery on the next power-on, and it does not block MDB orchestration of the DBC.
 - With `--dry-run`: logs reboot intent only
 
 ## File Locations
