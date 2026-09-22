@@ -11,7 +11,7 @@
 set -euo pipefail
 
 git fetch -q origin main
-git checkout origin/main -- zensical.toml stylesheets
+git checkout origin/main -- zensical.toml stylesheets assets overrides
 
 # Rebuild from scratch: a batch run reuses the worktree for several refs, and
 # a stale page from the previous ref must not survive into the next version.
@@ -25,6 +25,7 @@ for d in battery battery-charger bluetooth dashboard electronic mechanical nrf r
   [ -d "$d" ] && cp -r "$d" "docs/$d"
 done
 [ -d stylesheets ] && cp -r stylesheets docs/stylesheets || true
+[ -d assets ] && cp -r assets docs/assets || true
 
 # main's nav lists pages that older snapshots legitimately do not have
 # (event-service, motion-service, the BLE OTA page). Drop those entries,

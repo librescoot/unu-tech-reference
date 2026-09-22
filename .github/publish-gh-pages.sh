@@ -92,6 +92,10 @@ while [ "$attempt" -le "$MAX_ATTEMPTS" ]; do
     # docs/vX.Y.Z branch will never carry this script, and the result has to be
     # identical whichever ref triggered the run.
     git show "$REMOTE/main:.github/restore-legacy-urls.py" | python3 - .
+    # Root-level images (og:image and favicon) are site chrome too: every doc
+    # version's share metadata points at these stable root URLs.
+    git show "$REMOTE/main:assets/og-image.png" > og-image.png
+    git show "$REMOTE/main:assets/favicon.png" > favicon.png
     if [ -n "$(git status --porcelain)" ]; then
       git add -A
       git commit --amend --no-edit --quiet
