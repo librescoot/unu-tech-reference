@@ -124,8 +124,8 @@ Both side widgets measure their own width at every "degrade level" (see below) a
 | AUX (12V) level glyph | `showAuxBattery` setting is `always`, or `warning` (default) and AUX voltage is below 11700 mV | Icon-only glyph, bucketed to 0/25/50/75/100% (from the AUX SoC quantization); suppressed while an AUX warning/stranded icon is showing in its place |
 | Seatbox-open icon | Seatbox lock is open | |
 | CB-not-present icon | No CBB detected | Blank battery glyph with a slashed overlay |
-| CB warning icon | CBB charge < 50%, not charging, main pack present/active, seatbox closed (3s debounce); or CBB reports low charge while no main pack is inserted ("stranded") | Blank battery glyph with an error overlay |
-| AUX warning icon | AUX voltage < 11495 mV (or < 11000 mV critical), main pack present, seatbox closed (3s debounce); or AUX voltage < 11700 mV while no main pack is inserted ("stranded") | Blank battery glyph with an error overlay |
+| CB warning icon | CBB charge < 50%, not charging, main pack present/active, seatbox closed (3s debounce); or CBB reports low charge while no main pack is inserted ("stranded"). The charging branch is silenced by `scooter.suppress-cb-charging-warning` | Blank battery glyph with an error overlay |
+| AUX warning icon | AUX charger reports not-charging while the main pack is active and AUX voltage is below the 14500 mV charger ceiling (3s debounce); or AUX voltage < 11495 mV (or < 11000 mV critical), main pack present, seatbox closed; or AUX voltage < 11700 mV while no main pack is inserted ("stranded"). The charging branch is silenced by `scooter.suppress-aux-charging-warning` | Blank battery glyph with an error overlay |
 
 Detail sheds in this order as space runs out: drop range decimals, drop battery 1's value text, collapse the AUX level glyph into the overflow chip, collapse the CBB level glyph into the overflow chip, drop battery 0's value text. Warning/error icons (seatbox, CB-not-present, CB/AUX warning, stranded) never degrade.
 
@@ -150,7 +150,7 @@ Icons collapsed by degradation are replaced by a single "..."+N chip (N = number
 
 #### Reduced-Power (Turtle) Indicator
 
-The turtle / reduced-power icon is not part of the top status bar. It is one of the telltales in the floating bottom-left telltale panel, alongside engine-warning, hazard-lights, and parking-brake telltales, shown when a present and active battery pack is at or below 20% charge.
+The turtle / reduced-power icon is not part of the top status bar. It is one of the telltales in the floating bottom-left telltale panel, alongside engine-warning/USB-backup, battery-fault, hazard-lights and parking-brake telltales, shown when a present and active battery pack is at or below 20% charge. The panel also carries the red charging-condition telltale: a main pack is active, the AUX charger reports not-charging and AUX voltage is below the 14500 mV charger ceiling (at or above it the pack is full, so the charger stopping is expected). That telltale is silenced by `scooter.suppress-aux-charging-warning`.
 
 #### Internet Status Redis Keys
 
