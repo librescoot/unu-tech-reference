@@ -2671,9 +2671,9 @@ treat a heartbeat that has stopped advancing as evidence the reporter is gone ra
 than merely quiet.</p>
 <p>Two cautions for anyone building on that.</p>
 <p><code>pending-reboot</code> is not a quiet operation, it is a finished one. A DBC install ends
-there and the heartbeat stops, legitimately, until the next power cycle applies the
-update. Only <code>downloading</code>, <code>preparing</code> and <code>installing</code> are states where a stopped
-heartbeat means something is wrong. A staleness test that says "non-terminal" without
+there and the heartbeat stops, legitimately, until a stand-by reboot or the next
+power cycle applies the update. Only <code>downloading</code>, <code>preparing</code> and <code>installing</code>
+are states where a stopped heartbeat means something is wrong. A staleness test that says "non-terminal" without
 naming those three will flag every successfully updated DBC.</p>
 <p>An absent heartbeat is not a stale one. Images before this field existed never write
 it, so a consumer must require that a heartbeat has been observed for the current
@@ -2822,7 +2822,7 @@ before prompting the rider to confirm.</p>
 <h2 id="reboot-behavior">Reboot Behavior<a class="headerlink" href="#reboot-behavior" title="Permanent link">&para;</a></h2>
 <ul>
 <li><strong>MDB</strong>: waits until vehicle is in stand-by state for 3 minutes, then triggers reboot via <code>scooter:power</code>. The 3-minute requirement applies to periodic checks; a manually requested update (<code>check-now</code>, <code>update-from-file:</code>, <code>update-from-url:</code>) reboots as soon as the vehicle is in stand-by.</li>
-<li><strong>DBC</strong>: sets status to <code>pending-reboot</code>; reboot applied on next natural power-on (no active trigger). When the dashboard powers off, the MDB clears only a DBC <code>downloading</code> or <code>preparing</code> status. <code>pending-reboot</code> is kept for the DBC's own recovery on the next power-on, and it does not block MDB orchestration of the DBC.</li>
+<li><strong>DBC</strong>: sets status to <code>pending-reboot</code> and reboots itself once the vehicle is in <code>stand-by</code>. The local activation reboot is gated on <code>stand-by</code> alone — never <code>ready-to-drive</code> or <code>parked</code>, where the rider is present — so activation waits out the rider; a pending artifact that never gets its stand-by reboot still applies on the next power cycle. When the dashboard powers off, the MDB clears only a DBC <code>downloading</code> or <code>preparing</code> status. <code>pending-reboot</code> is kept for the DBC's own recovery on the next power-on, and it does not block MDB orchestration of the DBC.</li>
 <li>With <code>--dry-run</code>: logs reboot intent only</li>
 </ul>
 <h2 id="file-locations">File Locations<a class="headerlink" href="#file-locations" title="Permanent link">&para;</a></h2>
