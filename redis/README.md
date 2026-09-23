@@ -176,6 +176,7 @@ hgetall system
 | mdb-version | string | MDB firmware version | "v1.15.0+430538" |
 | environment | string | System environment | "production" |
 | nrf-fw-version | string | NRF firmware version | "v1.12.0" |
+| capabilities | string | Bluetooth-service's complete `cap:ext` registry, published at startup and refreshed on capability queries. `nav=2` advertises multi-hop navigation; absence does not establish support. | "cap:ext:nav=2:keycard:usb" |
 | dbc-version | string | Dashboard computer version | "v1.15.0+430553" |
 | keycard-master-count | integer | Master keycards enrolled, written by keycard-service | "1" |
 | keycard-authorized-count | integer | Authorized keycards enrolled, written by keycard-service | "3" |
