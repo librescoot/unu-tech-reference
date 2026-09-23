@@ -2661,17 +2661,19 @@ the rail.</p>
 | Hash | Fields | Channel |
 |------|--------|---------|
 | <code>keycard</code> | <code>authentication</code> ("passed"), <code>type</code> ("scooter"), <code>uid</code> | <code>keycard</code> (payload: "authentication") |
-| <code>keycard</code> | <code>command-result</code> | <code>keycard</code> |
-| <code>system</code> | <code>keycard-master-count</code>, <code>keycard-authorized-count</code> | <code>system</code> |</p>
-<p>Note: Sets 10-second TTL on <code>keycard</code> hash after publish.</p>
+| <code>keycard</code> | <code>command-result</code>, <code>command-error</code> | <code>keycard</code> |
+| <code>system</code> | <code>keycard-master-count</code>, <code>keycard-authorized-count</code>, <code>keycard-learn-state</code>, <code>keycard-last-used-uid</code> | <code>system</code> |
+| Redis sets <code>keycard:authorized</code>, <code>keycard:masters</code>, <code>keycard:phones</code> | Enrolled card UIDs, master UIDs, phone fingerprints | <code>system</code> (set name after refresh) |
+| Redis set <code>keycard:aliases</code> | <code>&lt;kind&gt;:&lt;id&gt;:&lt;plain-name&gt;</code> display names | <code>system</code> (set name after refresh) |</p>
+<p>Note: Sets 10-second TTL on <code>keycard</code> hash after authentication. Its short-lived state is distinct from the dashboard credential sets and the live protocol lease.</p>
 <p><strong>Publishes:</strong></p>
 <ul>
-<li><code>keycard:events</code> - teach-in progress (<code>mode-entered</code>, <code>mode-exited</code>, <code>card-learned:&lt;uid&gt;</code>, <code>rejected:already-authorized:&lt;uid&gt;</code>, <code>error:save-failed:&lt;uid&gt;</code>)</li>
+<li><code>keycard:events</code> - mode changes, physical-card and phone enrollment/removal, duplicates, access grants and errors.</li>
 </ul>
-<p><strong>Reads:</strong> None (hardware-driven)</p>
+<p><strong>Reads:</strong> <code>settings[dashboard.service-mode-active]</code> to suppress master bootstrap during service mode; its own <code>system[keycard-last-used-uid]</code> for snapshot cleanup.</p>
 <p><strong>Consumes queues:</strong></p>
 <ul>
-<li><code>scooter:keycard</code> → "list", "count", "add:<uid>", "remove:<uid>" (and the master commands)</li>
+<li><code>scooter:keycard</code> → physical-card, master-card, phone-removal, alias and learn-mode commands (see <a href="../services/librescoot-keycard/">service command reference</a>). Phone enrollment occurs through NFC in learn mode, not a Redis add command.</li>
 </ul>
 <p><strong>Hardware access:</strong> NFC via PN7150, I2C LED controller LP5562</p>
 <hr />
@@ -2679,7 +2681,7 @@ the rail.</p>
 <p><strong>Writes:</strong>
 | Hash | Fields | Channel |
 |------|--------|---------|
-| <code>system</code> | <code>mdb-version</code> (from nRF), <code>nrf-fw-version</code> | <code>system</code> |
+| <code>system</code> | <code>mdb-version</code> (from nRF), <code>nrf-fw-version</code>, <code>capabilities</code> (<code>cap:ext</code> registry) | <code>system</code> |
 | <code>engine-ecu</code> | <code>odometer</code> (from nRF) | <code>engine-ecu</code> |
 | <code>ble</code> | status fields, <code>pin-code</code>, <code>firmware-update-status</code> | <code>ble</code> |
 | <code>ble:fault</code> | fault codes (Redis Set) | <code>ble</code> (payload: "fault") |
@@ -2696,10 +2698,11 @@ the rail.</p>
 <li><code>engine-ecu/odometer</code></li>
 <li><code>system/mdb-version</code></li>
 <li><code>ble/pin-code</code></li>
+<li><code>keycard[command-result]</code> for relaying management replies over BLE</li>
 </ul>
 <p><strong>Subscribes to:</strong></p>
 <ul>
-<li><code>vehicle</code>, <code>battery:0</code>, <code>battery:1</code>, <code>power-manager</code>, <code>engine-ecu</code>, <code>system</code>, <code>ble</code> channels</li>
+<li><code>vehicle</code>, <code>battery:0</code>, <code>battery:1</code>, <code>power-manager</code>, <code>engine-ecu</code>, <code>system</code>, <code>ble</code>, <code>keycard</code> channels</li>
 </ul>
 <p><strong>Consumes queues:</strong></p>
 <ul>

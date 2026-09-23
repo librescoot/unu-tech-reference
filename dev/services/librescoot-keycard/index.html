@@ -1160,6 +1160,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#credential-projections" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Credential projections
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#channel-keycardevents-published" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
@@ -1253,6 +1264,17 @@
     <span class="md-ellipsis">
       <span class="md-typeset">
         Learn Mode
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#android-phone-enrollment" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Android phone enrollment
       </span>
     </span>
   </a>
@@ -1809,6 +1831,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#credential-projections" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Credential projections
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#channel-keycardevents-published" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
@@ -1902,6 +1935,17 @@
     <span class="md-ellipsis">
       <span class="md-typeset">
         Learn Mode
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#android-phone-enrollment" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Android phone enrollment
       </span>
     </span>
   </a>
@@ -2079,8 +2123,8 @@
 
 <h1 id="librescoot-keycard-keycard-service">librescoot-keycard (keycard-service)<a class="headerlink" href="#librescoot-keycard-keycard-service" title="Permanent link">&para;</a></h1>
 <h2 id="description">Description<a class="headerlink" href="#description" title="Permanent link">&para;</a></h2>
-<p>Handles NFC-based authentication for the scooter. Detects keycards via the PN7150 controller, checks UIDs against authorized and master lists, controls LED feedback, and publishes authentication events to Redis. Supports master bootstrap on first boot, learn mode for adding authorized cards, and a Redis command interface for UID management.</p>
-<p>Two card roles, and they do not overlap. An <strong>authorized</strong> card unlocks the vehicle. A <strong>master</strong> card starts learn mode and never unlocks anything. A UID can hold one role or the other, never both.</p>
+<p>Handles NFC-based authentication for the scooter. Detects physical keycards via the PN7150 controller and authenticates enrolled Android HCE phone keys by signed, fresh ISO-DEP challenge. It controls LED feedback and publishes authentication events to Redis. Supports master bootstrap on first boot, additive learn mode for authorized cards and phones, and a Redis command interface for credential management.</p>
+<p>Two physical-card roles do not overlap. An <strong>authorized</strong> card unlocks the vehicle. A <strong>master</strong> card starts learn mode and never unlocks anything. A UID can hold one role or the other, never both. A phone key is a separate unlock credential, not a master; it does not authenticate by RF UID.</p>
 <p><strong>UID format.</strong> Every UID entering the service, from a tag read, a command, or a UID file, is normalized to bare uppercase hex: <code>:</code>, <code>-</code>, <code>.</code> and spaces are stripped, and anything that is not 1-10 bytes of hex is rejected. Commands may therefore be written <code>add:04:A1:B2:C3</code> or <code>add:04a1b2c3</code> interchangeably. Malformed lines in the UID files are dropped at load and logged.</p>
 <h2 id="command-line-options">Command-Line Options<a class="headerlink" href="#command-line-options" title="Permanent link">&para;</a></h2>
 <div class="language-text highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>  --device string       NFC device path (default: /dev/pn5xx_i2c2)
@@ -2136,6 +2180,10 @@
 <td><code>error:not found</code></td>
 </tr>
 <tr>
+<td><code>invalid-alias</code></td>
+<td><code>error:invalid alias</code></td>
+</tr>
+<tr>
 <td><code>last-credential</code></td>
 <td><code>error:cannot remove last authorized card</code></td>
 </tr>
@@ -2182,11 +2230,35 @@
 </tr>
 <tr>
 <td><code>remove:&lt;uid&gt;</code></td>
-<td><code>ok</code>, or <code>not-found</code> / <code>last-credential</code></td>
+<td><code>ok</code>, or <code>not-found</code> / <code>last-credential</code>; <code>remove:&lt;uid&gt;:force</code> permits removal of the last unlock credential</td>
 </tr>
 <tr>
 <td><code>master:list</code></td>
 <td><code>count:&lt;n&gt;</code> then one <code>master:&lt;uid&gt;</code> per master</td>
+</tr>
+<tr>
+<td><code>phone:list</code></td>
+<td><code>count:&lt;n&gt;</code> then one <code>phone:&lt;fingerprint&gt;</code> per enrolled phone</td>
+</tr>
+<tr>
+<td><code>phone:remove:&lt;fingerprint&gt;</code></td>
+<td>Revoke a phone; refuses to remove the last unlock credential without <code>:force</code></td>
+</tr>
+<tr>
+<td><code>phone:remove:&lt;fingerprint&gt;:force</code></td>
+<td>Revoke a phone even if it is the last unlock credential</td>
+</tr>
+<tr>
+<td><code>alias:list</code></td>
+<td><code>count:&lt;n&gt;</code> then one <code>alias:&lt;kind&gt;:&lt;id&gt;:&lt;base64url-name&gt;</code> per name</td>
+</tr>
+<tr>
+<td><code>alias:set:&lt;kind&gt;:&lt;id&gt;:&lt;base64url-name&gt;</code></td>
+<td>Name an enrolled <code>card</code> (authorized or master) or <code>phone</code>; name is unpadded base64url UTF-8, at most 32 bytes decoded</td>
+</tr>
+<tr>
+<td><code>alias:clear:&lt;kind&gt;:&lt;id&gt;</code></td>
+<td>Clear an enrolled credential's name</td>
 </tr>
 <tr>
 <td><code>master:add:&lt;uid&gt;</code></td>
@@ -2226,12 +2298,19 @@
 </tr>
 <tr>
 <td><code>reset</code></td>
-<td>Reset all auth state (master + authorized cards)</td>
+<td>Reset all auth state (masters, authorized cards, phones and names); fails if the phone credential file is unhealthy</td>
 </tr>
 </tbody>
 </table>
 <p><code>master:bootstrap-cancel</code> is the explicit way to stop the next tap being learned as master. <code>learn:start</code>, <code>learn:master:start</code> and <code>learn:master:stop</code> also end the bootstrap, since a caller driving modes by command has already answered the question the bootstrap was waiting on. <code>set-master:NONE</code> persists a decision (no physical master on this vehicle, ever) and suppresses the bootstrap on later starts too; <code>master:bootstrap-cancel</code> applies to the current run only and writes nothing.</p>
-<p>Responses are written to <code>keycard command-result</code> and <code>keycard command-error</code>; the error names in this table are <code>command-error</code> codes.</p>
+<p>Responses are written to <code>keycard command-result</code> and <code>keycard command-error</code>; the error names in this table are <code>command-error</code> codes. Multi-entry replies have no request ID: serialize list requests and consume exactly the reported number of entries. The <code>last-credential</code> guard counts both authorized physical cards and phone keys.</p>
+<h3 id="credential-projections">Credential projections<a class="headerlink" href="#credential-projections" title="Permanent link">&para;</a></h3>
+<ul>
+<li><code>keycard:authorized</code>, <code>keycard:masters</code>, <code>keycard:phones</code> are Redis sets of authorized UIDs, master UIDs and 32-hex-character phone fingerprints for the dashboard. They are refreshed on startup and successful credential changes; empty sets are deleted.</li>
+<li><code>keycard:aliases</code> is a Redis set of <code>&lt;kind&gt;:&lt;id&gt;:&lt;plain-name&gt;</code> members. Split only the first two colons; a name may contain colons. Changes to a credential or its name refresh this projection. The service publishes each changed set name on the <code>system</code> channel after refresh.</li>
+<li><code>system[keycard-last-used-uid]</code> records the last <em>physical authorized card</em> used, and clears when that card is removed. <code>system[keycard-learn-state]</code> exposes the current teach-in state. Master and authorized card counts also live in <code>system</code>.</li>
+<li>Bluetooth-service advertises <code>keycard=2</code> for physical-card management, phone management, master-card listing and credential names. It forwards these commands to keycard-service.</li>
+</ul>
 <h3 id="channel-keycardevents-published">Channel: <code>keycard:events</code> (published)<a class="headerlink" href="#channel-keycardevents-published" title="Permanent link">&para;</a></h3>
 <p>Every state change is published here, whether a command or a tap on the reader caused it, so a subscriber (installer, BLE bridge) can stay in step with the vehicle rather than only hearing about what it asked for itself.</p>
 <p>Format is <code>&lt;event&gt;[:&lt;uid&gt;][:&lt;trigger&gt;]</code>, where trigger is <code>card</code>, <code>command</code>, <code>bootstrap</code> or <code>teach-in</code>.</p>
@@ -2262,6 +2341,18 @@
 <tr>
 <td><code>card-learned:&lt;uid&gt;</code></td>
 <td>Learn-mode tap, queued until <code>learn:stop</code></td>
+</tr>
+<tr>
+<td><code>phone-learned:&lt;fingerprint&gt;</code> / <code>phone-duplicate:&lt;fingerprint&gt;</code></td>
+<td>Phone tap queued for enrollment / already enrolled or seen in this session</td>
+</tr>
+<tr>
+<td><code>phone-added:&lt;fingerprint&gt;</code> / <code>phone-removed:&lt;fingerprint&gt;</code></td>
+<td>Phone list changed</td>
+</tr>
+<tr>
+<td><code>phone-rejected</code></td>
+<td>Phone authentication rejected</td>
 </tr>
 <tr>
 <td><code>card-duplicate:&lt;uid&gt;</code></td>
@@ -2370,10 +2461,12 @@
 <li>PWM LEDs 3 + 7 turn on; the RGB LED stays amber for the whole session when learn mode was entered by a card tap</li>
 <li>Each new card presented: added to session queue, Green LED flash, then back to amber</li>
 <li>Present master UID again or <code>learn:stop</code> to exit</li>
-<li>Learned cards are <strong>appended</strong> to the authorized list in <code>authorized_uids.txt</code> (additive)</li>
+<li>Learned cards are <strong>appended</strong> to <code>authorized_uids.txt</code>; phone keys are appended to <code>phone_keys.txt</code> (additive)</li>
 <li>If no cards learned: existing list unchanged</li>
 <li>PWM LEDs 3 + 7 turn off, RGB LED turns off (a green flash first if cards were added)</li>
 </ol>
+<h3 id="android-phone-enrollment">Android phone enrollment<a class="headerlink" href="#android-phone-enrollment" title="Permanent link">&para;</a></h3>
+<p>Set up a device-bound phone key in the Android app's Keycards screen. Tap a master card to enter learn mode, present the unlocked Android phone with its screen and NFC on, then tap the master again to save it. A duplicate phone tap is rejected, not revoked. A fresh scooter needs its normal master/bootstrap setup first. Android NFC host card emulation is required; iOS/Apple Watch HCE is not implemented. Losing or reinstalling the app loses its Android Keystore key; revoke the old fingerprint and enroll the new one. Phone authentication uses a signed challenge, not the legacy physical-card UID. NFC challenge–response is not distance bounding and does not prevent live relays.</p>
 <h2 id="file-locations">File Locations<a class="headerlink" href="#file-locations" title="Permanent link">&para;</a></h2>
 <table>
 <thead>
@@ -2391,10 +2484,18 @@
 <td><code>/data/keycard/master_uids.txt</code></td>
 <td>Master UIDs (one per line; multiple masters supported). A single line reading <code>NONE</code> records that this vehicle wants no physical master</td>
 </tr>
+<tr>
+<td><code>/data/keycard/phone_keys.txt</code></td>
+<td>Android phone public keys (P-256 SPKI, hex-encoded, one per line)</td>
+</tr>
+<tr>
+<td><code>/data/keycard/key_aliases.json</code></td>
+<td>Optional scooter-owned display names, keyed by <code>card:&lt;UID&gt;</code> or <code>phone:&lt;fingerprint&gt;</code>; mode <code>0600</code></td>
+</tr>
 </tbody>
 </table>
-<p>Files are written atomically (write to <code>.tmp</code>, sync, rename). UIDs are stored as bare uppercase hex, but any separator form is accepted on read, so hand-edited files work.</p>
-<p><code>lsc keycard list</code> and <code>export</code> read these files directly because multi-entry command replies have no request correlation. Mutating commands go through the Redis interface while keycard-service is running, so its in-memory state and events remain authoritative. If the service is stopped or absent, lsc warns and falls back to editing the files directly; those fallback changes emit no events.</p>
+<p>Credential files are written atomically (write to <code>.tmp</code>, sync, rename). UIDs are stored as bare uppercase hex, but any separator form is accepted on read, so hand-edited UID files work. Names are display metadata, not authentication inputs. Successful removals and reset prune names; snapshots filter orphaned names. An unreadable or invalid phone file disables phone authentication and phone management without disabling physical cards; it is not silently overwritten, and reset fails rather than claiming to revoke unknown phones. A damaged names file makes names read-only without disabling credentials.</p>
+<p><code>lsc keycard list</code> and <code>export</code> read the physical-card UID files directly because multi-entry command replies have no request correlation. Mutating commands go through the Redis interface while keycard-service is running, so its in-memory state and events remain authoritative. If the service is stopped or absent, lsc warns and falls back to editing the files directly; those fallback changes emit no events.</p>
 <h2 id="systemd-unit">Systemd Unit<a class="headerlink" href="#systemd-unit" title="Permanent link">&para;</a></h2>
 <ul>
 <li><strong>Unit:</strong> <code>librescoot-keycard.service</code></li>

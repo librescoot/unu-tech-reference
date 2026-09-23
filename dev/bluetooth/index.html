@@ -2200,6 +2200,36 @@ for a service that failed to appear.</p>
 <td>Response via keycard-service</td>
 </tr>
 <tr>
+<td><code>keycard:phone:list</code></td>
+<td>List enrolled phone fingerprints (<code>keycard=2</code> only)</td>
+<td><code>keycard:count:&lt;n&gt;</code>, then <code>keycard:phone:&lt;fingerprint&gt;</code> per phone</td>
+</tr>
+<tr>
+<td><code>keycard:phone:remove:&lt;fingerprint&gt;</code></td>
+<td>Revoke enrolled phone (<code>keycard=2</code> only)</td>
+<td><code>keycard:ok</code> or <code>keycard:error:&lt;reason&gt;</code></td>
+</tr>
+<tr>
+<td><code>keycard:master:list</code></td>
+<td>List master card UIDs (<code>keycard=2</code> only)</td>
+<td><code>keycard:count:&lt;n&gt;</code>, then <code>keycard:master:&lt;uid&gt;</code> per master</td>
+</tr>
+<tr>
+<td><code>keycard:alias:list</code></td>
+<td>List scooter-owned credential names (<code>keycard=2</code> only)</td>
+<td><code>keycard:count:&lt;n&gt;</code>, then <code>keycard:alias:&lt;kind&gt;:&lt;id&gt;:&lt;base64url-name&gt;</code> per name</td>
+</tr>
+<tr>
+<td><code>keycard:alias:set:&lt;kind&gt;:&lt;id&gt;:&lt;base64url-name&gt;</code></td>
+<td>Name an enrolled card (including a master) or phone (<code>keycard=2</code> only)</td>
+<td><code>keycard:ok</code> or <code>keycard:error:&lt;reason&gt;</code></td>
+</tr>
+<tr>
+<td><code>keycard:alias:clear:&lt;kind&gt;:&lt;id&gt;</code></td>
+<td>Clear an enrolled credential's name (<code>keycard=2</code> only)</td>
+<td><code>keycard:ok</code> or <code>keycard:error:&lt;reason&gt;</code></td>
+</tr>
+<tr>
 <td><code>time:set &lt;unix_timestamp&gt;</code></td>
 <td>Set system clock</td>
 <td><code>time:ok</code></td>
@@ -2358,9 +2388,9 @@ for a service that failed to appear.</p>
 <p><code>cap:ext</code> is the preferred one-response discovery command. Its fixed-order
 response starts <code>cap:ext:</code> and lists the complete contract groups implemented
 at that moment:</p>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>cap:ext:nav:keycard:usb:time:config:status:alarm:ltc[:ble]:pm:dbc:ota:settings[:trip]
+<div class="language-text highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>cap:ext:nav=2:keycard=2:usb:service-mode:time:config:status:alarm:ltc[:ble]:pm:dbc:ota:settings[:trip]
 </span></code></pre></div>
-<p><code>ble</code> appears only when the attached nRF supports bond deletion. <code>trip</code> appears
+<p>Bluetooth-service advertises <code>keycard=2</code> and forwards card, phone and name commands to the bundled keycard-service. <code>cap:keycard</code> lists the supported commands; <code>cap:list</code> lists legacy categories. Alias names are UTF-8, at most 32 bytes decoded, unpadded base64url-encoded on the wire; requests must fit the 100-byte BLE extended-command limit. Replies are asynchronous and counted, with no request IDs, so clients should serialize list requests. <code>ble</code> appears only when the attached nRF supports bond deletion. <code>trip</code> appears
 only when <code>trip:counter[api-version]</code> is <code>1</code>, the live <code>trip:ready</code> lease is
 present, and settings-service exposes a writable four-value
 <code>trip.counter-reset</code> enum. An unsuffixed group denotes its initial contract;

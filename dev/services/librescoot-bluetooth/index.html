@@ -2952,7 +2952,7 @@ used. An app that sends <code>ble:forget</code> before dropping its own bond cle
 <li><code>scooter:power</code> - Power requests ("hibernate", "hibernate-manual", "reboot", "hibernate-for:<seconds>", "hibernate-cancel")</li>
 <li><code>scooter:seatbox</code> - Seatbox commands ("open")</li>
 <li><code>scooter:blinker</code> - Blinker commands ("left", "right", "both", "off")</li>
-<li><code>scooter:keycard</code> - Keycard management commands ("list", "count", "add:<uid>", "remove:<uid>")</li>
+<li><code>scooter:keycard</code> - Physical-card commands (<code>list</code>, <code>count</code>, <code>add:&lt;uid&gt;</code>, <code>remove:&lt;uid&gt;</code>), phone management, master listing and alias commands</li>
 <li><code>scooter:alarm</code> - Alarm commands ("enable", "disable", "arm", "disarm", "start:<seconds>", "stop")</li>
 <li><code>scooter:update:mdb</code> - <code>update-from-file:&lt;path&gt;</code> after a verified BLE OTA transfer of an MDB bundle</li>
 <li><code>scooter:update</code> - <code>start-dbc</code> (lock claim + heartbeats) / <code>complete-dbc</code> during the BLE OTA DBC handoff</li>
@@ -3158,7 +3158,9 @@ Messages are CBOR-encoded maps with structure:
 </ul>
 <p><strong>Keycard management:</strong></p>
 <ul>
-<li><code>keycard:list</code>, <code>keycard:count</code>, <code>keycard:add:&lt;uid&gt;</code>, <code>keycard:remove:&lt;uid&gt;</code> → forwarded to <code>scooter:keycard</code> Redis list; response returned asynchronously via <code>keycard</code> hash <code>command-result</code> field</li>
+<li><code>keycard:list</code>, <code>keycard:count</code>, <code>keycard:add:&lt;uid&gt;</code>, <code>keycard:remove:&lt;uid&gt;</code> → forwarded to <code>scooter:keycard</code> Redis list, including without a v2 backend.</li>
+<li><code>keycard=2</code> commands: <code>keycard:phone:list</code>, <code>keycard:phone:remove:&lt;fingerprint&gt;</code>, <code>keycard:master:list</code>, <code>keycard:alias:list</code>, <code>keycard:alias:set:&lt;kind&gt;:&lt;id&gt;:&lt;base64url-name&gt;</code>, <code>keycard:alias:clear:&lt;kind&gt;:&lt;id&gt;</code> → forwarded to the same list. The bundled keycard-service handles forwarded requests. <code>&lt;kind&gt;</code> is <code>card</code> or <code>phone</code>; names are unpadded base64url-encoded UTF-8 (up to 32 decoded bytes) so the request stays within the 100-byte BLE extended-command limit.</li>
+<li>Results arrive asynchronously from <code>keycard[command-result]</code> as <code>keycard:&lt;result&gt;</code>, including <code>count:&lt;n&gt;</code> followed by exactly <code>n</code> entries for list commands. The backend also writes machine-readable <code>command-error</code> to Redis for local consumers. Serialize requests; these replies have no request IDs. <code>cap:ext</code> advertises <code>keycard=2</code> for physical-card, phone, master-list and name management.</li>
 </ul>
 <p><strong>Time:</strong></p>
 <ul>

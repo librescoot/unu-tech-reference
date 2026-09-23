@@ -3937,6 +3937,12 @@ by bluetooth-service. Also published on the <code>scooter</code> channel.</p>
 <td>"v1.12.0"</td>
 </tr>
 <tr>
+<td>capabilities</td>
+<td>string</td>
+<td>Bluetooth-service's complete <code>cap:ext</code> registry, published at startup and refreshed on capability queries. <code>nav=2</code> advertises multi-hop navigation; <code>keycard=2</code> advertises physical-card, phone, master-list and name management.</td>
+<td>"cap:ext:nav=2:keycard=2:usb"</td>
+</tr>
+<tr>
 <td>dbc-version</td>
 <td>string</td>
 <td>Dashboard computer version</td>
@@ -3951,8 +3957,20 @@ by bluetooth-service. Also published on the <code>scooter</code> channel.</p>
 <tr>
 <td>keycard-authorized-count</td>
 <td>integer</td>
-<td>Authorized keycards enrolled, written by keycard-service</td>
+<td>Authorized physical keycards enrolled, written by keycard-service</td>
 <td>"3"</td>
+</tr>
+<tr>
+<td>keycard-last-used-uid</td>
+<td>string</td>
+<td>Last authorized <em>physical card</em> used; cleared when no longer authorized (not a phone fingerprint)</td>
+<td>"04A1B2C3"</td>
+</tr>
+<tr>
+<td>keycard-learn-state</td>
+<td>string</td>
+<td>Current enrollment state, written by keycard-service for the dashboard</td>
+<td>"idle"</td>
 </tr>
 <tr>
 <td>cpu:governor</td>
@@ -4477,21 +4495,21 @@ all three writers in the shape scootui-qt's <code>MapMetadata</code> defines.</p
 <tbody>
 <tr>
 <td>authentication</td>
-<td>"passed"/"failed"</td>
+<td>"passed"</td>
 <td>Authentication result</td>
 <td>"passed"</td>
 </tr>
 <tr>
 <td>type</td>
 <td>string</td>
-<td>Card type</td>
-<td>"scooter"/"factory"/"activation"</td>
+<td>Credential type for vehicle auth</td>
+<td>"scooter"</td>
 </tr>
 <tr>
 <td>uid</td>
 <td>string</td>
-<td>Card UID (hex)</td>
-<td>"04a1b2c3"</td>
+<td>Authenticated credential identifier: card UID for physical cards, <code>PHONE-&lt;fingerprint&gt;</code> for phones</td>
+<td>"04A1B2C3"</td>
 </tr>
 </tbody>
 </table>
@@ -4499,11 +4517,13 @@ all three writers in the shape scootui-qt's <code>MapMetadata</code> defines.</p
 <p>Keycard management commands go through the <code>scooter:keycard</code> list:</p>
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-18-1"><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a>redis-cli<span class="w"> </span>-h<span class="w"> </span><span class="m">192</span>.168.7.1<span class="w"> </span>LPUSH<span class="w"> </span>scooter:keycard<span class="w"> </span>learn:start
 </span></code></pre></div>
-<p><strong>Available commands</strong>: <code>list</code>, <code>count</code>, <code>add:&lt;uid&gt;</code>, <code>remove:&lt;uid&gt;</code>, <code>set-master:&lt;uid&gt;</code> (<code>NONE</code> to disable), <code>learn:start</code>, <code>learn:stop</code>, <code>learn:master:start</code>, <code>learn:master:stop</code>, <code>reset</code></p>
+<p><strong>Available commands</strong>: <code>list</code>, <code>count</code>, <code>add:&lt;uid&gt;</code>, <code>remove:&lt;uid&gt;</code> (optional <code>:force</code> for the last unlock credential), <code>master:list</code>, <code>master:add:&lt;uid&gt;</code>, <code>master:remove:&lt;uid&gt;</code>, <code>master:clear</code>, <code>master:bootstrap-cancel</code>, <code>set-master:&lt;uid&gt;</code> (<code>NONE</code> to disable), <code>phone:list</code>, <code>phone:remove:&lt;fingerprint&gt;</code> (optional <code>:force</code>), <code>alias:list</code>, <code>alias:set:&lt;kind&gt;:&lt;id&gt;:&lt;base64url-name&gt;</code>, <code>alias:clear:&lt;kind&gt;:&lt;id&gt;</code>, <code>learn:start</code>, <code>learn:stop</code>, <code>learn:master:start</code>, <code>learn:master:stop</code>, <code>reset</code>. Phone fingerprints are 32 uppercase hex characters; <code>&lt;kind&gt;</code> is <code>card</code> or <code>phone</code>. Alias names are unpadded base64url-encoded UTF-8, at most 32 decoded bytes. Phone keys are learned through NFC in learn mode, not added by sending a public key over Redis.</p>
 <p>Writers: <code>lsc</code>, bluetooth-service (BLE-initiated management), and uplink-service
 (the cloud keycard commands, serialized with one request in flight so results
 correlate with the request that caused them).</p>
-<p>Command results land in the <code>keycard</code> hash field <code>command-result</code>. During teach-in flows, per-tap progress events (<code>card-learned:&lt;uid&gt;</code>, <code>master-learned:&lt;uid&gt;</code>, <code>mode-entered:master</code>, ...) are published on the <code>keycard:events</code> channel. See <a href="../services/librescoot-keycard/">keycard-service documentation</a>.</p>
+<p>Command results land in the <code>keycard</code> hash fields <code>command-result</code> (prose) and <code>command-error</code> (machine-readable, empty on success). During teach-in flows, per-tap progress events (<code>card-learned:&lt;uid&gt;</code>, <code>phone-learned:&lt;fingerprint&gt;</code>, <code>master-learned:&lt;uid&gt;</code>, <code>mode-entered:master</code>, ...) are published on the <code>keycard:events</code> channel.</p>
+<p>The dashboard reads Redis sets <code>keycard:authorized</code>, <code>keycard:masters</code>, <code>keycard:phones</code> (UIDs or phone fingerprints) and <code>keycard:aliases</code> (<code>&lt;kind&gt;:&lt;id&gt;:&lt;plain-name&gt;</code>). Empty sets are deleted. The service publishes their names on the <code>system</code> channel when refreshed; <code>system</code> also holds <code>keycard-last-used-uid</code> for physical cards and <code>keycard-learn-state</code> for enrollment. Names are scooter-owned display metadata and have no role in authentication.</p>
+<p>Bluetooth-service advertises <code>keycard=2</code> for physical-card, phone, master-list and name management. The bundled keycard-service handles those commands via <code>scooter:keycard</code>. See <a href="../services/librescoot-keycard/">keycard-service documentation</a>.</p>
 <h3 id="navigation-navigation">Navigation (<code>navigation</code>)<a class="headerlink" href="#navigation-navigation" title="Permanent link">&para;</a></h3>
 <div class="language-text highlight"><pre><span></span><code><span id="__span-19-1"><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a>hgetall navigation
 </span></code></pre></div>
