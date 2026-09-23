@@ -167,6 +167,12 @@ Unified extensible command/response channel for phone app interaction
 | `keycard:count` | Count keycards | Response via keycard-service |
 | `keycard:add:<uid>` | Add keycard | Response via keycard-service |
 | `keycard:remove:<uid>` | Remove keycard | Response via keycard-service |
+| `keycard:phone:list` | List enrolled phone fingerprints (`keycard=2` only) | `keycard:count:<n>`, then `keycard:phone:<fingerprint>` per phone |
+| `keycard:phone:remove:<fingerprint>` | Revoke enrolled phone (`keycard=2` only) | `keycard:ok` or `keycard:error:<reason>` |
+| `keycard:master:list` | List master card UIDs (`keycard=2` only) | `keycard:count:<n>`, then `keycard:master:<uid>` per master |
+| `keycard:alias:list` | List scooter-owned credential names (`keycard=2` only) | `keycard:count:<n>`, then `keycard:alias:<kind>:<id>:<base64url-name>` per name |
+| `keycard:alias:set:<kind>:<id>:<base64url-name>` | Name an enrolled card (including a master) or phone (`keycard=2` only) | `keycard:ok` or `keycard:error:<reason>` |
+| `keycard:alias:clear:<kind>:<id>` | Clear an enrolled credential's name (`keycard=2` only) | `keycard:ok` or `keycard:error:<reason>` |
 | `time:set <unix_timestamp>` | Set system clock | `time:ok` |
 | `config:apn <value>` | Set cellular APN | `config:ok` |
 | `config:hibernate-timer <seconds>` | Set hibernation timeout | `config:ok` |
@@ -209,10 +215,10 @@ response starts `cap:ext:` and lists the complete contract groups implemented
 at that moment:
 
 ```
-cap:ext:nav:keycard:usb:time:config:status:alarm:ltc[:ble]:pm:dbc:ota:settings[:trip]
+cap:ext:nav=2:keycard=2:usb:service-mode:time:config:status:alarm:ltc[:ble]:pm:dbc:ota:settings[:trip]
 ```
 
-`ble` appears only when the attached nRF supports bond deletion. `trip` appears
+Bluetooth-service advertises `keycard=2` and forwards card, phone and name commands to the bundled keycard-service. `cap:keycard` lists the supported commands; `cap:list` lists legacy categories. Alias names are UTF-8, at most 32 bytes decoded, unpadded base64url-encoded on the wire; requests must fit the 100-byte BLE extended-command limit. Replies are asynchronous and counted, with no request IDs, so clients should serialize list requests. `ble` appears only when the attached nRF supports bond deletion. `trip` appears
 only when `trip:counter[api-version]` is `1`, the live `trip:ready` lease is
 present, and settings-service exposes a writable four-value
 `trip.counter-reset` enum. An unsuffixed group denotes its initial contract;

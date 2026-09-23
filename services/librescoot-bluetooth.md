@@ -237,7 +237,7 @@ The service writes requests to:
 - `scooter:power` - Power requests ("hibernate", "hibernate-manual", "reboot", "hibernate-for:<seconds>", "hibernate-cancel")
 - `scooter:seatbox` - Seatbox commands ("open")
 - `scooter:blinker` - Blinker commands ("left", "right", "both", "off")
-- `scooter:keycard` - Keycard management commands ("list", "count", "add:<uid>", "remove:<uid>")
+- `scooter:keycard` - Physical-card commands (`list`, `count`, `add:<uid>`, `remove:<uid>`), phone management, master listing and alias commands
 - `scooter:alarm` - Alarm commands ("enable", "disable", "arm", "disarm", "start:<seconds>", "stop")
 - `scooter:update:mdb` - `update-from-file:<path>` after a verified BLE OTA transfer of an MDB bundle
 - `scooter:update` - `start-dbc` (lock claim + heartbeats) / `complete-dbc` during the BLE OTA DBC handoff
@@ -463,7 +463,9 @@ Extended commands arrive as string payloads via the EXTENDED_COMMAND BLE charact
 
 **Keycard management:**
 
-- `keycard:list`, `keycard:count`, `keycard:add:<uid>`, `keycard:remove:<uid>` → forwarded to `scooter:keycard` Redis list; response returned asynchronously via `keycard` hash `command-result` field
+- `keycard:list`, `keycard:count`, `keycard:add:<uid>`, `keycard:remove:<uid>` → forwarded to `scooter:keycard` Redis list, including without a v2 backend.
+- `keycard=2` commands: `keycard:phone:list`, `keycard:phone:remove:<fingerprint>`, `keycard:master:list`, `keycard:alias:list`, `keycard:alias:set:<kind>:<id>:<base64url-name>`, `keycard:alias:clear:<kind>:<id>` → forwarded to the same list. The bundled keycard-service handles forwarded requests. `<kind>` is `card` or `phone`; names are unpadded base64url-encoded UTF-8 (up to 32 decoded bytes) so the request stays within the 100-byte BLE extended-command limit.
+- Results arrive asynchronously from `keycard[command-result]` as `keycard:<result>`, including `count:<n>` followed by exactly `n` entries for list commands. The backend also writes machine-readable `command-error` to Redis for local consumers. Serialize requests; these replies have no request IDs. `cap:ext` advertises `keycard=2` for physical-card, phone, master-list and name management.
 
 **Time:**
 

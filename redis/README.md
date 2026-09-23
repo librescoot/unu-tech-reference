@@ -176,10 +176,12 @@ hgetall system
 | mdb-version | string | MDB firmware version | "v1.15.0+430538" |
 | environment | string | System environment | "production" |
 | nrf-fw-version | string | NRF firmware version | "v1.12.0" |
-| capabilities | string | Bluetooth-service's complete `cap:ext` registry, published at startup and refreshed on capability queries. `nav=2` advertises multi-hop navigation; absence does not establish support. | "cap:ext:nav=2:keycard:usb" |
+| capabilities | string | Bluetooth-service's complete `cap:ext` registry, published at startup and refreshed on capability queries. `nav=2` advertises multi-hop navigation; `keycard=2` advertises physical-card, phone, master-list and name management. | "cap:ext:nav=2:keycard=2:usb" |
 | dbc-version | string | Dashboard computer version | "v1.15.0+430553" |
 | keycard-master-count | integer | Master keycards enrolled, written by keycard-service | "1" |
-| keycard-authorized-count | integer | Authorized keycards enrolled, written by keycard-service | "3" |
+| keycard-authorized-count | integer | Authorized physical keycards enrolled, written by keycard-service | "3" |
+| keycard-last-used-uid | string | Last authorized *physical card* used; cleared when no longer authorized (not a phone fingerprint) | "04A1B2C3" |
+| keycard-learn-state | string | Current enrollment state, written by keycard-service for the dashboard | "idle" |
 | cpu:governor | string | Current CPU frequency governor | "ondemand" |
 | usb0-gate | string | This boot's usb0 gate decision, written by vehicle-service: `open` (link held up) or `closed` (link tracks `dashboard:power`). Absent until vehicle-service resolves the gate. | "closed" |
 
@@ -417,9 +419,9 @@ hgetall keycard
 
 | Field | Type | Description | Example |
 |-------|------|-------------|----------|
-| authentication | "passed"/"failed" | Authentication result | "passed" |
-| type | string | Card type | "scooter"/"factory"/"activation" |
-| uid | string | Card UID (hex) | "04a1b2c3" |
+| authentication | "passed" | Authentication result | "passed" |
+| type | string | Credential type for vehicle auth | "scooter" |
+| uid | string | Authenticated credential identifier: card UID for physical cards, `PHONE-<fingerprint>` for phones | "04A1B2C3" |
 
 **Note**: This hash expires after 10 seconds. Authentication is published on the `keycard` channel (the field name `authentication` is sent as the message payload), not on a separate `keycard:authentication` channel.
 
@@ -429,13 +431,17 @@ Keycard management commands go through the `scooter:keycard` list:
 redis-cli -h 192.168.7.1 LPUSH scooter:keycard learn:start
 ```
 
-**Available commands**: `list`, `count`, `add:<uid>`, `remove:<uid>`, `set-master:<uid>` (`NONE` to disable), `learn:start`, `learn:stop`, `learn:master:start`, `learn:master:stop`, `reset`
+**Available commands**: `list`, `count`, `add:<uid>`, `remove:<uid>` (optional `:force` for the last unlock credential), `master:list`, `master:add:<uid>`, `master:remove:<uid>`, `master:clear`, `master:bootstrap-cancel`, `set-master:<uid>` (`NONE` to disable), `phone:list`, `phone:remove:<fingerprint>` (optional `:force`), `alias:list`, `alias:set:<kind>:<id>:<base64url-name>`, `alias:clear:<kind>:<id>`, `learn:start`, `learn:stop`, `learn:master:start`, `learn:master:stop`, `reset`. Phone fingerprints are 32 uppercase hex characters; `<kind>` is `card` or `phone`. Alias names are unpadded base64url-encoded UTF-8, at most 32 decoded bytes. Phone keys are learned through NFC in learn mode, not added by sending a public key over Redis.
 
 Writers: `lsc`, bluetooth-service (BLE-initiated management), and uplink-service
 (the cloud keycard commands, serialized with one request in flight so results
 correlate with the request that caused them).
 
-Command results land in the `keycard` hash field `command-result`. During teach-in flows, per-tap progress events (`card-learned:<uid>`, `master-learned:<uid>`, `mode-entered:master`, ...) are published on the `keycard:events` channel. See [keycard-service documentation](../services/librescoot-keycard.md).
+Command results land in the `keycard` hash fields `command-result` (prose) and `command-error` (machine-readable, empty on success). During teach-in flows, per-tap progress events (`card-learned:<uid>`, `phone-learned:<fingerprint>`, `master-learned:<uid>`, `mode-entered:master`, ...) are published on the `keycard:events` channel.
+
+The dashboard reads Redis sets `keycard:authorized`, `keycard:masters`, `keycard:phones` (UIDs or phone fingerprints) and `keycard:aliases` (`<kind>:<id>:<plain-name>`). Empty sets are deleted. The service publishes their names on the `system` channel when refreshed; `system` also holds `keycard-last-used-uid` for physical cards and `keycard-learn-state` for enrollment. Names are scooter-owned display metadata and have no role in authentication.
+
+Bluetooth-service advertises `keycard=2` for physical-card, phone, master-list and name management. The bundled keycard-service handles those commands via `scooter:keycard`. See [keycard-service documentation](../services/librescoot-keycard.md).
 
 ### Navigation (`navigation`)
 ```

@@ -270,20 +270,22 @@ the rail.
 | Hash | Fields | Channel |
 |------|--------|---------|
 | `keycard` | `authentication` ("passed"), `type` ("scooter"), `uid` | `keycard` (payload: "authentication") |
-| `keycard` | `command-result` | `keycard` |
-| `system` | `keycard-master-count`, `keycard-authorized-count` | `system` |
+| `keycard` | `command-result`, `command-error` | `keycard` |
+| `system` | `keycard-master-count`, `keycard-authorized-count`, `keycard-learn-state`, `keycard-last-used-uid` | `system` |
+| Redis sets `keycard:authorized`, `keycard:masters`, `keycard:phones` | Enrolled card UIDs, master UIDs, phone fingerprints | `system` (set name after refresh) |
+| Redis set `keycard:aliases` | `<kind>:<id>:<plain-name>` display names | `system` (set name after refresh) |
 
-Note: Sets 10-second TTL on `keycard` hash after publish.
+Note: Sets 10-second TTL on `keycard` hash after authentication. Its short-lived state is distinct from the dashboard credential sets and the live protocol lease.
 
 **Publishes:**
 
-- `keycard:events` - teach-in progress (`mode-entered`, `mode-exited`, `card-learned:<uid>`, `rejected:already-authorized:<uid>`, `error:save-failed:<uid>`)
+- `keycard:events` - mode changes, physical-card and phone enrollment/removal, duplicates, access grants and errors.
 
-**Reads:** None (hardware-driven)
+**Reads:** `settings[dashboard.service-mode-active]` to suppress master bootstrap during service mode; its own `system[keycard-last-used-uid]` for snapshot cleanup.
 
 **Consumes queues:**
 
-- `scooter:keycard` → "list", "count", "add:<uid>", "remove:<uid>" (and the master commands)
+- `scooter:keycard` → physical-card, master-card, phone-removal, alias and learn-mode commands (see [service command reference](services/librescoot-keycard.md)). Phone enrollment occurs through NFC in learn mode, not a Redis add command.
 
 **Hardware access:** NFC via PN7150, I2C LED controller LP5562
 
@@ -294,7 +296,7 @@ Note: Sets 10-second TTL on `keycard` hash after publish.
 **Writes:**
 | Hash | Fields | Channel |
 |------|--------|---------|
-| `system` | `mdb-version` (from nRF), `nrf-fw-version` | `system` |
+| `system` | `mdb-version` (from nRF), `nrf-fw-version`, `capabilities` (`cap:ext` registry) | `system` |
 | `engine-ecu` | `odometer` (from nRF) | `engine-ecu` |
 | `ble` | status fields, `pin-code`, `firmware-update-status` | `ble` |
 | `ble:fault` | fault codes (Redis Set) | `ble` (payload: "fault") |
@@ -312,10 +314,11 @@ Note: Sets 10-second TTL on `keycard` hash after publish.
 - `engine-ecu/odometer`
 - `system/mdb-version`
 - `ble/pin-code`
+- `keycard[command-result]` for relaying management replies over BLE
 
 **Subscribes to:**
 
-- `vehicle`, `battery:0`, `battery:1`, `power-manager`, `engine-ecu`, `system`, `ble` channels
+- `vehicle`, `battery:0`, `battery:1`, `power-manager`, `engine-ecu`, `system`, `ble`, `keycard` channels
 
 **Consumes queues:**
 
