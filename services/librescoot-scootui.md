@@ -167,7 +167,8 @@ Settings are stored in the `settings` Redis hash. Managed by settings-service.
 | `dashboard.valhalla-url` | URL | `http://127.0.0.1:8002/` | Valhalla routing endpoint |
 | `dashboard.maps.check-for-updates` | `true`/`false` | `false` | Auto-check for map updates |
 | `dashboard.maps.auto-download` | `true`/`false` | `false` | Auto-download map updates |
-| `dashboard.milestone-celebrations` | `true`/`false` | `false` | Confetti + banner when passing a 500 km odometer milestone or an easter-egg number. Off suppresses all milestone output (including easter eggs) |
+| `dashboard.milestones.mode` | `off`/`regular`/`all` | `off` | No milestone output, regular milestones at 10 km and every 100 km, or regular milestones plus one-shot easter eggs; the menu demo always remains available |
+| `dashboard.milestones.presentation` | `notice`/`banner`/`banner-and-confetti` | `banner-and-confetti` | Brief notice at the crossing, optionally followed by a ticket and confetti when parked |
 | `dashboard.hop-on-combo` | pipe-delimited tokens | _(empty)_ | Custom hop-on unlock combo |
 
 Settings > System > Updates also writes the update-service keys. Each entry writes both
