@@ -448,21 +448,21 @@ Bluetooth-service advertises `keycard=2` for physical-card, phone, master-list a
 hgetall navigation
 ```
 
-Destination, or multi-hop plan, for the dashboard's navigation mode. Written by bluetooth-service (BLE nav commands), uplink-service (cloud `navigate` command), and `lsc nav`; consumed by scootui-qt.
+The navigation projection is published by settings-service on the MDB and consumed by scootui-qt on the DBC. Bluetooth-service (BLE navigation), uplink-service (cloud `navigate`), `lsc nav`, and lsd's navigation API send route-plan commands to settings-service over the `settings:route-plan` Redis RPC queue; they do not write this hash. Scootui-qt renders the accepted plan and sends editing or progress commands through the same API.
 
 | Field | Type | Description | Example |
 |-------|------|-------------|----------|
+| plan | string (JSON) | Complete authoritative plan snapshot, including ID, revision, stop IDs, reached flags, and zero-based `current_step` | `{"id":"uuid","revision":3,"stops":[{"id":"uuid","lat":52.52,"lon":13.4,"label":"Home","reached":false}],"current_step":0}` |
+| revision | decimal string | Plan revision (increases on each committed mutation) | "3" |
 | destination | "lat,lon" | Current target coordinates (6 decimal places) | "52.520008,13.404954" |
 | latitude | string | Current target latitude | "52.520008" |
 | longitude | string | Current target longitude | "13.404954" |
 | address | string | Human-readable current target name (optional) | "Alexanderplatz" |
 | timestamp | string | Last destination update | "2026-06-11T12:00:00Z" |
-| waypoints | string (JSON) | Ordered multi-hop stops. The dashboard reads `lat`/`lon`; cloud and app writers may also send `latitude`/`longitude` and `label`/`name` | `[{"lat":52.51,"lon":13.41,"label":"Work"},{"lat":52.52,"lon":13.42}]` |
+| waypoints | string (JSON) | Compatibility list of ordered stops, using `lat`, `lon`, and `label`; stop IDs and reached flags are available only in `plan` | `[{"lat":52.51,"lon":13.41,"label":"Work"},{"lat":52.52,"lon":13.42}]` |
 | current-step | integer | Index into `waypoints` of the stop being guided to | "0" |
 
-Without `waypoints`, the destination fields describe a single-stop trip. With `waypoints`, they describe the stop at `current-step` and the dashboard walks the list one hop at a time: it routes to each stop, asks whether to continue, and advances on confirmation, on a short timeout, or on a skip. The dashboard writes `waypoints` and `current-step` back as it advances, and clears them when the trip finishes.
-
-Clearing navigation sets all fields to empty strings rather than deleting them, so hash watchers get notified.
+Read `plan` as one coherent snapshot. The destination fields point at its current stop; `waypoints` and `current-step` support consumers of the older format. Scootui-qt calculates guidance and requests guarded progress changes, but only settings-service persists and publishes the plan. Changes are serialized by its `settings:route-plan` RPC handler: `plan.get`, `plan.replace`, `plan.append`, `plan.remove`, `plan.move`, `plan.jump`, `plan.reached`, `plan.unreach`, `plan.advance`, and `plan.clear`. See [settings-service's route-plan contract](https://github.com/librescoot/settings-service#route-plan-rpc) for payloads and stale-request behavior. A cleared plan retains an empty `plan` snapshot and revision; compatibility target fields are empty strings so watchers are notified.
 
 ### GPS Data (`gps`)
 ```
@@ -634,7 +634,7 @@ Librescoot adds persistent settings managed by the settings-service:
 | dashboard.mode | string | Default screen mode (speedometer/navigation/debug) | "speedometer" |
 | dashboard.valhalla-url | string | Valhalla routing service endpoint | "http://localhost:8002/" |
 
-The active multi-hop plan is also persisted under `dashboard.route-plan.*`: indexed stops (`dashboard.route-plan.<n>.latitude|longitude|label|reached`) plus `current-step`, `active`, and `updated-at`. scootui-qt writes them, and settings-service stores them in `/data/settings.toml`, so a partial trip survives a reboot; the `navigation` hash itself does not, since Redis is volatile.
+Settings-service persists the entire route plan in `/data/settings-route-plan.json` (alongside `/data/settings.toml`) before acknowledging a mutation and republishes it after restart. The `dashboard.route-plan.*` settings may be read once to import an active plan when the snapshot file does not yet exist; scootui-qt does not write them. A standalone legacy `navigation` target is not imported at that point because it cannot reliably be distinguished from a completed trip.
 
 uplink-service mirrors only an allowlisted subset of these fields to the
 cloud: `updates.*`, `pm.*`, `alarm.*`, `trip.*`, `engine-ecu.*`,
