@@ -23,7 +23,7 @@
       
       
       <link rel="icon" href="../assets/favicon.png">
-      <meta name="generator" content="zensical-0.0.64">
+      <meta name="generator" content="zensical-0.0.65">
     
     
       
@@ -4527,7 +4527,7 @@ correlate with the request that caused them).</p>
 <h3 id="navigation-navigation">Navigation (<code>navigation</code>)<a class="headerlink" href="#navigation-navigation" title="Permanent link">&para;</a></h3>
 <div class="language-text highlight"><pre><span></span><code><span id="__span-19-1"><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a>hgetall navigation
 </span></code></pre></div>
-<p>Destination, or multi-hop plan, for the dashboard's navigation mode. Written by bluetooth-service (BLE nav commands), uplink-service (cloud <code>navigate</code> command), and <code>lsc nav</code>; consumed by scootui-qt.</p>
+<p>The navigation projection is published by settings-service on the MDB and consumed by scootui-qt on the DBC. Bluetooth-service (BLE navigation), uplink-service (cloud <code>navigate</code>), <code>lsc nav</code>, and lsd's navigation API send route-plan commands to settings-service over the <code>settings:route-plan</code> Redis RPC queue; they do not write this hash. Scootui-qt renders the accepted plan and sends editing or progress commands through the same API.</p>
 <table>
 <thead>
 <tr>
@@ -4538,6 +4538,18 @@ correlate with the request that caused them).</p>
 </tr>
 </thead>
 <tbody>
+<tr>
+<td>plan</td>
+<td>string (JSON)</td>
+<td>Complete authoritative plan snapshot, including ID, revision, stop IDs, reached flags, and zero-based <code>current_step</code></td>
+<td><code>{"id":"uuid","revision":3,"stops":[{"id":"uuid","lat":52.52,"lon":13.4,"label":"Home","reached":false}],"current_step":0,"keep_current_stop":false}</code></td>
+</tr>
+<tr>
+<td>revision</td>
+<td>decimal string</td>
+<td>Plan revision (increases on each committed mutation)</td>
+<td>"3"</td>
+</tr>
 <tr>
 <td>destination</td>
 <td>"lat,lon"</td>
@@ -4571,7 +4583,7 @@ correlate with the request that caused them).</p>
 <tr>
 <td>waypoints</td>
 <td>string (JSON)</td>
-<td>Ordered multi-hop stops. The dashboard reads <code>lat</code>/<code>lon</code>; cloud and app writers may also send <code>latitude</code>/<code>longitude</code> and <code>label</code>/<code>name</code></td>
+<td>Compatibility list of ordered stops, using <code>lat</code>, <code>lon</code>, and <code>label</code>; stop IDs and reached flags are available only in <code>plan</code></td>
 <td><code>[{"lat":52.51,"lon":13.41,"label":"Work"},{"lat":52.52,"lon":13.42}]</code></td>
 </tr>
 <tr>
@@ -4582,8 +4594,7 @@ correlate with the request that caused them).</p>
 </tr>
 </tbody>
 </table>
-<p>Without <code>waypoints</code>, the destination fields describe a single-stop trip. With <code>waypoints</code>, they describe the stop at <code>current-step</code> and the dashboard walks the list one hop at a time: it routes to each stop, asks whether to continue, and advances on confirmation, on a short timeout, or on a skip. The dashboard writes <code>waypoints</code> and <code>current-step</code> back as it advances, and clears them when the trip finishes.</p>
-<p>Clearing navigation sets all fields to empty strings rather than deleting them, so hash watchers get notified.</p>
+<p>Read <code>plan</code> as one coherent snapshot. The destination fields point at its current stop; <code>waypoints</code> and <code>current-step</code> support consumers of the older format. Scootui-qt calculates guidance and requests guarded progress changes, but only settings-service persists and publishes the plan. Changes are serialized by its <code>settings:route-plan</code> RPC handler: <code>plan.get</code>, <code>plan.replace</code>, <code>plan.append</code>, <code>plan.remove</code>, <code>plan.move</code>, <code>plan.jump</code>, <code>plan.reached</code>, <code>plan.unreach</code>, <code>plan.set-keep-current</code>, <code>plan.advance</code>, and <code>plan.clear</code>. See <a href="https://github.com/librescoot/settings-service#route-plan-rpc">settings-service's route-plan contract</a> for payloads and stale-request behavior. A cleared plan retains an empty <code>plan</code> snapshot and revision; compatibility target fields are empty strings so watchers are notified.</p>
 <h3 id="gps-data-gps">GPS Data (<code>gps</code>)<a class="headerlink" href="#gps-data-gps" title="Permanent link">&para;</a></h3>
 <div class="language-text highlight"><pre><span></span><code><span id="__span-20-1"><a id="__codelineno-20-1" name="__codelineno-20-1" href="#__codelineno-20-1"></a>hgetall gps
 </span></code></pre></div>
@@ -5209,7 +5220,7 @@ never changes the counter.</p>
 </tr>
 </tbody>
 </table>
-<p>The active multi-hop plan is also persisted under <code>dashboard.route-plan.*</code>: indexed stops (<code>dashboard.route-plan.&lt;n&gt;.latitude|longitude|label|reached</code>) plus <code>current-step</code>, <code>active</code>, and <code>updated-at</code>. scootui-qt writes them, and settings-service stores them in <code>/data/settings.toml</code>, so a partial trip survives a reboot; the <code>navigation</code> hash itself does not, since Redis is volatile.</p>
+<p>Settings-service persists the entire route plan in <code>/data/settings-route-plan.json</code> (alongside <code>/data/settings.toml</code>) before acknowledging a mutation and republishes it after restart. The <code>dashboard.route-plan.*</code> settings may be read once to import an active plan when the snapshot file does not yet exist; scootui-qt does not write them. A standalone legacy <code>navigation</code> target is not imported at that point because it cannot reliably be distinguished from a completed trip.</p>
 <p>uplink-service mirrors only an allowlisted subset of these fields to the
 cloud: <code>updates.*</code>, <code>pm.*</code>, <code>alarm.*</code>, <code>trip.*</code>, <code>engine-ecu.*</code>,
 <code>dashboard.service-mode-active</code>, <code>scooter.developer-mode</code>, and
