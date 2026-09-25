@@ -452,7 +452,7 @@ The navigation projection is published by settings-service on the MDB and consum
 
 | Field | Type | Description | Example |
 |-------|------|-------------|----------|
-| plan | string (JSON) | Complete authoritative plan snapshot, including ID, revision, stop IDs, reached flags, and zero-based `current_step` | `{"id":"uuid","revision":3,"stops":[{"id":"uuid","lat":52.52,"lon":13.4,"label":"Home","reached":false}],"current_step":0}` |
+| plan | string (JSON) | Complete authoritative plan snapshot, including ID, revision, stop IDs, reached flags, and zero-based `current_step` | `{"id":"uuid","revision":3,"stops":[{"id":"uuid","lat":52.52,"lon":13.4,"label":"Home","reached":false}],"current_step":0,"keep_current_stop":false}` |
 | revision | decimal string | Plan revision (increases on each committed mutation) | "3" |
 | destination | "lat,lon" | Current target coordinates (6 decimal places) | "52.520008,13.404954" |
 | latitude | string | Current target latitude | "52.520008" |
@@ -462,7 +462,7 @@ The navigation projection is published by settings-service on the MDB and consum
 | waypoints | string (JSON) | Compatibility list of ordered stops, using `lat`, `lon`, and `label`; stop IDs and reached flags are available only in `plan` | `[{"lat":52.51,"lon":13.41,"label":"Work"},{"lat":52.52,"lon":13.42}]` |
 | current-step | integer | Index into `waypoints` of the stop being guided to | "0" |
 
-Read `plan` as one coherent snapshot. The destination fields point at its current stop; `waypoints` and `current-step` support consumers of the older format. Scootui-qt calculates guidance and requests guarded progress changes, but only settings-service persists and publishes the plan. Changes are serialized by its `settings:route-plan` RPC handler: `plan.get`, `plan.replace`, `plan.append`, `plan.remove`, `plan.move`, `plan.jump`, `plan.reached`, `plan.unreach`, `plan.advance`, and `plan.clear`. See [settings-service's route-plan contract](https://github.com/librescoot/settings-service#route-plan-rpc) for payloads and stale-request behavior. A cleared plan retains an empty `plan` snapshot and revision; compatibility target fields are empty strings so watchers are notified.
+Read `plan` as one coherent snapshot. The destination fields point at its current stop; `waypoints` and `current-step` support consumers of the older format. Scootui-qt calculates guidance and requests guarded progress changes, but only settings-service persists and publishes the plan. Changes are serialized by its `settings:route-plan` RPC handler: `plan.get`, `plan.replace`, `plan.append`, `plan.remove`, `plan.move`, `plan.jump`, `plan.reached`, `plan.unreach`, `plan.set-keep-current`, `plan.advance`, and `plan.clear`. See [settings-service's route-plan contract](https://github.com/librescoot/settings-service#route-plan-rpc) for payloads and stale-request behavior. A cleared plan retains an empty `plan` snapshot and revision; compatibility target fields are empty strings so watchers are notified.
 
 ### GPS Data (`gps`)
 ```
