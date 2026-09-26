@@ -11,7 +11,7 @@ at https://reference.librescoot.org/.
   auto-deploys as the `dev` version on every push. All ongoing documentation work
   happens here.
 - **`docs/vX.Y.Z` branches are frozen release snapshots.** Each one describes the code
-  as it shipped in that LibreScoot release (e.g. `docs/v1.0.5` predates the
+  as it shipped in that Librescoot release (e.g. `docs/v1.0.5` predates the
   motion-service refactor, so it still documents the `bmx` hash and alarm-service
   owning the IMU). They are deliberately behind `main`.
 
