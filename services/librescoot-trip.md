@@ -23,6 +23,14 @@ state, resumes on each later `ready-to-drive`, and completes only at the final
 lock/non-paused state. Thus one history entry spans the first Ready interval
 through final lock, rather than one entry per Ready interval.
 
+A history row is only completed when the ECU odometer advanced by at least the
+plausibility floor (`recorder.MinTripDistanceM`, 100 m) from the baseline taken
+at the first Ready interval. An unlock/lock sequence below that floor is deleted
+instead: no history row, no points and no `trip:completed` event, so it does not
+reach trip history or profile statistics. A backward odometer delta is treated
+as implausible in the same way. The floor does not apply to the counter, which
+tracks the ECU odometer independently.
+
 The counter is not a trip-history summary: it has its own durable state and can
 be reset without changing a recorded trip. History includes GPS points and a
 profile ID; the counter projection does not. The counter and history use the
