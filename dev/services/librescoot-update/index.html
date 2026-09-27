@@ -2765,17 +2765,19 @@ stable checks continue to reject downgrades.</p>
 </span><span id="__span-2-8"><a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a><span class="c1"># Install from URL</span>
 </span><span id="__span-2-9"><a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a>redis-cli<span class="w"> </span>LPUSH<span class="w"> </span>scooter:update:mdb<span class="w"> </span><span class="s2">"update-from-url:https://example.com/update.mender#sha256=abc123..."</span>
 </span><span id="__span-2-10"><a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a>
-</span><span id="__span-2-11"><a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a><span class="c1"># Price a channel switch before committing to it</span>
+</span><span id="__span-2-11"><a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a><span class="c1"># Preview a channel switch or the next current-channel update</span>
 </span><span id="__span-2-12"><a id="__codelineno-2-12" name="__codelineno-2-12" href="#__codelineno-2-12"></a>redis-cli<span class="w"> </span>LPUSH<span class="w"> </span>scooter:update:mdb<span class="w"> </span>preview-channel:stable
 </span><span id="__span-2-13"><a id="__codelineno-2-13" name="__codelineno-2-13" href="#__codelineno-2-13"></a>redis-cli<span class="w"> </span>LPUSH<span class="w"> </span>scooter:update:dbc<span class="w"> </span>preview-channel:stable
-</span><span id="__span-2-14"><a id="__codelineno-2-14" name="__codelineno-2-14" href="#__codelineno-2-14"></a>redis-cli<span class="w"> </span>HMGET<span class="w"> </span>ota<span class="w"> </span>preview-status:mdb<span class="w"> </span>preview-version:mdb<span class="w"> </span>preview-size:mdb
+</span><span id="__span-2-14"><a id="__codelineno-2-14" name="__codelineno-2-14" href="#__codelineno-2-14"></a>redis-cli<span class="w"> </span>HMGET<span class="w"> </span>ota<span class="w"> </span>preview-status:mdb<span class="w"> </span>preview-version:mdb<span class="w"> </span>preview-size:mdb<span class="w"> </span>preview-method:mdb<span class="w"> </span>preview-download-size:mdb
 </span></code></pre></div>
 <h2 id="channel-previews">Channel Previews<a class="headerlink" href="#channel-previews" title="Permanent link">&para;</a></h2>
-<p><code>preview-channel:&lt;channel&gt;</code> answers "what would switching to this channel fetch" before
-anything is committed to. It reads the release index for <code>&lt;channel&gt;</code>, resolves the
-latest release carrying a <code>.mender</code> for this component's <code>variant_id</code>, and publishes the
-tag and artifact size to the <code>ota</code> hash. It sets no configuration, starts no download,
-and never writes the update status fields, so it is safe to issue mid-update.</p>
+<p><code>preview-channel:&lt;channel&gt;</code> resolves the latest release and planned download
+before anything is committed to. It reads the release index for <code>&lt;channel&gt;</code>,
+resolves the latest release carrying a <code>.mender</code> for this component's
+<code>variant_id</code>, and publishes the tag and artifact size to the <code>ota</code> hash. It also estimates the selected transfer
+for the configured channel from the installed version, available base image,
+and release delta chain. It sets no configuration, starts no download, and
+never writes the update status fields, so it is safe to issue mid-update.</p>
 <table>
 <thead>
 <tr>
@@ -2800,16 +2802,27 @@ and never writes the update status fields, so it is safe to issue mid-update.</p
 <td><code>preview-size:{component}</code></td>
 <td>Bytes of the full <code>.mender</code> artifact, on <code>ready</code></td>
 </tr>
+<tr>
+<td><code>preview-method:{component}</code></td>
+<td>Planned <code>none</code>, <code>full</code>, or <code>delta</code>; empty if unavailable</td>
+</tr>
+<tr>
+<td><code>preview-download-size:{component}</code></td>
+<td>Planned transfer bytes, including <code>0</code> when up to date; empty if unavailable</td>
+</tr>
 </tbody>
 </table>
 <p><code>unavailable</code> means the channel carries nothing for this board's variant, which is a
 real answer rather than a failure to retry. <code>error</code> covers an invalid channel and a
 release index that could not be reached: a preview is bounded at 20 seconds end to end
 rather than running the full retry ladder a background check uses, because a rider is
-waiting on it. All four fields are cleared at service start.</p>
-<p>The size reported is always the full artifact. A channel switch has no delta base to
-patch against, so <code>checkForUpdates</code> forces <code>full</code> whenever the installed version's
-channel differs from the configured one, whatever <code>updates.{component}.method</code> says.</p>
+waiting on it. All preview fields are cleared at service start.</p>
+<p><code>preview-size</code> is always the full artifact size. A channel switch has no delta base
+to patch against, so <code>preview-method</code> is <code>full</code> and <code>preview-download-size</code> is that
+full size. On the current channel, the plan can be <code>none</code> (zero bytes), <code>delta</code>
+(the sum of the selected chain), or <code>full</code> when the method is configured that way
+or a usable base or chain is missing. Applying a delta chain can fail and cause
+a later full-image fallback, so the planned size is not a transfer guarantee.</p>
 <p>Each component answers only for itself. The dashboard's
 Settings &gt; System &gt; Updates &gt; Switch Release Channel entry asks both and sums the two sizes
 before prompting the rider to confirm.</p>

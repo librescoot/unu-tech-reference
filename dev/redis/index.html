@@ -5909,6 +5909,18 @@ its stored total and restarted the baseline.</p>
 <td>"401234432"</td>
 </tr>
 <tr>
+<td>preview-method:{mdb,dbc}</td>
+<td>string</td>
+<td>Planned method: <code>none</code>, <code>full</code>, or <code>delta</code>; empty when no estimate is available</td>
+<td>"delta"</td>
+</tr>
+<tr>
+<td>preview-download-size:{mdb,dbc}</td>
+<td>integer or empty</td>
+<td>Planned transfer bytes (<code>0</code> when up to date); a runtime fallback can change this amount</td>
+<td>"14000000"</td>
+</tr>
+<tr>
 <td>status</td>
 <td>string</td>
 <td>Flat status, not namespaced, stock convention</td>
