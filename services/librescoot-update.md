@@ -383,19 +383,21 @@ redis-cli LPUSH scooter:update:dbc "update-from-file:/data/ota/librescoot-dbc-ni
 # Install from URL
 redis-cli LPUSH scooter:update:mdb "update-from-url:https://example.com/update.mender#sha256=abc123..."
 
-# Price a channel switch before committing to it
+# Preview a channel switch or the next current-channel update
 redis-cli LPUSH scooter:update:mdb preview-channel:stable
 redis-cli LPUSH scooter:update:dbc preview-channel:stable
-redis-cli HMGET ota preview-status:mdb preview-version:mdb preview-size:mdb
+redis-cli HMGET ota preview-status:mdb preview-version:mdb preview-size:mdb preview-method:mdb preview-download-size:mdb
 ```
 
 ## Channel Previews
 
-`preview-channel:<channel>` answers "what would switching to this channel fetch" before
-anything is committed to. It reads the release index for `<channel>`, resolves the
-latest release carrying a `.mender` for this component's `variant_id`, and publishes the
-tag and artifact size to the `ota` hash. It sets no configuration, starts no download,
-and never writes the update status fields, so it is safe to issue mid-update.
+`preview-channel:<channel>` resolves the latest release and planned download
+before anything is committed to. It reads the release index for `<channel>`,
+resolves the latest release carrying a `.mender` for this component's
+`variant_id`, and publishes the tag and artifact size to the `ota` hash. It also estimates the selected transfer
+for the configured channel from the installed version, available base image,
+and release delta chain. It sets no configuration, starts no download, and
+never writes the update status fields, so it is safe to issue mid-update.
 
 | Field | Meaning |
 |-------|---------|
@@ -403,16 +405,21 @@ and never writes the update status fields, so it is safe to issue mid-update.
 | `preview-status:{component}` | `checking`, `ready`, `unavailable`, or `error` |
 | `preview-version:{component}` | Release tag, on `ready` |
 | `preview-size:{component}` | Bytes of the full `.mender` artifact, on `ready` |
+| `preview-method:{component}` | Planned `none`, `full`, or `delta`; empty if unavailable |
+| `preview-download-size:{component}` | Planned transfer bytes, including `0` when up to date; empty if unavailable |
 
 `unavailable` means the channel carries nothing for this board's variant, which is a
 real answer rather than a failure to retry. `error` covers an invalid channel and a
 release index that could not be reached: a preview is bounded at 20 seconds end to end
 rather than running the full retry ladder a background check uses, because a rider is
-waiting on it. All four fields are cleared at service start.
+waiting on it. All preview fields are cleared at service start.
 
-The size reported is always the full artifact. A channel switch has no delta base to
-patch against, so `checkForUpdates` forces `full` whenever the installed version's
-channel differs from the configured one, whatever `updates.{component}.method` says.
+`preview-size` is always the full artifact size. A channel switch has no delta base
+to patch against, so `preview-method` is `full` and `preview-download-size` is that
+full size. On the current channel, the plan can be `none` (zero bytes), `delta`
+(the sum of the selected chain), or `full` when the method is configured that way
+or a usable base or chain is missing. Applying a delta chain can fail and cause
+a later full-image fallback, so the planned size is not a transfer guarantee.
 
 Each component answers only for itself. The dashboard's
 Settings > System > Updates > Switch Release Channel entry asks both and sums the two sizes

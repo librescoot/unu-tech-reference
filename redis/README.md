@@ -948,6 +948,8 @@ Librescoot adds per-component update tracking:
 | preview-status:{mdb,dbc} | string | Outcome of the last channel preview | "ready" |
 | preview-version:{mdb,dbc} | string | Release tag the preview resolved to (`ready` only) | "v1.4.2" |
 | preview-size:{mdb,dbc} | integer | Size of that release's full `.mender` artifact (`ready` only) | "401234432" |
+| preview-method:{mdb,dbc} | string | Planned method: `none`, `full`, or `delta`; empty when no estimate is available | "delta" |
+| preview-download-size:{mdb,dbc} | integer or empty | Planned transfer bytes (`0` when up to date); a runtime fallback can change this amount | "14000000" |
 | status | string | Flat status, not namespaced, stock convention | "downloading-updates" |
 | update-type | string | Whether the flat status blocks use of the vehicle | "blocking" |
 
