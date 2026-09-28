@@ -23,7 +23,7 @@
       
       
       <link rel="icon" href="../../assets/favicon.png">
-      <meta name="generator" content="zensical-0.0.65">
+      <meta name="generator" content="zensical-0.0.66">
     
     
       
@@ -34,7 +34,7 @@
       
         
       
-      <link rel="stylesheet" href="../../assets/stylesheets/modern/main.40d3fdbb.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/modern/main.1502b751.min.css">
       
         
           
@@ -2199,7 +2199,8 @@ into place, and an untouched file is a no-op.</p>
 <li><strong>uplink-service</strong> - copies <code>uplink-service/config.yaml</code> back to <code>/data/uplink-service/</code>, restarts <code>librescoot-uplink.service</code> if changed</li>
 <li><strong>onboot</strong> - copies <code>onboot.sh</code> back into place</li>
 <li><strong>Updates</strong> - update files for each board are staged in that board's own update directory (MDB <code>/data/ota/mdb</code>; DBC transferred to <code>/data/ota/dbc</code>), then one path-free <code>apply-staged-updates</code> command is pushed per board. Several <code>.delta</code> files for one board are applied by update-service as a single chain: one assemble, one install, one reboot. A board whose drop mixes a newer <code>.mender</code> with a <code>.delta</code>, or contains two or more newer <code>.mender</code> files, is refused: nothing is staged for that board, the other board still proceeds</li>
-<li><strong>Maps</strong> - transfers <code>.mbtiles</code> to <code>map.mbtiles.tmp</code> on the DBC and renames it into <code>/data/maps/map.mbtiles</code>, so the installed file is only ever a complete transfer; transfers Valhalla tile archives to <code>/data/valhalla/tiles.tar</code> on DBC. A <code>valhalla_tiles_*.tar.zst</code> is uploaded compressed and decompressed on the DBC, into a temp file that only replaces <code>tiles.tar</code> once the whole stream has decoded; the installed file is always the plain seekable tar, because Valhalla mmaps it as its <code>tile_extract</code>. After each artifact lands, the service reads it back on the DBC (<code>sha256sum</code> plus <code>stat</code>), records it in <code>/data/maps/metadata.json</code> and mirrors it into the <a href="../../redis/#installed-maps-maps---librescoot-only"><code>maps</code></a> hash. The region comes from the published filename (<code>tiles_&lt;slug&gt;.mbtiles</code>, <code>valhalla_tiles_&lt;slug&gt;.tar</code>); a renamed or generically named file clears the recorded region rather than leaving the previous one to describe tiles it no longer refers to</li>
+<li><strong>Maps</strong> - transfers <code>.mbtiles</code> to <code>map.mbtiles.tmp</code> on the DBC and renames it into <code>/data/maps/map.mbtiles</code>, so the installed file is only ever a complete transfer; transfers Valhalla tile archives to <code>/data/valhalla/tiles.tar</code> on DBC. A <code>valhalla_tiles_*.tar.zst</code> is uploaded compressed and decompressed on the DBC, into a temp file that only replaces <code>tiles.tar</code> once the whole stream has decoded; the installed file is always the plain seekable tar, because Valhalla mmaps it as its <code>tile_extract</code>. After each artifact lands, the service reads it back on the DBC (<code>sha256sum</code> plus <code>stat</code>), records it in <code>/data/maps/metadata.json</code> and mirrors it into the <a href="../../redis/#installed-maps-maps---librescoot-only"><code>maps</code></a> hash. The region comes from the published filename (<code>tiles_&lt;slug&gt;.mbtiles</code>, <code>valhalla_tiles_&lt;slug&gt;.tar</code>); a renamed or generically named file clears the recorded region rather than leaving the previous one to describe tiles it no longer refers to
+   For multiple regions, <code>maps/tiles_&lt;slug&gt;.mbtiles</code> and matching <code>maps/valhalla_tiles_&lt;slug&gt;.tar[.zst]</code> are installed under their own names. Two named display packs, an empty <code>maps/regional-packs</code> marker, or an existing symlinked <code>tiles.tar</code> opt into regional mode; one named pair on a legacy stick still updates the singleton files. On a fresh regional installation <code>tiles.tar</code> becomes a symlink to the first named routing archive. An existing regular <code>tiles.tar</code> is never replaced by a regional install: preserve it as a named archive and switch to a symlink explicitly before enabling automatic switching. The singleton metadata and <code>maps</code> hash are not a regional inventory.</li>
 <li><strong>Scripts</strong> - runs <code>scripts/mdb.sh</code> locally; transfers <code>scripts/dbc.sh</code> to DBC and runs it remotely</li>
 <li>Writes <code>ums_log.txt</code> to drive root, then cleans the drive (preserving <code>ums_log.txt</code>)</li>
 </ol>
@@ -2394,7 +2395,7 @@ the dashboard.</p>
       <script id="__config" type="application/json">{"annotate":null,"base":"../..","features":["content.action.edit","content.code.copy","content.code.select","content.tooltips","navigation.footer","navigation.indexes","navigation.instant","navigation.instant.prefetch","navigation.path","navigation.sections","navigation.top","navigation.tracking","search.highlight","toc.follow"],"redirect":null,"search":"../../assets/javascripts/workers/search.7d14d953.min.js","tags":null,"translations":{"clipboard.copied":"Copied to clipboard","clipboard.copy":"Copy to clipboard","search.result.more.one":"1 more on this page","search.result.more.other":"# more on this page","search.result.none":"No matching documents","search.result.one":"1 matching document","search.result.other":"# matching documents","search.result.placeholder":"Type to start searching","search.result.term.missing":"Missing","select.version":"Select version"},"version":{"provider":"mike"}}</script>
     
     
-      <script src="../../assets/javascripts/bundle.c04ba553.min.js"></script>
+      <script src="../../assets/javascripts/bundle.b7d3f789.min.js"></script>
       
     
   </body>

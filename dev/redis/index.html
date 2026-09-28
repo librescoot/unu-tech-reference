@@ -23,7 +23,7 @@
       
       
       <link rel="icon" href="../assets/favicon.png">
-      <meta name="generator" content="zensical-0.0.65">
+      <meta name="generator" content="zensical-0.0.66">
     
     
       
@@ -34,7 +34,7 @@
       
         
       
-      <link rel="stylesheet" href="../assets/stylesheets/modern/main.40d3fdbb.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/modern/main.1502b751.min.css">
       
         
           
@@ -4239,7 +4239,7 @@ and fleet telemetry consumers; it is not the reachability contract.</p>
 <tr>
 <td>maps-available</td>
 <td>"true"/"false"</td>
-<td><code>/data/maps/map.mbtiles</code> is present on the DBC</td>
+<td>A singleton or named regional MBTiles is present on the DBC</td>
 <td>"true"</td>
 </tr>
 <tr>
@@ -4257,7 +4257,7 @@ and fleet telemetry consumers; it is not the reachability contract.</p>
 <p>Which offline map and routing tiles are installed on the DBC. The artifacts live
 on the DBC's <code>/data</code>, but the hash is on the MDB, so the installer, <code>lsc</code> and
 anything else on the MDB can read what a vehicle has without powering the
-dashboard up and going in over SSH.</p>
+dashboard up and going in over SSH. This hash describes singleton map bookkeeping, not every installed regional pack or the currently selected region. The dashboard selects regional files locally from GPS and filesystem state.</p>
 <table>
 <thead>
 <tr>
@@ -6605,7 +6605,7 @@ additionally reports its own refusals in <code>usb.last-result</code> and as an 
       <script id="__config" type="application/json">{"annotate":null,"base":"..","features":["content.action.edit","content.code.copy","content.code.select","content.tooltips","navigation.footer","navigation.indexes","navigation.instant","navigation.instant.prefetch","navigation.path","navigation.sections","navigation.top","navigation.tracking","search.highlight","toc.follow"],"redirect":null,"search":"../assets/javascripts/workers/search.7d14d953.min.js","tags":null,"translations":{"clipboard.copied":"Copied to clipboard","clipboard.copy":"Copy to clipboard","search.result.more.one":"1 more on this page","search.result.more.other":"# more on this page","search.result.none":"No matching documents","search.result.one":"1 matching document","search.result.other":"# matching documents","search.result.placeholder":"Type to start searching","search.result.term.missing":"Missing","select.version":"Select version"},"version":{"provider":"mike"}}</script>
     
     
-      <script src="../assets/javascripts/bundle.c04ba553.min.js"></script>
+      <script src="../assets/javascripts/bundle.b7d3f789.min.js"></script>
       
     
   </body>

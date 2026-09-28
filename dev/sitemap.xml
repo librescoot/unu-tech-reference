@@ -4,19 +4,10 @@
         <loc>https://reference.librescoot.org/dev/</loc>
       </url>
       <url>
-        <loc>https://reference.librescoot.org/dev/electronic/</loc>
-      </url>
-      <url>
-        <loc>https://reference.librescoot.org/dev/mechanical/</loc>
-      </url>
-      <url>
-        <loc>https://reference.librescoot.org/dev/wiring/</loc>
+        <loc>https://reference.librescoot.org/dev/battery-charger/</loc>
       </url>
       <url>
         <loc>https://reference.librescoot.org/dev/battery/</loc>
-      </url>
-      <url>
-        <loc>https://reference.librescoot.org/dev/battery-charger/</loc>
       </url>
       <url>
         <loc>https://reference.librescoot.org/dev/bluetooth/</loc>
@@ -25,7 +16,19 @@
         <loc>https://reference.librescoot.org/dev/bluetooth/ota-transfer/</loc>
       </url>
       <url>
-        <loc>https://reference.librescoot.org/dev/redis/</loc>
+        <loc>https://reference.librescoot.org/dev/bluetooth/utils/decode_logs/</loc>
+      </url>
+      <url>
+        <loc>https://reference.librescoot.org/dev/dashboard/</loc>
+      </url>
+      <url>
+        <loc>https://reference.librescoot.org/dev/dashboard/REDIS/</loc>
+      </url>
+      <url>
+        <loc>https://reference.librescoot.org/dev/electronic/</loc>
+      </url>
+      <url>
+        <loc>https://reference.librescoot.org/dev/mechanical/</loc>
       </url>
       <url>
         <loc>https://reference.librescoot.org/dev/nrf/</loc>
@@ -37,13 +40,13 @@
         <loc>https://reference.librescoot.org/dev/nrf/power-management/</loc>
       </url>
       <url>
-        <loc>https://reference.librescoot.org/dev/states/</loc>
-      </url>
-      <url>
-        <loc>https://reference.librescoot.org/dev/services/</loc>
+        <loc>https://reference.librescoot.org/dev/redis/</loc>
       </url>
       <url>
         <loc>https://reference.librescoot.org/dev/service-interactions/</loc>
+      </url>
+      <url>
+        <loc>https://reference.librescoot.org/dev/services/</loc>
       </url>
       <url>
         <loc>https://reference.librescoot.org/dev/services/librescoot-alarm/</loc>
@@ -62,6 +65,9 @@
       </url>
       <url>
         <loc>https://reference.librescoot.org/dev/services/librescoot-keycard/</loc>
+      </url>
+      <url>
+        <loc>https://reference.librescoot.org/dev/services/librescoot-lsd/</loc>
       </url>
       <url>
         <loc>https://reference.librescoot.org/dev/services/librescoot-modem/</loc>
@@ -88,15 +94,18 @@
         <loc>https://reference.librescoot.org/dev/services/librescoot-update/</loc>
       </url>
       <url>
+        <loc>https://reference.librescoot.org/dev/services/librescoot-uplink/</loc>
+      </url>
+      <url>
         <loc>https://reference.librescoot.org/dev/services/librescoot-vehicle/</loc>
       </url>
       <url>
-        <loc>https://reference.librescoot.org/dev/dashboard/</loc>
-      </url>
-      <url>
-        <loc>https://reference.librescoot.org/dev/dashboard/REDIS/</loc>
+        <loc>https://reference.librescoot.org/dev/states/</loc>
       </url>
       <url>
         <loc>https://reference.librescoot.org/dev/tools/lsc/</loc>
+      </url>
+      <url>
+        <loc>https://reference.librescoot.org/dev/wiring/</loc>
       </url>
 </urlset>

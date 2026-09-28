@@ -23,7 +23,7 @@
       
       
       <link rel="icon" href="../../assets/favicon.png">
-      <meta name="generator" content="zensical-0.0.65">
+      <meta name="generator" content="zensical-0.0.66">
     
     
       
@@ -34,7 +34,7 @@
       
         
       
-      <link rel="stylesheet" href="../../assets/stylesheets/modern/main.40d3fdbb.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/modern/main.1502b751.min.css">
       
         
           
@@ -2764,9 +2764,9 @@ Update Mode. See <a href="../librescoot-update/">update-service</a> for the prev
 <h3 id="shutdown">Shutdown<a class="headerlink" href="#shutdown" title="Permanent link">&para;</a></h3>
 <p>On SIGTERM or <code>vehicle state</code> → <code>shutting-down</code>: <code>ShutdownStore::forceBlackout()</code> blacks out the display.</p>
 <h2 id="map-tiles">Map Tiles<a class="headerlink" href="#map-tiles" title="Permanent link">&para;</a></h2>
-<p>Offline tiles expected at <code>/data/maps/map.mbtiles</code> on the DBC. The app watches <code>/data/maps/</code> via inotify and reloads map services when the file appears or changes.</p>
+<p>A singleton installation reads <code>/data/maps/map.mbtiles</code> on the DBC. The app watches <code>/data/maps/</code> via inotify and reloads map services when the file appears or changes. A regional installation reads <code>tiles_&lt;slug&gt;.mbtiles</code> and the matching <code>valhalla_tiles_&lt;slug&gt;.tar</code>; a recent GPS fix selects a named pack using its MBTiles <code>bounds</code>. If <code>map.mbtiles</code> exists, regional selection requires <code>/data/valhalla/tiles.tar</code> to be a symlink, so named files alone do not change a singleton installation.</p>
 <p>What is installed is recorded in <code>/data/maps/metadata.json</code> (region slug, per-artifact SHA-256, upstream publication time, last update check) and mirrored into the <a href="../../redis/#installed-maps-maps---librescoot-only"><code>maps</code></a> Redis hash on the MDB. scootui-qt republishes the hash on every Redis reconnect, because the MDB's valkey keeps nothing across a reboot. The same values back the System &gt; Info &gt; Maps screen, so the dashboard and an MDB-side consumer cannot report different things.</p>
-<p>Routing tiles live separately at <code>/data/valhalla/tiles.tar</code>, which Valhalla mmaps as its <code>tile_extract</code> and which therefore has to stay an uncompressed seekable tar.</p>
+<p>Routing tiles live separately at <code>/data/valhalla/tiles.tar</code>, which Valhalla mmaps as its <code>tile_extract</code> and which therefore has to resolve to an uncompressed seekable tar. In regional mode the dashboard swaps that symlink atomically and restarts Valhalla when the selected region changes. A missing matching archive stops local Valhalla rather than serving another region's graph. Routes must be entirely within the active region; cross-region routing is not supported. The built-in map updater continues to serve singleton installations, while regional packs are installed through USB update mode.</p>
 <p><code>MapDownloadService</code> fetches both from the manifest at <code>downloads.librescoot.org/releases/tiles.json</code>, keyed by region slug. Each region's <code>valhalla</code> entry may carry an optional nested <code>compressed</code> object (<code>codec</code>, <code>url</code>, <code>size</code>, <code>sha256</code>); when it is present and the codec is <code>zstd</code>, the service downloads that instead, verifies its SHA256, and decompresses it into place at install. The parent <code>url</code>, <code>size</code> and <code>sha256</code> continue to describe the uncompressed tar, so a client that predates the compressed asset keeps working unchanged. Downloads resume via HTTP <code>Range</code> against the artifact actually being fetched; the compressed variant uses its own <code>.part</code> file.</p>
 <p>The <code>.mbtiles</code> is not compressed for transport. Its vector tiles are already gzipped per tile, so the archive only compresses by about 1.14x.</p>
 <h2 id="project-structure">Project Structure<a class="headerlink" href="#project-structure" title="Permanent link">&para;</a></h2>
@@ -2935,7 +2935,7 @@ Update Mode. See <a href="../librescoot-update/">update-service</a> for the prev
       <script id="__config" type="application/json">{"annotate":null,"base":"../..","features":["content.action.edit","content.code.copy","content.code.select","content.tooltips","navigation.footer","navigation.indexes","navigation.instant","navigation.instant.prefetch","navigation.path","navigation.sections","navigation.top","navigation.tracking","search.highlight","toc.follow"],"redirect":null,"search":"../../assets/javascripts/workers/search.7d14d953.min.js","tags":null,"translations":{"clipboard.copied":"Copied to clipboard","clipboard.copy":"Copy to clipboard","search.result.more.one":"1 more on this page","search.result.more.other":"# more on this page","search.result.none":"No matching documents","search.result.one":"1 matching document","search.result.other":"# matching documents","search.result.placeholder":"Type to start searching","search.result.term.missing":"Missing","select.version":"Select version"},"version":{"provider":"mike"}}</script>
     
     
-      <script src="../../assets/javascripts/bundle.c04ba553.min.js"></script>
+      <script src="../../assets/javascripts/bundle.b7d3f789.min.js"></script>
       
     
   </body>
