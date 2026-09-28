@@ -275,7 +275,7 @@ hgetall dashboard
 | ready | "true"/"false" | Dashboard ready state | "false" |
 | mode | string | Current display mode | "speedometer" |
 | serial-number | string | Dashboard serial number | "379999993" |
-| maps-available | "true"/"false" | `/data/maps/map.mbtiles` is present on the DBC | "true" |
+| maps-available | "true"/"false" | A singleton or named regional MBTiles is present on the DBC | "true" |
 | navigation-available | "true"/"false" | The on-device Valhalla endpoint answers | "true" |
 
 See [Dashboard](../dashboard/README.md).
@@ -289,7 +289,7 @@ hgetall maps
 Which offline map and routing tiles are installed on the DBC. The artifacts live
 on the DBC's `/data`, but the hash is on the MDB, so the installer, `lsc` and
 anything else on the MDB can read what a vehicle has without powering the
-dashboard up and going in over SSH.
+dashboard up and going in over SSH. This hash describes singleton map bookkeeping, not every installed regional pack or the currently selected region. The dashboard selects regional files locally from GPS and filesystem state.
 
 | Field | Type | Description | Example |
 |-------|------|-------------|----------|
