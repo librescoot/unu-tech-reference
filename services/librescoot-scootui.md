@@ -194,7 +194,9 @@ connectivity there is nothing to preview and nothing that could download, so the
 screen instead explains that the target channel's `.mender` can be installed over
 Update Mode. See [update-service](librescoot-update.md) for the preview protocol.
 
-When `dashboard.theme` is `auto`, AutoThemeService drives light/dark switching from the `dashboard` hash field `brightness` (lux). It listens on the `dashboard` pub/sub channel and also polls every 1 s, and switches with hysteresis (dark below 8 lux, light above 20 lux) after the reading has held past the threshold for 2.5 s, then locks out the reverse flip for 10 s.
+When `dashboard.theme` is `auto`, startup uses an asynchronous local ambient-light sample. A completed sample snap-selects the theme before the first frame and initial map-style composition, without dwell or GUI-thread sensor I/O. Explicit light/dark settings remain authoritative. Missing, invalid or slow local samples use a bounded Redis fallback.
+
+The local sample takes precedence over retained `dashboard[brightness]` until a producer brightness notification is followed by a fresh field fetch. Ongoing ambient changes use the dashboard pub/sub channel and a 1 s poll, with hysteresis (dark below 8 lux, light above 20 lux), a 2.5 s dwell and a 10 s reverse-flip lockout.
 
 ## Hardware Interfaces
 
