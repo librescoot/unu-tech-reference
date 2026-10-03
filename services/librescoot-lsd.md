@@ -70,10 +70,16 @@ All routes accept the optional bearer token as `Authorization: Bearer` or `?toke
 | `GET/POST /api/navigation`, `PUT/DELETE /api/navigation/locations` | Destination and saved locations |
 | `GET /api/keycards`, `POST /api/keycards/command` | UID lists and `scooter:keycard` commands with their result |
 | `GET/PUT/DELETE /api/files`, `POST /api/files/mkdir`, `GET /files/<path>` | File browser under `-data`; folders download as tar |
-| `GET /api/cloud`, `POST /api/cloud/bootstrap`, `POST /api/cloud/config` | Identity and service state; Sunshine bootstrap with a bootstrap token; install a pasted config |
+| `GET /api/cloud`, `POST /api/cloud/bootstrap`, `POST /api/cloud/config` | Identity and service state; Sunshine bootstrap with a token or online installer URL; install a pasted config |
 | `GET /api/updates`, `PUT /api/updates/upload`, `POST /api/updates/action` | OTA state; stage a `.mender` or `.delta` under `/data/ota/<board>`; check, preview, channel switch, install, delete |
 | `GET /api/services`, `POST /api/services/action` | Known units; start, stop, restart, enable, disable |
 | `GET/POST /api/system/logs`, `GET /api/system/journal` | Log bundles via `lsc logs`; journal tail per unit or dmesg |
+
+### Sunshine setup
+
+Generate an installer credential in [Sunshine Account settings](https://sunshine.rescoot.org/account/security#bootstrap-tokens); developer mode is not required. The Cloud page accepts its bootstrap token or an online installer URL (`/install/u/<token>` or `/a/<code>`). Installer URLs must point to the instance selected by `-sunshine-url`. LSD submits hardware identifiers to `POST /api/v1/scooters/bootstrap` and installs the returned radio-gaga configuration. Any pending scooter claim must be accepted in Sunshine; another account's credential cannot take ownership of an already-owned scooter.
+
+Offline claim URLs (`/c/<code>` and `/i/<code>`) run in the scooter's shell, not in LSD's bootstrap form.
 
 ### DBC updates
 
