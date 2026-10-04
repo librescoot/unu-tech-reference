@@ -10,11 +10,14 @@ Pages: dashboard with live vehicle, battery, connectivity, board and fault state
 
 ```
   -addr string          HTTP listen address (default "192.168.7.1:8090")
+  -wg-interface string  Also listen on this WireGuard interface (default wg0
+                        with the default -addr)
   -redis-addr string    Redis server address (default "localhost:6379")
   -data string          Data directory exposed in the file browser and used for
                         keycard, OTA and log-bundle paths (default "/data")
   -token string         Require this bearer token on every request (default: no auth)
   -sunshine-url string  Sunshine instance for the Cloud page (default "https://sunshine.rescoot.org")
+  -no-shell             Disable the shell page and its API
   -version              Print version and exit
 ```
 
@@ -22,7 +25,7 @@ Pages: dashboard with live vehicle, battery, connectivity, board and fault state
 
 `librescoot-lsd.service`, MDB only, enabled by default. `After=valkey.service librescoot-netconfig.service`, `Requires=valkey.service`. The binary is `/usr/bin/lsd`.
 
-The default address is the MDB's usb0 address, so reachability follows the usb0 link: the daemon is available while the dashboard is powered or the usb0 gate is held open (`system[usb0-gate]`, `scooter.usb0-policy`). While the address cannot be bound (usb0 down, UMS mode) the daemon retries every five seconds instead of exiting.
+The primary address is the MDB's usb0 address, so its reachability follows the usb0 link: that listener is available while the dashboard is powered or the usb0 gate is held open (`system[usb0-gate]`, `scooter.usb0-policy`). While the address cannot be bound (usb0 down, UMS mode) the daemon retries every five seconds instead of exiting. With the default `-addr`, an independent listener also follows the IPv4 address of `wg0`; `-wg-interface` selects another WireGuard interface. Neither default listener binds to the mobile-network interface.
 
 ## Redis Operations
 
@@ -37,7 +40,9 @@ The same names as the hashes above plus `keycard:events`. Each notification is t
 ### Hashes written
 
 - `settings` - setting writes (`HSET`, or `HDEL` to restore a default), followed by `PUBLISH settings <key>`; saved locations under `dashboard.saved-locations.<id>.*` with `PUBLISH settings dashboard.saved-locations.<id>`
-- `navigation` - `latitude`, `longitude`, `address`, `timestamp`, `destination` (all emptied on clear), one `PUBLISH navigation <field>` each, `destination` last
+### Route-plan RPC
+
+Navigation changes use the existing `settings:route-plan` Redis IPC channel: `plan.get`, `plan.replace`, `plan.clear`, `plan.append`, `plan.remove`, and `plan.advance`. A compatible settings-service owns the plan and projects it into `navigation`; LSD does not write the destination hash directly. Removing a stop checks the expected revision, and skipping a stop checks the expected plan and stop IDs., `destination` last
 
 ### Lists pushed
 
@@ -67,7 +72,7 @@ All routes accept the optional bearer token as `Authorization: Bearer` or `?toke
 | `GET /api/faults`, `GET /api/events` | Fault sets; recent `events:faults` entries |
 | `GET /api/settings`, `GET /api/settings/schema`, `PUT /api/settings/set` | Values, schema, validated batch write `{values: {key: value}}` |
 | `POST /api/control` | `{action}` from the fixed table above |
-| `GET/POST /api/navigation`, `PUT/DELETE /api/navigation/locations` | Destination and saved locations |
+| `GET/POST /api/navigation`, `POST /api/navigation/plan`, `PUT/DELETE /api/navigation/locations` | Destination, ordered route plan, guarded stop edits and saved locations |
 | `GET /api/keycards`, `POST /api/keycards/command` | UID lists and `scooter:keycard` commands with their result |
 | `GET/PUT/DELETE /api/files`, `POST /api/files/mkdir`, `GET /files/<path>` | File browser under `-data`; folders download as tar |
 | `GET /api/cloud`, `POST /api/cloud/bootstrap`, `POST /api/cloud/config` | Identity and service state; Sunshine bootstrap with a token or online installer URL; install a pasted config |
@@ -87,4 +92,4 @@ The DBC's update-service runs on the DBC with its own `/data`. A file uploaded f
 
 ## Security
 
-The daemon runs as root and has full control over the scooter. It is meant for the usb0 management network only: bind it there (the default), firewall the port, and set `-token` when the network is shared. There is no TLS.
+The daemon runs as root and has full control over the scooter, including a browser shell unless `-no-shell` is set. The default listeners bind to usb0 and an assigned `wg0` IPv4 address, not the mobile-network interface. Every WireGuard peer that can reach the port can control the scooter unless access is restricted with `-token` or a firewall. There is no TLS; USB is point-to-point and WireGuard encrypts its traffic. Use `-no-shell` to remove the shell page and API when they are not needed.
