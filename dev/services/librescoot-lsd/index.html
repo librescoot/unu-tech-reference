@@ -1573,6 +1573,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#route-plan-rpc" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Route-plan RPC
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#lists-pushed" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
@@ -1599,6 +1610,17 @@
   
     <nav class="md-nav" aria-label="HTTP API">
       <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#sunshine-setup" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Sunshine setup
+      </span>
+    </span>
+  </a>
+  
+</li>
         
           <li class="md-nav__item">
   <a href="#dbc-updates" class="md-nav__link">
@@ -1665,16 +1687,19 @@
 <p>Pages: dashboard with live vehicle, battery, connectivity, board and fault state and the vehicle commands; a schema-driven settings editor; navigation destination and saved locations; keycard management; a file browser for <code>/data</code>; cloud connectivity (Sunshine bootstrap, radio-gaga and uplink-service configs); updates (per-board status, channel, local <code>.mender</code> and <code>.delta</code> install); Librescoot systemd units; log bundles, journal viewer, map and modem details.</p>
 <h2 id="command-line-options">Command-Line Options<a class="headerlink" href="#command-line-options" title="Permanent link">&para;</a></h2>
 <div class="language-text highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>  -addr string          HTTP listen address (default "192.168.7.1:8090")
-</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>  -redis-addr string    Redis server address (default "localhost:6379")
-</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>  -data string          Data directory exposed in the file browser and used for
-</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>                        keycard, OTA and log-bundle paths (default "/data")
-</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>  -token string         Require this bearer token on every request (default: no auth)
-</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>  -sunshine-url string  Sunshine instance for the Cloud page (default "https://sunshine.rescoot.org")
-</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>  -version              Print version and exit
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>  -wg-interface string  Also listen on this WireGuard interface (default wg0
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>                        with the default -addr)
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>  -redis-addr string    Redis server address (default "localhost:6379")
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>  -data string          Data directory exposed in the file browser and used for
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>                        keycard, OTA and log-bundle paths (default "/data")
+</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>  -token string         Require this bearer token on every request (default: no auth)
+</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>  -sunshine-url string  Sunshine instance for the Cloud page (default "https://sunshine.rescoot.org")
+</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>  -no-shell             Disable the shell page and its API
+</span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>  -version              Print version and exit
 </span></code></pre></div>
 <h2 id="systemd-unit">Systemd Unit<a class="headerlink" href="#systemd-unit" title="Permanent link">&para;</a></h2>
 <p><code>librescoot-lsd.service</code>, MDB only, enabled by default. <code>After=valkey.service librescoot-netconfig.service</code>, <code>Requires=valkey.service</code>. The binary is <code>/usr/bin/lsd</code>.</p>
-<p>The default address is the MDB's usb0 address, so reachability follows the usb0 link: the daemon is available while the dashboard is powered or the usb0 gate is held open (<code>system[usb0-gate]</code>, <code>scooter.usb0-policy</code>). While the address cannot be bound (usb0 down, UMS mode) the daemon retries every five seconds instead of exiting.</p>
+<p>The primary address is the MDB's usb0 address, so its reachability follows the usb0 link: that listener is available while the dashboard is powered or the usb0 gate is held open (<code>system[usb0-gate]</code>, <code>scooter.usb0-policy</code>). While the address cannot be bound (usb0 down, UMS mode) the daemon retries every five seconds instead of exiting. With the default <code>-addr</code>, an independent listener also follows the IPv4 address of <code>wg0</code>; <code>-wg-interface</code> selects another WireGuard interface. Neither default listener binds to the mobile-network interface.</p>
 <h2 id="redis-operations">Redis Operations<a class="headerlink" href="#redis-operations" title="Permanent link">&para;</a></h2>
 <h3 id="hashes-read">Hashes read<a class="headerlink" href="#hashes-read" title="Permanent link">&para;</a></h3>
 <p><code>vehicle</code>, <code>engine-ecu</code>, <code>battery:0</code>, <code>battery:1</code>, <code>aux-battery</code>, <code>cb-battery</code>, <code>power-manager</code>, <code>power-mux</code>, <code>system</code>, <code>scooter</code>, <code>gps</code>, <code>internet</code>, <code>modem</code>, <code>alarm</code>, <code>dashboard</code>, <code>keycard</code>, <code>navigation</code>, <code>ota</code>, <code>maps</code>, <code>settings</code>, <code>version:mdb</code>, <code>version:dbc</code>; the key <code>settings:schema</code>; the sets <code>vehicle:fault</code>, <code>engine-ecu:fault</code>, <code>battery:0:fault</code>, <code>battery:1:fault</code>; the stream <code>events:faults</code>.</p>
@@ -1683,8 +1708,9 @@
 <h3 id="hashes-written">Hashes written<a class="headerlink" href="#hashes-written" title="Permanent link">&para;</a></h3>
 <ul>
 <li><code>settings</code> - setting writes (<code>HSET</code>, or <code>HDEL</code> to restore a default), followed by <code>PUBLISH settings &lt;key&gt;</code>; saved locations under <code>dashboard.saved-locations.&lt;id&gt;.*</code> with <code>PUBLISH settings dashboard.saved-locations.&lt;id&gt;</code></li>
-<li><code>navigation</code> - <code>latitude</code>, <code>longitude</code>, <code>address</code>, <code>timestamp</code>, <code>destination</code> (all emptied on clear), one <code>PUBLISH navigation &lt;field&gt;</code> each, <code>destination</code> last</li>
 </ul>
+<h3 id="route-plan-rpc">Route-plan RPC<a class="headerlink" href="#route-plan-rpc" title="Permanent link">&para;</a></h3>
+<p>Navigation changes use the existing <code>settings:route-plan</code> Redis IPC channel: <code>plan.get</code>, <code>plan.replace</code>, <code>plan.clear</code>, <code>plan.append</code>, <code>plan.remove</code>, and <code>plan.advance</code>. A compatible settings-service owns the plan and projects it into <code>navigation</code>; LSD does not write the destination hash directly. Removing a stop checks the expected revision, and skipping a stop checks the expected plan and stop IDs., <code>destination</code> last</p>
 <h3 id="lists-pushed">Lists pushed<a class="headerlink" href="#lists-pushed" title="Permanent link">&para;</a></h3>
 <table>
 <thead>
@@ -1775,8 +1801,8 @@
 <td><code>{action}</code> from the fixed table above</td>
 </tr>
 <tr>
-<td><code>GET/POST /api/navigation</code>, <code>PUT/DELETE /api/navigation/locations</code></td>
-<td>Destination and saved locations</td>
+<td><code>GET/POST /api/navigation</code>, <code>POST /api/navigation/plan</code>, <code>PUT/DELETE /api/navigation/locations</code></td>
+<td>Destination, ordered route plan, guarded stop edits and saved locations</td>
 </tr>
 <tr>
 <td><code>GET /api/keycards</code>, <code>POST /api/keycards/command</code></td>
@@ -1788,7 +1814,7 @@
 </tr>
 <tr>
 <td><code>GET /api/cloud</code>, <code>POST /api/cloud/bootstrap</code>, <code>POST /api/cloud/config</code></td>
-<td>Identity and service state; Sunshine bootstrap with a bootstrap token; install a pasted config</td>
+<td>Identity and service state; Sunshine bootstrap with a token or online installer URL; install a pasted config</td>
 </tr>
 <tr>
 <td><code>GET /api/updates</code>, <code>PUT /api/updates/upload</code>, <code>POST /api/updates/action</code></td>
@@ -1804,10 +1830,13 @@
 </tr>
 </tbody>
 </table>
+<h3 id="sunshine-setup">Sunshine setup<a class="headerlink" href="#sunshine-setup" title="Permanent link">&para;</a></h3>
+<p>Generate an installer credential in <a href="https://sunshine.rescoot.org/account/security#bootstrap-tokens">Sunshine Account settings</a>; developer mode is not required. The Cloud page accepts its bootstrap token or an online installer URL (<code>/install/u/&lt;token&gt;</code> or <code>/a/&lt;code&gt;</code>). Installer URLs must point to the instance selected by <code>-sunshine-url</code>. LSD submits hardware identifiers to <code>POST /api/v1/scooters/bootstrap</code> and installs the returned radio-gaga configuration. Any pending scooter claim must be accepted in Sunshine; another account's credential cannot take ownership of an already-owned scooter.</p>
+<p>Offline claim URLs (<code>/c/&lt;code&gt;</code> and <code>/i/&lt;code&gt;</code>) run in the scooter's shell, not in LSD's bootstrap form.</p>
 <h3 id="dbc-updates">DBC updates<a class="headerlink" href="#dbc-updates" title="Permanent link">&para;</a></h3>
 <p>The DBC's update-service runs on the DBC with its own <code>/data</code>. A file uploaded for the DBC is staged on the MDB under <code>/data/ota/dbc</code>; on install the daemon powers the dashboard on if needed, copies the file to the DBC's <code>/data/ota/dbc</code> through the DBC's data-server on <code>192.168.7.2:8080</code>, and queues <code>update-from-file</code> with the file's SHA-256 on <code>scooter:update:dbc</code>.</p>
 <h2 id="security">Security<a class="headerlink" href="#security" title="Permanent link">&para;</a></h2>
-<p>The daemon runs as root and has full control over the scooter. It is meant for the usb0 management network only: bind it there (the default), firewall the port, and set <code>-token</code> when the network is shared. There is no TLS.</p>
+<p>The daemon runs as root and has full control over the scooter, including a browser shell unless <code>-no-shell</code> is set. The default listeners bind to usb0 and an assigned <code>wg0</code> IPv4 address, not the mobile-network interface. Every WireGuard peer that can reach the port can control the scooter unless access is restricted with <code>-token</code> or a firewall. There is no TLS; USB is point-to-point and WireGuard encrypts its traffic. Use <code>-no-shell</code> to remove the shell page and API when they are not needed.</p>
 
 
 
