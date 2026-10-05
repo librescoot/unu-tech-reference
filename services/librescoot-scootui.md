@@ -40,6 +40,20 @@ ScootUI is the primary user interface for Librescoot. It runs on the DBC (Dashbo
 - Configurable blinker overlay styles
 - Multi-language support
 
+## Connection and maintenance notifications
+
+The connection explanation, maintenance spinner and update-progress screen show
+notifications in an opaque, height-bounded card at the top. The content below
+reserves space for that card and the vehicle-state indicator, so errors and
+warnings do not cover the connection instructions or update progress. Long
+notification text scrolls inside the card.
+
+These screens use the shared notification selection, queued severity counts,
+five-second rotation and event deadlines. When navigation occupies the primary
+slot, its notification companion is shown instead; navigation graphics remain
+on the cluster and map screens. Dismissing or expiring the last notification
+restores the full maintenance content area.
+
 ## Build
 
 ### Desktop (simulator mode)
