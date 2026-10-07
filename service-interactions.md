@@ -383,12 +383,16 @@ units, retention safety, and the command contract.
 
 **Consumes queues:**
 
-- `scooter:power` → "run", "suspend", "hibernate", "hibernate-manual", "hibernate-timer", "reboot"
+- `scooter:power` → "run", "suspend", "hibernate", "hibernate-manual", "hibernate-auto", "hibernate-timer", "hibernate-for:<seconds>", "hibernate-cancel", "hibernate-preparation-failed:<request-id>", "reboot"
 - `scooter:governor` → "ondemand", "powersave", "performance"
 
 **Produces queues:**
 
 - `scooter:modem` → "disable" (to disable modem before power state change)
+
+Explicit ordinary and timed hibernation share PM admission (`parked` or `stand-by`). PM records the power intent before sending vehicle-service `scooter:state prepare-hibernate:<request-id>`. The vehicle FSM validates `power-manager[hibernate-request-id]`, shuts down gracefully from parked, and publishes standby without emitting a second power command. Rejection or the 30-second preparation timeout clears the intent. Confirmed physical brake hibernation submits its one manual request after standby publication.
+
+Bluetooth forwards explicit hibernation to PM and publishes the nRF timer echo in `power-manager[wake-timer-ack-seconds]`. Timed power-off requires an exact positive duration match. Controller automatic requests use `hibernate-auto`; idle and scheduled requests do not initiate vehicle locking. PM request progress is exposed in `hibernate-status` and `hibernate-error`. Cancellation invalidates preparation and disarms the timer without unlocking. These PM, vehicle and Bluetooth protocol handlers are a coordinated deployment.
 
 **Hardware access:** `/sys/power/pm_wakeup_irq`, `/sys/class/tty/*/power/wakeup`, systemd D-Bus
 

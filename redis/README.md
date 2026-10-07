@@ -198,7 +198,11 @@ hgetall power-manager
 | nrf-reset-reason | hex string | nRF reset reason code | "0x00000001" |
 | hibernate-level | string | Hibernation level | "L1"/"L2" |
 | wake-timer-seconds | integer | Requested nRF52 wake-timer duration in seconds (`0` = disarm). Written by pm-service before hibernate-for poweroff. | "300" |
-| wake-timer-armed | "true"/"false" | nRF52 ACK echo published by bluetooth-service after the wake-timer arm request | "true" |
+| wake-timer-armed | "true"/"false" | nRF52 wake-timer armed telemetry published by bluetooth-service | "true" |
+| wake-timer-ack-seconds | integer | Exact nRF52 duration echo; PM requires it to match the timed request. `0` acknowledges disarm. | "300" |
+| hibernate-request-id | string | PM-session request ID checked by vehicle-service before internal preparation; empty invalidates preparation. | "ABC123" |
+| hibernate-status | string | Explicit-request progress: idle, preparing-vehicle, preparing-power, waiting-inhibitors, waiting-wake-timer, powering-off, rejected, cancelled, failed. | "preparing-vehicle" |
+| hibernate-error | string | Rejection, cancellation, or failure reason; empty while an accepted request progresses. | "wake timer acknowledgement timed out" |
 | power-state-sent | string | nRF52 suspend-ACK published by bluetooth-service. pm-service gates entering suspend on this reaching "suspending". | "suspending" |
 
 ### Power Manager Busy Services (`power-manager:busy-services`)
@@ -1331,7 +1335,11 @@ redis-cli -h 192.168.7.1 LPUSH scooter:power hibernate-cancel
 redis-cli -h 192.168.7.1 LPUSH scooter:power reboot
 ```
 
-**Available commands**: `run`, `suspend`, `hibernate`, `hibernate-manual`, `hibernate-timer`, `hibernate-for:<seconds>`, `hibernate-cancel`, `reboot`
+**Available commands**: `run`, `suspend`, `hibernate`, `hibernate-manual`, `hibernate-auto`, `hibernate-timer`, `hibernate-for:<seconds>`, `hibernate-cancel`, `reboot`
+
+Explicit `hibernate`, `hibernate-manual`, and `hibernate-for:<seconds>` accept only `parked` or `stand-by`. From `parked`, PM requests graceful vehicle preparation; actual power-off requires `stand-by`. Timed requests preserve the duration and require the matching nRF echo. Relative durations do not require GPS or wall-clock synchronization. `hibernate-auto`, idle timers, and scheduled hibernation do not initiate vehicle locking.
+
+Internal preparation uses `scooter:state prepare-hibernate:<request-id>`, validated against `power-manager[hibernate-request-id]`. Vehicle rejection returns `scooter:power hibernate-preparation-failed:<request-id>`. Preparation expires after 30 seconds; cancellation invalidates the ID, disarms the timer, and does not unlock the vehicle.
 
 ### Modem Control (`scooter:modem`) - Librescoot Only
 

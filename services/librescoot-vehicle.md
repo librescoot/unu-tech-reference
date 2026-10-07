@@ -287,10 +287,13 @@ Will manually transition to `ready-to-drive` and blink the main light once for c
 
 **Lock-Hibernate command** (`LPUSH scooter:state lock-hibernate`):
 
-1. Must be in `parked` state
-2. Sets hibernation request flag
-3. Transitions to `shutting-down`
-4. Sends "hibernate-manual" command to power manager via `scooter:power` list
+1. Submits one `hibernate-manual` request to PM.
+2. PM accepts `parked` or `stand-by`; other states reject.
+3. From `parked`, PM sends internal `prepare-hibernate:<request-id>`.
+4. The parked-state FSM checks that ID against `power-manager[hibernate-request-id]`, then transitions through `shutting-down` to `stand-by`.
+5. Vehicle preparation never submits another power command, preserving PM's mode and wake duration. Unlock during preparation cancels power intent.
+
+Confirmed physical brake hibernation submits its sole manual request after synchronously publishing `stand-by`. Dashboard installation blocks are not removed by hibernation.
 
 **Force-Lock command** (`LPUSH scooter:state force-lock`):
 

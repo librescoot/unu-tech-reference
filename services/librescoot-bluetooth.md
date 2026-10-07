@@ -68,7 +68,8 @@ The Bluetooth service provides the BLE (Bluetooth Low Energy) interface for the 
 
 - `nrf-reset-count` - Reset count from nRF52
 - `nrf-reset-reason` - Nordic RESETREAS register value (integer)
-- `wake-timer-armed` - "true"/"false". Echo of the nRF wake-timer ACK: non-zero seconds echoed back means the timer is armed ("true"), zero means disarmed ("false").
+- `wake-timer-armed` - "true"/"false". Non-zero nRF duration echo means armed; zero means disarmed.
+- `wake-timer-ack-seconds` - Exact nRF duration echo. PM requires this positive value to match its timed request before permitting power-off.
 - `power-state-sent` - "suspending". Written when the nRF ACKs the suspending power-management state (state ACK value 0). pm-service gates the actual suspend-to-RAM on this confirmation, because the ACK reply has to fully drain off the UART before the iMX6 suspends.
 
 **Published channel:** `power-manager` (when nrf-reset-reason changes)
@@ -592,13 +593,14 @@ The service handles hibernation requests from the nRF52:
 **Automatic hibernation:**
 
 - nRF sends hibernation request (type=automatic)
-- Service forwards: `LPUSH scooter:power hibernate`
+- Service forwards: `LPUSH scooter:power hibernate-auto`
+- PM does not initiate vehicle locking for automatic requests.
 
 **Manual hibernation:**
 
 - nRF sends hibernation request (type=manual)
-- If vehicle state is "parked": `LPUSH scooter:state lock-hibernate`
-- Otherwise: `LPUSH scooter:power hibernate-manual`
+- Service forwards: `LPUSH scooter:power hibernate-manual`, regardless of vehicle state.
+- PM admits `parked` or `stand-by` and owns the graceful vehicle preparation sequence, as it does for timed requests.
 
 **Soft reboot:**
 

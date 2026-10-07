@@ -49,7 +49,7 @@ Usage of pm-service:
 
 **Fields read:**
 
-- `wake-timer-armed` - Set to `"true"` by bluetooth-service when the nRF52 acknowledges the wake-timer arm, `"false"` on disarm. pm-service blocks (up to `pm.wake-timer-ack-timeout`) on this field flipping to `true` in `EnterIssuingLowPower`; on timeout it aborts the hibernation rather than power off without a confirmed wake source.
+- `wake-timer-ack-seconds` - Exact nRF duration echo published by bluetooth-service. PM waits up to `pm.wake-timer-ack-timeout` for a positive echo matching its requested duration. Disarm and other-duration echoes are ignored; timeout aborts timed hibernation.
 - `power-state-sent` - The nRF suspend-ACK, written by bluetooth-service when it confirms it forwarded a power state to the nRF52. Only the value `"suspending"` is acted on. Before suspending, pm-service publishes the `suspending` state and then blocks (up to `suspendQuiesceTimeout`, 3 s) in `EnterIssuingLowPower` for `power-state-sent=suspending`. The nRF must stop its USOCK TX before the iMX6 sleeps; otherwise routine traffic on the armed ttymxc1 wakeup pulls the iMX6 straight back out of suspend-to-RAM. On ACK it settles a 200 ms margin (so the nRF's reply to the suspending frame can drain) and then suspends; on timeout it aborts back to `running` rather than suspend into the wake loop. This gate applies only to the `suspend` target, not to hibernate/poweroff/reboot.
 
 **Published channel:** `power-manager`
@@ -57,7 +57,7 @@ Usage of pm-service:
 - `state` - Published when power state changes
 - `wakeup-source` - Published when system wakes from suspend
 - `wake-timer-seconds` - Published when pm-service requests a wake-timer change
-- `wake-timer-armed` - Published by bluetooth-service when the nRF52 ACK arrives
+- `wake-timer-ack-seconds` - Published by bluetooth-service when the nRF52 duration echo arrives; `wake-timer-armed` remains an armed/disarmed telemetry flag
 
 ### Hash: `power-manager:busy-services`
 
@@ -122,7 +122,8 @@ pm-service subscribes to the `power:inhibits` channel and syncs entries into its
 - `scooter:power` - Power commands
   - `run` - Set target state to running (highest priority)
   - `suspend` - Request suspend
-  - `hibernate` - Request hibernation
+  - `hibernate` - Explicit ordinary hibernation (manual priority)
+  - `hibernate-auto` - Automatic hibernation without vehicle preparation
   - `hibernate-manual` - Manual hibernation (user-initiated)
   - `hibernate-timer` - Timer-based hibernation
   - `hibernate-for:<seconds>` - Ad-hoc hibernate-for. The integer suffix is the wake-timer duration in seconds (clamped to `pm.wake-timer-max-seconds`).
@@ -147,7 +148,7 @@ pm-service subscribes to the `power:inhibits` channel and syncs entries into its
 - `cb-battery` -> `charge` - CBB charge, last-ditch hibernate input
 - `aux-battery` -> `voltage` - Aux 12V rail voltage (millivolts), last-ditch hibernate input
 - `remote-access` -> all provider fields - Read live with HGETALL (not watched) at each suspend decision for the `pm.suspend-when-online` guard
-- `power-manager` -> `wake-timer-armed`, `power-state-sent` - Wake-timer ACK and the nRF suspend-ACK from the nRF52 (both written by bluetooth-service)
+- `power-manager` -> `wake-timer-ack-seconds`, `power-state-sent` - Wake-timer ACK and the nRF suspend-ACK from the nRF52 (both written by bluetooth-service)
 - `settings` -> `pm.suspend-when-online` (among the other `pm.*` fields above) - re-read on change
 
 ## Power Manager States
@@ -353,6 +354,8 @@ redis-cli LPUSH scooter:power "hibernate-cancel"    # abort and disarm
 
 `lsc hibernate-for <duration>` is a convenience wrapper. Over BLE, mobile apps can issue `pm:hibernate-for <duration>` / `pm:hibernate-cancel` via the extended-command channel.
 
+Explicit ordinary and timed requests share admission: `parked` initiates graceful vehicle shutdown; `stand-by` begins power preparation directly; other vehicle states reject without retaining an intent for a later lock. PM holds the mode and duration while vehicle-service handles `prepare-hibernate:<request-id>`. Vehicle preparation does not submit another manual power command. The ID is invalidated on cancellation or PM restart, and preparation expires after 30 seconds. `power-manager[hibernate-status]` and `[hibernate-error]` expose progress and failure independently of command-queue acceptance. Relative timed requests do not require a GPS fix or a synchronized wall clock.
+
 #### Scheduled
 
 Cron-driven schedule, defined entirely through settings:
@@ -367,7 +370,7 @@ Wake-by semantics: the cron fire time + duration is treated as the desired wake-
 
 #### Wake-timer arm-and-ACK flow
 
-Both flows go through the same FSM transitions as `hibernate-manual` (event `EvPowerHibernateFor`), with an extra arm-and-block step around the systemd call:
+Explicit requests enter through `EvExplicitHibernate`; scheduled requests use `EvPowerHibernateFor` without initiating vehicle locking. Both reach the same standby-gated power preparation, with an extra arm-and-block step around the systemd call:
 
 ```
 EnterLowPowerImminent       Publishes wake-timer-seconds=<N> on power-manager
@@ -379,14 +382,14 @@ suspend-imminent timer (5 s default)
 EnterWaitingInhibitors
         │
         ▼
-EnterIssuingLowPower        Blocks for wake-timer-armed=true on power-manager,
+EnterIssuingLowPower        Waits for wake-timer-ack-seconds=<N> on power-manager,
                             up to pm.wake-timer-ack-timeout (default 10 s).
         │
         ├─ on ACK → logind PowerOff
         └─ on timeout → emit EvPowerRun, abort
 ```
 
-bluetooth-service is the bridge: it watches `power-manager:wake-timer-seconds`, forwards the value to the nRF52 over UART (subtype 0x0805 under 0x0800), and writes `wake-timer-armed` back when the nRF52 echoes the ACK.
+bluetooth-service is the bridge: it watches `power-manager:wake-timer-seconds`, forwards the value to the nRF52 over UART (subtype 0x0805 under 0x0800), and writes the echo as `wake-timer-ack-seconds`, alongside `wake-timer-armed` telemetry. PM, vehicle-service's correlated preparation handler, and this bridge must be deployed together.
 
 The system never powers off without a confirmed wake source. If bluetooth-service is down or the nRF52 fails to ACK, the hibernation is aborted and the FSM returns to `running`.
 
