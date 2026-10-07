@@ -395,11 +395,13 @@ The system never powers off without a confirmed wake source. If bluetooth-servic
 
 #### Time-sync gate
 
-The scheduler refuses to dispatch any cron occurrence until the wall clock has been confirmed plausible. A polling goroutine (immediate check + every 30 s) reads `gps.active`; once it observes `"true"`, the time-sync latch flips on permanently for the session. Reasoning:
+The scheduler refuses to dispatch cron occurrences until PM validates synchronization evidence and clock plausibility. PM checks immediately, then every 30 seconds:
 
-- The iMX6 boots with the system-image build timestamp seeded into the clock, so year-based heuristics ("is the clock recent?") falsely pass.
-- modem-service calls `chronyc settime` in the same loop iteration that flips `gps.active` to `true` on a valid GPS fix, so `gps.active=true` is a reliable proxy for "chrony has been bootstrapped". chrony.conf has `manual`, so settime samples accumulate, and `local stratum 1` is present (which is what makes `chronyc tracking` an unreliable gate on its own).
-- A `Scheduled hibernation fire suppressed: wall clock not time-synced` log line means the latch hasn't flipped yet.
+- GPS evidence is `clock[synced-at]`, written by modem-service only after chrony accepts a GPS time sample. An active GPS fix alone is insufficient.
+- Alternatively, chrony must report a synchronized external NTP reference; local/manual pseudo-references do not qualify.
+- The wall clock must not predate the newest image build timestamp or saved fake-hwclock timestamp.
+
+Successful validation latches the session's synchronization gate and anchors the wall clock to `CLOCK_BOOTTIME`. A per-dispatch validator checks clock progression, including across suspend. Losing GPS or NTP reachability alone does not revoke the session latch. Relative explicit `hibernate-for` requests do not use these scheduler gates.
 
 #### Clock-jump resilience
 
