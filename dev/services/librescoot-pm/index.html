@@ -23,7 +23,7 @@
       
       
       <link rel="icon" href="../../assets/favicon.png">
-      <meta name="generator" content="zensical-0.0.67">
+      <meta name="generator" content="zensical-0.0.68">
     
     
       
@@ -34,12 +34,12 @@
       
         
       
-      <link rel="stylesheet" href="../../assets/stylesheets/modern/main.4ae390e2.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/modern/main.595f2bf5.min.css">
       
         
           
         
-        <link rel="stylesheet" href="../../assets/stylesheets/modern/palette.96d1a7e4.min.css">
+        <link rel="stylesheet" href="../../assets/stylesheets/modern/palette.b27955a4.min.css">
       
       
 
@@ -107,14 +107,11 @@
     
     <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
     <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
-    <label class="md-overlay" for="__drawer" aria-label="Navigation"></label>
+    <label class="md-overlay" for="__drawer" aria-hidden="true"></label>
     <div data-md-component="skip">
-      
-        
-        <a href="#librescoot-pm-pm-service" class="md-skip">
-          Skip to content
-        </a>
-      
+      <a href="#__skip" class="md-skip">
+        Skip to content
+      </a>
     </div>
     <div data-md-component="announce">
       
@@ -2796,6 +2793,7 @@
 
               
               <article class="md-content__inner md-typeset">
+                <a id="__skip" tabindex="-1"></a>
                 
                   
 
@@ -2850,7 +2848,7 @@
 </ul>
 <p><strong>Fields read:</strong></p>
 <ul>
-<li><code>wake-timer-armed</code> - Set to <code>"true"</code> by bluetooth-service when the nRF52 acknowledges the wake-timer arm, <code>"false"</code> on disarm. pm-service blocks (up to <code>pm.wake-timer-ack-timeout</code>) on this field flipping to <code>true</code> in <code>EnterIssuingLowPower</code>; on timeout it aborts the hibernation rather than power off without a confirmed wake source.</li>
+<li><code>wake-timer-ack-seconds</code> - Exact nRF duration echo published by bluetooth-service. PM waits up to <code>pm.wake-timer-ack-timeout</code> for a positive echo matching its requested duration. Disarm and other-duration echoes are ignored; timeout aborts timed hibernation.</li>
 <li><code>power-state-sent</code> - The nRF suspend-ACK, written by bluetooth-service when it confirms it forwarded a power state to the nRF52. Only the value <code>"suspending"</code> is acted on. Before suspending, pm-service publishes the <code>suspending</code> state and then blocks (up to <code>suspendQuiesceTimeout</code>, 3 s) in <code>EnterIssuingLowPower</code> for <code>power-state-sent=suspending</code>. The nRF must stop its USOCK TX before the iMX6 sleeps; otherwise routine traffic on the armed ttymxc1 wakeup pulls the iMX6 straight back out of suspend-to-RAM. On ACK it settles a 200 ms margin (so the nRF's reply to the suspending frame can drain) and then suspends; on timeout it aborts back to <code>running</code> rather than suspend into the wake loop. This gate applies only to the <code>suspend</code> target, not to hibernate/poweroff/reboot.</li>
 </ul>
 <p><strong>Published channel:</strong> <code>power-manager</code></p>
@@ -2858,7 +2856,7 @@
 <li><code>state</code> - Published when power state changes</li>
 <li><code>wakeup-source</code> - Published when system wakes from suspend</li>
 <li><code>wake-timer-seconds</code> - Published when pm-service requests a wake-timer change</li>
-<li><code>wake-timer-armed</code> - Published by bluetooth-service when the nRF52 ACK arrives</li>
+<li><code>wake-timer-ack-seconds</code> - Published by bluetooth-service when the nRF52 duration echo arrives; <code>wake-timer-armed</code> remains an armed/disarmed telemetry flag</li>
 </ul>
 <h3 id="hash-power-managerbusy-services">Hash: <code>power-manager:busy-services</code><a class="headerlink" href="#hash-power-managerbusy-services" title="Permanent link">&para;</a></h3>
 <p><strong>Fields written:</strong></p>
@@ -2915,7 +2913,8 @@
 <li><code>scooter:power</code> - Power commands</li>
 <li><code>run</code> - Set target state to running (highest priority)</li>
 <li><code>suspend</code> - Request suspend</li>
-<li><code>hibernate</code> - Request hibernation</li>
+<li><code>hibernate</code> - Explicit ordinary hibernation (manual priority)</li>
+<li><code>hibernate-auto</code> - Automatic hibernation without vehicle preparation</li>
 <li><code>hibernate-manual</code> - Manual hibernation (user-initiated)</li>
 <li><code>hibernate-timer</code> - Timer-based hibernation</li>
 <li><code>hibernate-for:&lt;seconds&gt;</code> - Ad-hoc hibernate-for. The integer suffix is the wake-timer duration in seconds (clamped to <code>pm.wake-timer-max-seconds</code>).</li>
@@ -2943,7 +2942,7 @@
 <li><code>cb-battery</code> -&gt; <code>charge</code> - CBB charge, last-ditch hibernate input</li>
 <li><code>aux-battery</code> -&gt; <code>voltage</code> - Aux 12V rail voltage (millivolts), last-ditch hibernate input</li>
 <li><code>remote-access</code> -&gt; all provider fields - Read live with HGETALL (not watched) at each suspend decision for the <code>pm.suspend-when-online</code> guard</li>
-<li><code>power-manager</code> -&gt; <code>wake-timer-armed</code>, <code>power-state-sent</code> - Wake-timer ACK and the nRF suspend-ACK from the nRF52 (both written by bluetooth-service)</li>
+<li><code>power-manager</code> -&gt; <code>wake-timer-ack-seconds</code>, <code>power-state-sent</code> - Wake-timer ACK and the nRF suspend-ACK from the nRF52 (both written by bluetooth-service)</li>
 <li><code>settings</code> -&gt; <code>pm.suspend-when-online</code> (among the other <code>pm.*</code> fields above) - re-read on change</li>
 </ul>
 <h2 id="power-manager-states">Power Manager States<a class="headerlink" href="#power-manager-states" title="Permanent link">&para;</a></h2>
@@ -3167,6 +3166,7 @@
 </span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>redis-cli<span class="w"> </span>LPUSH<span class="w"> </span>scooter:power<span class="w"> </span><span class="s2">"hibernate-cancel"</span><span class="w">    </span><span class="c1"># abort and disarm</span>
 </span></code></pre></div>
 <p><code>lsc hibernate-for &lt;duration&gt;</code> is a convenience wrapper. Over BLE, mobile apps can issue <code>pm:hibernate-for &lt;duration&gt;</code> / <code>pm:hibernate-cancel</code> via the extended-command channel.</p>
+<p>Explicit ordinary and timed requests share admission: <code>parked</code> initiates graceful vehicle shutdown; <code>stand-by</code> begins power preparation directly; other vehicle states reject without retaining an intent for a later lock. PM holds the mode and duration while vehicle-service handles <code>prepare-hibernate:&lt;request-id&gt;</code>. Vehicle preparation does not submit another manual power command. The ID is invalidated on cancellation or PM restart, and preparation expires after 30 seconds. <code>power-manager[hibernate-status]</code> and <code>[hibernate-error]</code> expose progress and failure independently of command-queue acceptance. Relative timed requests do not require a GPS fix or a synchronized wall clock.</p>
 <h4 id="scheduled">Scheduled<a class="headerlink" href="#scheduled" title="Permanent link">&para;</a></h4>
 <p>Cron-driven schedule, defined entirely through settings:</p>
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>lsc<span class="w"> </span>settings<span class="w"> </span><span class="nb">set</span><span class="w"> </span>pm.scheduled-hibernate-cron<span class="w"> </span><span class="s2">"0 22 * * *"</span>
@@ -3175,7 +3175,7 @@
 </span></code></pre></div>
 <p>Wake-by semantics: the cron fire time + duration is treated as the desired wake-by wall-clock target. If the scooter is in <code>stand-by</code> (locked, idle) at fire time, the hibernation goes out immediately with that remaining-time value. If the scooter is in <code>parked</code>, <code>ready-to-drive</code>, or any other state, the request is <strong>deferred</strong> until the next transition into <code>stand-by</code>. The wake-by time is preserved across the defer, so a <code>22:00 + 8h</code> schedule still wakes at <code>06:00</code> even if the user locks at <code>23:00</code>. If the target time has already passed by the time <code>stand-by</code> is reached, the pending fire is dropped with a <code>Pending wake target already in the past on standby; dropping</code> log line.</p>
 <h4 id="wake-timer-arm-and-ack-flow">Wake-timer arm-and-ACK flow<a class="headerlink" href="#wake-timer-arm-and-ack-flow" title="Permanent link">&para;</a></h4>
-<p>Both flows go through the same FSM transitions as <code>hibernate-manual</code> (event <code>EvPowerHibernateFor</code>), with an extra arm-and-block step around the systemd call:</p>
+<p>Explicit requests enter through <code>EvExplicitHibernate</code>; scheduled requests use <code>EvPowerHibernateFor</code> without initiating vehicle locking. Both reach the same standby-gated power preparation, with an extra arm-and-block step around the systemd call:</p>
 <div class="language-text highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>EnterLowPowerImminent       Publishes wake-timer-seconds=&lt;N&gt; on power-manager
 </span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>        │                   (HSET + PUBLISH)
 </span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>        ▼
@@ -3185,21 +3185,22 @@
 </span><span id="__span-5-7"><a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a>EnterWaitingInhibitors
 </span><span id="__span-5-8"><a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a>        │
 </span><span id="__span-5-9"><a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a>        ▼
-</span><span id="__span-5-10"><a id="__codelineno-5-10" name="__codelineno-5-10" href="#__codelineno-5-10"></a>EnterIssuingLowPower        Blocks for wake-timer-armed=true on power-manager,
+</span><span id="__span-5-10"><a id="__codelineno-5-10" name="__codelineno-5-10" href="#__codelineno-5-10"></a>EnterIssuingLowPower        Waits for wake-timer-ack-seconds=&lt;N&gt; on power-manager,
 </span><span id="__span-5-11"><a id="__codelineno-5-11" name="__codelineno-5-11" href="#__codelineno-5-11"></a>                            up to pm.wake-timer-ack-timeout (default 10 s).
 </span><span id="__span-5-12"><a id="__codelineno-5-12" name="__codelineno-5-12" href="#__codelineno-5-12"></a>        │
 </span><span id="__span-5-13"><a id="__codelineno-5-13" name="__codelineno-5-13" href="#__codelineno-5-13"></a>        ├─ on ACK → logind PowerOff
 </span><span id="__span-5-14"><a id="__codelineno-5-14" name="__codelineno-5-14" href="#__codelineno-5-14"></a>        └─ on timeout → emit EvPowerRun, abort
 </span></code></pre></div>
-<p>bluetooth-service is the bridge: it watches <code>power-manager:wake-timer-seconds</code>, forwards the value to the nRF52 over UART (subtype 0x0805 under 0x0800), and writes <code>wake-timer-armed</code> back when the nRF52 echoes the ACK.</p>
+<p>bluetooth-service is the bridge: it watches <code>power-manager:wake-timer-seconds</code>, forwards the value to the nRF52 over UART (subtype 0x0805 under 0x0800), and writes the echo as <code>wake-timer-ack-seconds</code>, alongside <code>wake-timer-armed</code> telemetry. PM, vehicle-service's correlated preparation handler, and this bridge must be deployed together.</p>
 <p>The system never powers off without a confirmed wake source. If bluetooth-service is down or the nRF52 fails to ACK, the hibernation is aborted and the FSM returns to <code>running</code>.</p>
 <h4 id="time-sync-gate">Time-sync gate<a class="headerlink" href="#time-sync-gate" title="Permanent link">&para;</a></h4>
-<p>The scheduler refuses to dispatch any cron occurrence until the wall clock has been confirmed plausible. A polling goroutine (immediate check + every 30 s) reads <code>gps.active</code>; once it observes <code>"true"</code>, the time-sync latch flips on permanently for the session. Reasoning:</p>
+<p>The scheduler refuses to dispatch cron occurrences until PM validates synchronization evidence and clock plausibility. PM checks immediately, then every 30 seconds:</p>
 <ul>
-<li>The iMX6 boots with the system-image build timestamp seeded into the clock, so year-based heuristics ("is the clock recent?") falsely pass.</li>
-<li>modem-service calls <code>chronyc settime</code> in the same loop iteration that flips <code>gps.active</code> to <code>true</code> on a valid GPS fix, so <code>gps.active=true</code> is a reliable proxy for "chrony has been bootstrapped". chrony.conf has <code>manual</code>, so settime samples accumulate, and <code>local stratum 1</code> is present (which is what makes <code>chronyc tracking</code> an unreliable gate on its own).</li>
-<li>A <code>Scheduled hibernation fire suppressed: wall clock not time-synced</code> log line means the latch hasn't flipped yet.</li>
+<li>GPS evidence is <code>clock[synced-at]</code>, written by modem-service only after chrony accepts a GPS time sample. An active GPS fix alone is insufficient.</li>
+<li>Alternatively, chrony must report a synchronized external NTP reference; local/manual pseudo-references do not qualify.</li>
+<li>The wall clock must not predate the newest image build timestamp or saved fake-hwclock timestamp.</li>
 </ul>
+<p>Successful validation latches the session's synchronization gate and anchors the wall clock to <code>CLOCK_BOOTTIME</code>. A per-dispatch validator checks clock progression, including across suspend. Losing GPS or NTP reachability alone does not revoke the session latch. Relative explicit <code>hibernate-for</code> requests do not use these scheduler gates.</p>
 <h4 id="clock-jump-resilience">Clock-jump resilience<a class="headerlink" href="#clock-jump-resilience" title="Permanent link">&para;</a></h4>
 <p>A separate 30 s monitor loop in the scheduler compares monotonic elapsed vs wall-clock elapsed. A delta beyond ±60 s indicates a wall-clock jump (typical when chrony first converges from a wrong startup time). On jump:</p>
 <ol>
@@ -3535,7 +3536,7 @@
       <script id="__config" type="application/json">{"annotate":null,"base":"../..","features":["content.action.edit","content.code.copy","content.code.select","content.tooltips","navigation.footer","navigation.indexes","navigation.instant","navigation.instant.prefetch","navigation.path","navigation.sections","navigation.top","navigation.tracking","search.highlight","toc.follow"],"redirect":null,"search":"../../assets/javascripts/workers/search.7d14d953.min.js","tags":null,"translations":{"clipboard.copied":"Copied to clipboard","clipboard.copy":"Copy to clipboard","clipboard.error":"Could not copy to clipboard","search.result.more.one":"1 more on this page","search.result.more.other":"# more on this page","search.result.none":"No matching documents","search.result.one":"1 matching document","search.result.other":"# matching documents","search.result.placeholder":"Type to start searching","search.result.term.missing":"Missing","select.version":"Select version"},"version":{"provider":"mike"}}</script>
     
     
-      <script src="../../assets/javascripts/bundle.67a597eb.min.js"></script>
+      <script src="../../assets/javascripts/bundle.3c842f4c.min.js"></script>
       
     
   </body>

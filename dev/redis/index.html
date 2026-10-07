@@ -23,7 +23,7 @@
       
       
       <link rel="icon" href="../assets/favicon.png">
-      <meta name="generator" content="zensical-0.0.67">
+      <meta name="generator" content="zensical-0.0.68">
     
     
       
@@ -34,12 +34,12 @@
       
         
       
-      <link rel="stylesheet" href="../assets/stylesheets/modern/main.4ae390e2.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/modern/main.595f2bf5.min.css">
       
         
           
         
-        <link rel="stylesheet" href="../assets/stylesheets/modern/palette.96d1a7e4.min.css">
+        <link rel="stylesheet" href="../assets/stylesheets/modern/palette.b27955a4.min.css">
       
       
 
@@ -107,14 +107,11 @@
     
     <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
     <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
-    <label class="md-overlay" for="__drawer" aria-label="Navigation"></label>
+    <label class="md-overlay" for="__drawer" aria-hidden="true"></label>
     <div data-md-component="skip">
-      
-        
-        <a href="#redis-interface-documentation" class="md-skip">
-          Skip to content
-        </a>
-      
+      <a href="#__skip" class="md-skip">
+        Skip to content
+      </a>
     </div>
     <div data-md-component="announce">
       
@@ -3298,6 +3295,7 @@
 
               
               <article class="md-content__inner md-typeset">
+                <a id="__skip" tabindex="-1"></a>
                 
                   
 
@@ -4039,8 +4037,32 @@ by bluetooth-service. Also published on the <code>scooter</code> channel.</p>
 <tr>
 <td>wake-timer-armed</td>
 <td>"true"/"false"</td>
-<td>nRF52 ACK echo published by bluetooth-service after the wake-timer arm request</td>
+<td>nRF52 wake-timer armed telemetry published by bluetooth-service</td>
 <td>"true"</td>
+</tr>
+<tr>
+<td>wake-timer-ack-seconds</td>
+<td>integer</td>
+<td>Exact nRF52 duration echo; PM requires it to match the timed request. <code>0</code> acknowledges disarm.</td>
+<td>"300"</td>
+</tr>
+<tr>
+<td>hibernate-request-id</td>
+<td>string</td>
+<td>PM-session request ID checked by vehicle-service before internal preparation; empty invalidates preparation.</td>
+<td>"ABC123"</td>
+</tr>
+<tr>
+<td>hibernate-status</td>
+<td>string</td>
+<td>Explicit-request progress: idle, preparing-vehicle, preparing-power, waiting-inhibitors, waiting-wake-timer, powering-off, rejected, cancelled, failed.</td>
+<td>"preparing-vehicle"</td>
+</tr>
+<tr>
+<td>hibernate-error</td>
+<td>string</td>
+<td>Rejection, cancellation, or failure reason; empty while an accepted request progresses.</td>
+<td>"wake timer acknowledgement timed out"</td>
 </tr>
 <tr>
 <td>power-state-sent</td>
@@ -6356,7 +6378,9 @@ events. Use stream commands (<code>XRANGE</code>/<code>XREAD</code>), not <code>
 </span><span id="__span-42-22"><a id="__codelineno-42-22" name="__codelineno-42-22" href="#__codelineno-42-22"></a><span class="c1"># Reboot system</span>
 </span><span id="__span-42-23"><a id="__codelineno-42-23" name="__codelineno-42-23" href="#__codelineno-42-23"></a>redis-cli<span class="w"> </span>-h<span class="w"> </span><span class="m">192</span>.168.7.1<span class="w"> </span>LPUSH<span class="w"> </span>scooter:power<span class="w"> </span>reboot
 </span></code></pre></div>
-<p><strong>Available commands</strong>: <code>run</code>, <code>suspend</code>, <code>hibernate</code>, <code>hibernate-manual</code>, <code>hibernate-timer</code>, <code>hibernate-for:&lt;seconds&gt;</code>, <code>hibernate-cancel</code>, <code>reboot</code></p>
+<p><strong>Available commands</strong>: <code>run</code>, <code>suspend</code>, <code>hibernate</code>, <code>hibernate-manual</code>, <code>hibernate-auto</code>, <code>hibernate-timer</code>, <code>hibernate-for:&lt;seconds&gt;</code>, <code>hibernate-cancel</code>, <code>reboot</code></p>
+<p>Explicit <code>hibernate</code>, <code>hibernate-manual</code>, and <code>hibernate-for:&lt;seconds&gt;</code> accept only <code>parked</code> or <code>stand-by</code>. From <code>parked</code>, PM requests graceful vehicle preparation; actual power-off requires <code>stand-by</code>. Timed requests preserve the duration and require the matching nRF echo. Relative durations do not require GPS or wall-clock synchronization. <code>hibernate-auto</code>, idle timers, and scheduled hibernation do not initiate vehicle locking.</p>
+<p>Internal preparation uses <code>scooter:state prepare-hibernate:&lt;request-id&gt;</code>, validated against <code>power-manager[hibernate-request-id]</code>. Vehicle rejection returns <code>scooter:power hibernate-preparation-failed:&lt;request-id&gt;</code>. Preparation expires after 30 seconds; cancellation invalidates the ID, disarms the timer, and does not unlock the vehicle.</p>
 <h3 id="modem-control-scootermodem-librescoot-only">Modem Control (<code>scooter:modem</code>) - Librescoot Only<a class="headerlink" href="#modem-control-scootermodem-librescoot-only" title="Permanent link">&para;</a></h3>
 <p>Controls modem power state.</p>
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-43-1"><a id="__codelineno-43-1" name="__codelineno-43-1" href="#__codelineno-43-1"></a><span class="c1"># Enable modem</span>
@@ -6606,7 +6630,7 @@ additionally reports its own refusals in <code>usb.last-result</code> and as an 
       <script id="__config" type="application/json">{"annotate":null,"base":"..","features":["content.action.edit","content.code.copy","content.code.select","content.tooltips","navigation.footer","navigation.indexes","navigation.instant","navigation.instant.prefetch","navigation.path","navigation.sections","navigation.top","navigation.tracking","search.highlight","toc.follow"],"redirect":null,"search":"../assets/javascripts/workers/search.7d14d953.min.js","tags":null,"translations":{"clipboard.copied":"Copied to clipboard","clipboard.copy":"Copy to clipboard","clipboard.error":"Could not copy to clipboard","search.result.more.one":"1 more on this page","search.result.more.other":"# more on this page","search.result.none":"No matching documents","search.result.one":"1 matching document","search.result.other":"# matching documents","search.result.placeholder":"Type to start searching","search.result.term.missing":"Missing","select.version":"Select version"},"version":{"provider":"mike"}}</script>
     
     
-      <script src="../assets/javascripts/bundle.67a597eb.min.js"></script>
+      <script src="../assets/javascripts/bundle.3c842f4c.min.js"></script>
       
     
   </body>
