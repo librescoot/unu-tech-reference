@@ -4,6 +4,15 @@
 
 The Bluetooth service provides the BLE (Bluetooth Low Energy) interface for the scooter and manages communication with the nRF52840 chip via UART. It acts as a communication bridge between the nRF52 BLE chip and Redis-based backend system, handling bidirectional translation of messages. The service exposes BLE GATT characteristics for remote control and monitoring (via nRF firmware), processes UART messages from the nRF chip, and publishes battery/vehicle state updates to Redis.
 
+## File transfer
+
+`files=1` in `cap:ext` identifies support for the separate bidirectional binary
+[file service](../bluetooth/file-transfer.md). The service exposes read-only
+saved log archives and a writable staging inbox, with SHA-256 verification,
+bounded transfer windows and cancellation/resume. Uploads do not install or
+activate artifacts. Active transfers hold the `ble-files` block inhibitor in
+`power:inhibits`; file and firmware OTA transfers are mutually exclusive.
+
 ## Command-Line Options
 
 ```

@@ -23,8 +23,8 @@ The nRF52 holds **no OTA session state**: it forwards characteristic writes verb
 Reference implementations (kept in sync, with shared golden test vectors):
 
 - Scooter side: bluetooth-service `pkg/ota/` (`protocol.go`, `receiver.go`, `staging.go`, `dbc_handoff.go`)
-- Phone side: unustasis `lib/domain/ota_protocol.dart`, `lib/service/ota_transfer_service.dart`
-- nRF tunnel: mdb-nrf52 `src/ota_tunnel.c`
+- Phone side: mobile-app `packages/scooter_core/lib/src/ota_protocol.dart` and
+  `packages/scooter_flutter/lib/ota_transfer_service.dart`
 
 ## GATT Service (9a590500)
 
@@ -98,7 +98,7 @@ Clients should ignore unknown opcodes for forward compatibility. Messages are at
 | `0x00` | Resuming an interrupted transfer at `resume_offset` |
 | `0x01` | Fresh transfer from offset 0 |
 | `0x10` | Not enough free staging space |
-| `0x11` | Busy (reserved — currently a new START replaces an active receive session) |
+| `0x11` | A generic file transfer is active; retry after it finishes or is cancelled |
 | `0x12` | Bad parameters (malformed START, unsupported version/component/chunk size) |
 | `0x13` | An install is in progress; poll with STATUS_REQ until it reaches a terminal phase |
 | `0x14` | The bundle's version (from its ID) is what that board already runs; nothing is staged |
@@ -199,7 +199,7 @@ On `pending-reboot` the transfer is finished from the receiver's perspective: up
 
 ### DBC handoff
 
-DBC bundles are received on the MDB first, then delivered to the dashboard (same pattern as ums-service's loader):
+DBC bundles are received on the MDB first, then delivered to the dashboard:
 
 1. `LPUSH scooter:update start-dbc` — vehicle-service claims the DBC update lock: forces dashboard power on, installs a suspend-only inhibitor, arms a watchdog fed by periodic `start-dbc` heartbeats (every 5 min).
 2. Wait for the DBC to become reachable at `192.168.7.2` (it may need to boot; up to 3 min).
@@ -208,6 +208,9 @@ DBC bundles are received on the MDB first, then delivered to the dashboard (same
 5. The update lock is left held: update-service runs its own `start-dbc`/`complete-dbc` cycle around the install; releasing early would let the vehicle state machine cut DBC power mid-install.
 
 On handoff failure the lock is released (`complete-dbc`) and the error is written to the `ota` hash so the phone receives a normal failure notification.
+
+Generic [file transfers](file-transfer.md) and OTA transfers are mutually
+exclusive. File uploads stage artifacts without invoking the OTA install path.
 
 ## Power Inhibitor
 
