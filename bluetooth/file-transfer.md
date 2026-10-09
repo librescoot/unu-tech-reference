@@ -27,14 +27,63 @@ The connection requires encryption with authenticated pairing.
 | `0602` control | Write with response | 128 bytes | `0xB4`, client to service |
 | `0603` status | Read, notify | 128 bytes | `0xB5`, service to client |
 
-Subscribe to data and status notifications before sending requests. All integers
-are unsigned little-endian. A request starts with
-`[operation:u8][version:u8][request:u32][budget:u16]`. Version is `1`; request
-IDs are nonzero. Budget is the client's notification/data payload limit,
-`20..244` bytes, bounded by ATT MTU minus three.
+Subscribe to data and status notifications before sending requests. Integer
+fields are little-endian; v2 modification times are signed. A request starts with
+`[operation:u8][version:u8][request:u32][budget:u16]`. Version is `1` for named
+stores and `2` for the administrative browser; request IDs are nonzero. Budget
+is the client's notification/data payload limit, `20..244` bytes, bounded by
+ATT MTU minus three.
 
-Names are 1–64 ASCII bytes: initial alphanumeric, subsequent characters
+Version-1 names are 1–64 ASCII bytes: initial alphanumeric, subsequent characters
 alphanumeric, `.`, `_` or `-`. Paths and hidden staging names are invalid.
+
+## Administrative `/data` browser
+
+Protocol v2 uses the same GATT characteristics, framing, transfer windows and
+SHA-256 verification. It additionally requires `data=1` in `cap:ext`.
+The root is fixed at `/data`; the service enables it only with the local
+root-admin startup flag `--enable-data-browser`, which defaults to false.
+Authenticated version-1 Logs access does not require this flag or `data=1`.
+Hiding a browser in a client build is not an authorization boundary.
+
+Requests use version `2` in the common header. Directory and node handles are
+opaque 16-byte identifiers scoped to the BLE connection. Clients navigate one
+component at a time rather than sending arbitrary host paths. Components are
+valid UTF-8, at most 255 bytes, and cannot contain `/` or NUL, or equal `.` or
+`..`. `.partial` and the `.ble-transfer` prefix are reserved for staging.
+Symlinks and special files cannot be traversed or transferred. The kernel's
+aggregate path-length limit applies.
+
+| Operation | Value | Purpose |
+| --- | --- | --- |
+| OPEN_ROOT | `0x20` | Open the administrative root |
+| LIST_DIR | `0x21` | Read cursor-based directory entries and filename fragments |
+| OPEN_DIR | `0x22` | Open a resolved directory node |
+| RESOLVE_NAME | `0x23` | Resolve an existing or absent child using bounded name fragments |
+| STAT_NODE | `0x24` | Read file size, modification time and SHA-256 |
+| GET_NODE | `0x25` | Download a resolved file with expected hash and resume offset |
+| PUT_NODE | `0x26` | Upload with explicit create or replacement intent |
+| MKDIR | `0x27` | Create a resolved absent directory with mode `0700` |
+| CLOSE_DIR | `0x28` | Release a directory handle and its listing iterator |
+
+COMPLETE, CANCEL, ACK and STATUS use the session bodies documented below.
+Directory listings stream with bounded state; clients must assemble complete
+UTF-8 filenames before decoding. Directory mutations invalidate a continuing
+listing snapshot. Disconnect invalidates handles, so resumed transfers require
+fresh resolution.
+
+Create intent never overwrites an existing file. Replacement requires the
+expected old size and SHA-256, verifies the new complete file, preserves target
+ownership and mode, and publishes atomically. An uncooperative external writer can still
+race the final target check and rename; this is not a filesystem compare-and-swap
+guarantee. Administrative uploads can affect services consuming those files but
+do not themselves execute commands, apply configuration or install firmware.
+Matching private partials remain resumable after cancellation or disconnect.
+
+The exact v2 layouts are defined in bluetooth-service's
+`pkg/filetransfer/protocol_v2.go` and mobile-app's
+`packages/scooter_core/lib/src/file_browser_protocol.dart`. The following
+named-store request and response layouts describe version 1.
 
 ## Named stores
 
