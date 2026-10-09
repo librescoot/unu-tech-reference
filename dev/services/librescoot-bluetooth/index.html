@@ -23,7 +23,7 @@
       
       
       <link rel="icon" href="../../assets/favicon.png">
-      <meta name="generator" content="zensical-0.0.68">
+      <meta name="generator" content="zensical-0.0.69">
     
     
       
@@ -34,7 +34,7 @@
       
         
       
-      <link rel="stylesheet" href="../../assets/stylesheets/modern/main.595f2bf5.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/modern/main.e15858d4.min.css">
       
         
           
@@ -1024,6 +1024,17 @@
     <span class="md-ellipsis">
       <span class="md-typeset">
         Description
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#file-transfer" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        File transfer
       </span>
     </span>
   </a>
@@ -2087,6 +2098,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#file-transfer" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        File transfer
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#command-line-options" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
@@ -2731,6 +2753,22 @@
 <h1 id="librescoot-bluetooth-bluetooth-service">librescoot-bluetooth (bluetooth-service)<a class="headerlink" href="#librescoot-bluetooth-bluetooth-service" title="Permanent link">&para;</a></h1>
 <h2 id="description">Description<a class="headerlink" href="#description" title="Permanent link">&para;</a></h2>
 <p>The Bluetooth service provides the BLE (Bluetooth Low Energy) interface for the scooter and manages communication with the nRF52840 chip via UART. It acts as a communication bridge between the nRF52 BLE chip and Redis-based backend system, handling bidirectional translation of messages. The service exposes BLE GATT characteristics for remote control and monitoring (via nRF firmware), processes UART messages from the nRF chip, and publishes battery/vehicle state updates to Redis.</p>
+<h2 id="file-transfer">File transfer<a class="headerlink" href="#file-transfer" title="Permanent link">&para;</a></h2>
+<p><code>files=1</code> in <code>cap:ext</code> identifies support for the separate bidirectional binary
+<a href="../../bluetooth/file-transfer/">file service</a>. The service exposes read-only
+saved log archives and a writable staging inbox, with SHA-256 verification,
+bounded transfer windows and cancellation/resume. Uploads do not install or
+activate artifacts. Active transfers hold the <code>ble-files</code> block inhibitor in
+<code>power:inhibits</code>; file and firmware OTA transfers are mutually exclusive.</p>
+<p>The administrative protocol-v2 browser is rooted at <code>/data</code> and requires the
+local root-admin startup flag <code>--enable-data-browser</code> (default false). When
+configured and the nRF file tunnel is supported, <code>cap:ext</code> additionally advertises
+<code>data=1</code>. This permits authenticated BLE clients to navigate directories,
+download files, create directories and upload verified files with explicit
+create or content-checked replacement intent. Symlinks and special files are
+not transferable. Administrative writes may affect services consuming those
+files; uploads do not themselves install firmware or execute commands. Read-only
+version-1 Logs access stays available independently of this opt-in.</p>
 <h2 id="command-line-options">Command-Line Options<a class="headerlink" href="#command-line-options" title="Permanent link">&para;</a></h2>
 <div class="language-text highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>--serial string        Serial device path (default "/dev/ttymxc1")
 </span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>--baud int            Serial baud rate (default 115200)
@@ -2740,6 +2778,7 @@
 </span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>--firmware-dir string  Directory containing nRF firmware files (default "/usr/share/nrf-fw")
 </span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>--auto-update          Automatically update nRF firmware on startup if newer version available (default true)
 </span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>--ota-staging-dir string  Staging directory for BLE OTA bundle transfers (default "/data/ota")
+</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>--enable-data-browser    Enable administrative BLE browsing and writes rooted at /data (default false)
 </span></code></pre></div>
 <h2 id="redis-operations">Redis Operations<a class="headerlink" href="#redis-operations" title="Permanent link">&para;</a></h2>
 <h3 id="hash-ble">Hash: <code>ble</code><a class="headerlink" href="#hash-ble" title="Permanent link">&para;</a></h3>
@@ -3505,7 +3544,7 @@ answers <code>cap:ble:count:0</code> otherwise. An app should probe it rather th
       <script id="__config" type="application/json">{"annotate":null,"base":"../..","features":["content.action.edit","content.code.copy","content.code.select","content.tooltips","navigation.footer","navigation.indexes","navigation.instant","navigation.instant.prefetch","navigation.path","navigation.sections","navigation.top","navigation.tracking","search.highlight","toc.follow"],"redirect":null,"search":"../../assets/javascripts/workers/search.7d14d953.min.js","tags":null,"translations":{"clipboard.copied":"Copied to clipboard","clipboard.copy":"Copy to clipboard","clipboard.error":"Could not copy to clipboard","search.result.more.one":"1 more on this page","search.result.more.other":"# more on this page","search.result.none":"No matching documents","search.result.one":"1 matching document","search.result.other":"# matching documents","search.result.placeholder":"Type to start searching","search.result.term.missing":"Missing","select.version":"Select version"},"version":{"provider":"mike"}}</script>
     
     
-      <script src="../../assets/javascripts/bundle.3c842f4c.min.js"></script>
+      <script src="../../assets/javascripts/bundle.8b1c90bd.min.js"></script>
       
     
   </body>

@@ -23,7 +23,7 @@
       
       
       <link rel="icon" href="../../assets/favicon.png">
-      <meta name="generator" content="zensical-0.0.68">
+      <meta name="generator" content="zensical-0.0.69">
     
     
       
@@ -34,7 +34,7 @@
       
         
       
-      <link rel="stylesheet" href="../../assets/stylesheets/modern/main.595f2bf5.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/modern/main.e15858d4.min.css">
       
         
           
@@ -2182,8 +2182,8 @@
 <p>Reference implementations (kept in sync, with shared golden test vectors):</p>
 <ul>
 <li>Scooter side: bluetooth-service <code>pkg/ota/</code> (<code>protocol.go</code>, <code>receiver.go</code>, <code>staging.go</code>, <code>dbc_handoff.go</code>)</li>
-<li>Phone side: unustasis <code>lib/domain/ota_protocol.dart</code>, <code>lib/service/ota_transfer_service.dart</code></li>
-<li>nRF tunnel: mdb-nrf52 <code>src/ota_tunnel.c</code></li>
+<li>Phone side: mobile-app <code>packages/scooter_core/lib/src/ota_protocol.dart</code> and
+  <code>packages/scooter_flutter/lib/ota_transfer_service.dart</code></li>
 </ul>
 <h2 id="gatt-service-9a590500">GATT Service (9a590500)<a class="headerlink" href="#gatt-service-9a590500" title="Permanent link">&para;</a></h2>
 <p>Base UUID <code>xxxx-6e67-5d0d-aab9-ad9126b66f91</code>, like all scooter services. All three characteristics require an encrypted, MITM-protected connection (bonded with 6-digit PIN pairing).</p>
@@ -2371,7 +2371,7 @@
 </tr>
 <tr>
 <td><code>0x11</code></td>
-<td>Busy (reserved — currently a new START replaces an active receive session)</td>
+<td>A generic file transfer is active; retry after it finishes or is cancelled</td>
 </tr>
 <tr>
 <td><code>0x12</code></td>
@@ -2542,7 +2542,7 @@
 <p>The receiver queues <code>update-from-file:&lt;path&gt;</code> on the <code>scooter:update:mdb</code> Redis list. update-service runs <code>mender-update install</code> and reports into the shared <code>ota</code> hash (<code>status:mdb</code>, <code>install-progress:mdb</code>, <code>error-message:mdb</code>), which the receiver relays to the phone as INSTALL_PROGRESS notifications (paced to one per 100 ms — the SoftDevice notification queue is shallow). See <a href="../../services/librescoot-update/">update-service</a>.</p>
 <p>On <code>pending-reboot</code> the transfer is finished from the receiver's perspective: update-service reboots the MDB after 3 minutes of sustained stand-by; no user action is needed beyond leaving the scooter in stand-by.</p>
 <h3 id="dbc-handoff">DBC handoff<a class="headerlink" href="#dbc-handoff" title="Permanent link">&para;</a></h3>
-<p>DBC bundles are received on the MDB first, then delivered to the dashboard (same pattern as ums-service's loader):</p>
+<p>DBC bundles are received on the MDB first, then delivered to the dashboard:</p>
 <ol>
 <li><code>LPUSH scooter:update start-dbc</code> — vehicle-service claims the DBC update lock: forces dashboard power on, installs a suspend-only inhibitor, arms a watchdog fed by periodic <code>start-dbc</code> heartbeats (every 5 min).</li>
 <li>Wait for the DBC to become reachable at <code>192.168.7.2</code> (it may need to boot; up to 3 min).</li>
@@ -2551,6 +2551,8 @@
 <li>The update lock is left held: update-service runs its own <code>start-dbc</code>/<code>complete-dbc</code> cycle around the install; releasing early would let the vehicle state machine cut DBC power mid-install.</li>
 </ol>
 <p>On handoff failure the lock is released (<code>complete-dbc</code>) and the error is written to the <code>ota</code> hash so the phone receives a normal failure notification.</p>
+<p>Generic <a href="../file-transfer/">file transfers</a> and OTA transfers are mutually
+exclusive. File uploads stage artifacts without invoking the OTA install path.</p>
 <h2 id="power-inhibitor">Power Inhibitor<a class="headerlink" href="#power-inhibitor" title="Permanent link">&para;</a></h2>
 <p>While receiving and installing, the receiver holds a <code>block</code>-type inhibitor (<code>id: ble-ota</code>) in the <code>power:inhibits</code> hash so pm-service does not suspend or hibernate mid-transfer. It is released when the session goes idle (completion, abort, 10 min transfer idle timeout) and, as a safety net, 30 minutes after an install was queued with no terminal feedback from update-service.</p>
 <h2 id="redis-status-otable">Redis Status (<code>ota:ble</code>)<a class="headerlink" href="#redis-status-otable" title="Permanent link">&para;</a></h2>
@@ -2736,7 +2738,7 @@
       <script id="__config" type="application/json">{"annotate":null,"base":"../..","features":["content.action.edit","content.code.copy","content.code.select","content.tooltips","navigation.footer","navigation.indexes","navigation.instant","navigation.instant.prefetch","navigation.path","navigation.sections","navigation.top","navigation.tracking","search.highlight","toc.follow"],"redirect":null,"search":"../../assets/javascripts/workers/search.7d14d953.min.js","tags":null,"translations":{"clipboard.copied":"Copied to clipboard","clipboard.copy":"Copy to clipboard","clipboard.error":"Could not copy to clipboard","search.result.more.one":"1 more on this page","search.result.more.other":"# more on this page","search.result.none":"No matching documents","search.result.one":"1 matching document","search.result.other":"# matching documents","search.result.placeholder":"Type to start searching","search.result.term.missing":"Missing","select.version":"Select version"},"version":{"provider":"mike"}}</script>
     
     
-      <script src="../../assets/javascripts/bundle.3c842f4c.min.js"></script>
+      <script src="../../assets/javascripts/bundle.8b1c90bd.min.js"></script>
       
     
   </body>

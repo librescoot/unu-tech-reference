@@ -10,30 +10,32 @@
       
       
       
+        <link rel="canonical" href="https://reference.librescoot.org/dev/bluetooth/file-transfer/">
+      
       
       
       
         
       
       
-      <link rel="icon" href="/dev/assets/favicon.png">
+      <link rel="icon" href="../../assets/favicon.png">
       <meta name="generator" content="zensical-0.0.69">
     
     
       
-        <title>Librescoot Tech Reference</title>
+        <title>BLE File Transfer - Librescoot Tech Reference</title>
       
     
     
       
         
       
-      <link rel="stylesheet" href="/dev/assets/stylesheets/modern/main.e15858d4.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/modern/main.e15858d4.min.css">
       
         
           
         
-        <link rel="stylesheet" href="/dev/assets/stylesheets/modern/palette.b27955a4.min.css">
+        <link rel="stylesheet" href="../../assets/stylesheets/modern/palette.b27955a4.min.css">
       
       
 
@@ -52,9 +54,9 @@
       
     
     
-      <link rel="stylesheet" href="/dev/stylesheets/extra.css">
+      <link rel="stylesheet" href="../../stylesheets/extra.css">
     
-    <script>__md_scope=new URL("/dev",location),__md_scope.pathname.endsWith("/")||(__md_scope=new URL(__md_scope.pathname+"/",location)),__md_hash=e=>[...e].reduce(((e,t)=>(e<<5)-e+t.charCodeAt(0)),0),__md_get=(e,t=localStorage,_=__md_scope)=>JSON.parse(t.getItem(_.pathname+"."+e)),__md_set=(e,t,_=localStorage,a=__md_scope)=>{try{_.setItem(a.pathname+"."+e,JSON.stringify(t))}catch(e){}},document.documentElement.setAttribute("data-platform",navigator.platform)</script>
+    <script>__md_scope=new URL("../..",location),__md_scope.pathname.endsWith("/")||(__md_scope=new URL(__md_scope.pathname+"/",location)),__md_hash=e=>[...e].reduce(((e,t)=>(e<<5)-e+t.charCodeAt(0)),0),__md_get=(e,t=localStorage,_=__md_scope)=>JSON.parse(t.getItem(_.pathname+"."+e)),__md_set=(e,t,_=localStorage,a=__md_scope)=>{try{_.setItem(a.pathname+"."+e,JSON.stringify(t))}catch(e){}},document.documentElement.setAttribute("data-platform",navigator.platform)</script>
     
       
 
@@ -63,14 +65,17 @@
   
   
     
+    
   
   
     
   
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="Librescoot Tech Reference">
-  <meta property="og:title" content="Librescoot Tech Reference">
+  <meta property="og:title" content="BLE File Transfer - Librescoot Tech Reference">
   <meta property="og:description" content="Hardware and software reference for the Librescoot electric scooter platform">
+  
+  <meta property="og:url" content="https://reference.librescoot.org/dev/bluetooth/file-transfer/">
   
   <meta property="og:image" content="https://reference.librescoot.org/og-image.png">
   <meta property="og:image:width" content="1200">
@@ -78,7 +83,7 @@
   <meta property="og:image:type" content="image/png">
   <meta property="og:image:alt" content="Librescoot flame logo">
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="Librescoot Tech Reference">
+  <meta name="twitter:title" content="BLE File Transfer - Librescoot Tech Reference">
   <meta name="twitter:description" content="Hardware and software reference for the Librescoot electric scooter platform">
   <meta name="twitter:image" content="https://reference.librescoot.org/og-image.png">
   <meta name="twitter:image:alt" content="Librescoot flame logo">
@@ -119,7 +124,7 @@
 
 <header class="md-header md-header--shadow" data-md-component="header">
   <nav class="md-header__inner md-grid" aria-label="Header">
-    <a href="/dev/" title="Librescoot Tech Reference" class="md-header__button md-logo" aria-label="Librescoot Tech Reference" data-md-component="logo">
+    <a href="../.." title="Librescoot Tech Reference" class="md-header__button md-logo" aria-label="Librescoot Tech Reference" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-book-open" viewBox="0 0 24 24"><path d="M12 5v16M20.001 19A2 2 0 0 0 22 17V5a2 2 0 0 0-1.999-2L16 3.002A5 5 0 0 0 12 5a5 5 0 0 0-4-2H4a2 2 0 0 0-2 2v12a2 2 0 0 0 1.999 2H8a5 5 0 0 1 4 2 5 5 0 0 1 4-2z"/></svg>
@@ -139,7 +144,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              
+              BLE File Transfer
             
           </span>
         </div>
@@ -228,7 +233,7 @@
 
 <nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
-    <a href="/dev/" title="Librescoot Tech Reference" class="md-nav__button md-logo" aria-label="Librescoot Tech Reference" data-md-component="logo">
+    <a href="../.." title="Librescoot Tech Reference" class="md-nav__button md-logo" aria-label="Librescoot Tech Reference" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-book-open" viewBox="0 0 24 24"><path d="M12 5v16M20.001 19A2 2 0 0 0 22 17V5a2 2 0 0 0-1.999-2L16 3.002A5 5 0 0 0 12 5a5 5 0 0 0-4-2H4a2 2 0 0 0-2 2v12a2 2 0 0 0 1.999 2H8a5 5 0 0 1 4 2 5 5 0 0 1 4-2z"/></svg>
@@ -258,7 +263,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/dev/" class="md-nav__link">
+      <a href="../.." class="md-nav__link">
         
   
   
@@ -311,7 +316,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="/dev/electronic/" class="md-nav__link ">
+            <a href="../../electronic/" class="md-nav__link ">
               
   
   
@@ -354,7 +359,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/dev/mechanical/" class="md-nav__link">
+      <a href="../../mechanical/" class="md-nav__link">
         
   
   
@@ -381,7 +386,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/dev/wiring/" class="md-nav__link">
+      <a href="../../wiring/" class="md-nav__link">
         
   
   
@@ -441,7 +446,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="/dev/battery/" class="md-nav__link ">
+            <a href="../../battery/" class="md-nav__link ">
               
   
   
@@ -484,7 +489,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/dev/battery-charger/" class="md-nav__link">
+      <a href="../../battery-charger/" class="md-nav__link">
         
   
   
@@ -552,7 +557,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="/dev/bluetooth/" class="md-nav__link ">
+            <a href="../" class="md-nav__link ">
               
   
   
@@ -595,7 +600,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/dev/bluetooth/ota-transfer/" class="md-nav__link">
+      <a href="../ota-transfer/" class="md-nav__link">
         
   
   
@@ -622,7 +627,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/dev/redis/" class="md-nav__link">
+      <a href="../../redis/" class="md-nav__link">
         
   
   
@@ -649,7 +654,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/dev/nrf/" class="md-nav__link">
+      <a href="../../nrf/" class="md-nav__link">
         
   
   
@@ -676,7 +681,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/dev/nrf/UART/" class="md-nav__link">
+      <a href="../../nrf/UART/" class="md-nav__link">
         
   
   
@@ -703,7 +708,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/dev/nrf/power-management/" class="md-nav__link">
+      <a href="../../nrf/power-management/" class="md-nav__link">
         
   
   
@@ -799,7 +804,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="/dev/states/" class="md-nav__link ">
+            <a href="../../states/" class="md-nav__link ">
               
   
   
@@ -842,7 +847,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/dev/services/" class="md-nav__link">
+      <a href="../../services/" class="md-nav__link">
         
   
   
@@ -869,7 +874,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/dev/service-interactions/" class="md-nav__link">
+      <a href="../../service-interactions/" class="md-nav__link">
         
   
   
@@ -896,7 +901,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/dev/services/librescoot-alarm/" class="md-nav__link">
+      <a href="../../services/librescoot-alarm/" class="md-nav__link">
         
   
   
@@ -923,7 +928,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/dev/services/librescoot-battery/" class="md-nav__link">
+      <a href="../../services/librescoot-battery/" class="md-nav__link">
         
   
   
@@ -950,7 +955,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/dev/services/librescoot-bluetooth/" class="md-nav__link">
+      <a href="../../services/librescoot-bluetooth/" class="md-nav__link">
         
   
   
@@ -977,7 +982,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/dev/services/librescoot-ecu/" class="md-nav__link">
+      <a href="../../services/librescoot-ecu/" class="md-nav__link">
         
   
   
@@ -1004,7 +1009,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/dev/services/librescoot-events/" class="md-nav__link">
+      <a href="../../services/librescoot-events/" class="md-nav__link">
         
   
   
@@ -1031,7 +1036,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/dev/services/librescoot-keycard/" class="md-nav__link">
+      <a href="../../services/librescoot-keycard/" class="md-nav__link">
         
   
   
@@ -1058,7 +1063,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/dev/services/librescoot-modem/" class="md-nav__link">
+      <a href="../../services/librescoot-modem/" class="md-nav__link">
         
   
   
@@ -1085,7 +1090,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/dev/services/librescoot-motion/" class="md-nav__link">
+      <a href="../../services/librescoot-motion/" class="md-nav__link">
         
   
   
@@ -1112,7 +1117,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/dev/services/librescoot-pm/" class="md-nav__link">
+      <a href="../../services/librescoot-pm/" class="md-nav__link">
         
   
   
@@ -1139,7 +1144,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/dev/services/librescoot-scootui/" class="md-nav__link">
+      <a href="../../services/librescoot-scootui/" class="md-nav__link">
         
   
   
@@ -1166,7 +1171,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/dev/services/librescoot-settings/" class="md-nav__link">
+      <a href="../../services/librescoot-settings/" class="md-nav__link">
         
   
   
@@ -1193,7 +1198,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/dev/services/librescoot-trip/" class="md-nav__link">
+      <a href="../../services/librescoot-trip/" class="md-nav__link">
         
   
   
@@ -1220,7 +1225,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/dev/services/librescoot-ums/" class="md-nav__link">
+      <a href="../../services/librescoot-ums/" class="md-nav__link">
         
   
   
@@ -1247,7 +1252,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/dev/services/librescoot-update/" class="md-nav__link">
+      <a href="../../services/librescoot-update/" class="md-nav__link">
         
   
   
@@ -1274,7 +1279,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/dev/services/librescoot-vehicle/" class="md-nav__link">
+      <a href="../../services/librescoot-vehicle/" class="md-nav__link">
         
   
   
@@ -1301,7 +1306,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/dev/dashboard/" class="md-nav__link">
+      <a href="../../dashboard/" class="md-nav__link">
         
   
   
@@ -1328,7 +1333,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/dev/dashboard/REDIS/" class="md-nav__link">
+      <a href="../../dashboard/REDIS/" class="md-nav__link">
         
   
   
@@ -1418,7 +1423,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/dev/tools/lsc/" class="md-nav__link">
+      <a href="../../tools/lsc/" class="md-nav__link">
         
   
   
@@ -1460,6 +1465,13 @@
                     
                     
                     
+                      
+                    
+                    
+                      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+                      <div class="md-sidebar-button__wrapper">
+                        <label class="md-sidebar-button" for="__toc"></label>
+                      </div>
                     
                   
                   <div class="md-sidebar__inner">
@@ -1470,6 +1482,82 @@
   
   
   
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      On this page
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#transport" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Transport
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#administrative-data-browser" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Administrative <code>/data</code> browser
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#named-stores" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Named stores
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#control-requests" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Control requests
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#responses" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Responses
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#data-resume-and-completion" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Data, resume and completion
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
   
 </nav>
                   </div>
@@ -1491,8 +1579,337 @@
               <article class="md-content__inner md-typeset">
                 <a id="__skip" tabindex="-1"></a>
                 
-  <h1>404 - Not found</h1>
+                  
 
+  
+    <a href="https://github.com/librescoot/unu-tech-reference/edit/master/docs/bluetooth/file-transfer.md" title="Edit this page" class="md-content__button md-icon" rel="edit">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-file-pen" viewBox="0 0 24 24"><path d="M12.659 22H18a2 2 0 0 0 2-2V8a2.4 2.4 0 0 0-.706-1.706l-3.588-3.588A2.4 2.4 0 0 0 14 2H6a2 2 0 0 0-2 2v9.34"/><path d="M14 2v5a1 1 0 0 0 1 1h5M10.378 12.622a1 1 0 0 1 3 3.003L8.36 20.637a2 2 0 0 1-.854.506l-2.867.837a.5.5 0 0 1-.62-.62l.836-2.869a2 2 0 0 1 .506-.853z"/></svg>
+    </a>
+  
+  
+
+
+<h1 id="ble-file-transfer">BLE File Transfer<a class="headerlink" href="#ble-file-transfer" title="Permanent link">&para;</a></h1>
+<p>The file service transfers named artifacts between a BLE client and
+bluetooth-service. It is separate from <a href="../ota-transfer/">firmware OTA</a>: file
+uploads do not install firmware or activate maps.</p>
+<p>Clients require both <code>files=1</code> in <code>cap:ext</code> and the GATT characteristics below.
+Firmware without the file service is unsupported; the existing OTA service is
+not a substitute. Log archives contain sensitive diagnostics.</p>
+<p>Public reference implementations:</p>
+<ul>
+<li><a href="https://github.com/librescoot/bluetooth-service">bluetooth-service</a>,
+  <code>pkg/filetransfer/</code>.</li>
+<li><a href="https://github.com/librescoot/mobile-app">mobile-app</a>,
+  <code>packages/scooter_core/lib/src/file_transfer_protocol.dart</code> and
+  <code>packages/scooter_flutter/lib/file_transfer_client.dart</code>.</li>
+</ul>
+<h2 id="transport">Transport<a class="headerlink" href="#transport" title="Permanent link">&para;</a></h2>
+<p>UUIDs use base <code>9a59xxxx-6e67-5d0d-aab9-ad9126b66f91</code>; service ID is <code>0600</code>.
+The connection requires encryption with authenticated pairing.</p>
+<table>
+<thead>
+<tr>
+<th>Characteristic</th>
+<th>Properties</th>
+<th>Maximum value</th>
+<th>USOCK frame</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>0601</code> data</td>
+<td>Write without response, notify</td>
+<td>244 bytes</td>
+<td><code>0xB3</code>, both directions</td>
+</tr>
+<tr>
+<td><code>0602</code> control</td>
+<td>Write with response</td>
+<td>128 bytes</td>
+<td><code>0xB4</code>, client to service</td>
+</tr>
+<tr>
+<td><code>0603</code> status</td>
+<td>Read, notify</td>
+<td>128 bytes</td>
+<td><code>0xB5</code>, service to client</td>
+</tr>
+</tbody>
+</table>
+<p>Subscribe to data and status notifications before sending requests. Integer
+fields are little-endian; v2 modification times are signed. A request starts with
+<code>[operation:u8][version:u8][request:u32][budget:u16]</code>. Version is <code>1</code> for named
+stores and <code>2</code> for the administrative browser; request IDs are nonzero. Budget
+is the client's notification/data payload limit, <code>20..244</code> bytes, bounded by
+ATT MTU minus three.</p>
+<p>Version-1 names are 1–64 ASCII bytes: initial alphanumeric, subsequent characters
+alphanumeric, <code>.</code>, <code>_</code> or <code>-</code>. Paths and hidden staging names are invalid.</p>
+<h2 id="administrative-data-browser">Administrative <code>/data</code> browser<a class="headerlink" href="#administrative-data-browser" title="Permanent link">&para;</a></h2>
+<p>Protocol v2 uses the same GATT characteristics, framing, transfer windows and
+SHA-256 verification. It additionally requires <code>data=1</code> in <code>cap:ext</code>.
+The root is fixed at <code>/data</code>; the service enables it only with the local
+root-admin startup flag <code>--enable-data-browser</code>, which defaults to false.
+Authenticated version-1 Logs access does not require this flag or <code>data=1</code>.
+Hiding a browser in a client build is not an authorization boundary.</p>
+<p>Requests use version <code>2</code> in the common header. Directory and node handles are
+opaque 16-byte identifiers scoped to the BLE connection. Clients navigate one
+component at a time rather than sending arbitrary host paths. Components are
+valid UTF-8, at most 255 bytes, and cannot contain <code>/</code> or NUL, or equal <code>.</code> or
+<code>..</code>. <code>.partial</code> and the <code>.ble-transfer</code> prefix are reserved for staging.
+Symlinks and special files cannot be traversed or transferred. The kernel's
+aggregate path-length limit applies.</p>
+<table>
+<thead>
+<tr>
+<th>Operation</th>
+<th>Value</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>OPEN_ROOT</td>
+<td><code>0x20</code></td>
+<td>Open the administrative root</td>
+</tr>
+<tr>
+<td>LIST_DIR</td>
+<td><code>0x21</code></td>
+<td>Read cursor-based directory entries and filename fragments</td>
+</tr>
+<tr>
+<td>OPEN_DIR</td>
+<td><code>0x22</code></td>
+<td>Open a resolved directory node</td>
+</tr>
+<tr>
+<td>RESOLVE_NAME</td>
+<td><code>0x23</code></td>
+<td>Resolve an existing or absent child using bounded name fragments</td>
+</tr>
+<tr>
+<td>STAT_NODE</td>
+<td><code>0x24</code></td>
+<td>Read file size, modification time and SHA-256</td>
+</tr>
+<tr>
+<td>GET_NODE</td>
+<td><code>0x25</code></td>
+<td>Download a resolved file with expected hash and resume offset</td>
+</tr>
+<tr>
+<td>PUT_NODE</td>
+<td><code>0x26</code></td>
+<td>Upload with explicit create or replacement intent</td>
+</tr>
+<tr>
+<td>MKDIR</td>
+<td><code>0x27</code></td>
+<td>Create a resolved absent directory with mode <code>0700</code></td>
+</tr>
+<tr>
+<td>CLOSE_DIR</td>
+<td><code>0x28</code></td>
+<td>Release a directory handle and its listing iterator</td>
+</tr>
+</tbody>
+</table>
+<p>COMPLETE, CANCEL, ACK and STATUS use the session bodies documented below.
+Directory listings stream with bounded state; clients must assemble complete
+UTF-8 filenames before decoding. Directory mutations invalidate a continuing
+listing snapshot. Disconnect invalidates handles, so resumed transfers require
+fresh resolution.</p>
+<p>Create intent never overwrites an existing file. Replacement requires the
+expected old size and SHA-256, verifies the new complete file, preserves target
+ownership and mode, and publishes atomically. An uncooperative external writer can still
+race the final target check and rename; this is not a filesystem compare-and-swap
+guarantee. Administrative uploads can affect services consuming those files but
+do not themselves execute commands, apply configuration or install firmware.
+Matching private partials remain resumable after cancellation or disconnect.</p>
+<p>The exact v2 layouts are defined in bluetooth-service's
+<code>pkg/filetransfer/protocol_v2.go</code> and mobile-app's
+<code>packages/scooter_core/lib/src/file_browser_protocol.dart</code>. The following
+named-store request and response layouts describe version 1.</p>
+<h2 id="named-stores">Named stores<a class="headerlink" href="#named-stores" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>ID</th>
+<th>Name</th>
+<th>Policy</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>0</code></td>
+<td>logs</td>
+<td>Read-only <code>.tar.gz</code> archives in <code>/data/log-bundles</code></td>
+</tr>
+<tr>
+<td><code>1</code></td>
+<td>inbox</td>
+<td>Verified, non-overwriting uploads in <code>/data/ble-files/inbox</code></td>
+</tr>
+</tbody>
+</table>
+<p><code>lsc logs</code> publishes an archive only after closing, syncing and atomically
+renaming its staging file. The catalog excludes hidden staging files and
+non-regular files; it contains at most 2048 entries, newest first. Files are
+limited to 4 GiB. Upload admission reserves a 32 MiB free-space margin.</p>
+<h2 id="control-requests">Control requests<a class="headerlink" href="#control-requests" title="Permanent link">&para;</a></h2>
+<p>Layouts below follow the common request header. <code>name</code> means
+<code>[store:u8][length:u8][ASCII name]</code>.</p>
+<table>
+<thead>
+<tr>
+<th>Operation</th>
+<th>Value</th>
+<th>Body</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>LIST</td>
+<td><code>1</code></td>
+<td><code>[store:u8][index:u32]</code></td>
+</tr>
+<tr>
+<td>STAT</td>
+<td><code>2</code></td>
+<td><code>name</code></td>
+</tr>
+<tr>
+<td>PUT</td>
+<td><code>3</code></td>
+<td><code>name[chunk:u16][size:u64][SHA-256:32]</code></td>
+</tr>
+<tr>
+<td>GET</td>
+<td><code>4</code></td>
+<td><code>name[chunk:u16][resume offset:u64][SHA-256:32]</code></td>
+</tr>
+<tr>
+<td>COMPLETE</td>
+<td><code>5</code></td>
+<td><code>[session:u32]</code></td>
+</tr>
+<tr>
+<td>CANCEL</td>
+<td><code>6</code></td>
+<td><code>[session:u32]</code></td>
+</tr>
+<tr>
+<td>ACK</td>
+<td><code>7</code></td>
+<td><code>[session:u32][offset:u64][rewind:u8]</code></td>
+</tr>
+<tr>
+<td>STATUS</td>
+<td><code>8</code></td>
+<td><code>[session:u32]</code></td>
+</tr>
+</tbody>
+</table>
+<p>LIST index zero creates a catalog snapshot. Continue using the returned index,
+same request ID and store. Snapshots expire after one minute.</p>
+<p>STAT returns size and SHA-256. GET supplies that hash to reject changed files.
+Chunk size is at most <code>budget - 12</code>. Sessions use the START request ID for
+subsequent control messages. CANCEL with session zero also cancels a matching
+request before START completes, including hashing.</p>
+<h2 id="responses">Responses<a class="headerlink" href="#responses" title="Permanent link">&para;</a></h2>
+<p>Status notifications contain fragments:
+<code>[request:u32][sequence:u32][offset:u16][total:u16][body fragment]</code>.
+Each response body is at most 256 bytes. Assemble only contiguous fragments
+with matching request and sequence; never combine different responses.</p>
+<table>
+<thead>
+<tr>
+<th>Kind</th>
+<th>Value</th>
+<th>Complete body</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>LIST</td>
+<td><code>0x81</code></td>
+<td><code>[kind][0][next:u32][size:u64][mtime:u64][name length:u8][name]</code></td>
+</tr>
+<tr>
+<td>LIST end</td>
+<td><code>0x81</code></td>
+<td><code>[kind][1]</code></td>
+</tr>
+<tr>
+<td>STAT</td>
+<td><code>0x82</code></td>
+<td><code>[kind][0][size:u64][SHA-256:32]</code></td>
+</tr>
+<tr>
+<td>START</td>
+<td><code>0x83</code></td>
+<td><code>[kind][0][session:u32][offset:u64][size:u64][chunk:u16][window:u16][SHA-256:32]</code></td>
+</tr>
+<tr>
+<td>ACK</td>
+<td><code>0x84</code></td>
+<td><code>[kind][session:u32][offset:u64][rewind:u8]</code></td>
+</tr>
+<tr>
+<td>COMPLETE</td>
+<td><code>0x85</code></td>
+<td><code>[kind][0]</code></td>
+</tr>
+<tr>
+<td>CANCEL</td>
+<td><code>0x86</code></td>
+<td><code>[kind][0]</code></td>
+</tr>
+<tr>
+<td>ERROR</td>
+<td><code>0x87</code></td>
+<td><code>[kind][code:u8]</code></td>
+</tr>
+</tbody>
+</table>
+<p><code>mtime</code> is Unix time in seconds. Error codes are invalid request <code>1</code>, not found
+<code>2</code>, busy <code>3</code>, denied <code>4</code>, insufficient space <code>5</code>, changed identity <code>6</code>,
+integrity failure <code>7</code>, I/O failure <code>8</code>, and invalid session <code>9</code>.</p>
+<h2 id="data-resume-and-completion">Data, resume and completion<a class="headerlink" href="#data-resume-and-completion" title="Permanent link">&para;</a></h2>
+<p>Data values are <code>[session:u32][offset:u64][bytes]</code>. Send no more than the
+negotiated window of unacknowledged chunks; the service advertises eight.
+Offsets are cumulative. A gap requires rewinding to the receiver's acknowledged
+offset. All chunks except the final chunk have the negotiated size.</p>
+<p>PUT resumes a matching name/size/hash staging identity at a chunk-aligned offset.
+COMPLETE requires every byte received and verifies SHA-256 before publication.
+Publication never overwrites an existing artifact. Lost successful completion
+responses can be replayed for one minute.</p>
+<p>GET resumes at the supplied chunk-aligned offset. The client acknowledges only
+bytes safely written to its private partial file. After verifying the complete
+hash, it sends COMPLETE and publishes its local archive. Corrupted downloads
+must not become shareable files.</p>
+<p>Cancellation and disconnect keep resumable partials but release active sessions.
+Active file operations hold the <code>ble-files</code> block inhibitor in <code>power:inhibits</code>.
+Completion, cancellation and BLE disconnect release it. File transfers and
+firmware OTA transfers are mutually exclusive; OTA START reports busy while a
+file transfer is active, and file admission reports busy while OTA is active.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                
               </article>
             </div>
           
@@ -1572,10 +1989,10 @@
       
         
         
-      <script id="__config" type="application/json">{"annotate":null,"base":"/dev","features":["content.action.edit","content.code.copy","content.code.select","content.tooltips","navigation.footer","navigation.indexes","navigation.instant","navigation.instant.prefetch","navigation.path","navigation.sections","navigation.top","navigation.tracking","search.highlight","toc.follow"],"redirect":null,"search":"/dev/assets/javascripts/workers/search.7d14d953.min.js","tags":null,"translations":{"clipboard.copied":"Copied to clipboard","clipboard.copy":"Copy to clipboard","clipboard.error":"Could not copy to clipboard","search.result.more.one":"1 more on this page","search.result.more.other":"# more on this page","search.result.none":"No matching documents","search.result.one":"1 matching document","search.result.other":"# matching documents","search.result.placeholder":"Type to start searching","search.result.term.missing":"Missing","select.version":"Select version"},"version":{"provider":"mike"}}</script>
+      <script id="__config" type="application/json">{"annotate":null,"base":"../..","features":["content.action.edit","content.code.copy","content.code.select","content.tooltips","navigation.footer","navigation.indexes","navigation.instant","navigation.instant.prefetch","navigation.path","navigation.sections","navigation.top","navigation.tracking","search.highlight","toc.follow"],"redirect":null,"search":"../../assets/javascripts/workers/search.7d14d953.min.js","tags":null,"translations":{"clipboard.copied":"Copied to clipboard","clipboard.copy":"Copy to clipboard","clipboard.error":"Could not copy to clipboard","search.result.more.one":"1 more on this page","search.result.more.other":"# more on this page","search.result.none":"No matching documents","search.result.one":"1 matching document","search.result.other":"# matching documents","search.result.placeholder":"Type to start searching","search.result.term.missing":"Missing","select.version":"Select version"},"version":{"provider":"mike"}}</script>
     
     
-      <script src="/dev/assets/javascripts/bundle.8b1c90bd.min.js"></script>
+      <script src="../../assets/javascripts/bundle.8b1c90bd.min.js"></script>
       
     
   </body>
