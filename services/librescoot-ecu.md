@@ -140,6 +140,22 @@ The service talks to a Bosch ECU over CAN.
 - `0x4E0` - Control message (sent to ECU for KERS control)
 - `0x4E2` - EBS settings (sent to ECU for KERS voltage/current)
 
+**CAN IDs used by community services:**
+
+Not part of the Bosch protocol and not handled by this service. Listed here so
+new IDs don't collide with them.
+
+user-service: Jonas-Click / [music-service](https://github.com/Jonas-Click/music-service)
+(music playback through a VESC-based motor controller):
+
+- `0x4E8` - Play/stop (sent to ECU)
+- `0x4E9` - Music volume (sent to ECU)
+- `0x4EC` - Song upload: begin track (sent to ECU)
+- `0x4ED` - Song upload: data chunk (sent to ECU)
+- `0x4EE` - Song upload: end track (sent to ECU)
+- `0x7E6` - Music status: playing, song, volume (from ECU)
+- `0x7E7` - Song upload result (from ECU)
+
 **Speed Calibration:**
 
 - Applies calibration factor: 1.03
