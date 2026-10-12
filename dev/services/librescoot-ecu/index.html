@@ -2399,6 +2399,20 @@ that changed as the payload:</p>
 <li><code>0x4E0</code> - Control message (sent to ECU for KERS control)</li>
 <li><code>0x4E2</code> - EBS settings (sent to ECU for KERS voltage/current)</li>
 </ul>
+<p><strong>CAN IDs used by community services:</strong></p>
+<p>Not part of the Bosch protocol and not handled by this service. Listed here so
+new IDs don't collide with them.</p>
+<p>user-service: Jonas-Click / <a href="https://github.com/Jonas-Click/music-service">music-service</a>
+(music playback through a VESC-based motor controller):</p>
+<ul>
+<li><code>0x4E8</code> - Play/stop (sent to ECU)</li>
+<li><code>0x4E9</code> - Music volume (sent to ECU)</li>
+<li><code>0x4EC</code> - Song upload: begin track (sent to ECU)</li>
+<li><code>0x4ED</code> - Song upload: data chunk (sent to ECU)</li>
+<li><code>0x4EE</code> - Song upload: end track (sent to ECU)</li>
+<li><code>0x7E6</code> - Music status: playing, song, volume (from ECU)</li>
+<li><code>0x7E7</code> - Song upload result (from ECU)</li>
+</ul>
 <p><strong>Speed Calibration:</strong></p>
 <ul>
 <li>Applies calibration factor: 1.03</li>
