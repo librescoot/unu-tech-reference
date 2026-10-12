@@ -254,6 +254,30 @@ On Linux startup:
 
 On SIGTERM or `vehicle state` → `shutting-down`: `ShutdownStore::forceBlackout()` blacks out the display.
 
+## Multi-stop route continuation
+
+The durable route plan belongs to settings-service; the dashboard edits it through
+[route-plan RPC](librescoot-settings.md). A plan and its current stop survive a
+dashboard restart. Recovery waits for the routing engine when it is not ready yet.
+
+At a reached intermediate stop, `NavigationService` starts a 30-second countdown
+only in `ready-to-drive`. Expiry advances to the next stop through `plan.advance`.
+Opening the riding shortcut menu holds the countdown. With that menu closed, a
+seatbox-switch press pauses the plan. Leaving drive mode also cancels the
+countdown and pauses the plan; after a reached stop, entering drive mode again
+advances to the next stop. A paused, unfinished leg can resume on entering
+`parked`, but a reached stop waits for `ready-to-drive`.
+
+Brake gestures do not confirm or reject the arrival prompt: `InputHandler`
+forwards brake menu input only while parked. The shortcut menu's keep-stop action
+uses `plan.unreach` to retain the current target and suppress drive-mode arrival
+until dismount. Skipping is a separate action and does not mark a stop reached.
+
+Source: [NavigationService.cpp](https://github.com/librescoot/scootui-qt/blob/1e4b3a150d965ad4355416535f39489409486184/src/services/NavigationService.cpp),
+[NavigationService.h](https://github.com/librescoot/scootui-qt/blob/1e4b3a150d965ad4355416535f39489409486184/src/services/NavigationService.h),
+[InputHandler.cpp](https://github.com/librescoot/scootui-qt/blob/1e4b3a150d965ad4355416535f39489409486184/src/services/InputHandler.cpp)
+and [ShortcutMenuStore.cpp](https://github.com/librescoot/scootui-qt/blob/1e4b3a150d965ad4355416535f39489409486184/src/stores/ShortcutMenuStore.cpp).
+
 ## Map Tiles
 
 A singleton installation reads `/data/maps/map.mbtiles` on the DBC. The app watches `/data/maps/` via inotify and reloads map services when the file appears or changes. A regional installation reads `tiles_<slug>.mbtiles` and the matching `valhalla_tiles_<slug>.tar`; a recent GPS fix selects a named pack using its MBTiles `bounds`. If `map.mbtiles` exists, regional selection requires `/data/valhalla/tiles.tar` to be a symlink, so named files alone do not change a singleton installation.

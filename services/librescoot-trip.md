@@ -71,9 +71,15 @@ Possible reasons are `initial`, `ride`, `day`, `battery`, and `manual`.
 - **`manual`** performs no automatic reset. A manual command is allowed only
   while the counter is idle; it returns `busy` during ready-to-drive.
 
-Negative or backward odometer readings are ignored. The terminal odometer is
-read before leaving ready-to-drive when available, so that final distance is
-accounted for.
+Negative odometer readings are ignored. A lower nonnegative reading establishes
+a new baseline without subtracting accumulated distance. Subsequent positive
+deltas count while ready to drive, including after a controller replacement or
+odometer reset. An inactive reading also updates the baseline without adding
+distance. The terminal odometer is read before leaving ready-to-drive when
+available, using the same rebasing rule.
+
+Source: [counter.go](https://github.com/librescoot/trip-service/blob/cef6e6fab3e2fca480eee0701ff911b2de420c02/internal/counter/counter.go)
+and [counter tests](https://github.com/librescoot/trip-service/blob/cef6e6fab3e2fca480eee0701ff911b2de420c02/internal/counter/counter_test.go).
 
 ## Recovery and availability
 
@@ -83,9 +89,9 @@ vacuum enabled. Counter state is committed on input changes and checkpointed
 at least every 30 seconds and during shutdown.
 
 On restart, trip-service first reads the current odometer and vehicle state,
-loads durable counter state, reconciles a nondecreasing current odometer
-against the last durable one when applicable, and then synchronizes its
-watchers. If Ready is observed before a valid nonnegative odometer, it defers
+loads durable counter state, reconciles the current odometer against the last
+durable one when applicable (rebasing on a lower nonnegative reading), and then
+synchronizes its watchers. If Ready is observed before a valid nonnegative odometer, it defers
 creating a new history row until the first valid odometer arrives; that value
 becomes the trip baseline rather than an unknown zero. It deliberately discards the unavailable wall-time interval: an
 active Ready interval resumes from recovery time, not from the last checkpoint.

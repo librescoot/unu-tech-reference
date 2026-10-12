@@ -285,8 +285,9 @@ Explicit `suspend` commands (LPUSH scooter:power suspend) skip the pre-suspend d
 
 **Explicit hibernate command:**
 
-- `LPUSH scooter:power hibernate` (or `hibernate-manual`, `hibernate-timer`)
-- Skips pre-suspend delay; FSM goes directly to `hibernate-imminent`
+- `LPUSH scooter:power hibernate` and `hibernate-manual` use explicit request admission: `parked` starts correlated vehicle preparation; `stand-by` starts power preparation directly. Other vehicle states reject the request without retaining it for a later lock.
+- Preparation skips the pre-suspend delay but still respects blocking inhibitors. See [Hibernate-for](#hibernate-for-nrf-driven-scheduled-wake) for the shared admission and status contract.
+- `hibernate-timer` follows the automatic timer path, not explicit vehicle preparation.
 
 **Hibernation timer:**
 
