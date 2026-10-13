@@ -198,8 +198,8 @@ fall back to their defaults.
 | `dashboard.power.boost-color` | `#FB8C00` | Discharge power-bar fill above the boost threshold |
 | `dashboard.speedometer.regen-min-power` | `50` | Minimum charging power in watts for the recuperation track tint; integer 0–10000 |
 
-Charging power is derived from `engine[motor:voltage]` and
-`engine[motor:current]`. The tint activates at or above the minimum and fades
+Charging power is derived from `engine-ecu[motor:voltage]` and
+`engine-ecu[motor:current]`. The tint activates at or above the minimum and fades
 back to neutral below it. A minimum of 0 enables the tint for any negative motor
 current. This threshold does not affect the power bar; regen-unavailable reason
 icons retain their theme-dependent colors.
