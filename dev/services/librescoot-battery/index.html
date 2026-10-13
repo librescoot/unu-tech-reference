@@ -1160,6 +1160,17 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#experimental-dual-pack-admission" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Experimental dual-pack admission
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -2100,6 +2111,17 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#experimental-dual-pack-admission" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Experimental dual-pack admission
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -2506,6 +2528,7 @@
 <p><strong>Fields read:</strong></p>
 <ul>
 <li><code>scooter.battery-keep-active-on-seatbox-open</code> - Bool (<code>true</code>/<code>false</code>); runtime equivalent of the <code>-keep-active-on-seatbox-open</code> CLI flag. Keeps a running battery active across a seatbox open while still letting seatbox events flow. Hot-reloaded via <code>settings</code> pub/sub; a change restarts any mid-cycle active reader so the new value takes effect at once.</li>
+<li><code>experimental.battery.dual-pack-admission</code> - Bool, default <code>false</code>. Enables coordinated pack selection and activation checks. Read at startup; changes require a battery-service restart. Does not enable reader 1.</li>
 <li><code>scooter.dual-battery</code> - Bool (<code>true</code>/<code>false</code>); controls whether battery slot 1 is treated as active/present. <code>true</code> sets reader 1 to the active role (subject to the <code>scooter.max-voltage-delta</code> check); <code>false</code> sets it inactive (disabled). Read on startup and hot-reloaded via <code>settings</code> pub/sub; only takes effect when a slot 1 reader exists.</li>
 <li><code>scooter.max-voltage-delta</code> - Max voltage difference between batteries in mV before battery 1 activation is refused (default: 1000; 0 to disable). Updated live via <code>settings</code> pub/sub.</li>
 <li><code>scooter.battery-aux-low-keep-active-enter-mv</code> - Aux battery voltage in mV below which the keep-active-on-seatbox-open override engages automatically (default: 11500). Hot-reloaded via <code>settings</code> pub/sub.</li>
@@ -2589,6 +2612,18 @@
 <li><strong>Started by:</strong> systemd at boot</li>
 <li><strong>Restart policy:</strong> Always</li>
 </ul>
+<h3 id="experimental-dual-pack-admission">Experimental dual-pack admission<a class="headerlink" href="#experimental-dual-pack-admission" title="Permanent link">&para;</a></h3>
+<p>With <code>experimental.battery.dual-pack-admission=true</code>, both readers check every
+ON command against fresh NFC data. The higher-voltage usable pack starts first.
+A second pack can join only in <code>parked</code>, after stable low-load readings pass the
+voltage limit. Active packs keep their heartbeats; a deferred ON never becomes OFF.
+Missing or stale data blocks admission, not the running supply. OFF attempts need
+later inactive readings before another ON. The flag is fixed at startup.</p>
+<p>With the flag off, slot 1 retains its per-insertion voltage gate and the startup
+and role-change checks against published voltages.</p>
+<p>See <a href="https://github.com/librescoot/battery-service#dual-battery-activation">battery-service README</a>
+for the timing and voltage limits. The experimental path needs bench testing
+before vehicle use.</p>
 <h2 id="observable-behavior">Observable Behavior<a class="headerlink" href="#observable-behavior" title="Permanent link">&para;</a></h2>
 <h3 id="startup-sequence">Startup Sequence<a class="headerlink" href="#startup-sequence" title="Permanent link">&para;</a></h3>
 <ol>
