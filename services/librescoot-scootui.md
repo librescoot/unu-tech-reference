@@ -185,6 +185,29 @@ Settings are stored in the `settings` Redis hash. Managed by settings-service.
 | `dashboard.milestones.presentation` | `notice`/`banner`/`banner-and-confetti` | `banner-and-confetti` | Brief notice at the crossing, optionally followed by a ticket and confetti when parked |
 | `dashboard.hop-on-combo` | pipe-delimited tokens | _(empty)_ | Custom hop-on unlock combo |
 
+Advanced cluster color settings apply at runtime and are not exposed in the
+dashboard menu. Colors accept `#RRGGBB` or `#AARRGGBB`; unset or malformed values
+fall back to their defaults.
+
+| Key | Default | Description |
+|-----|---------|-------------|
+| `dashboard.speedometer.regen-color` | `#4DFF0000` | Recuperation track tint, including opacity |
+| `dashboard.speedometer.error-color` | `#F44336` | ECU-disconnect error arc and pulse |
+| `dashboard.power.regen-color` | `#43A047` | Recuperation power-bar fill |
+| `dashboard.power.discharge-color` | `#1E88E5` | Normal discharge power-bar fill |
+| `dashboard.power.boost-color` | `#FB8C00` | Discharge power-bar fill above the boost threshold |
+| `dashboard.speedometer.regen-min-power` | `50` | Minimum charging power in watts for the recuperation track tint; integer 0–10000 |
+
+Charging power is derived from `engine[motor:voltage]` and
+`engine[motor:current]`. The tint activates at or above the minimum and fades
+back to neutral below it. A minimum of 0 enables the tint for any negative motor
+current. This threshold does not affect the power bar; regen-unavailable reason
+icons retain their theme-dependent colors.
+
+Source: [SettingsStore.h](https://github.com/librescoot/scootui-qt/blob/main/src/stores/SettingsStore.h),
+[SpeedometerDisplay.qml](https://github.com/librescoot/scootui-qt/blob/main/qml/widgets/speedometer/SpeedometerDisplay.qml),
+[PowerDisplay.qml](https://github.com/librescoot/scootui-qt/blob/main/qml/widgets/power/PowerDisplay.qml).
+
 Settings > System > Updates also writes the update-service keys. Each entry writes both
 components at once, so the two boards never end up on different channels:
 
