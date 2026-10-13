@@ -70,6 +70,7 @@ Usage of battery-service:
 **Fields read:**
 
 - `scooter.battery-keep-active-on-seatbox-open` - Bool (`true`/`false`); runtime equivalent of the `-keep-active-on-seatbox-open` CLI flag. Keeps a running battery active across a seatbox open while still letting seatbox events flow. Hot-reloaded via `settings` pub/sub; a change restarts any mid-cycle active reader so the new value takes effect at once.
+- `experimental.battery.dual-pack-admission` - Bool, default `false`. Enables coordinated pack selection and activation checks. Read at startup; changes require a battery-service restart. Does not enable reader 1.
 - `scooter.dual-battery` - Bool (`true`/`false`); controls whether battery slot 1 is treated as active/present. `true` sets reader 1 to the active role (subject to the `scooter.max-voltage-delta` check); `false` sets it inactive (disabled). Read on startup and hot-reloaded via `settings` pub/sub; only takes effect when a slot 1 reader exists.
 - `scooter.max-voltage-delta` - Max voltage difference between batteries in mV before battery 1 activation is refused (default: 1000; 0 to disable). Updated live via `settings` pub/sub.
 - `scooter.battery-aux-low-keep-active-enter-mv` - Aux battery voltage in mV below which the keep-active-on-seatbox-open override engages automatically (default: 11500). Hot-reloaded via `settings` pub/sub.
@@ -161,6 +162,22 @@ The service uses NFC Type 4 Tag operations to communicate with battery NFC tags:
 - **Unit file:** `/usr/lib/systemd/system/librescoot-battery.service`
 - **Started by:** systemd at boot
 - **Restart policy:** Always
+
+### Experimental dual-pack admission
+
+With `experimental.battery.dual-pack-admission=true`, both readers check every
+ON command against fresh NFC data. The higher-voltage usable pack starts first.
+A second pack can join only in `parked`, after stable low-load readings pass the
+voltage limit. Active packs keep their heartbeats; a deferred ON never becomes OFF.
+Missing or stale data blocks admission, not the running supply. OFF attempts need
+later inactive readings before another ON. The flag is fixed at startup.
+
+With the flag off, slot 1 retains its per-insertion voltage gate and the startup
+and role-change checks against published voltages.
+
+See [battery-service README](https://github.com/librescoot/battery-service#dual-battery-activation)
+for the timing and voltage limits. The experimental path needs bench testing
+before vehicle use.
 
 ## Observable Behavior
 
