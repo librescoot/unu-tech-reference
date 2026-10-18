@@ -91,6 +91,21 @@ hgetall engine-ecu
 | fault:code | integer (32-bit) | Current fault code (0 when no fault) | "0" |
 | fault:description | string | Active fault description (empty when no fault) | "" |
 
+### Fresh ECU motion (`engine-ecu:motion` channel)
+
+This Pub/Sub channel carries direct JSON observations, not hash field names.
+Version 1 includes `version`, `source`, `sequence`, `valid`, `observed_at`, `rpm`,
+`raw_speed` and `throttle_on`. `observed_at` is the kernel receive timestamp;
+unchanged values are republished on each motion frame. Invalidations contain
+`valid:false` and `reason`, without motion values.
+
+Evidence expires after 500 ms. Source changes, lost/reordered sequences,
+reconnects and invalidation end stopped qualification. There is no retained value
+or `HGET` fallback. The existing `engine-ecu` hash and its field-name notifications
+are unchanged. See the
+[complete contract](https://github.com/librescoot/ecu-service/blob/main/MOTION_IPC.md)
+and [battery admission gates](../services/librescoot-battery.md#experimental-dual-pack-admission).
+
 ### Battery Management (`battery:0` and `battery:1`)
 ```
 hgetall battery:0
