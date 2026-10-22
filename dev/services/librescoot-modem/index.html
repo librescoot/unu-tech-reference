@@ -24,7 +24,7 @@
       
       
       <link rel="icon" href="../../assets/favicon.png">
-      <meta name="generator" content="zensical-0.0.70">
+      <meta name="generator" content="zensical-0.0.71">
     
     
       
@@ -2709,15 +2709,19 @@ drops the inhibitor after <code>PowerOffModem</code>, and the suspend proceeds.<
 <li><strong>Connectivity test:</strong> By default, a permissive DNS/TCP probe. Deployments can configure a DNS TXT name and expected value for content-verified reachability. No ICMP is used.</li>
 </ul>
 <h4 id="apn-reconciliation">APN Reconciliation<a class="headerlink" href="#apn-reconciliation" title="Permanent link">&para;</a></h4>
-<p>The service reconciles <code>cellular.apn</code>, <code>cellular.username</code>, <code>cellular.password</code>, and <code>cellular.auth</code> from the <code>settings</code> hash against two backends on every monitor tick (gated to skip when the SIM is locked or missing):</p>
+<p>The service reconciles <code>cellular.apn</code>, <code>cellular.username</code>, <code>cellular.password</code>, and <code>cellular.auth</code> against the NetworkManager <code>wwan</code> profile, ModemManager's initial EPS bearer settings, and the actual CID1 context read with <code>AT+CGDCONT?</code>. Matching cached settings do not hide a different CID1 APN. A missing SIM, unknown lock state or primary SIM lock prevents reconciliation; <code>sim-pin2</code> and <code>sim-puk2</code> do not prevent cellular attachment.</p>
+<p>Changes run as one bounded operation under the modem recovery lock:</p>
 <ol>
-<li><strong>NetworkManager <code>wwan</code> GSM profile</strong> &mdash; sets the data bearer APN/user/password via <code>nmcli connection modify</code>. NM brings the bearer back up via <code>nmcli connection down</code> + <code>up</code> after the change.</li>
-<li><strong>ModemManager initial-EPS-bearer settings</strong> &mdash; sets the LTE attach context via the <code>org.freedesktop.ModemManager1.Modem.Modem3gpp.SetInitialEpsBearerSettings</code> D-Bus method. This persists in modem NVRAM and governs the APN used during LTE attach (before any data session).</li>
+<li>Suspend profile autoconnect temporarily, disconnect NM and deregister with <code>AT+COPS=2</code>.</li>
+<li>Stage NM settings in memory, update MM attach settings, and write CID1 and authentication with <code>AT+CGDCONT</code> and <code>AT+CGAUTH</code>.</li>
+<li>Read back CID1 and the NM profile before reattaching with <code>AT+COPS=0</code> and reconnecting NM.</li>
+<li>Check CID1 again after NM activation, then save the NM profile with its original autoconnect policy.</li>
 </ol>
-<p><strong>SIM7100E quirk:</strong> ModemManager's generic 3GPP code writes <code>AT+CGDCONT=0</code> (cid=0) for the initial EPS bearer, which simtech firmware ignores at attach time. The service additionally sends <code>AT+CGDCONT=1,"IP","&lt;apn&gt;"</code> and <code>AT+CGAUTH=1,&lt;type&gt;,"&lt;user&gt;","&lt;pass&gt;"</code> via the <code>Modem.Command</code> D-Bus method so the SIM7100E actually picks up the new APN. Both paths are taken on every apply; the AT path is the decisive one on this hardware.</p>
-<p><strong>Reattach:</strong> After a successful apply, the service sends <code>AT+COPS=2</code> followed by <code>AT+COPS=0</code> in a background goroutine, forcing the modem to deregister and re-register with the carrier. Without this, a freshly-written CGDCONT only takes effect on the next reboot &mdash; symptoms include "stuck on EDGE" when the new attach APN was needed for the LTE core to accept the connection.</p>
-<p><strong>SIM swap:</strong> The service tracks the ICCID of the SIM that was last applied to. When ModemManager reports a different ICCID, both NM and the modem are cleared to defaults (<code>apn-action=iccid-changed-cleared</code>) so the new SIM uses its operator's defaults. The user must re-set <code>cellular.apn</code> etc. for the new SIM, which re-arms reconciliation.</p>
-<p><strong>AT value safety:</strong> Settings values containing <code>"</code>, <code>\r</code>, or <code>\n</code> are rejected before being interpolated into AT commands &mdash; SIMCom AT has no escape mechanism inside string literals.</p>
+<p>CID1 readback remains authoritative when the MM attach-settings method is unavailable. AT response bodies containing <code>ERROR</code>, <code>+CME ERROR</code> or <code>+CMS ERROR</code> fail the command even if the D-Bus call succeeded. Authentication command payloads, replies and settings errors do not log credentials.</p>
+<p>Failures attempt to restore the prior NM profile and actual CID1. An incomplete rollback retains the original snapshot for retry. Cancellation does not explicitly reattach during rollback. The service allows three apply attempts per settings/SIM/modem-path combination, with 30- and 60-second retry delays. Changed settings or identity, successful modem recovery, or a service restart permit a fresh attempt sequence. <code>apn-action=applied</code> requires a completed transaction; failures report <code>error</code>.</p>
+<p>A SIM swap detected while the service is running clears NM and modem settings (<code>apn-action=iccid-changed-cleared</code>). Rollback must not restore the previous SIM's credentials. Reconciliation remains blocked until the configured APN settings change.</p>
+<p>Settings containing quotes, commas, carriage returns, newlines or NUL bytes are rejected before AT interpolation.</p>
+<p>Source: <a href="https://github.com/librescoot/modem-service/blob/main/internal/apn/manager.go">APN manager</a> and <a href="https://github.com/librescoot/modem-service/blob/main/internal/service/service.go">service coordination</a>.</p>
 <h2 id="observable-behavior">Observable Behavior<a class="headerlink" href="#observable-behavior" title="Permanent link">&para;</a></h2>
 <h3 id="startup-sequence">Startup Sequence<a class="headerlink" href="#startup-sequence" title="Permanent link">&para;</a></h3>
 <ol>
