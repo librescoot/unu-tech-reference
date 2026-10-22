@@ -263,18 +263,24 @@ The service can control modem power via GPIO pin 110:
 
 #### APN Reconciliation
 
-The service reconciles `cellular.apn`, `cellular.username`, `cellular.password`, and `cellular.auth` from the `settings` hash against two backends on every monitor tick (gated to skip when the SIM is locked or missing):
+The service reconciles `cellular.apn`, `cellular.username`, `cellular.password`, and `cellular.auth` against the NetworkManager `wwan` profile, ModemManager's initial EPS bearer settings, and the actual CID1 context read with `AT+CGDCONT?`. Matching cached settings do not hide a different CID1 APN. A missing SIM, unknown lock state or primary SIM lock prevents reconciliation; `sim-pin2` and `sim-puk2` do not prevent cellular attachment.
 
-1. **NetworkManager `wwan` GSM profile** &mdash; sets the data bearer APN/user/password via `nmcli connection modify`. NM brings the bearer back up via `nmcli connection down` + `up` after the change.
-2. **ModemManager initial-EPS-bearer settings** &mdash; sets the LTE attach context via the `org.freedesktop.ModemManager1.Modem.Modem3gpp.SetInitialEpsBearerSettings` D-Bus method. This persists in modem NVRAM and governs the APN used during LTE attach (before any data session).
+Changes run as one bounded operation under the modem recovery lock:
 
-**SIM7100E quirk:** ModemManager's generic 3GPP code writes `AT+CGDCONT=0` (cid=0) for the initial EPS bearer, which simtech firmware ignores at attach time. The service additionally sends `AT+CGDCONT=1,"IP","<apn>"` and `AT+CGAUTH=1,<type>,"<user>","<pass>"` via the `Modem.Command` D-Bus method so the SIM7100E actually picks up the new APN. Both paths are taken on every apply; the AT path is the decisive one on this hardware.
+1. Suspend profile autoconnect temporarily, disconnect NM and deregister with `AT+COPS=2`.
+2. Stage NM settings in memory, update MM attach settings, and write CID1 and authentication with `AT+CGDCONT` and `AT+CGAUTH`.
+3. Read back CID1 and the NM profile before reattaching with `AT+COPS=0` and reconnecting NM.
+4. Check CID1 again after NM activation, then save the NM profile with its original autoconnect policy.
 
-**Reattach:** After a successful apply, the service sends `AT+COPS=2` followed by `AT+COPS=0` in a background goroutine, forcing the modem to deregister and re-register with the carrier. Without this, a freshly-written CGDCONT only takes effect on the next reboot &mdash; symptoms include "stuck on EDGE" when the new attach APN was needed for the LTE core to accept the connection.
+CID1 readback remains authoritative when the MM attach-settings method is unavailable. AT response bodies containing `ERROR`, `+CME ERROR` or `+CMS ERROR` fail the command even if the D-Bus call succeeded. Authentication command payloads, replies and settings errors do not log credentials.
 
-**SIM swap:** The service tracks the ICCID of the SIM that was last applied to. When ModemManager reports a different ICCID, both NM and the modem are cleared to defaults (`apn-action=iccid-changed-cleared`) so the new SIM uses its operator's defaults. The user must re-set `cellular.apn` etc. for the new SIM, which re-arms reconciliation.
+Failures attempt to restore the prior NM profile and actual CID1. An incomplete rollback retains the original snapshot for retry. Cancellation does not explicitly reattach during rollback. The service allows three apply attempts per settings/SIM/modem-path combination, with 30- and 60-second retry delays. Changed settings or identity, successful modem recovery, or a service restart permit a fresh attempt sequence. `apn-action=applied` requires a completed transaction; failures report `error`.
 
-**AT value safety:** Settings values containing `"`, `\r`, or `\n` are rejected before being interpolated into AT commands &mdash; SIMCom AT has no escape mechanism inside string literals.
+A SIM swap detected while the service is running clears NM and modem settings (`apn-action=iccid-changed-cleared`). Rollback must not restore the previous SIM's credentials. Reconciliation remains blocked until the configured APN settings change.
+
+Settings containing quotes, commas, carriage returns, newlines or NUL bytes are rejected before AT interpolation.
+
+Source: [APN manager](https://github.com/librescoot/modem-service/blob/main/internal/apn/manager.go) and [service coordination](https://github.com/librescoot/modem-service/blob/main/internal/service/service.go).
 
 ## Observable Behavior
 
