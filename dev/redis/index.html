@@ -757,6 +757,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#fresh-ecu-motion-engine-ecumotion-channel" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Fresh ECU motion (<code>engine-ecu:motion</code> channel)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#battery-management-battery0-and-battery1" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
@@ -2445,6 +2456,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#fresh-ecu-motion-engine-ecumotion-channel" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Fresh ECU motion (<code>engine-ecu:motion</code> channel)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#battery-management-battery0-and-battery1" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
@@ -3627,6 +3649,18 @@ will not find it on 1.2 or later.</p>
 </tr>
 </tbody>
 </table>
+<h3 id="fresh-ecu-motion-engine-ecumotion-channel">Fresh ECU motion (<code>engine-ecu:motion</code> channel)<a class="headerlink" href="#fresh-ecu-motion-engine-ecumotion-channel" title="Permanent link">&para;</a></h3>
+<p>This Pub/Sub channel carries direct JSON observations, not hash field names.
+Version 1 includes <code>version</code>, <code>source</code>, <code>sequence</code>, <code>valid</code>, <code>observed_at</code>, <code>rpm</code>,
+<code>raw_speed</code> and <code>throttle_on</code>. <code>observed_at</code> is the kernel receive timestamp;
+unchanged values are republished on each motion frame. Invalidations contain
+<code>valid:false</code> and <code>reason</code>, without motion values.</p>
+<p>Evidence expires after 500 ms. Source changes, lost/reordered sequences,
+reconnects and invalidation end stopped qualification. There is no retained value
+or <code>HGET</code> fallback. The existing <code>engine-ecu</code> hash and its field-name notifications
+are unchanged. See the
+<a href="https://github.com/librescoot/ecu-service/blob/main/MOTION_IPC.md">complete contract</a>
+and <a href="../services/librescoot-battery/#experimental-dual-pack-admission">battery admission gates</a>.</p>
 <h3 id="battery-management-battery0-and-battery1">Battery Management (<code>battery:0</code> and <code>battery:1</code>)<a class="headerlink" href="#battery-management-battery0-and-battery1" title="Permanent link">&para;</a></h3>
 <div class="language-text highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>hgetall battery:0
 </span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>hgetall battery:1

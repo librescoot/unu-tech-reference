@@ -1095,6 +1095,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#channel-engine-ecumotion" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Channel: <code>engine-ecu:motion</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#hash-settings" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
@@ -1898,6 +1909,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#channel-engine-ecumotion" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Channel: <code>engine-ecu:motion</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#hash-settings" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
@@ -2344,8 +2366,8 @@
 </ul>
 <p>The <code>config:*</code> fields are deleted from the hash rather than written as 0 while the ECU has not reported them, so a missing field means "not reported" and not a real zero.</p>
 <p><strong>Published channels:</strong></p>
-<p>All notifications go out on the <code>engine-ecu</code> channel, with the name of the field
-that changed as the payload:</p>
+<p>Hash change notifications go out on the <code>engine-ecu</code> channel, with the name of
+the field that changed as the payload:</p>
 <ul>
 <li><code>throttle</code> - Published when throttle state changes</li>
 <li><code>kers</code> - Published when KERS state changes</li>
@@ -2354,6 +2376,17 @@ that changed as the payload:</p>
 <li><code>regen-available</code> - Published when derived regen availability or reason changes</li>
 <li><code>fault</code> - Published when a fault is raised or cleared</li>
 </ul>
+<h3 id="channel-engine-ecumotion">Channel: <code>engine-ecu:motion</code><a class="headerlink" href="#channel-engine-ecumotion" title="Permanent link">&para;</a></h3>
+<p>Direct-value JSON observations are published for every complete motion frame,
+including unchanged values. Version 1 carries <code>version</code>, <code>source</code>, <code>sequence</code>,
+<code>valid</code>, <code>observed_at</code>, <code>rpm</code>, <code>raw_speed</code> and <code>throttle_on</code>. The timestamp is UTC
+kernel reception time; the source identifies a receive/power generation and the
+sequence exposes lost observations. Invalidations carry <code>valid:false</code> and a
+<code>reason</code>, with no fabricated motion values. There is no cached-hash bootstrap.</p>
+<p>Consumers expire observations after 500 ms and restart qualification after
+source changes, gaps, reconnects or invalidation. Battery-service consumes this
+channel only for its separately enabled stopped-RTD admission gate. See the
+<a href="https://github.com/librescoot/ecu-service/blob/main/MOTION_IPC.md">complete contract</a>.</p>
 <h3 id="hash-settings">Hash: <code>settings</code><a class="headerlink" href="#hash-settings" title="Permanent link">&para;</a></h3>
 <p><strong>Fields read:</strong></p>
 <ul>
@@ -2390,7 +2423,14 @@ that changed as the payload:</p>
 <li><strong>Interface type:</strong> SocketCAN</li>
 <li><strong>Connected to:</strong> Bosch motor controller/ECU</li>
 </ul>
-<p>The service uses standard Linux SocketCAN to communicate with the motor controller.</p>
+<p>One timestamp-aware SocketCAN receive pump feeds a bounded ordered dispatcher.
+Redis work does not block the socket pump. A separate bounded TX worker shares
+the same socket; no socket writes occur in the ECU decoder or under its state
+mutex. Send-time power/generation checks and 100 ms command expiry reject stale
+queued work. Sent flags update on successful batch completion, independently of
+controller-reported values. Queue overflow interrupts motion continuity.</p>
+<p>This pipeline is the service's default path. It does not change other services'
+CAN access or introduce a cross-service command broker.</p>
 <h3 id="ecu-communication">ECU Communication<a class="headerlink" href="#ecu-communication" title="Permanent link">&para;</a></h3>
 <p>The service talks to a Bosch ECU over CAN.</p>
 <p><strong>CAN Message IDs:</strong></p>
