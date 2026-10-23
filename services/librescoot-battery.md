@@ -320,12 +320,17 @@ The service implements multiple recovery mechanisms:
    - Retry operation
 
 3. **Communication Failure Recovery:**
+   - Notification and credit-response timeouts trigger reader recovery, not pack removal
+   - Hardware errors end the current read retry loop immediately
    - Track consecutive communication failures
-   - After failures, transition to `StateNFCReaderOff`
+   - Transition to `StateNFCReaderOff` on a hardware error or response timeout
    - Deinitialize NFC reader
    - Wait 2 seconds
    - Full reinitialization with power cycle
    - Resume normal operation
+   - A ten-second watchdog also restarts an absent reader when polling has produced no explicit error
+   - Genuine RF departure and successful no-tag detection still clear presence promptly
+   - Critical-fault handling and normal suspend rules remain unchanged
 
 4. **Zero Data Recovery:**
    - Detect when battery returns empty or all-zero data
