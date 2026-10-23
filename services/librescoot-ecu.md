@@ -73,8 +73,8 @@ The `config:*` fields are deleted from the hash rather than written as 0 while t
 
 **Published channels:**
 
-All notifications go out on the `engine-ecu` channel, with the name of the field
-that changed as the payload:
+Hash change notifications go out on the `engine-ecu` channel, with the name of
+the field that changed as the payload:
 
 - `throttle` - Published when throttle state changes
 - `kers` - Published when KERS state changes
@@ -82,6 +82,20 @@ that changed as the payload:
 - `kers-reason-off` - Published when KERS disable reason changes
 - `regen-available` - Published when derived regen availability or reason changes
 - `fault` - Published when a fault is raised or cleared
+
+### Channel: `engine-ecu:motion`
+
+Direct-value JSON observations are published for every complete motion frame,
+including unchanged values. Version 1 carries `version`, `source`, `sequence`,
+`valid`, `observed_at`, `rpm`, `raw_speed` and `throttle_on`. The timestamp is UTC
+kernel reception time; the source identifies a receive/power generation and the
+sequence exposes lost observations. Invalidations carry `valid:false` and a
+`reason`, with no fabricated motion values. There is no cached-hash bootstrap.
+
+Consumers expire observations after 500 ms and restart qualification after
+source changes, gaps, reconnects or invalidation. Battery-service consumes this
+channel only for its separately enabled stopped-RTD admission gate. See the
+[complete contract](https://github.com/librescoot/ecu-service/blob/main/MOTION_IPC.md).
 
 ### Hash: `settings`
 
@@ -125,7 +139,15 @@ The service subscribes to the following channels to monitor system state:
 - **Interface type:** SocketCAN
 - **Connected to:** Bosch motor controller/ECU
 
-The service uses standard Linux SocketCAN to communicate with the motor controller.
+One timestamp-aware SocketCAN receive pump feeds a bounded ordered dispatcher.
+Redis work does not block the socket pump. A separate bounded TX worker shares
+the same socket; no socket writes occur in the ECU decoder or under its state
+mutex. Send-time power/generation checks and 100 ms command expiry reject stale
+queued work. Sent flags update on successful batch completion, independently of
+controller-reported values. Queue overflow interrupts motion continuity.
+
+This pipeline is the service's default path. It does not change other services'
+CAN access or introduce a cross-service command broker.
 
 ### ECU Communication
 

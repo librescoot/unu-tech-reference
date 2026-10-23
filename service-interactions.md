@@ -53,7 +53,8 @@ Generated from source analysis of all service repositories.
  vehicle       ← published by vehicle-service (payload = field name changed)
  battery:0     ← published by battery-service (payload = field name or "fault")
  battery:1     ← published by battery-service
- engine-ecu    ← published by bluetooth-service (odometer), NOT by ecu-service (see gaps)
+ engine-ecu    <- ecu-service field-change notifications; bluetooth-service odometer
+ engine-ecu:motion <- ecu-service direct JSON motion observations (no hash read)
  keycard       ← published by keycard-service
  dashboard     ← published by scootui (ready, serial-number, backlight-enabled), dbc-backlight
  power-manager ← published by pm-service
@@ -225,13 +226,22 @@ the rail.
 - `vehicle/seatbox:lock` (seatbox state for enabling battery readers)
 - `settings/scooter.battery-keep-active-on-seatbox-open`
 - `settings/scooter.dual-battery`
+- `settings/experimental.battery.dual-pack-admission` (startup-only, default false)
+- `settings/experimental.battery.dual-pack-admission-while-stopped` (startup-only, default false)
 
 **Subscribes to:**
 
 - `vehicle` channel (payload: "state", "seatbox:lock")
 - `settings` channel (payload: "scooter.battery-keep-active-on-seatbox-open", "scooter.dual-battery")
 
-**Hardware access:** NFC via `/dev/i2c-*`, PN7150 controller
+The optional stopped-RTD admission path also subscribes to `engine-ecu:motion`
+direct JSON observations. Kernel acquisition time, source/sequence continuity
+and a 500 ms expiry gate fresh stopped evidence. It cannot substitute cached ECU
+hash values or release an established supply on telemetry loss. The battery
+service owns paired NFC sampling and admission; the ECU service supplies motion
+observations without deciding battery activation.
+
+**Hardware access:** NFC via `/dev/i2c-*`, PN7150 controller; no ECU CAN socket
 
 ---
 
@@ -260,7 +270,14 @@ the rail.
 - `battery:0`, `battery:1` channels (all fields → HGETALL)
 - `settings` channel (payload: "engine-ecu.boost")
 
-**Hardware access:** CAN bus via `/dev/can*`
+The additional `engine-ecu:motion` channel publishes versioned direct-value
+observations on every motion frame, including unchanged values, and explicit
+invalidations on loss of trustworthy evidence. See the
+[contract](https://github.com/librescoot/ecu-service/blob/main/MOTION_IPC.md).
+
+**Hardware access:** one SocketCAN socket with a timestamped receive pump,
+bounded ordered dispatcher and asynchronous TX worker. Other services' CAN
+access is unchanged.
 
 ---
 

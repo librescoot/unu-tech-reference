@@ -70,7 +70,8 @@ Usage of battery-service:
 **Fields read:**
 
 - `scooter.battery-keep-active-on-seatbox-open` - Bool (`true`/`false`); runtime equivalent of the `-keep-active-on-seatbox-open` CLI flag. Keeps a running battery active across a seatbox open while still letting seatbox events flow. Hot-reloaded via `settings` pub/sub; a change restarts any mid-cycle active reader so the new value takes effect at once.
-- `experimental.battery.dual-pack-admission` - Bool, default `false`. Enables coordinated pack selection and activation checks. Read at startup; changes require a battery-service restart. Does not enable reader 1.
+- `experimental.battery.dual-pack-admission` - Bool, default `false`. Enables coordinated pack selection, paired sampling and activation checks. Read at startup; changes require a battery-service restart. Does not enable reader 1.
+- `experimental.battery.dual-pack-admission-while-stopped` - Bool, default `false`. Requires the base admission flag. Permits second-pack admission in `ready-to-drive` only with qualified paired readings and fresh stopped/throttle-off ECU observations. Read at startup; changes require a restart.
 - `scooter.dual-battery` - Bool (`true`/`false`); controls whether battery slot 1 is treated as active/present. `true` sets reader 1 to the active role (subject to the `scooter.max-voltage-delta` check); `false` sets it inactive (disabled). Read on startup and hot-reloaded via `settings` pub/sub; only takes effect when a slot 1 reader exists.
 - `scooter.max-voltage-delta` - Max voltage difference between batteries in mV before battery 1 activation is refused (default: 1000; 0 to disable). Updated live via `settings` pub/sub.
 - `scooter.battery-aux-low-keep-active-enter-mv` - Aux battery voltage in mV below which the keep-active-on-seatbox-open override engages automatically (default: 11500). Hot-reloaded via `settings` pub/sub.
@@ -167,13 +168,34 @@ The service uses NFC Type 4 Tag operations to communicate with battery NFC tags:
 
 With `experimental.battery.dual-pack-admission=true`, both readers check every
 ON command against fresh NFC data. The higher-voltage usable pack starts first.
-A second pack can join only in `parked`, after stable low-load readings pass the
-voltage limit. Active packs keep their heartbeats; a deferred ON never becomes OFF.
+A second pack can join in `parked` after stable low-load readings pass the
+voltage limit. A separate default-off stopped-RTD exception is described below.
+Active packs keep their heartbeats; a deferred ON never becomes OFF.
 Missing or stale data blocks admission, not the running supply. OFF attempts need
 later inactive readings before another ON. The flag is fixed at startup.
 
-With the flag off, slot 1 retains its per-insertion voltage gate and the startup
-and role-change checks against published voltages.
+Paired sampling is attempted every 3 seconds across vehicle states when both
+reader roles are eligible. One round ID ties both reads together. The union of
+both STATUS0 acquisition intervals must be at most 1 second, each full frame
+must finish within 2 seconds of its start, and the round deadline is 10 seconds.
+This aligns NFC reads, not the BMS's internal measurement times.
+
+The stopped-RTD exception also requires
+`experimental.battery.dual-pack-admission-while-stopped=true`. It needs a confirmed
+running peer, at least three stable paired samples spanning 6 seconds after the
+current stop began, and a pair at most 3 seconds old. A fresh ECU observation
+must be acquired at or after both complete battery frames and remain at most 500 ms
+old at each ON write attempt. Zero RPM, zero raw speed and throttle off must
+remain continuously qualified throughout that window.
+
+Battery-service subscribes to direct JSON values on `engine-ecu:motion`; it opens
+no CAN socket. Missing/stale evidence, sequence loss and reconnects restart
+qualification without stopping established supplies or ordinary parked admission.
+The [motion contract](https://github.com/librescoot/battery-service/blob/main/MOTION_IPC.md)
+defines the observation and invalidation payloads.
+
+With the base flag off, slot 1 retains its per-insertion voltage gate and the
+startup and role-change checks against published voltages.
 
 See [battery-service README](https://github.com/librescoot/battery-service#dual-battery-activation)
 for the timing and voltage limits. The experimental path needs bench testing
