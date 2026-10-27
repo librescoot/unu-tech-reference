@@ -324,7 +324,7 @@ The service monitors ECU fault codes and manages them through Redis. Faults are 
 The service calculates and tracks power consumption and recovery:
 
 - **Instantaneous Power:** `power = (voltage_mV * current_mA) / 1000` (in mW)
-- **Energy Integration:** Power integrated over time to calculate energy in mWh
+- **Energy Integration:** Power integrated over time to calculate energy in mWh. Consumed and recovered totals restore asynchronously from Redis before energy publication. Missing fields start at zero; invalid values or read failures defer energy fields and retry while other CAN telemetry continues. Integration during the wait is added once under the ECU mutex. Redis restart or power-loss continuity depends on Redis persistence; sub-mWh remainders and downtime energy are not restored.
 - **Consumed Energy:** Tracked when power is positive (motor driving)
 - **Recovered Energy:** Tracked when power is negative (regenerative braking)
 - **Maximum Delta:** 2 second maximum between updates (prevents large accumulation when ECU is off)

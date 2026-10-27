@@ -180,7 +180,7 @@ a stored MSISDN.
 - `active` - GPS has valid fix (boolean)
 - `connected` - Connected to gpsd (boolean)
 - `state` - GPS state ("off", "searching", "fix-established", "error")
-- `mode` - GNSS positioning mode ("standalone", "ue-based"; assisted ue-based mode is currently disabled, so always "standalone")
+- `mode` - GNSS positioning mode ("standalone", "ue-based"; assisted ue-based mode is currently disabled, so always "standalone"). The first mode is published even when standalone; duplicate suppression starts only after a successful synchronous Redis write.
 
 **Published channel:** `gps` (publishes "timestamp" only on GPS recovery events; routine updates are silent)
 

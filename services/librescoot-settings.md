@@ -294,6 +294,8 @@ The service:
 4. Updates the TOML file
 5. Saves to disk
 
+Atomic TOML replacement syncs both the file contents and the renamed directory entry before returning success. Route-plan persistence uses the same helper.
+
 #### TOML to Redis Sync (Startup Only)
 
 On startup, if `/data/settings.toml` exists:

@@ -265,6 +265,8 @@ The `-default-state` option sets the target power state at startup:
 9. Starts command listeners for `scooter:power` and `scooter:governor`
 10. Starts Redis inhibitor listener for `power:inhibits`
 
+PM uses `Type=notify` and sends readiness after its inhibitor socket, FSM and Redis watchers are initialized. Its enabled unit orders PM before battery-service and installs a battery-service `Requires` dependency on PM. Battery startup waits for PM readiness. Socket inhibitors are registered before the acknowledgment is sent; a failed acknowledgment releases the registration.
+
 ### Runtime Behavior
 
 #### Suspend Trigger

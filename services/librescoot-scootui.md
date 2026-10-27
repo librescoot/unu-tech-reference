@@ -54,6 +54,10 @@ slot, its notification companion is shown instead; navigation graphics remain
 on the cluster and map screens. Dismissing or expiring the last notification
 restores the full maintenance content area.
 
+When a recent GPS fix is not accurate enough for routing, the map stays visible and an accuracy-wait explanation uses the shared notification card, including its priority selection, cycling and preemption.
+
+Clearing Bluetooth connections requires confirmation and is available only while parked. Feedback confirms the request, not completion; when the dashboard is already disconnected, it reports an error and queues no request.
+
 ## Build
 
 ### Desktop (simulator mode)
@@ -181,7 +185,7 @@ Settings are stored in the `settings` Redis hash. Managed by settings-service.
 | `dashboard.valhalla-url` | URL | `http://127.0.0.1:8002/` | Valhalla routing endpoint |
 | `dashboard.maps.check-for-updates` | `true`/`false` | `false` | Auto-check for map updates |
 | `dashboard.maps.auto-download` | `true`/`false` | `false` | Auto-download map updates |
-| `dashboard.milestones.mode` | `off`/`regular`/`all` | `off` | No milestone output, regular milestones at 10 km and every 100 km, or regular milestones plus one-shot easter eggs; the menu demo always remains available |
+| `dashboard.milestones.mode` | `off`/`regular`/`all` | `off` | No milestone output, regular milestones at 10 km and every 100 km, or all milestones |
 | `dashboard.milestones.presentation` | `notice`/`banner`/`banner-and-confetti` | `banner-and-confetti` | Brief notice at the crossing, optionally followed by a ticket and confetti when parked |
 | `dashboard.hop-on-combo` | pipe-delimited tokens | _(empty)_ | Custom hop-on unlock combo |
 
