@@ -118,7 +118,7 @@ Settings are organized by section. Examples:
 - `dashboard.map.type` - Map tile source (online/offline)
 - `dashboard.map.render-mode` - Map rendering mode (vector/raster)
 - `dashboard.theme` - UI theme (light/dark/auto)
-- `dashboard.mode` - Default screen mode (speedometer/navigation/debug)
+- `dashboard.mode` - Default screen mode (`speedometer`/`navigation`/`debug`/`motion-debug`). Motion debug persists through live updates and TOML hydration. The dashboard requires developer mode or testing/nightly firmware to display it.
 - `dashboard.valhalla-url` - Valhalla routing service endpoint
 - `dashboard.app` - Display app to launch on DBC boot ("scootui-qt"/"scootui-tui"; default: "scootui-qt")
 - `dashboard.power-display-mode` - Power display unit (kw/amps; default: "kw")

@@ -274,7 +274,7 @@ Changes run as one bounded operation under the modem recovery lock:
 
 CID1 readback remains authoritative when the MM attach-settings method is unavailable. AT response bodies containing `ERROR`, `+CME ERROR` or `+CMS ERROR` fail the command even if the D-Bus call succeeded. Authentication command payloads, replies and settings errors do not log credentials.
 
-Failures attempt to restore the prior NM profile and actual CID1. An incomplete rollback retains the original snapshot and leaves the profile temporarily suspended for retry. Cancellation does not explicitly reattach during rollback. The service allows three apply attempts per settings/SIM/modem-path combination, with 30- and 60-second retry delays. Changed settings or identity, successful modem recovery, or a service restart permit a fresh attempt sequence. `apn-action=applied` requires a completed transaction; failures report `error`.
+Failures attempt to restore the prior NM profile and actual CID1. An incomplete rollback retains the original snapshot for retry. Cancellation does not explicitly reattach during rollback. The service allows three apply attempts per settings/SIM/modem-path combination, with 30- and 60-second retry delays. Changed settings or identity, successful modem recovery, or a service restart permit a fresh attempt sequence. `apn-action=applied` requires a completed transaction; failures report `error`.
 
 A SIM swap detected while the service is running clears NM and modem settings (`apn-action=iccid-changed-cleared`). Rollback must not restore the previous SIM's credentials. Reconciliation remains blocked until the configured APN settings change.
 
