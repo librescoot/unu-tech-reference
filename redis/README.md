@@ -299,7 +299,9 @@ hgetall dashboard
 
 See [Dashboard](../dashboard/README.md).
 
-### Installed Maps (`maps`) - Librescoot Only
+<a id="installed-maps-maps---librescoot-only"></a>
+
+### Installed Maps `maps` Librescoot Only
 
 ```
 hgetall maps
@@ -670,7 +672,9 @@ redis-cli -h 192.168.7.1 GET settings:schema
 
 See [settings-service documentation](../services/librescoot-settings.md) for details on persistent settings.
 
-#### Settings Overlay Commands (`settings:overlay`) - Librescoot Only
+<a id="settings-overlay-commands-settingsoverlay---librescoot-only"></a>
+
+#### Settings Overlay Commands `settings:overlay` Librescoot Only
 
 Apply or clear a named settings overlay. Overlays override live `settings` values in memory without ever writing them to `/data/settings.toml`; clearing restores the user's base values.
 
@@ -740,7 +744,9 @@ disarms: they describe the most recent trigger, not the current state.
 
 See [alarm-service documentation](../services/librescoot-alarm.md) for details.
 
-### Motion / IMU (`motion`) - Librescoot Only
+<a id="motion--imu-motion---librescoot-only"></a>
+
+### Motion IMU `motion` Librescoot Only
 
 ```
 hgetall motion
@@ -1019,7 +1025,9 @@ patch against and so forces a full update regardless of
 
 See [update-service documentation](../services/librescoot-update.md) for details.
 
-### BLE OTA Transfer Status (`ota:ble`) - Librescoot Only
+<a id="ble-ota-transfer-status-otable---librescoot-only"></a>
+
+### BLE OTA Transfer Status `ota:ble` Librescoot Only
 
 Written by bluetooth-service's OTA receiver while a phone pushes a firmware bundle over BLE (see [BLE OTA Firmware Transfer](../bluetooth/ota-transfer.md)):
 
@@ -1318,7 +1326,7 @@ The `scooter:motion` command queue has been removed, as was `scooter:bmx` before
 
 The manual `sensitivity`, `pin` and `interrupt` commands wrote registers that the profile controller overwrote on the next alarm or power-manager transition, which made them look like they worked and then silently revert. `reset` duplicated the `soft-reset` RPC.
 
-The remaining manual controls are RPC methods on `motion:rpc`. See [Motion / IMU (`motion`)](#motion--imu-motion---librescoot-only).
+The remaining manual controls are RPC methods on `motion:rpc`. See [Motion / IMU (`motion`)](#motion-imu-motion-librescoot-only).
 
 ### Power Control (`scooter:power`) - Librescoot Enhanced
 
@@ -1447,7 +1455,7 @@ See [update-service documentation](../services/librescoot-update.md).
 
 ### Settings Overlay Control (`settings:overlay`) - Librescoot Only
 
-Apply or clear a named settings overlay. See [Settings Overlay Commands](#settings-overlay-commands-settingsoverlay---librescoot-only) above for full details.
+Apply or clear a named settings overlay. See [Settings Overlay Commands](#settings-overlay-commands-settingsoverlay-librescoot-only) above for full details.
 
 ```bash
 # Enable Service mode

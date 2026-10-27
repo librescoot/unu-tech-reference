@@ -23,6 +23,10 @@ not transferable. Administrative writes may affect services consuming those
 files; uploads do not themselves install firmware or execute commands. Read-only
 version-1 Logs access stays available independently of this opt-in.
 
+## Logging
+
+Extended BLE command and response logs record a recognized category, not the payload. Raw UART debug logging records frame ID and payload length rather than bytes; malformed CBOR is logged without the raw message. Other diagnostic logs and log archives can still contain sensitive data and should be handled accordingly.
+
 ## Command-Line Options
 
 ```
@@ -168,7 +172,7 @@ version-1 Logs access stays available independently of this opt-in.
 
 ### Hash: `ota:ble`
 
-Transfer status of the BLE OTA receiver (see [BLE OTA Firmware Transfer](../bluetooth/ota-transfer.md) and the [field reference](../redis/README.md#ble-ota-transfer-status-otable---librescoot-only)):
+Transfer status of the BLE OTA receiver (see [BLE OTA Firmware Transfer](../bluetooth/ota-transfer.md) and the [field reference](../redis/README.md#ble-ota-transfer-status-otable-librescoot-only)):
 
 **Fields written:**
 

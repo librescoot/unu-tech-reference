@@ -64,6 +64,10 @@ The unu Scooter Pro uses a distributed architecture with several key systems:
   - System state management
   - [Full Redis documentation](redis/README.md)
 
+### Managed hostnames
+
+MDB and DBC initialize a missing or empty managed hostname boot hook from CFG1. The boot-time synchronization replaces only the exact legacy CFG0 hook for that board; customized commands remain unchanged. The changed hook takes effect on the next boot after synchronization. DNS, SSH configuration, monitoring and log searches that use the generated hostname may need adjustment. SSH host keys and the fixed-address `mdb` and `dbc` aliases do not change.
+
 ### Hardware Details
 
 Detailed documentation available for:
