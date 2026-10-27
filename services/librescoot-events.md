@@ -21,8 +21,7 @@ worker pool, scheduler and periodic statistics publisher still run.
 
 ## Version
 
-Packaged for MDB nightly builds ahead of Librescoot 1.4.0; not included in
-1.3.1 stable. Source: [event-service](https://github.com/librescoot/event-service).
+Packaged for the MDB. Source: [event-service](https://github.com/librescoot/event-service).
 The image's build revision determines the installed version.
 
 ## Command-Line Options

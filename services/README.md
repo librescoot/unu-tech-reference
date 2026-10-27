@@ -12,7 +12,7 @@ Librescoot provides the open-source services that run on the scooter. All servic
 | [librescoot-battery](librescoot-battery.md) | Main battery monitoring via NFC | `battery:0`, `battery:1` | PN7150 NFC readers (I2C), Redis |
 | [librescoot-vehicle](librescoot-vehicle.md) | Vehicle state machine coordinator | `vehicle` | GPIO inputs, PWM outputs, Redis |
 | [librescoot-ecu](librescoot-ecu.md) | Motor controller interface | `engine-ecu` | ECU (CAN bus), Redis |
-| [librescoot-events](librescoot-events.md) | Normalised event bus and optional rules (MDB nightly packaging; not 1.3.1 stable) | `extensions`, `extensions:pending` | Redis, optional CAN transmit |
+| [librescoot-events](librescoot-events.md) | Normalised event bus and optional rules (MDB) | `extensions`, `extensions:pending` | Redis, optional CAN transmit |
 | [librescoot-keycard](librescoot-keycard.md) | NFC keycard authentication | `keycard` | PN7150 (I2C), LP5562 LED (I2C), Redis |
 | [librescoot-modem](librescoot-modem.md) | Cellular and GPS | `internet`, `gps`, `modem` | ModemManager, gpsd, Redis |
 | [librescoot-pm](librescoot-pm.md) | System power management | `power-manager` | systemd-logind (D-Bus), Redis |
@@ -112,8 +112,7 @@ Services publish events to Redis channels when state changes:
 stream and publishes JSON on `ev:<topic>`. Those are not hashes. Its optional
 rules consume selected live topics and may push to configured command lists
 or run executables or transmit CAN frames. Without rules it makes no such commands and opens no
-additional `ev:*` subscription. This service is packaged for MDB nightly
-builds ahead of 1.4.0, not included in 1.3.1 stable.
+additional `ev:*` subscription. This service is packaged for the MDB.
 
 ### Command Lists
 Command producer services use LPUSH, consumer services use BRPOP:

@@ -1165,8 +1165,7 @@ channel to use for anything that counts or reacts to discrete user actions.
 
 ### Extension Event Interfaces - Librescoot Only
 
-[event-service](../services/librescoot-events.md) is packaged for MDB nightly
-builds ahead of 1.4.0, not included in 1.3.1 stable. It observes existing state
+[event-service](../services/librescoot-events.md) is packaged for the MDB. It observes existing state
 traffic without writing those source hashes. Its event and runtime interfaces are:
 
 | Name | Type | Contents |
