@@ -2,7 +2,7 @@
 
 ## Description
 
-The modem service manages the cellular modem (SimCom SIM7100E) for internet connectivity and GPS functionality using ModemManager (mmcli). It monitors network registration, signal quality, access technology (2G/3G/4G), handles modem power management and recovery, manages network connectivity, and provides GPS coordinates via gpsd. The service implements intelligent health monitoring with multi-strategy recovery procedures and GPS-specific recovery mechanisms. It also sends and receives SMS: outbound messages via the `scooter:sms` queue, inbound messages published to the `sms` hash.
+The modem service manages the cellular modem (SimCom SIM7100E) for internet connectivity and GPS functionality using ModemManager (mmcli). It monitors network registration, signal quality, access technology (2G/3G/4G), handles modem power management and recovery, manages network connectivity, and provides GPS coordinates via gpsd. The service implements intelligent health monitoring with multi-strategy recovery procedures and GPS-specific recovery mechanisms. It also sends and receives SMS: outbound messages use the `scooter:sms` queue, and received messages are persisted and projected to Redis.
 
 ## Command-Line Options
 
@@ -32,6 +32,8 @@ Usage of modem-service:
         Redis URL (default "redis://127.0.0.1:6379")
   -sms-keepalive
         Keep the CS (SGs) registration alive for SMS delivery via periodic self-calls
+  -sms-store-file string
+        Persistent SMS inbox path (default "/data/sms/inbox.db")
   -supl-server string
         SUPL server for A-GPS (default "supl.google.com:7276")
   -version
@@ -128,12 +130,12 @@ lost and the baseline restarted.
 - `last-received-from` - Sender number of the last inbound SMS
 - `last-received-text` - Body of the last inbound SMS
 - `last-received-at` - RFC 3339 timestamp the last inbound SMS arrived
-- `unread-count` - Inbound messages received since service start
+- `unread-count` - Shared unread count in the persistent inbox
 
 The `last-received-*` fields refresh silently; per-message notifications go to
 the dedicated channels below.
 
-**Streams (capped at 100 entries, one dedicated pub/sub channel each):**
+**Streams (approximately capped at 100 entries, one dedicated pub/sub channel each):**
 
 - `sms:received` - one entry per inbound message: `from`, `text`, `timestamp`.
   The `sms:received` channel carries each entry as JSON including its stream
@@ -143,11 +145,17 @@ the dedicated channels below.
   (`sent`/`error`), `error`, `timestamp`. The `sms:sent` channel carries each
   entry as JSON including its stream `id`.
 
-An inbound message is deleted from modem storage only after its XADD
-succeeded, so modem storage buffers messages across Redis outages and the
-periodic drain retries delivery. Messages that arrived while the service was
-offline are drained on startup. Redis is not persistent on librescoot: the
-streams are a live window, empty after reboot.
+An inbound message is committed to `/data/sms/inbox.db` before its modem copy
+is deleted. The inbox retains at most 100 messages for 30 days and projects a
+JSON snapshot to `sms:inbox[snapshot]`. Redis streams and channels are
+best-effort notifications, not durable history. Read and delete actions use the
+`sms:inbox:commands` queue. Binary SMS remain in the modem store.
+
+`sms.forward-to` defaults to `off`; a valid international mobile or landline
+number enables forwarding of newly received text messages. Forwarding is paused
+outside home registration, limited to 10 segments per UTC day, and expires after
+24 hours. Ambiguous send outcomes are not retried automatically. Carrier
+charges may apply.
 
 With `-sms-keepalive` enabled, the service keeps the CS (SGs) registration
 alive by briefly calling its own number after ~13 minutes without CS activity,

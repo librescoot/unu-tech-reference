@@ -291,6 +291,22 @@ per-phone authorization: any bonded phone with extended-command access can
 read schema-declared setting values and change any writable schema setting.
 Treat bonding as the authorization boundary.
 
+#### SMS inbox
+
+`sms=1` in `cap:ext` indicates that the inbox projection is available. Send
+`sms:start` to receive `s:s:<token>:<count>:<unread>` and freeze a snapshot.
+For each zero-based index, request `sms:get:<token>:<index>:<offset>:<budget>`.
+The offset is a base-36 byte offset and the budget is 20 to 244 bytes, no greater
+than ATT MTU minus three. Responses `s:p:<token>:<offset>:<base64url>` contain
+unpadded encoded bytes. Concatenate and decode bytes until
+`s:e:<token>:<offset>`, then parse the UTF-8 JSON message. `s:x:<reason>`
+reports an error. Sessions expire after five minutes of inactivity and are
+cleared on disconnect.
+
+`sms:read:<id>` and `sms:delete:<id>` reply `s:queued`; refresh the snapshot
+to confirm the action. Any bonded phone with extended-command access can read
+the inbox and change the `sms.forward-to` setting.
+
 ### OTA Transfer Service (9a590500)
 
 Firmware bundle transfer from the phone to the scooter (MDB and DBC updates over BLE). Windowed, resumable, integrity-checked; the nRF forwards these characteristics verbatim to bluetooth-service. See [BLE OTA Firmware Transfer](ota-transfer.md) for the full protocol.
