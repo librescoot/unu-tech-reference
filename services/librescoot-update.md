@@ -229,6 +229,18 @@ chain and installed once, so several staged deltas cost one install and one
 reboot. This is the path ums-service uses to hand over files imported from the
 USB drive.
 
+#### Signed delta artifacts
+
+Delta reconstruction preserves the target `version`, `manifest`, optional
+`manifest.sig`, and `header.tar.gz` verbatim. The signature is packed immediately
+after the manifest. Empty or non-file signature entries fail repacking without
+replacing an existing output; unsigned targets remain supported.
+
+The delta generator must include this metadata as complete new files, not
+xdelta patches. Signature enforcement uses Mender's verification-key
+configuration; preserving signatures does not enable signing or provision keys.
+See the [signed-artifact integration tests](https://github.com/librescoot/update-service#signed-artifact-and-delta-compatibility).
+
 #### Abandoned downloads
 
 A download that is too slow is abandoned rather than left to run indefinitely. Each
