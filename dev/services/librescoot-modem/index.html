@@ -24,7 +24,7 @@
       
       
       <link rel="icon" href="../../assets/favicon.png">
-      <meta name="generator" content="zensical-0.0.72">
+      <meta name="generator" content="zensical-0.0.73">
     
     
       
@@ -2481,7 +2481,7 @@
 
 <h1 id="librescoot-modem-modem-service">librescoot-modem (modem-service)<a class="headerlink" href="#librescoot-modem-modem-service" title="Permanent link">&para;</a></h1>
 <h2 id="description">Description<a class="headerlink" href="#description" title="Permanent link">&para;</a></h2>
-<p>The modem service manages the cellular modem (SimCom SIM7100E) for internet connectivity and GPS functionality using ModemManager (mmcli). It monitors network registration, signal quality, access technology (2G/3G/4G), handles modem power management and recovery, manages network connectivity, and provides GPS coordinates via gpsd. The service implements intelligent health monitoring with multi-strategy recovery procedures and GPS-specific recovery mechanisms. It also sends and receives SMS: outbound messages via the <code>scooter:sms</code> queue, inbound messages published to the <code>sms</code> hash.</p>
+<p>The modem service manages the cellular modem (SimCom SIM7100E) for internet connectivity and GPS functionality using ModemManager (mmcli). It monitors network registration, signal quality, access technology (2G/3G/4G), handles modem power management and recovery, manages network connectivity, and provides GPS coordinates via gpsd. The service implements intelligent health monitoring with multi-strategy recovery procedures and GPS-specific recovery mechanisms. It also sends and receives SMS: outbound messages use the <code>scooter:sms</code> queue, and received messages are persisted and projected to Redis.</p>
 <h2 id="command-line-options">Command-Line Options<a class="headerlink" href="#command-line-options" title="Permanent link">&para;</a></h2>
 <div class="language-text highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>Usage of modem-service:
 </span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>  -connectivity-targets string
@@ -2508,10 +2508,12 @@
 </span><span id="__span-0-23"><a id="__codelineno-0-23" name="__codelineno-0-23" href="#__codelineno-0-23"></a>        Redis URL (default "redis://127.0.0.1:6379")
 </span><span id="__span-0-24"><a id="__codelineno-0-24" name="__codelineno-0-24" href="#__codelineno-0-24"></a>  -sms-keepalive
 </span><span id="__span-0-25"><a id="__codelineno-0-25" name="__codelineno-0-25" href="#__codelineno-0-25"></a>        Keep the CS (SGs) registration alive for SMS delivery via periodic self-calls
-</span><span id="__span-0-26"><a id="__codelineno-0-26" name="__codelineno-0-26" href="#__codelineno-0-26"></a>  -supl-server string
-</span><span id="__span-0-27"><a id="__codelineno-0-27" name="__codelineno-0-27" href="#__codelineno-0-27"></a>        SUPL server for A-GPS (default "supl.google.com:7276")
-</span><span id="__span-0-28"><a id="__codelineno-0-28" name="__codelineno-0-28" href="#__codelineno-0-28"></a>  -version
-</span><span id="__span-0-29"><a id="__codelineno-0-29" name="__codelineno-0-29" href="#__codelineno-0-29"></a>        Print version and exit
+</span><span id="__span-0-26"><a id="__codelineno-0-26" name="__codelineno-0-26" href="#__codelineno-0-26"></a>  -sms-store-file string
+</span><span id="__span-0-27"><a id="__codelineno-0-27" name="__codelineno-0-27" href="#__codelineno-0-27"></a>        Persistent SMS inbox path (default "/data/sms/inbox.db")
+</span><span id="__span-0-28"><a id="__codelineno-0-28" name="__codelineno-0-28" href="#__codelineno-0-28"></a>  -supl-server string
+</span><span id="__span-0-29"><a id="__codelineno-0-29" name="__codelineno-0-29" href="#__codelineno-0-29"></a>        SUPL server for A-GPS (default "supl.google.com:7276")
+</span><span id="__span-0-30"><a id="__codelineno-0-30" name="__codelineno-0-30" href="#__codelineno-0-30"></a>  -version
+</span><span id="__span-0-31"><a id="__codelineno-0-31" name="__codelineno-0-31" href="#__codelineno-0-31"></a>        Print version and exit
 </span></code></pre></div>
 <p><strong>Active polling intervals:</strong></p>
 <ul>
@@ -2591,11 +2593,11 @@ lost and the baseline restarted.</p>
 <li><code>last-received-from</code> - Sender number of the last inbound SMS</li>
 <li><code>last-received-text</code> - Body of the last inbound SMS</li>
 <li><code>last-received-at</code> - RFC 3339 timestamp the last inbound SMS arrived</li>
-<li><code>unread-count</code> - Inbound messages received since service start</li>
+<li><code>unread-count</code> - Shared unread count in the persistent inbox</li>
 </ul>
 <p>The <code>last-received-*</code> fields refresh silently; per-message notifications go to
 the dedicated channels below.</p>
-<p><strong>Streams (capped at 100 entries, one dedicated pub/sub channel each):</strong></p>
+<p><strong>Streams (approximately capped at 100 entries, one dedicated pub/sub channel each):</strong></p>
 <ul>
 <li><code>sms:received</code> - one entry per inbound message: <code>from</code>, <code>text</code>, <code>timestamp</code>.
   The <code>sms:received</code> channel carries each entry as JSON including its stream
@@ -2605,11 +2607,17 @@ the dedicated channels below.</p>
   (<code>sent</code>/<code>error</code>), <code>error</code>, <code>timestamp</code>. The <code>sms:sent</code> channel carries each
   entry as JSON including its stream <code>id</code>.</li>
 </ul>
-<p>An inbound message is deleted from modem storage only after its XADD
-succeeded, so modem storage buffers messages across Redis outages and the
-periodic drain retries delivery. Messages that arrived while the service was
-offline are drained on startup. Redis is not persistent on librescoot: the
-streams are a live window, empty after reboot.</p>
+<p>An inbound message is committed to <code>/data/sms/inbox.db</code> before its modem copy
+is deleted. The inbox retains at most 100 messages for 30 days and projects a
+JSON snapshot to <code>sms:inbox[snapshot]</code>. Redis streams and channels are
+best-effort notifications, not durable history. Read and delete actions use the
+<code>sms:inbox:commands</code> queue. Binary SMS remain in the modem store.</p>
+<p><code>sms.forward-to</code> defaults to <code>off</code>; a valid international mobile or landline
+number enables forwarding of newly received text messages. Forwarding is paused
+outside home registration, limited to 10 segments per UTC day, and expires after
+24 hours. Messages without a usable network timestamp are stored but not
+forwarded. Ambiguous send outcomes are not retried automatically. Carrier charges
+may apply.</p>
 <p>With <code>-sms-keepalive</code> enabled, the service keeps the CS (SGs) registration
 alive by briefly calling its own number after ~13 minutes without CS activity,
 working around operators that implicitly detach idle CS registrations (which
@@ -3119,7 +3127,7 @@ drops the inhibitor after <code>PowerOffModem</code>, and the suspend proceeds.<
       <script id="__config" type="application/json">{"annotate":null,"base":"../..","features":["content.action.edit","content.code.copy","content.code.select","content.tooltips","navigation.footer","navigation.indexes","navigation.instant","navigation.instant.prefetch","navigation.path","navigation.sections","navigation.top","navigation.tracking","search.highlight","toc.follow"],"redirect":null,"search":"../../assets/javascripts/workers/search.c47bb847.min.js","tags":null,"translations":{"clipboard.copied":"Copied to clipboard","clipboard.copy":"Copy to clipboard","clipboard.error":"Could not copy to clipboard","search.result.more.one":"1 more on this page","search.result.more.other":"# more on this page","search.result.none":"No matching documents","search.result.one":"1 matching document","search.result.other":"# matching documents","search.result.placeholder":"Type to start searching","search.result.term.missing":"Missing","select.version":"Select version"},"version":{"provider":"mike"}}</script>
     
     
-      <script src="../../assets/javascripts/bundle.10ee5ab6.min.js"></script>
+      <script src="../../assets/javascripts/bundle.77dd0ce9.min.js"></script>
       
     
   </body>
