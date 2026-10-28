@@ -830,10 +830,10 @@ hgetall modem
 
 ### SMS (`sms` hash, `sms:received` / `sms:sent` streams) - Librescoot Only
 
-Per-message SMS data lives on two Redis streams, each with a dedicated pub/sub
-channel of the same name; the `sms` hash only carries latest-value convenience
-state. Redis is not persistent on librescoot, so the streams are a live window
-(capped at 100 entries), not an archive.
+The received inbox is persisted by modem-service in `/data/sms/inbox.db` and
+projected to the `sms:inbox` hash. The `sms:received` and `sms:sent` streams
+and their dedicated pub/sub channels provide a volatile event window. Stream
+trimming uses an approximate 100-entry limit.
 
 #### `sms` hash
 
@@ -849,7 +849,7 @@ hgetall sms
 | last-received-from | string | Sender number of the last inbound SMS | "+4915112345678" |
 | last-received-text | string | Body of the last inbound SMS | "Hello" |
 | last-received-at | string | RFC 3339 timestamp the last inbound SMS arrived | "2026-07-15T09:30:00+02:00" |
-| unread-count | string | Inbound messages received since service start | "3" |
+| unread-count | string | Shared unread count from the persistent inbox | "3" |
 
 The `last-received-*` fields are refreshed silently; the per-message
 notification is the dedicated `sms:received` channel below.
@@ -865,10 +865,25 @@ SUBSCRIBE sms:received        # {"id":"1752...-0","from":"+4930...","text":"Hell
 XREAD STREAMS sms:received 0  # catch-up from the beginning of the window
 ```
 
-A message is only deleted from modem storage after its XADD succeeds, so a
-Redis outage doesn't lose mail (the modem store buffers it and modem-service
-retries). Messages that arrived while the service was offline are drained on
-startup.
+Messages are committed to the persistent inbox before their modem copies are
+deleted. The stream and channel are best-effort notifications; consumers should
+read the inbox projection after reconnecting. Messages that arrived while the
+service was offline are drained on startup when ModemManager exposes them.
+
+#### `sms:inbox` hash and command queue
+
+`sms:inbox[snapshot]` contains JSON with `version` 1, `unread`, `forward-to`,
+and a `messages` array. Each message contains `id`, `from`, `text`, `timestamp`,
+`received-at` in Unix milliseconds, `read`, and optional `forward-status`.
+The inbox retains at most 100 messages for 30 days. The hash channel publishes
+`snapshot` when the projection changes and on periodic refresh.
+
+Push `{"action":"read","id":"<id>"}` or `{"action":"delete","id":"<id>"}`
+to `sms:inbox:commands`; observe the resulting snapshot to confirm the change.
+`sms.forward-to` is `off` by default or a validated international destination.
+Forwarding applies only to new text SMS, is paused outside home registration,
+and is limited to 10 segments per UTC day with a 24-hour queue expiry. Ambiguous
+send outcomes are not retried automatically.
 
 #### `sms:sent` stream + channel
 
