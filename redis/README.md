@@ -882,8 +882,9 @@ Push `{"action":"read","id":"<id>"}` or `{"action":"delete","id":"<id>"}`
 to `sms:inbox:commands`; observe the resulting snapshot to confirm the change.
 `sms.forward-to` is `off` by default or a validated international destination.
 Forwarding applies only to new text SMS, is paused outside home registration,
-and is limited to 10 segments per UTC day with a 24-hour queue expiry. Ambiguous
-send outcomes are not retried automatically.
+and is limited to 10 segments per UTC day with a 24-hour queue expiry. Messages
+without a usable network timestamp are stored but not forwarded. Ambiguous send
+outcomes are not retried automatically.
 
 #### `sms:sent` stream + channel
 

@@ -154,8 +154,9 @@ best-effort notifications, not durable history. Read and delete actions use the
 `sms.forward-to` defaults to `off`; a valid international mobile or landline
 number enables forwarding of newly received text messages. Forwarding is paused
 outside home registration, limited to 10 segments per UTC day, and expires after
-24 hours. Ambiguous send outcomes are not retried automatically. Carrier
-charges may apply.
+24 hours. Messages without a usable network timestamp are stored but not
+forwarded. Ambiguous send outcomes are not retried automatically. Carrier charges
+may apply.
 
 With `-sms-keepalive` enabled, the service keeps the CS (SGs) registration
 alive by briefly calling its own number after ~13 minutes without CS activity,
