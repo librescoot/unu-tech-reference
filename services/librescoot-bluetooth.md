@@ -4,6 +4,27 @@
 
 The Bluetooth service provides the BLE (Bluetooth Low Energy) interface for the scooter and manages communication with the nRF52840 chip via UART. It acts as a communication bridge between the nRF52 BLE chip and Redis-based backend system, handling bidirectional translation of messages. The service exposes BLE GATT characteristics for remote control and monitoring (via nRF firmware), processes UART messages from the nRF chip, and publishes battery/vehicle state updates to Redis.
 
+## Read-only hash queries
+
+`cap:ext` advertises `hash=1`; `cap:hash` lists the request forms. Bonded
+phones with extended-command access can read only `present` and
+`serial-number` from `battery:0` and `battery:1`. This is not general Redis
+access: other hashes and fields are denied, and writes, key discovery and
+hash-wide reads are not provided. Values are returned as unchanged strings or
+`null` for missing fields, not interpreted battery data.
+
+A `hash:read` request freezes up to two distinct fields in request order.
+`hash:get` pulls the resulting JSON array in base64url-encoded byte chunks;
+the client supplies a notification budget no larger than the negotiated ATT
+MTU minus three. Requests use fresh eight-digit lowercase hexadecimal IDs.
+Each field is limited to 256 UTF-8 bytes and the encoded snapshot to 4096 bytes.
+Four snapshots are allowed globally, each expiring after five minutes;
+disconnection clears snapshots and invalidates pending reads and responses.
+At most four handlers run concurrently, and excess requests can be dropped.
+Clients need timeouts and a manual retry path with a fresh ID for a new read.
+Values and request payloads are not logged. The full framing and error contract
+is documented in the [Bluetooth service protocol](https://github.com/librescoot/bluetooth-service/blob/5ffa7c64cc028f83cb899efcf5945964c7387cb7/README.md#read-only-hash-queries).
+
 ## File transfer
 
 `files=1` in `cap:ext` identifies support for the separate bidirectional binary
