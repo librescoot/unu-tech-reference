@@ -128,10 +128,24 @@ lost and the baseline restarted.
 - `last-received-from` - Sender number of the last inbound SMS
 - `last-received-text` - Body of the last inbound SMS
 - `last-received-at` - RFC 3339 timestamp the last inbound SMS arrived
-- `unread-count` - Inbound messages received since service start
+- `unread-count` - Number of unread messages in the persistent inbox
 
 The `last-received-*` fields refresh silently; per-message notifications go to
 the dedicated channels below.
+
+The inbox is persisted in `/data/sms/inbox.db`, limited to 100 messages and
+30 days. `sms:inbox[snapshot]` projects messages, shared read status, unread
+count and forwarding destination; JSON read/delete actions go to
+`sms:inbox:commands`. Bonded phones with extended-command access can read the
+inbox; the dashboard offers it while parked. Treat message content and paired
+phones as sensitive.
+
+`sms.forward-to` defaults to `off` or accepts a valid international mobile or
+landline number. Only new text messages with usable network timestamps are
+forwarded, only on home registration, up to ten SMS segments per UTC day;
+queued jobs expire after 24 hours. Changing the destination cancels queued jobs.
+Failed or interrupted sends are not automatically retried. Modem acceptance
+is not delivery confirmation, and carrier charges may apply.
 
 **Streams (capped at 100 entries, one dedicated pub/sub channel each):**
 
@@ -143,11 +157,11 @@ the dedicated channels below.
   (`sent`/`error`), `error`, `timestamp`. The `sms:sent` channel carries each
   entry as JSON including its stream `id`.
 
-An inbound message is deleted from modem storage only after its XADD
-succeeded, so modem storage buffers messages across Redis outages and the
-periodic drain retries delivery. Messages that arrived while the service was
-offline are drained on startup. Redis is not persistent on librescoot: the
-streams are a live window, empty after reboot.
+The persistent inbox is committed before event publication and modem deletion.
+An inbox write failure leaves modem-stored messages available for retry;
+event publication can fail independently. Messages that arrived while the
+service was offline are drained on startup. Redis streams are a live window,
+empty after reboot.
 
 With `-sms-keepalive` enabled, the service keeps the CS (SGs) registration
 alive by briefly calling its own number after ~13 minutes without CS activity,

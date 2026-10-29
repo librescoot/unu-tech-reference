@@ -97,7 +97,7 @@ Speed display can adapt to the user's preferred unit system (metric/imperial), b
 
 The Qt dashboard uses zero as a temporary placeholder while its initial Redis connection is pending. The one-shot startup window has a three-second monotonic deadline, checked every 250 ms. The first connection, an explicit disconnect condition or `ready-to-drive` ends the window permanently. Reconnecting does not reopen it.
 
-ECU fault E20 and known nonzero corrected or raw speed retain the dash. Stale moving telemetry and later disconnects keep their existing masks. This presentation policy leaves telemetry trust and dashboard readiness unchanged; the placeholder is not evidence of a fresh ECU sample. See [scootui-qt v1.19.4](https://github.com/librescoot/scootui-qt/tree/v1.19.4).
+ECU fault E20 and known nonzero corrected or raw speed retain the dash. Known moving telemetry and later disconnects keep their existing masks. Unchanged values alone do not establish staleness. This presentation policy leaves telemetry trust and dashboard readiness unchanged; the placeholder is not evidence of a fresh ECU sample. See [scootui-qt v1.20.1](https://github.com/librescoot/scootui-qt/tree/v1.20.1).
 
 ### Navigation View
 

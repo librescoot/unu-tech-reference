@@ -4,6 +4,14 @@
 
 The Bluetooth service provides the BLE (Bluetooth Low Energy) interface for the scooter and manages communication with the nRF52840 chip via UART. It acts as a communication bridge between the nRF52 BLE chip and Redis-based backend system, handling bidirectional translation of messages. The service exposes BLE GATT characteristics for remote control and monitoring (via nRF firmware), processes UART messages from the nRF chip, and publishes battery/vehicle state updates to Redis.
 
+## SMS inbox
+
+`cap:ext` advertises `sms=1` when the inbox projection is available. Bonded
+phones with extended-command access can read the shared inbox and queue read
+or delete actions. `sms:start` freezes a snapshot; `sms:get` pulls individual
+messages in MTU-budgeted base64url chunks. Sessions expire after five minutes
+of inactivity and are cleared on disconnect. See the [protocol](https://github.com/librescoot/bluetooth-service/blob/5ffa7c64cc028f83cb899efcf5945964c7387cb7/README.md#operation-and-interfaces).
+
 ## Read-only hash queries
 
 `cap:ext` advertises `hash=1`; `cap:hash` lists the request forms. Bonded

@@ -855,10 +855,20 @@ hgetall sms
 | last-received-from | string | Sender number of the last inbound SMS | "+4915112345678" |
 | last-received-text | string | Body of the last inbound SMS | "Hello" |
 | last-received-at | string | RFC 3339 timestamp the last inbound SMS arrived | "2026-07-15T09:30:00+02:00" |
-| unread-count | string | Inbound messages received since service start | "3" |
+| unread-count | string | Number of unread messages in the persistent inbox | "3" |
 
 The `last-received-*` fields are refreshed silently; the per-message
 notification is the dedicated `sms:received` channel below.
+
+#### Persistent inbox
+
+The modem service stores up to 100 received messages for 30 days in
+`/data/sms/inbox.db`. `sms:inbox[snapshot]` contains a JSON projection with
+`version`, `unread`, `forward-to` and `messages`. Read and delete actions are
+JSON objects on `sms:inbox:commands`, for example
+`{"action":"read","id":"<id>"}`. Read state is shared. The projection is
+republished after changes and periodically; the streams are not the archive.
+See [modem-service](../services/librescoot-modem.md#sms-hash-sms-streams-smsreceived-smssent).
 
 #### `sms:received` stream + channel
 
@@ -871,10 +881,10 @@ SUBSCRIBE sms:received        # {"id":"1752...-0","from":"+4930...","text":"Hell
 XREAD STREAMS sms:received 0  # catch-up from the beginning of the window
 ```
 
-A message is only deleted from modem storage after its XADD succeeds, so a
-Redis outage doesn't lose mail (the modem store buffers it and modem-service
-retries). Messages that arrived while the service was offline are drained on
-startup.
+The persistent inbox is committed before event publication and modem deletion.
+An inbox write failure leaves modem-stored messages available for retry; event
+publication can fail independently. Messages that arrived while the service was
+offline are drained on startup.
 
 #### `sms:sent` stream + channel
 

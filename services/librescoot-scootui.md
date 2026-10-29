@@ -105,6 +105,25 @@ make clean    # Remove build directory
 | `SCOOTUI_RESOLUTION` | `480x480` | Display resolution (`WIDTHxHEIGHT`) |
 | `SCOOTUI_SETTINGS_PATH` | _(none)_ | Path to persistent settings file |
 
+## Ride start, telemetry and boot handoff
+
+While parked, `vehicle[drive-start-status]` drives the shared notification card
+for battery activation, power and ECU waits, throttle, motion, seatbox and
+start timeout. The dashboard does not authorize driving. Unchanged telemetry
+values alone do not imply stale speed or power. E20 masks both, and lost
+MDB telemetry trust masks speed; the bounded startup-zero presentation does
+not override E20 or connection loss during a ride.
+
+System information converts ECU `energy:consumed` and `energy:recovered` from
+mWh to kWh. Missing or invalid values remain unknown.
+
+On a configured framebuffer overlay, the GPU renders live UI frames to fb1
+while the animation continues on fb0. After the first UI frame, the overlay
+fades in over one second, then the animation is stopped. A failed or timed-out
+fade attempts direct reveal; failure exits for service restart. Without an
+overlay, the KMS first-frame handoff applies. The fbdev integration preserves
+the requested depth and stencil buffers used for geometry and clipping.
+
 ## Redis Operations
 
 ### Subscriptions (pub/sub + periodic HGETALL)

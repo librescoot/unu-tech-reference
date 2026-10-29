@@ -275,6 +275,15 @@ observations on every motion frame, including unchanged values, and explicit
 invalidations on loss of trustworthy evidence. See the
 [contract](https://github.com/librescoot/ecu-service/blob/main/MOTION_IPC.md).
 
+While parked, vehicle-service requests ride start and publishes
+`vehicle[drive-start-status]`. Battery-service responds to `waiting-battery`
+with an immediate coalesced sampling round; ECU-service requests full status
+snapshots for `waiting-ecu`, `release-throttle` and `stop-vehicle`, subject to
+power, grace period, communication health and rate limits. Actual fresh
+`engine-ecu:motion` evidence and an active supply remain mandatory; a request
+alone does not authorize driving. ScootUI displays the status without owning the
+interlock. See [vehicle-service](services/librescoot-vehicle.md#ready-to-drive-conditions).
+
 **Hardware access:** one SocketCAN socket with a timestamped receive pump,
 bounded ordered dispatcher and asynchronous TX worker. Other services' CAN
 access is unchanged.
