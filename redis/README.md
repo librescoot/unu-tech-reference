@@ -839,7 +839,7 @@ hgetall modem
 Per-message SMS data lives on two Redis streams, each with a dedicated pub/sub
 channel of the same name; the `sms` hash only carries latest-value convenience
 state. Redis is not persistent on librescoot, so the streams are a live window
-(capped at 100 entries), not an archive.
+(approximately capped at 100 entries), not an archive.
 
 #### `sms` hash
 

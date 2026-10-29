@@ -140,6 +140,8 @@ count and forwarding destination; JSON read/delete actions go to
 inbox; the dashboard offers it while parked. Treat message content and paired
 phones as sensitive.
 
+Binary SMS remain in the modem store.
+
 `sms.forward-to` defaults to `off` or accepts a valid international mobile or
 landline number. Only new text messages with usable network timestamps are
 forwarded, only on home registration, up to ten SMS segments per UTC day;
@@ -147,7 +149,7 @@ queued jobs expire after 24 hours. Changing the destination cancels queued jobs.
 Failed or interrupted sends are not automatically retried. Modem acceptance
 is not delivery confirmation, and carrier charges may apply.
 
-**Streams (capped at 100 entries, one dedicated pub/sub channel each):**
+**Streams (approximately capped at 100 entries, one dedicated pub/sub channel each):**
 
 - `sms:received` - one entry per inbound message: `from`, `text`, `timestamp`.
   The `sms:received` channel carries each entry as JSON including its stream
