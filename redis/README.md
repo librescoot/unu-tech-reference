@@ -103,7 +103,7 @@ Evidence expires after 500 ms. Source changes, lost/reordered sequences,
 reconnects and invalidation end stopped qualification. There is no retained value
 or `HGET` fallback. The existing `engine-ecu` hash and its field-name notifications
 are unchanged. See the
-[complete contract](https://github.com/librescoot/ecu-service/blob/main/MOTION_IPC.md)
+[complete contract](https://github.com/librescoot/ecu-service/blob/0e03a8b2d756f04a5ba87607081894eb01fa174d/MOTION_IPC.md)
 and [battery admission gates](../services/librescoot-battery.md#experimental-dual-pack-admission).
 
 ### Battery Management (`battery:0` and `battery:1`)

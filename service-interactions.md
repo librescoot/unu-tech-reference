@@ -273,7 +273,7 @@ observations without deciding battery activation.
 The additional `engine-ecu:motion` channel publishes versioned direct-value
 observations on every motion frame, including unchanged values, and explicit
 invalidations on loss of trustworthy evidence. See the
-[contract](https://github.com/librescoot/ecu-service/blob/main/MOTION_IPC.md).
+[contract](https://github.com/librescoot/ecu-service/blob/0e03a8b2d756f04a5ba87607081894eb01fa174d/MOTION_IPC.md).
 
 While parked, vehicle-service requests ride start and publishes
 `vehicle[drive-start-status]`. Battery-service responds to `waiting-battery`
