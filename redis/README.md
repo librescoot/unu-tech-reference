@@ -50,6 +50,7 @@ hgetall vehicle
 | blinker:switch | "left"/"right"/"both"/"off" | Blinker switch position | "off" |
 | blinker:state | "on"/"off" | Blinker active state | "off" |
 | state | "stand-by"/"parked"/"hop-on"/"hop-on-learning"/"ready-to-drive"/"waiting-seatbox"/"shutting-down"/"updating"/"waiting-hibernation"/"waiting-hibernation-advanced"/"waiting-hibernation-seatbox"/"waiting-hibernation-confirm" | Vehicle operating state | "stand-by" |
+| drive-start-status | string | Pending ride-start guidance: empty, `waiting-battery`, `waiting-power`, `waiting-ecu`, `release-throttle`, `stop-vehicle`, `close-seatbox` or `timeout` | "waiting-battery" |
 | auto-standby-deadline | integer (Unix timestamp) | When auto-standby will trigger (only present when timer active) | "1734567890" |
 | auto-standby-remaining | integer (sec) | Seconds left until auto-standby (absent when the timer is not running) | "900" |
 | engine-power | "on"/"off" | Motor controller power enable | "off" |

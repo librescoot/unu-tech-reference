@@ -208,8 +208,9 @@ qualification without stopping established supplies or ordinary parked admission
 The [motion contract](https://github.com/librescoot/battery-service/blob/main/MOTION_IPC.md)
 defines the observation and invalidation payloads.
 
-With the base flag off, slot 1 retains its per-insertion voltage gate and the
-startup and role-change checks against published voltages.
+The shared ON guard remains active with the experimental flag off. It uses
+fresh complete NFC acquisitions, not cached Redis voltages; a mismatched second
+pack stays off without displacing a confirmed running supply.
 
 See [battery-service README](https://github.com/librescoot/battery-service#dual-battery-activation)
 for the timing and voltage limits. The experimental path needs bench testing

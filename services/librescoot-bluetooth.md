@@ -30,6 +30,7 @@ Four snapshots are allowed globally, each expiring after five minutes;
 disconnection clears snapshots and invalidates pending reads and responses.
 At most four handlers run concurrently, and excess requests can be dropped.
 Clients need timeouts and a manual retry path with a fresh ID for a new read.
+The compatible [app reader](https://github.com/librescoot/mobile-app/blob/567d3e36c4a95bec0efd6ad05fa45b0dd78d367a/docs/ble-hash-reads.md) requires `hash=1`, has no legacy fallback or automatic retries, and treats reported values as potentially cached, not fresh measurements.
 Values and request payloads are not logged. The full framing and error contract
 is documented in the [Bluetooth service protocol](https://github.com/librescoot/bluetooth-service/blob/5ffa7c64cc028f83cb899efcf5945964c7387cb7/README.md#read-only-hash-queries).
 
