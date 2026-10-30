@@ -64,6 +64,18 @@ The unu Scooter Pro uses a distributed architecture with several key systems:
   - System state management
   - [Full Redis documentation](redis/README.md)
 
+### MDB network support
+
+The MDB kernel includes TUN, IPv4 and IPv6 policy routing, and the netfilter mark matcher needed for Tailscale networking. This support does not install or enroll a Tailscale daemon.
+
+### NFC reader configuration
+
+The MDB device tree maps the three PN7150 readers' supply inputs to a fixed always-on regulator. The optional FIRM and CLKREQ GPIOs are absent and logged at debug level; required enable and interrupt GPIO failures remain errors. Wake and power-control GPIO behavior is unchanged.
+
+### Managed hostnames
+
+MDB and DBC initialize a missing or empty managed hostname boot hook from CFG1. The boot-time synchronization replaces only the exact legacy CFG0 hook for that board; customized commands remain unchanged. The changed hook takes effect on the next boot after synchronization. DNS, SSH configuration, monitoring and log searches that use the generated hostname may need adjustment. SSH host keys and the fixed-address `mdb` and `dbc` aliases do not change.
+
 ### Hardware Details
 
 Detailed documentation available for:

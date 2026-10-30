@@ -54,6 +54,10 @@ slot, its notification companion is shown instead; navigation graphics remain
 on the cluster and map screens. Dismissing or expiring the last notification
 restores the full maintenance content area.
 
+When a recent GPS fix is not accurate enough for routing, the map stays visible and an accuracy-wait explanation uses the shared notification card, including its priority selection, cycling and preemption.
+
+Clearing Bluetooth connections requires confirmation and is available only while parked. Feedback confirms the request, not completion; when the dashboard is already disconnected, it reports an error and queues no request.
+
 ## Build
 
 ### Desktop (simulator mode)
@@ -100,6 +104,25 @@ make clean    # Remove build directory
 | `SCOOTUI_REDIS_HOST` | `192.168.7.1` | Redis host. `none` = simulator mode. Supports `host:port`. |
 | `SCOOTUI_RESOLUTION` | `480x480` | Display resolution (`WIDTHxHEIGHT`) |
 | `SCOOTUI_SETTINGS_PATH` | _(none)_ | Path to persistent settings file |
+
+## Ride start, telemetry and boot handoff
+
+While parked, `vehicle[drive-start-status]` drives the shared notification card
+for battery activation, power and ECU waits, throttle, motion, seatbox and
+start timeout. The dashboard does not authorize driving. Unchanged telemetry
+values alone do not imply stale speed or power. E20 masks both, and lost
+MDB telemetry trust masks speed; the bounded startup-zero presentation does
+not override E20 or connection loss during a ride.
+
+System information converts ECU `energy:consumed` and `energy:recovered` from
+mWh to kWh. Missing or invalid values remain unknown.
+
+On a configured framebuffer overlay, the GPU renders live UI frames to fb1
+while the animation continues on fb0. After the first UI frame, the overlay
+fades in over one second, then the animation is stopped. A failed or timed-out
+fade attempts direct reveal; failure exits for service restart. Without an
+overlay, the KMS first-frame handoff applies. The fbdev integration preserves
+the requested depth and stencil buffers used for geometry and clipping.
 
 ## Redis Operations
 
@@ -181,7 +204,7 @@ Settings are stored in the `settings` Redis hash. Managed by settings-service.
 | `dashboard.valhalla-url` | URL | `http://127.0.0.1:8002/` | Valhalla routing endpoint |
 | `dashboard.maps.check-for-updates` | `true`/`false` | `false` | Auto-check for map updates |
 | `dashboard.maps.auto-download` | `true`/`false` | `false` | Auto-download map updates |
-| `dashboard.milestones.mode` | `off`/`regular`/`all` | `off` | No milestone output, regular milestones at 10 km and every 100 km, or regular milestones plus one-shot easter eggs; the menu demo always remains available |
+| `dashboard.milestones.mode` | `off`/`regular`/`all` | `off` | No milestone output, regular milestones at 10 km and every 100 km, or all milestones |
 | `dashboard.milestones.presentation` | `notice`/`banner`/`banner-and-confetti` | `banner-and-confetti` | Brief notice at the crossing, optionally followed by a ticket and confetti when parked |
 | `dashboard.hop-on-combo` | pipe-delimited tokens | _(empty)_ | Custom hop-on unlock combo |
 
@@ -254,11 +277,35 @@ On Linux startup:
 
 On SIGTERM or `vehicle state` → `shutting-down`: `ShutdownStore::forceBlackout()` blacks out the display.
 
+## Multi-stop route continuation
+
+The durable route plan belongs to settings-service; the dashboard edits it through
+[route-plan RPC](librescoot-settings.md). A plan and its current stop survive a
+dashboard restart. Recovery waits for the routing engine when it is not ready yet.
+
+At a reached intermediate stop, `NavigationService` starts a 30-second countdown
+only in `ready-to-drive`. Expiry advances to the next stop through `plan.advance`.
+Opening the riding shortcut menu holds the countdown. With that menu closed, a
+seatbox-switch press pauses the plan. Leaving drive mode also cancels the
+countdown and pauses the plan; after a reached stop, entering drive mode again
+advances to the next stop. A paused, unfinished leg can resume on entering
+`parked`, but a reached stop waits for `ready-to-drive`.
+
+Brake gestures do not confirm or reject the arrival prompt: `InputHandler`
+forwards brake menu input only while parked. The shortcut menu's keep-stop action
+uses `plan.unreach` to retain the current target and suppress drive-mode arrival
+until dismount. Skipping is a separate action and does not mark a stop reached.
+
+Source: [NavigationService.cpp](https://github.com/librescoot/scootui-qt/blob/1e4b3a150d965ad4355416535f39489409486184/src/services/NavigationService.cpp),
+[NavigationService.h](https://github.com/librescoot/scootui-qt/blob/1e4b3a150d965ad4355416535f39489409486184/src/services/NavigationService.h),
+[InputHandler.cpp](https://github.com/librescoot/scootui-qt/blob/1e4b3a150d965ad4355416535f39489409486184/src/services/InputHandler.cpp)
+and [ShortcutMenuStore.cpp](https://github.com/librescoot/scootui-qt/blob/1e4b3a150d965ad4355416535f39489409486184/src/stores/ShortcutMenuStore.cpp).
+
 ## Map Tiles
 
 A singleton installation reads `/data/maps/map.mbtiles` on the DBC. The app watches `/data/maps/` via inotify and reloads map services when the file appears or changes. A regional installation reads `tiles_<slug>.mbtiles` and the matching `valhalla_tiles_<slug>.tar`; a recent GPS fix selects a named pack using its MBTiles `bounds`. If `map.mbtiles` exists, regional selection requires `/data/valhalla/tiles.tar` to be a symlink, so named files alone do not change a singleton installation.
 
-What is installed is recorded in `/data/maps/metadata.json` (region slug, per-artifact SHA-256, upstream publication time, last update check) and mirrored into the [`maps`](../redis/README.md#installed-maps-maps---librescoot-only) Redis hash on the MDB. scootui-qt republishes the hash on every Redis reconnect, because the MDB's valkey keeps nothing across a reboot. The same values back the System > Info > Maps screen, so the dashboard and an MDB-side consumer cannot report different things.
+What is installed is recorded in `/data/maps/metadata.json` (region slug, per-artifact SHA-256, upstream publication time, last update check) and mirrored into the [`maps`](../redis/README.md#installed-maps-maps-librescoot-only) Redis hash on the MDB. scootui-qt republishes the hash on every Redis reconnect, because the MDB's valkey keeps nothing across a reboot. The same values back the System > Info > Maps screen, so the dashboard and an MDB-side consumer cannot report different things.
 
 Routing tiles live separately at `/data/valhalla/tiles.tar`, which Valhalla mmaps as its `tile_extract` and which therefore has to resolve to an uncompressed seekable tar. In regional mode the dashboard swaps that symlink atomically and restarts Valhalla when the selected region changes. A missing matching archive stops local Valhalla rather than serving another region's graph. Routes must be entirely within the active region; cross-region routing is not supported. The built-in map updater continues to serve singleton installations, while regional packs are installed through USB update mode.
 

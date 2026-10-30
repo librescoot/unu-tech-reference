@@ -34,7 +34,7 @@ When a field is published to the `settings` channel, the service:
 
 1. Reads the new value from Redis
 2. Updates the TOML file
-3. Performs special handling for certain fields (e.g., APN updates)
+3. Applies special handling for supported fields such as `scooter.logserver`
 
 ### List: `settings:overlay` (command queue)
 
@@ -237,18 +237,11 @@ channel = "stable"
 check-interval = "12h"
 ```
 
-### NetworkManager APN Configuration
+### Cellular APN ownership
 
-When `cellular.apn` is updated, the service automatically updates:
+Settings-service persists `cellular.apn`, including an explicitly empty value, and publishes it during boot hydration. Live changes use the normal hash-update and field-notification contract. Other settings, including credentials and custom namespaces, remain unchanged by an APN-only edit.
 
-**File:** `/etc/NetworkManager/system-connections/wwan.nmconnection`
-
-The service:
-
-1. Reads the existing nmconnection file
-2. Updates the `apn=` field in the `[gsm]` section
-3. Writes the updated file
-4. NetworkManager automatically reloads the connection
+Modem-service v0.15.1 or later owns APN application, including the bounded profile and attach transaction, durable commit and rollback. Settings-service does not edit NetworkManager profiles or restart NetworkManager for APN changes. Persistence alone does not confirm application; verify the modem and profile state separately. See [modem-service](librescoot-modem.md) for the transaction and retry policy.
 
 ### WireGuard Configuration Management
 
@@ -294,6 +287,8 @@ The service:
 4. Updates the TOML file
 5. Saves to disk
 
+Atomic TOML replacement preserves an existing regular file's permission bits and syncs both the file contents and the renamed directory entry before returning success. A reused temporary file is protected before contents are written. Route-plan persistence uses the same helper.
+
 #### TOML to Redis Sync (Startup Only)
 
 On startup, if `/data/settings.toml` exists:
@@ -309,20 +304,6 @@ This ensures Redis reflects the persistent configuration.
 ### Key: `settings:schema`
 
 On startup, the service publishes the raw schema JSON to this string key so other services can introspect available settings and their metadata.
-
-#### APN Special Handling
-
-When `cellular.apn` is updated:
-
-1. TOML file is updated (normal behavior)
-2. Service checks if `/etc/NetworkManager/system-connections/wwan.nmconnection` exists
-3. If exists:
-   - Reads the file
-   - Finds the `[gsm]` section
-   - Updates the `apn=` line
-   - Writes the file back
-4. NetworkManager detects the change and reloads the connection
-5. New APN takes effect on next modem connection
 
 #### Empty Config Handling
 
@@ -375,7 +356,7 @@ cat /data/settings.toml
 ### Configuring Cellular APN
 
 ```bash
-# Set APN (also updates NetworkManager)
+# Set APN and notify modem-service
 redis-cli HSET settings cellular.apn "internet.lebara.de"
 redis-cli PUBLISH settings cellular.apn
 
@@ -384,10 +365,6 @@ cat /data/settings.toml
 # [cellular]
 # apn = "internet.lebara.de"
 
-# Verify in NetworkManager
-cat /etc/NetworkManager/system-connections/wwan.nmconnection
-# [gsm]
-# apn=internet.lebara.de
 ```
 
 ### Configuring Updates
@@ -475,7 +452,6 @@ The service logs to stdout/stderr (captured by systemd):
 
 - TOML file read/write operations
 - Redis synchronization events
-- APN configuration updates
 - WireGuard connection management
 - Parse errors or file I/O errors
 
@@ -484,7 +460,7 @@ Use `journalctl -u librescoot-settings` to view logs.
 ## Dependencies
 
 - **Redis server** - For settings storage and pub/sub
-- **NetworkManager** - For APN and WireGuard management
+- **NetworkManager** - For WireGuard management
 - **File system** - `/data/` directory must be writable
 
 ## Integration with Other Services
@@ -494,7 +470,7 @@ All Librescoot services can use the settings system:
 - **alarm-service**: Reads `alarm.enabled`, `alarm.honk`
 - **update-service**: Reads `updates.{component}.*` settings
 - **vehicle-service**: Can read scooter behavior settings
-- **modem-service**: APN is configured via NetworkManager
+- **modem-service**: Applies persisted APN settings via NetworkManager
 
 Services should:
 
@@ -509,7 +485,7 @@ This is a Librescoot-only service. Benefits:
 
 - **Persistent configuration:** Settings survive reboots
 - **Easy backup:** Single TOML file contains all settings
-- **Network management:** Automatic APN and WireGuard configuration
+- **Network management:** APN persistence and automatic WireGuard configuration
 - **Flexibility:** Any service can add new settings
 - **No cloud dependency:** All configuration is local
 

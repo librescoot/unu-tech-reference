@@ -164,6 +164,20 @@ The service uses NFC Type 4 Tag operations to communicate with battery NFC tags:
 - **Started by:** systemd at boot
 - **Restart policy:** Always
 
+### Ride-start demand and wake-up
+
+A newly selected tag must report one changed payload before stored data is
+trusted. An unconfirmed inactive tag continues through the insertion wake-up
+sequence, but cannot bypass ON admission. After confirmation, unchanged values
+remain valid when complete NFC acquisition succeeds.
+
+`vehicle[drive-start-status]=waiting-battery` requests a status sampling round
+immediately. Requests coalesce with an existing round and remain pending through
+BMS command settling. Newly confirmed tag data and completed paired readings
+prompt admission rechecks. Foreground demand ends when the status changes or
+a 30-second budget expires; ordinary periodic sampling continues. Sampling
+never relaxes the voltage, freshness, supply and motion admission protections.
+
 ### Experimental dual-pack admission
 
 With `experimental.battery.dual-pack-admission=true`, both readers check every
@@ -194,8 +208,9 @@ qualification without stopping established supplies or ordinary parked admission
 The [motion contract](https://github.com/librescoot/battery-service/blob/main/MOTION_IPC.md)
 defines the observation and invalidation payloads.
 
-With the base flag off, slot 1 retains its per-insertion voltage gate and the
-startup and role-change checks against published voltages.
+The shared ON guard remains active with the experimental flag off. It uses
+fresh complete NFC acquisitions, not cached Redis voltages; a mismatched second
+pack stays off without displacing a confirmed running supply.
 
 See [battery-service README](https://github.com/librescoot/battery-service#dual-battery-activation)
 for the timing and voltage limits. The experimental path needs bench testing

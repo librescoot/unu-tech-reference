@@ -109,7 +109,7 @@ configuration under `/data/extensions`; mutations require a service restart
 and do not dispatch actions. `test` only evaluates a snapshot. Disabling stops
 new triggers after restart, while valid saved tails can finish.
 
-Packaged for MDB nightly builds ahead of 1.4.0; not included in 1.3.1 stable.
+Packaged for the MDB.
 See [event-service](services/librescoot-events.md) for the adapter topic
 catalogue and rule configuration.
 
@@ -273,7 +273,16 @@ observations without deciding battery activation.
 The additional `engine-ecu:motion` channel publishes versioned direct-value
 observations on every motion frame, including unchanged values, and explicit
 invalidations on loss of trustworthy evidence. See the
-[contract](https://github.com/librescoot/ecu-service/blob/main/MOTION_IPC.md).
+[contract](https://github.com/librescoot/ecu-service/blob/0e03a8b2d756f04a5ba87607081894eb01fa174d/MOTION_IPC.md).
+
+While parked, vehicle-service requests ride start and publishes
+`vehicle[drive-start-status]`. Battery-service responds to `waiting-battery`
+with an immediate coalesced sampling round; ECU-service requests full status
+snapshots for `waiting-ecu`, `release-throttle` and `stop-vehicle`, subject to
+power, grace period, communication health and rate limits. Actual fresh
+`engine-ecu:motion` evidence and an active supply remain mandatory; a request
+alone does not authorize driving. ScootUI displays the status without owning the
+interlock. See [vehicle-service](services/librescoot-vehicle.md#ready-to-drive-conditions).
 
 **Hardware access:** one SocketCAN socket with a timestamped receive pump,
 bounded ordered dispatcher and asynchronous TX worker. Other services' CAN

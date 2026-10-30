@@ -256,19 +256,21 @@ the next transition.
 
 #### Ready-to-Drive Conditions
 
-Vehicle enters `ready-to-drive` when ALL are true:
+Raising the kickstand requests a start while the vehicle remains `parked`
+and interlocked. Entry requires a present active pack, hardware 48V, closed
+seatbox, and fresh ECU evidence of a stopped wheel and released throttle.
+Normal entry also requires dashboard readiness and an unlocked handlebar lock.
+The three-button override retains the supply and throttle gate. Evidence must
+be no more than 500 ms old and the motion frame must follow 1.5 seconds of
+uninterrupted main and engine power. A fresh frame may report unchanged values.
 
-- Dashboard ready (`dashboard` hash `ready` field = "true")
-- Kickstand up
-- Current state is `parked`
-
-**Manual Ready-to-Drive Activation:**
-In `parked` state, if dashboard is not ready, pressing the seatbox button while:
-
-- Kickstand is up
-- Both brakes are held
-
-Will manually transition to `ready-to-drive` and blink the main light once for confirmation.
+`vehicle[drive-start-status]` publishes `waiting-battery`, `waiting-power`,
+`waiting-ecu`, `release-throttle`, `stop-vehicle`, `close-seatbox`, `timeout`,
+or an empty value when no warning is pending. Pending starts retry while
+parked; after 30 seconds a new kickstand cycle or lock/unlock cycle is needed.
+Lowering the kickstand or locking cancels the request. Restoring a saved drive
+state without active supply returns to parked and needs a new kickstand cycle.
+Battery-service retains its normal activation and voltage safeguards.
 
 #### Lock/Unlock Handling
 
@@ -281,9 +283,8 @@ Will manually transition to `ready-to-drive` and blink the main light once for c
 
 **Unlock command** (`LPUSH scooter:state unlock`):
 
-1. Reads kickstand state
-2. If dashboard ready and kickstand up: transitions to `ready-to-drive`
-3. Otherwise: transitions to `parked` (if currently in `stand-by`)
+1. Transitions from `stand-by` to `parked`.
+2. With the kickstand up, requests ride start subject to the admission gates above.
 
 **Lock-Hibernate command** (`LPUSH scooter:state lock-hibernate`):
 

@@ -22,6 +22,10 @@ Manages over-the-air (OTA) updates for MDB and DBC components. Runs as two separ
   --boot-mount string        Boot partition mount point (default: /uboot)
   --boot-device string       eMMC boot0 device /dev/mmcblkNboot0 (auto-detected if empty)
   --boot-uboot-seek int64    512-byte blocks to seek before writing U-Boot (only 2 is supported)
+  --commit-gate              Require a health verdict before committing a pending rootfs (on for nightly MDB, off elsewhere)
+  --commit-gate-floor        Uptime before evaluating health probes (MDB 3m, DBC 1m)
+  --commit-gate-deadline     Maximum health window before rollback (default 20m)
+  --commit-gate-required-units  Comma-separated required systemd units
 ```
 
 CLI flags override Redis settings. `--component` and `--redis-addr` are CLI-only.
@@ -62,6 +66,8 @@ Comparison errors do not trigger a write. Short writes, sync failures, readback
 mismatches, and read-only restoration errors fail the operation without requesting
 a reboot. Cancellation before writing aborts; an already-started write completes
 sync/readback/cleanup instead of deliberately stopping halfway.
+
+Local boot maintenance waits while a rootfs update is pending. When the optional commit gate verifies and commits the rootfs, it automatically checks and applies the local boot assets. Waiting for the commit is not a boot-update failure; a failed commit or rollback does not start boot maintenance.
 
 Boot installation requires settled Mender state and holds the update-operation
 lock through its deferred reboot waiter so it cannot interrupt a rootfs install.
@@ -287,9 +293,11 @@ than merely quiet.
 
 Two cautions for anyone building on that.
 
-`pending-reboot` is not a quiet operation, it is a finished one. A DBC install ends
-there and the heartbeat stops, legitimately, until a stand-by reboot or the next
-power cycle applies the update. Only `downloading`, `preparing` and `installing`
+`pending-reboot` marks the end of the install phase. A DBC install ends there
+and the heartbeat stops legitimately until a stand-by reboot or the next power
+cycle applies the update. When the optional commit gate is enabled, the status
+remains `pending-reboot` while the new image is evaluated and committed; it is
+not proof that the image has already been committed. Only `downloading`, `preparing` and `installing`
 are states where a stopped heartbeat means something is wrong. A staleness test that says "non-terminal" without
 naming those three will flag every successfully updated DBC.
 

@@ -135,6 +135,22 @@ lost and the baseline restarted.
 The `last-received-*` fields refresh silently; per-message notifications go to
 the dedicated channels below.
 
+The inbox is persisted in `/data/sms/inbox.db`, limited to 100 messages and
+30 days. `sms:inbox[snapshot]` projects messages, shared read status, unread
+count and forwarding destination; JSON read/delete actions go to
+`sms:inbox:commands`. Bonded phones with extended-command access can read the
+inbox; the dashboard offers it while parked. Treat message content and paired
+phones as sensitive.
+
+Binary SMS remain in the modem store.
+
+`sms.forward-to` defaults to `off` or accepts a valid international mobile or
+landline number. Only new text messages with usable network timestamps are
+forwarded, only on home registration, up to ten SMS segments per UTC day;
+queued jobs expire after 24 hours. Changing the destination cancels queued jobs.
+Failed or interrupted sends are not automatically retried. Modem acceptance
+is not delivery confirmation, and carrier charges may apply.
+
 **Streams (approximately capped at 100 entries, one dedicated pub/sub channel each):**
 
 - `sms:received` - one entry per inbound message: `from`, `text`, `timestamp`.
@@ -145,18 +161,12 @@ the dedicated channels below.
   (`sent`/`error`), `error`, `timestamp`. The `sms:sent` channel carries each
   entry as JSON including its stream `id`.
 
-An inbound message is committed to `/data/sms/inbox.db` before its modem copy
-is deleted. The inbox retains at most 100 messages for 30 days and projects a
-JSON snapshot to `sms:inbox[snapshot]`. Redis streams and channels are
-best-effort notifications, not durable history. Read and delete actions use the
-`sms:inbox:commands` queue. Binary SMS remain in the modem store.
-
-`sms.forward-to` defaults to `off`; a valid international mobile or landline
-number enables forwarding of newly received text messages. Forwarding is paused
-outside home registration, limited to 10 segments per UTC day, and expires after
-24 hours. Messages without a usable network timestamp are stored but not
-forwarded. Ambiguous send outcomes are not retried automatically. Carrier charges
-may apply.
+The persistent inbox is committed before event publication and modem deletion.
+An inbox write failure leaves modem-stored messages available for retry;
+event publication can fail independently. Messages that arrived while the
+service was offline are drained on startup when ModemManager exposes them.
+Redis streams are a live window, empty after reboot; consumers should read
+the inbox projection after reconnecting.
 
 With `-sms-keepalive` enabled, the service keeps the CS (SGs) registration
 alive by briefly calling its own number after ~13 minutes without CS activity,
@@ -189,7 +199,7 @@ a stored MSISDN.
 - `active` - GPS has valid fix (boolean)
 - `connected` - Connected to gpsd (boolean)
 - `state` - GPS state ("off", "searching", "fix-established", "error")
-- `mode` - GNSS positioning mode ("standalone", "ue-based"; assisted ue-based mode is currently disabled, so always "standalone")
+- `mode` - GNSS positioning mode ("standalone", "ue-based"; assisted ue-based mode is currently disabled, so always "standalone"). The first mode is published even when standalone; duplicate suppression starts only after a successful synchronous Redis write.
 
 **Published channel:** `gps` (publishes "timestamp" only on GPS recovery events; routine updates are silent)
 

@@ -50,6 +50,7 @@ hgetall vehicle
 | blinker:switch | "left"/"right"/"both"/"off" | Blinker switch position | "off" |
 | blinker:state | "on"/"off" | Blinker active state | "off" |
 | state | "stand-by"/"parked"/"hop-on"/"hop-on-learning"/"ready-to-drive"/"waiting-seatbox"/"shutting-down"/"updating"/"waiting-hibernation"/"waiting-hibernation-advanced"/"waiting-hibernation-seatbox"/"waiting-hibernation-confirm" | Vehicle operating state | "stand-by" |
+| drive-start-status | string | Pending ride-start guidance: empty, `waiting-battery`, `waiting-power`, `waiting-ecu`, `release-throttle`, `stop-vehicle`, `close-seatbox` or `timeout` | "waiting-battery" |
 | auto-standby-deadline | integer (Unix timestamp) | When auto-standby will trigger (only present when timer active) | "1734567890" |
 | auto-standby-remaining | integer (sec) | Seconds left until auto-standby (absent when the timer is not running) | "900" |
 | engine-power | "on"/"off" | Motor controller power enable | "off" |
@@ -103,7 +104,7 @@ Evidence expires after 500 ms. Source changes, lost/reordered sequences,
 reconnects and invalidation end stopped qualification. There is no retained value
 or `HGET` fallback. The existing `engine-ecu` hash and its field-name notifications
 are unchanged. See the
-[complete contract](https://github.com/librescoot/ecu-service/blob/main/MOTION_IPC.md)
+[complete contract](https://github.com/librescoot/ecu-service/blob/0e03a8b2d756f04a5ba87607081894eb01fa174d/MOTION_IPC.md)
 and [battery admission gates](../services/librescoot-battery.md#experimental-dual-pack-admission).
 
 ### Battery Management (`battery:0` and `battery:1`)
@@ -299,7 +300,9 @@ hgetall dashboard
 
 See [Dashboard](../dashboard/README.md).
 
-### Installed Maps (`maps`) - Librescoot Only
+<a id="installed-maps-maps---librescoot-only"></a>
+
+### Installed Maps `maps` Librescoot Only
 
 ```
 hgetall maps
@@ -670,7 +673,9 @@ redis-cli -h 192.168.7.1 GET settings:schema
 
 See [settings-service documentation](../services/librescoot-settings.md) for details on persistent settings.
 
-#### Settings Overlay Commands (`settings:overlay`) - Librescoot Only
+<a id="settings-overlay-commands-settingsoverlay---librescoot-only"></a>
+
+#### Settings Overlay Commands `settings:overlay` Librescoot Only
 
 Apply or clear a named settings overlay. Overlays override live `settings` values in memory without ever writing them to `/data/settings.toml`; clearing restores the user's base values.
 
@@ -740,7 +745,9 @@ disarms: they describe the most recent trigger, not the current state.
 
 See [alarm-service documentation](../services/librescoot-alarm.md) for details.
 
-### Motion / IMU (`motion`) - Librescoot Only
+<a id="motion--imu-motion---librescoot-only"></a>
+
+### Motion IMU `motion` Librescoot Only
 
 ```
 hgetall motion
@@ -833,7 +840,8 @@ hgetall modem
 The received inbox is persisted by modem-service in `/data/sms/inbox.db` and
 projected to the `sms:inbox` hash. The `sms:received` and `sms:sent` streams
 and their dedicated pub/sub channels provide a volatile event window. Stream
-trimming uses an approximate 100-entry limit.
+trimming uses an approximate 100-entry limit. The `sms` hash carries
+latest-value convenience state.
 
 #### `sms` hash
 
@@ -865,10 +873,11 @@ SUBSCRIBE sms:received        # {"id":"1752...-0","from":"+4930...","text":"Hell
 XREAD STREAMS sms:received 0  # catch-up from the beginning of the window
 ```
 
-Messages are committed to the persistent inbox before their modem copies are
-deleted. The stream and channel are best-effort notifications; consumers should
-read the inbox projection after reconnecting. Messages that arrived while the
-service was offline are drained on startup when ModemManager exposes them.
+Messages are committed to the persistent inbox before event publication and
+modem deletion. An inbox write failure leaves modem-stored messages available
+for retry. The stream and channel are best-effort notifications; consumers
+should read the inbox projection after reconnecting. Messages that arrived while
+the service was offline are drained on startup when ModemManager exposes them.
 
 #### `sms:inbox` hash and command queue
 
@@ -885,6 +894,7 @@ Forwarding applies only to new text SMS, is paused outside home registration,
 and is limited to 10 segments per UTC day with a 24-hour queue expiry. Messages
 without a usable network timestamp are stored but not forwarded. Ambiguous send
 outcomes are not retried automatically.
+See [modem-service](../services/librescoot-modem.md#sms-hash-sms-streams-smsreceived-smssent).
 
 #### `sms:sent` stream + channel
 
@@ -1035,7 +1045,9 @@ patch against and so forces a full update regardless of
 
 See [update-service documentation](../services/librescoot-update.md) for details.
 
-### BLE OTA Transfer Status (`ota:ble`) - Librescoot Only
+<a id="ble-ota-transfer-status-otable---librescoot-only"></a>
+
+### BLE OTA Transfer Status `ota:ble` Librescoot Only
 
 Written by bluetooth-service's OTA receiver while a phone pushes a firmware bundle over BLE (see [BLE OTA Firmware Transfer](../bluetooth/ota-transfer.md)):
 
@@ -1173,8 +1185,7 @@ channel to use for anything that counts or reacts to discrete user actions.
 
 ### Extension Event Interfaces - Librescoot Only
 
-[event-service](../services/librescoot-events.md) is packaged for MDB nightly
-builds ahead of 1.4.0, not included in 1.3.1 stable. It observes existing state
+[event-service](../services/librescoot-events.md) is packaged for the MDB. It observes existing state
 traffic without writing those source hashes. Its event and runtime interfaces are:
 
 | Name | Type | Contents |
@@ -1334,7 +1345,7 @@ The `scooter:motion` command queue has been removed, as was `scooter:bmx` before
 
 The manual `sensitivity`, `pin` and `interrupt` commands wrote registers that the profile controller overwrote on the next alarm or power-manager transition, which made them look like they worked and then silently revert. `reset` duplicated the `soft-reset` RPC.
 
-The remaining manual controls are RPC methods on `motion:rpc`. See [Motion / IMU (`motion`)](#motion--imu-motion---librescoot-only).
+The remaining manual controls are RPC methods on `motion:rpc`. See [Motion / IMU (`motion`)](#motion-imu-motion-librescoot-only).
 
 ### Power Control (`scooter:power`) - Librescoot Enhanced
 
@@ -1463,7 +1474,7 @@ See [update-service documentation](../services/librescoot-update.md).
 
 ### Settings Overlay Control (`settings:overlay`) - Librescoot Only
 
-Apply or clear a named settings overlay. See [Settings Overlay Commands](#settings-overlay-commands-settingsoverlay---librescoot-only) above for full details.
+Apply or clear a named settings overlay. See [Settings Overlay Commands](#settings-overlay-commands-settingsoverlay-librescoot-only) above for full details.
 
 ```bash
 # Enable Service mode

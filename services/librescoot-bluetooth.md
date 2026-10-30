@@ -4,6 +4,36 @@
 
 The Bluetooth service provides the BLE (Bluetooth Low Energy) interface for the scooter and manages communication with the nRF52840 chip via UART. It acts as a communication bridge between the nRF52 BLE chip and Redis-based backend system, handling bidirectional translation of messages. The service exposes BLE GATT characteristics for remote control and monitoring (via nRF firmware), processes UART messages from the nRF chip, and publishes battery/vehicle state updates to Redis.
 
+## SMS inbox
+
+`cap:ext` advertises `sms=1` when the inbox projection is available. Bonded
+phones with extended-command access can read the shared inbox and queue read
+or delete actions. `sms:start` freezes a snapshot; `sms:get` pulls individual
+messages in MTU-budgeted base64url chunks. Sessions expire after five minutes
+of inactivity and are cleared on disconnect. See the [protocol](https://github.com/librescoot/bluetooth-service/blob/5ffa7c64cc028f83cb899efcf5945964c7387cb7/README.md#operation-and-interfaces).
+
+## Read-only hash queries
+
+`cap:ext` advertises `hash=1`; `cap:hash` lists the request forms. Bonded
+phones with extended-command access can read only `present` and
+`serial-number` from `battery:0` and `battery:1`. This is not general Redis
+access: other hashes and fields are denied, and writes, key discovery and
+hash-wide reads are not provided. Values are returned as unchanged strings or
+`null` for missing fields, not interpreted battery data.
+
+A `hash:read` request freezes up to two distinct fields in request order.
+`hash:get` pulls the resulting JSON array in base64url-encoded byte chunks;
+the client supplies a notification budget no larger than the negotiated ATT
+MTU minus three. Requests use fresh eight-digit lowercase hexadecimal IDs.
+Each field is limited to 256 UTF-8 bytes and the encoded snapshot to 4096 bytes.
+Four snapshots are allowed globally, each expiring after five minutes;
+disconnection clears snapshots and invalidates pending reads and responses.
+At most four handlers run concurrently, and excess requests can be dropped.
+Clients need timeouts and a manual retry path with a fresh ID for a new read.
+The compatible [app reader](https://github.com/librescoot/mobile-app/blob/567d3e36c4a95bec0efd6ad05fa45b0dd78d367a/docs/ble-hash-reads.md) requires `hash=1`, has no legacy fallback or automatic retries, and treats reported values as potentially cached, not fresh measurements.
+Values and request payloads are not logged. The full framing and error contract
+is documented in the [Bluetooth service protocol](https://github.com/librescoot/bluetooth-service/blob/5ffa7c64cc028f83cb899efcf5945964c7387cb7/README.md#read-only-hash-queries).
+
 ## File transfer
 
 `files=1` in `cap:ext` identifies support for the separate bidirectional binary
@@ -22,6 +52,10 @@ create or content-checked replacement intent. Symlinks and special files are
 not transferable. Administrative writes may affect services consuming those
 files; uploads do not themselves install firmware or execute commands. Read-only
 version-1 Logs access stays available independently of this opt-in.
+
+## Logging
+
+Extended BLE command and response logs record a recognized category, not the payload. Raw UART debug logging records frame ID and payload length rather than bytes; malformed CBOR is logged without the raw message. Other diagnostic logs and log archives can still contain sensitive data and should be handled accordingly.
 
 ## Command-Line Options
 
@@ -168,7 +202,7 @@ version-1 Logs access stays available independently of this opt-in.
 
 ### Hash: `ota:ble`
 
-Transfer status of the BLE OTA receiver (see [BLE OTA Firmware Transfer](../bluetooth/ota-transfer.md) and the [field reference](../redis/README.md#ble-ota-transfer-status-otable---librescoot-only)):
+Transfer status of the BLE OTA receiver (see [BLE OTA Firmware Transfer](../bluetooth/ota-transfer.md) and the [field reference](../redis/README.md#ble-ota-transfer-status-otable-librescoot-only)):
 
 **Fields written:**
 
