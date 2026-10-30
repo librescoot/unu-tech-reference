@@ -257,20 +257,22 @@ the next transition.
 #### Ready-to-Drive Conditions
 
 Raising the kickstand requests a start while the vehicle remains `parked`
-and interlocked. Entry requires a present active pack, hardware 48V, closed
-seatbox, and fresh ECU evidence of a stopped wheel and released throttle.
-Normal entry also requires dashboard readiness and an unlocked handlebar lock.
-The three-button override retains the supply and throttle gate. Evidence must
-be no more than 500 ms old and the motion frame must follow 1.5 seconds of
-uninterrupted main and engine power. A fresh frame may report unchanged values.
+and interlocked until at least one present battery is active. Normal entry
+also requires dashboard readiness and an unlocked handlebar lock. The
+three-button override retains the active-battery requirement. Rolling,
+throttle position, ECU telemetry and power-settling time do not add start gates.
+Both batteries' presence and state are read together, with a final recheck
+before motor release. Missing data or a failed read keeps the vehicle parked.
 
-`vehicle[drive-start-status]` publishes `waiting-battery`, `waiting-power`,
-`waiting-ecu`, `release-throttle`, `stop-vehicle`, `close-seatbox`, `timeout`,
-or an empty value when no warning is pending. Pending starts retry while
-parked; after 30 seconds a new kickstand cycle or lock/unlock cycle is needed.
-Lowering the kickstand or locking cancels the request. Restoring a saved drive
-state without active supply returns to parked and needs a new kickstand cycle.
+`vehicle[drive-start-status]` publishes `waiting-battery` while activation is
+pending, or an empty value when no warning is pending. Pending starts retry
+while parked without a timeout requiring another kickstand cycle. Lowering
+the kickstand or locking cancels the request. Restoring a saved drive state
+without active supply returns to parked and needs a new kickstand cycle;
+that case uses the existing `timeout` status for retry guidance.
 Battery-service retains its normal activation and voltage safeguards.
+
+Source: [vehicle-service](https://github.com/librescoot/vehicle-service/blob/c5577771830ff8447707a311cc3c3ef55dbda89a/README.md#starting-a-ride).
 
 #### Lock/Unlock Handling
 

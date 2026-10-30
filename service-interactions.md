@@ -277,12 +277,11 @@ invalidations on loss of trustworthy evidence. See the
 
 While parked, vehicle-service requests ride start and publishes
 `vehicle[drive-start-status]`. Battery-service responds to `waiting-battery`
-with an immediate coalesced sampling round; ECU-service requests full status
-snapshots for `waiting-ecu`, `release-throttle` and `stop-vehicle`, subject to
-power, grace period, communication health and rate limits. Actual fresh
-`engine-ecu:motion` evidence and an active supply remain mandatory; a request
-alone does not authorize driving. ScootUI displays the status without owning the
-interlock. See [vehicle-service](services/librescoot-vehicle.md#ready-to-drive-conditions).
+with an immediate coalesced sampling round. The additional drive-entry gate
+waits only for a present, active battery, including when the scooter is already
+rolling. Vehicle-service does not consume `engine-ecu:motion`; battery-service
+retains its own motion and voltage admission protections. ScootUI displays the
+status without owning the interlock. See [vehicle-service](services/librescoot-vehicle.md#ready-to-drive-conditions).
 
 **Hardware access:** one SocketCAN socket with a timestamped receive pump,
 bounded ordered dispatcher and asynchronous TX worker. Other services' CAN

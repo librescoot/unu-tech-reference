@@ -108,8 +108,8 @@ make clean    # Remove build directory
 ## Ride start, telemetry and boot handoff
 
 While parked, `vehicle[drive-start-status]` drives the shared notification card
-for battery activation, power and ECU waits, throttle, motion, seatbox and
-start timeout. The dashboard does not authorize driving. Unchanged telemetry
+for battery activation and retry guidance after restoring an unpowered saved
+drive state. The dashboard does not authorize driving. Unchanged telemetry
 values alone do not imply stale speed or power. E20 masks both, and lost
 MDB telemetry trust masks speed; the bounded startup-zero presentation does
 not override E20 or connection loss during a ride.
