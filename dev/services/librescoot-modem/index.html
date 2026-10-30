@@ -2597,6 +2597,19 @@ lost and the baseline restarted.</p>
 </ul>
 <p>The <code>last-received-*</code> fields refresh silently; per-message notifications go to
 the dedicated channels below.</p>
+<p>The inbox is persisted in <code>/data/sms/inbox.db</code>, limited to 100 messages and
+30 days. <code>sms:inbox[snapshot]</code> projects messages, shared read status, unread
+count and forwarding destination; JSON read/delete actions go to
+<code>sms:inbox:commands</code>. Bonded phones with extended-command access can read the
+inbox; the dashboard offers it while parked. Treat message content and paired
+phones as sensitive.</p>
+<p>Binary SMS remain in the modem store.</p>
+<p><code>sms.forward-to</code> defaults to <code>off</code> or accepts a valid international mobile or
+landline number. Only new text messages with usable network timestamps are
+forwarded, only on home registration, up to ten SMS segments per UTC day;
+queued jobs expire after 24 hours. Changing the destination cancels queued jobs.
+Failed or interrupted sends are not automatically retried. Modem acceptance
+is not delivery confirmation, and carrier charges may apply.</p>
 <p><strong>Streams (approximately capped at 100 entries, one dedicated pub/sub channel each):</strong></p>
 <ul>
 <li><code>sms:received</code> - one entry per inbound message: <code>from</code>, <code>text</code>, <code>timestamp</code>.
@@ -2607,17 +2620,12 @@ the dedicated channels below.</p>
   (<code>sent</code>/<code>error</code>), <code>error</code>, <code>timestamp</code>. The <code>sms:sent</code> channel carries each
   entry as JSON including its stream <code>id</code>.</li>
 </ul>
-<p>An inbound message is committed to <code>/data/sms/inbox.db</code> before its modem copy
-is deleted. The inbox retains at most 100 messages for 30 days and projects a
-JSON snapshot to <code>sms:inbox[snapshot]</code>. Redis streams and channels are
-best-effort notifications, not durable history. Read and delete actions use the
-<code>sms:inbox:commands</code> queue. Binary SMS remain in the modem store.</p>
-<p><code>sms.forward-to</code> defaults to <code>off</code>; a valid international mobile or landline
-number enables forwarding of newly received text messages. Forwarding is paused
-outside home registration, limited to 10 segments per UTC day, and expires after
-24 hours. Messages without a usable network timestamp are stored but not
-forwarded. Ambiguous send outcomes are not retried automatically. Carrier charges
-may apply.</p>
+<p>The persistent inbox is committed before event publication and modem deletion.
+An inbox write failure leaves modem-stored messages available for retry;
+event publication can fail independently. Messages that arrived while the
+service was offline are drained on startup when ModemManager exposes them.
+Redis streams are a live window, empty after reboot; consumers should read
+the inbox projection after reconnecting.</p>
 <p>With <code>-sms-keepalive</code> enabled, the service keeps the CS (SGs) registration
 alive by briefly calling its own number after ~13 minutes without CS activity,
 working around operators that implicitly detach idle CS registrations (which
@@ -2647,7 +2655,7 @@ a stored MSISDN.</p>
 <li><code>active</code> - GPS has valid fix (boolean)</li>
 <li><code>connected</code> - Connected to gpsd (boolean)</li>
 <li><code>state</code> - GPS state ("off", "searching", "fix-established", "error")</li>
-<li><code>mode</code> - GNSS positioning mode ("standalone", "ue-based"; assisted ue-based mode is currently disabled, so always "standalone")</li>
+<li><code>mode</code> - GNSS positioning mode ("standalone", "ue-based"; assisted ue-based mode is currently disabled, so always "standalone"). The first mode is published even when standalone; duplicate suppression starts only after a successful synchronous Redis write.</li>
 </ul>
 <p><strong>Published channel:</strong> <code>gps</code> (publishes "timestamp" only on GPS recovery events; routine updates are silent)</p>
 <h3 id="pubsub-channel-gpstpv">Pub/sub channel: <code>gps:tpv</code><a class="headerlink" href="#pubsub-channel-gpstpv" title="Permanent link">&para;</a></h3>

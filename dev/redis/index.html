@@ -892,7 +892,7 @@
   <a href="#installed-maps-maps-librescoot-only" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
-        Installed Maps (<code>maps</code>) - Librescoot Only
+        Installed Maps <code>maps</code> Librescoot Only
       </span>
     </span>
   </a>
@@ -1042,7 +1042,7 @@
   <a href="#settings-overlay-commands-settingsoverlay-librescoot-only" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
-        Settings Overlay Commands (<code>settings:overlay</code>) - Librescoot Only
+        Settings Overlay Commands <code>settings:overlay</code> Librescoot Only
       </span>
     </span>
   </a>
@@ -1069,7 +1069,7 @@
   <a href="#motion-imu-motion-librescoot-only" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
-        Motion / IMU (<code>motion</code>) - Librescoot Only
+        Motion IMU <code>motion</code> Librescoot Only
       </span>
     </span>
   </a>
@@ -1196,7 +1196,7 @@
   <a href="#ble-ota-transfer-status-otable-librescoot-only" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
-        BLE OTA Transfer Status (<code>ota:ble</code>) - Librescoot Only
+        BLE OTA Transfer Status <code>ota:ble</code> Librescoot Only
       </span>
     </span>
   </a>
@@ -2602,7 +2602,7 @@
   <a href="#installed-maps-maps-librescoot-only" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
-        Installed Maps (<code>maps</code>) - Librescoot Only
+        Installed Maps <code>maps</code> Librescoot Only
       </span>
     </span>
   </a>
@@ -2752,7 +2752,7 @@
   <a href="#settings-overlay-commands-settingsoverlay-librescoot-only" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
-        Settings Overlay Commands (<code>settings:overlay</code>) - Librescoot Only
+        Settings Overlay Commands <code>settings:overlay</code> Librescoot Only
       </span>
     </span>
   </a>
@@ -2779,7 +2779,7 @@
   <a href="#motion-imu-motion-librescoot-only" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
-        Motion / IMU (<code>motion</code>) - Librescoot Only
+        Motion IMU <code>motion</code> Librescoot Only
       </span>
     </span>
   </a>
@@ -2906,7 +2906,7 @@
   <a href="#ble-ota-transfer-status-otable-librescoot-only" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
-        BLE OTA Transfer Status (<code>ota:ble</code>) - Librescoot Only
+        BLE OTA Transfer Status <code>ota:ble</code> Librescoot Only
       </span>
     </span>
   </a>
@@ -3463,6 +3463,12 @@ will not find it on 1.2 or later.</p>
 <td>"stand-by"</td>
 </tr>
 <tr>
+<td>drive-start-status</td>
+<td>string</td>
+<td>Pending ride-start guidance: empty, <code>waiting-battery</code>, <code>waiting-power</code>, <code>waiting-ecu</code>, <code>release-throttle</code>, <code>stop-vehicle</code>, <code>close-seatbox</code> or <code>timeout</code></td>
+<td>"waiting-battery"</td>
+</tr>
+<tr>
 <td>auto-standby-deadline</td>
 <td>integer (Unix timestamp)</td>
 <td>When auto-standby will trigger (only present when timer active)</td>
@@ -3681,7 +3687,7 @@ unchanged values are republished on each motion frame. Invalidations contain
 reconnects and invalidation end stopped qualification. There is no retained value
 or <code>HGET</code> fallback. The existing <code>engine-ecu</code> hash and its field-name notifications
 are unchanged. See the
-<a href="https://github.com/librescoot/ecu-service/blob/main/MOTION_IPC.md">complete contract</a>
+<a href="https://github.com/librescoot/ecu-service/blob/0e03a8b2d756f04a5ba87607081894eb01fa174d/MOTION_IPC.md">complete contract</a>
 and <a href="../services/librescoot-battery/#experimental-dual-pack-admission">battery admission gates</a>.</p>
 <h3 id="battery-management-battery0-and-battery1">Battery Management (<code>battery:0</code> and <code>battery:1</code>)<a class="headerlink" href="#battery-management-battery0-and-battery1" title="Permanent link">&para;</a></h3>
 <div class="language-text highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>hgetall battery:0
@@ -4333,7 +4339,8 @@ and fleet telemetry consumers; it is not the reachability contract.</p>
 </tbody>
 </table>
 <p>See <a href="../dashboard/">Dashboard</a>.</p>
-<h3 id="installed-maps-maps-librescoot-only">Installed Maps (<code>maps</code>) - Librescoot Only<a class="headerlink" href="#installed-maps-maps-librescoot-only" title="Permanent link">&para;</a></h3>
+<p><a id="installed-maps-maps---librescoot-only"></a></p>
+<h3 id="installed-maps-maps-librescoot-only">Installed Maps <code>maps</code> Librescoot Only<a class="headerlink" href="#installed-maps-maps-librescoot-only" title="Permanent link">&para;</a></h3>
 <div class="language-text highlight"><pre><span></span><code><span id="__span-14-1"><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a>hgetall maps
 </span></code></pre></div>
 <p>Which offline map and routing tiles are installed on the DBC. The artifacts live
@@ -5313,7 +5320,8 @@ the schema later.</p>
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-24-1"><a id="__codelineno-24-1" name="__codelineno-24-1" href="#__codelineno-24-1"></a>redis-cli<span class="w"> </span>-h<span class="w"> </span><span class="m">192</span>.168.7.1<span class="w"> </span>GET<span class="w"> </span>settings:schema
 </span></code></pre></div>
 <p>See <a href="../services/librescoot-settings/">settings-service documentation</a> for details on persistent settings.</p>
-<h4 id="settings-overlay-commands-settingsoverlay-librescoot-only">Settings Overlay Commands (<code>settings:overlay</code>) - Librescoot Only<a class="headerlink" href="#settings-overlay-commands-settingsoverlay-librescoot-only" title="Permanent link">&para;</a></h4>
+<p><a id="settings-overlay-commands-settingsoverlay---librescoot-only"></a></p>
+<h4 id="settings-overlay-commands-settingsoverlay-librescoot-only">Settings Overlay Commands <code>settings:overlay</code> Librescoot Only<a class="headerlink" href="#settings-overlay-commands-settingsoverlay-librescoot-only" title="Permanent link">&para;</a></h4>
 <p>Apply or clear a named settings overlay. Overlays override live <code>settings</code> values in memory without ever writing them to <code>/data/settings.toml</code>; clearing restores the user's base values.</p>
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-25-1"><a id="__codelineno-25-1" name="__codelineno-25-1" href="#__codelineno-25-1"></a><span class="c1"># Enable Service mode</span>
 </span><span id="__span-25-2"><a id="__codelineno-25-2" name="__codelineno-25-2" href="#__codelineno-25-2"></a>redis-cli<span class="w"> </span>-h<span class="w"> </span><span class="m">192</span>.168.7.1<span class="w"> </span>LPUSH<span class="w"> </span>settings:overlay<span class="w"> </span>apply:service
@@ -5417,7 +5425,8 @@ disarms: they describe the most recent trigger, not the current state.</p>
 <li><code>level-2-triggered</code> - Level 2 alarm (horn + hazards)</li>
 </ul>
 <p>See <a href="../services/librescoot-alarm/">alarm-service documentation</a> for details.</p>
-<h3 id="motion-imu-motion-librescoot-only">Motion / IMU (<code>motion</code>) - Librescoot Only<a class="headerlink" href="#motion-imu-motion-librescoot-only" title="Permanent link">&para;</a></h3>
+<p><a id="motion--imu-motion---librescoot-only"></a></p>
+<h3 id="motion-imu-motion-librescoot-only">Motion IMU <code>motion</code> Librescoot Only<a class="headerlink" href="#motion-imu-motion-librescoot-only" title="Permanent link">&para;</a></h3>
 <div class="language-text highlight"><pre><span></span><code><span id="__span-27-1"><a id="__codelineno-27-1" name="__codelineno-27-1" href="#__codelineno-27-1"></a>hgetall motion
 </span></code></pre></div>
 <p>motion-service owns the BMX055 9-axis IMU and publishes its state here. The legacy <code>bmx</code> hash and <code>scooter:bmx</code> command list are gone.</p>
@@ -5638,7 +5647,8 @@ the backlight is overridden off or pinned to a fixed level.</p>
 <p>The received inbox is persisted by modem-service in <code>/data/sms/inbox.db</code> and
 projected to the <code>sms:inbox</code> hash. The <code>sms:received</code> and <code>sms:sent</code> streams
 and their dedicated pub/sub channels provide a volatile event window. Stream
-trimming uses an approximate 100-entry limit.</p>
+trimming uses an approximate 100-entry limit. The <code>sms</code> hash carries
+latest-value convenience state.</p>
 <h4 id="sms-hash"><code>sms</code> hash<a class="headerlink" href="#sms-hash" title="Permanent link">&para;</a></h4>
 <div class="language-text highlight"><pre><span></span><code><span id="__span-29-1"><a id="__codelineno-29-1" name="__codelineno-29-1" href="#__codelineno-29-1"></a>hgetall sms
 </span></code></pre></div>
@@ -5705,10 +5715,11 @@ JSON including its stream <code>id</code>:</p>
 <div class="language-text highlight"><pre><span></span><code><span id="__span-30-1"><a id="__codelineno-30-1" name="__codelineno-30-1" href="#__codelineno-30-1"></a>SUBSCRIBE sms:received        # {"id":"1752...-0","from":"+4930...","text":"Hello","timestamp":"..."}
 </span><span id="__span-30-2"><a id="__codelineno-30-2" name="__codelineno-30-2" href="#__codelineno-30-2"></a>XREAD STREAMS sms:received 0  # catch-up from the beginning of the window
 </span></code></pre></div>
-<p>Messages are committed to the persistent inbox before their modem copies are
-deleted. The stream and channel are best-effort notifications; consumers should
-read the inbox projection after reconnecting. Messages that arrived while the
-service was offline are drained on startup when ModemManager exposes them.</p>
+<p>Messages are committed to the persistent inbox before event publication and
+modem deletion. An inbox write failure leaves modem-stored messages available
+for retry. The stream and channel are best-effort notifications; consumers
+should read the inbox projection after reconnecting. Messages that arrived while
+the service was offline are drained on startup when ModemManager exposes them.</p>
 <h4 id="smsinbox-hash-and-command-queue"><code>sms:inbox</code> hash and command queue<a class="headerlink" href="#smsinbox-hash-and-command-queue" title="Permanent link">&para;</a></h4>
 <p><code>sms:inbox[snapshot]</code> contains JSON with <code>version</code> 1, <code>unread</code>, <code>forward-to</code>,
 and a <code>messages</code> array. Each message contains <code>id</code>, <code>from</code>, <code>text</code>, <code>timestamp</code>,
@@ -5721,7 +5732,8 @@ to <code>sms:inbox:commands</code>; observe the resulting snapshot to confirm th
 Forwarding applies only to new text SMS, is paused outside home registration,
 and is limited to 10 segments per UTC day with a 24-hour queue expiry. Messages
 without a usable network timestamp are stored but not forwarded. Ambiguous send
-outcomes are not retried automatically.</p>
+outcomes are not retried automatically.
+See <a href="../services/librescoot-modem/#sms-hash-sms-streams-smsreceived-smssent">modem-service</a>.</p>
 <h4 id="smssent-stream-channel"><code>sms:sent</code> stream + channel<a class="headerlink" href="#smssent-stream-channel" title="Permanent link">&para;</a></h4>
 <p>One stream entry per terminal send outcome, fields <code>request-id</code> (the caller's
 <code>id</code> token from the <code>scooter:sms</code> payload, empty if none), <code>to</code>, <code>text</code>,
@@ -6068,7 +6080,8 @@ The size is always the full artifact, because a channel switch has no delta base
 patch against and so forces a full update regardless of
 <code>updates.{component}.method</code>.</p>
 <p>See <a href="../services/librescoot-update/">update-service documentation</a> for details.</p>
-<h3 id="ble-ota-transfer-status-otable-librescoot-only">BLE OTA Transfer Status (<code>ota:ble</code>) - Librescoot Only<a class="headerlink" href="#ble-ota-transfer-status-otable-librescoot-only" title="Permanent link">&para;</a></h3>
+<p><a id="ble-ota-transfer-status-otable---librescoot-only"></a></p>
+<h3 id="ble-ota-transfer-status-otable-librescoot-only">BLE OTA Transfer Status <code>ota:ble</code> Librescoot Only<a class="headerlink" href="#ble-ota-transfer-status-otable-librescoot-only" title="Permanent link">&para;</a></h3>
 <p>Written by bluetooth-service's OTA receiver while a phone pushes a firmware bundle over BLE (see <a href="../bluetooth/ota-transfer/">BLE OTA Firmware Transfer</a>):</p>
 <table>
 <thead>
@@ -6283,8 +6296,7 @@ so a long press between two taps does not glue them into a <code>double-tap</cod
 <p>Unlike <code>buttons</code>, each gesture is emitted exactly once, which makes this the
 channel to use for anything that counts or reacts to discrete user actions.</p>
 <h3 id="extension-event-interfaces-librescoot-only">Extension Event Interfaces - Librescoot Only<a class="headerlink" href="#extension-event-interfaces-librescoot-only" title="Permanent link">&para;</a></h3>
-<p><a href="../services/librescoot-events/">event-service</a> is packaged for MDB nightly
-builds ahead of 1.4.0, not included in 1.3.1 stable. It observes existing state
+<p><a href="../services/librescoot-events/">event-service</a> is packaged for the MDB. It observes existing state
 traffic without writing those source hashes. Its event and runtime interfaces are:</p>
 <table>
 <thead>
@@ -6423,7 +6435,7 @@ events. Use stream commands (<code>XRANGE</code>/<code>XREAD</code>), not <code>
 <h3 id="motion-sensor-control-librescoot-only">Motion Sensor Control - Librescoot Only<a class="headerlink" href="#motion-sensor-control-librescoot-only" title="Permanent link">&para;</a></h3>
 <p>The <code>scooter:motion</code> command queue has been removed, as was <code>scooter:bmx</code> before it. Chip configuration is reactive: motion-service derives the profile from the <code>alarm</code> and <code>power-manager</code> hashes, so there is nothing to configure by hand.</p>
 <p>The manual <code>sensitivity</code>, <code>pin</code> and <code>interrupt</code> commands wrote registers that the profile controller overwrote on the next alarm or power-manager transition, which made them look like they worked and then silently revert. <code>reset</code> duplicated the <code>soft-reset</code> RPC.</p>
-<p>The remaining manual controls are RPC methods on <code>motion:rpc</code>. See <a href="#motion--imu-motion---librescoot-only">Motion / IMU (<code>motion</code>)</a>.</p>
+<p>The remaining manual controls are RPC methods on <code>motion:rpc</code>. See <a href="#motion-imu-motion-librescoot-only">Motion / IMU (<code>motion</code>)</a>.</p>
 <h3 id="power-control-scooterpower-librescoot-enhanced">Power Control (<code>scooter:power</code>) - Librescoot Enhanced<a class="headerlink" href="#power-control-scooterpower-librescoot-enhanced" title="Permanent link">&para;</a></h3>
 <p>Librescoot adds more power control commands:</p>
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-42-1"><a id="__codelineno-42-1" name="__codelineno-42-1" href="#__codelineno-42-1"></a><span class="c1"># Request running state (highest priority)</span>
@@ -6521,7 +6533,7 @@ additionally reports its own refusals in <code>usb.last-result</code> and as an 
 <p>The shared <code>scooter:update</code> list is consumed by <strong>vehicle-service</strong>, not the updaters: update-service pushes the DBC lifecycle commands <code>start-dbc</code> and <code>complete-dbc</code> there to drive the vehicle's <code>updating</code> state. vehicle-service also accepts the legacy <code>start</code> and <code>complete</code>.</p>
 <p>See <a href="../services/librescoot-update/">update-service documentation</a>.</p>
 <h3 id="settings-overlay-control-settingsoverlay-librescoot-only">Settings Overlay Control (<code>settings:overlay</code>) - Librescoot Only<a class="headerlink" href="#settings-overlay-control-settingsoverlay-librescoot-only" title="Permanent link">&para;</a></h3>
-<p>Apply or clear a named settings overlay. See <a href="#settings-overlay-commands-settingsoverlay---librescoot-only">Settings Overlay Commands</a> above for full details.</p>
+<p>Apply or clear a named settings overlay. See <a href="#settings-overlay-commands-settingsoverlay-librescoot-only">Settings Overlay Commands</a> above for full details.</p>
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-46-1"><a id="__codelineno-46-1" name="__codelineno-46-1" href="#__codelineno-46-1"></a><span class="c1"># Enable Service mode</span>
 </span><span id="__span-46-2"><a id="__codelineno-46-2" name="__codelineno-46-2" href="#__codelineno-46-2"></a>redis-cli<span class="w"> </span>-h<span class="w"> </span><span class="m">192</span>.168.7.1<span class="w"> </span>LPUSH<span class="w"> </span>settings:overlay<span class="w"> </span>apply:service
 </span><span id="__span-46-3"><a id="__codelineno-46-3" name="__codelineno-46-3" href="#__codelineno-46-3"></a>

@@ -2600,7 +2600,7 @@ new IDs don't collide with them.</p>
 <p>The service calculates and tracks power consumption and recovery:</p>
 <ul>
 <li><strong>Instantaneous Power:</strong> <code>power = (voltage_mV * current_mA) / 1000</code> (in mW)</li>
-<li><strong>Energy Integration:</strong> Power integrated over time to calculate energy in mWh</li>
+<li><strong>Energy Integration:</strong> Power integrated over time to calculate energy in mWh. Consumed and recovered totals restore asynchronously from Redis before energy publication. Missing fields start at zero; invalid values or read failures defer energy fields and retry while other CAN telemetry continues. Integration during the wait is added once under the ECU mutex. Redis restart or power-loss continuity depends on Redis persistence; sub-mWh remainders and downtime energy are not restored.</li>
 <li><strong>Consumed Energy:</strong> Tracked when power is positive (motor driving)</li>
 <li><strong>Recovered Energy:</strong> Tracked when power is negative (regenerative braking)</li>
 <li><strong>Maximum Delta:</strong> 2 second maximum between updates (prevents large accumulation when ECU is off)</li>

@@ -382,6 +382,39 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#mdb-network-support" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        MDB network support
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#nfc-reader-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        NFC reader configuration
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#managed-hostnames" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Managed hostnames
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#hardware-details" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
@@ -1749,6 +1782,39 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#mdb-network-support" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        MDB network support
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#nfc-reader-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        NFC reader configuration
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#managed-hostnames" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Managed hostnames
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#hardware-details" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
@@ -1955,6 +2021,12 @@ from the selector above.</p>
 <li>System state management</li>
 <li><a href="redis/">Full Redis documentation</a></li>
 </ul>
+<h3 id="mdb-network-support">MDB network support<a class="headerlink" href="#mdb-network-support" title="Permanent link">&para;</a></h3>
+<p>The MDB kernel includes TUN, IPv4 and IPv6 policy routing, and the netfilter mark matcher needed for Tailscale networking. This support does not install or enroll a Tailscale daemon.</p>
+<h3 id="nfc-reader-configuration">NFC reader configuration<a class="headerlink" href="#nfc-reader-configuration" title="Permanent link">&para;</a></h3>
+<p>The MDB device tree maps the three PN7150 readers' supply inputs to a fixed always-on regulator. The optional FIRM and CLKREQ GPIOs are absent and logged at debug level; required enable and interrupt GPIO failures remain errors. Wake and power-control GPIO behavior is unchanged.</p>
+<h3 id="managed-hostnames">Managed hostnames<a class="headerlink" href="#managed-hostnames" title="Permanent link">&para;</a></h3>
+<p>MDB and DBC initialize a missing or empty managed hostname boot hook from CFG1. The boot-time synchronization replaces only the exact legacy CFG0 hook for that board; customized commands remain unchanged. The changed hook takes effect on the next boot after synchronization. DNS, SSH configuration, monitoring and log searches that use the generated hostname may need adjustment. SSH host keys and the fixed-address <code>mdb</code> and <code>dbc</code> aliases do not change.</p>
 <h3 id="hardware-details">Hardware Details<a class="headerlink" href="#hardware-details" title="Permanent link">&para;</a></h3>
 <p>Detailed documentation available for:</p>
 <ul>

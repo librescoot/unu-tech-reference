@@ -2296,6 +2296,10 @@
 </span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>  --boot-mount string        Boot partition mount point (default: /uboot)
 </span><span id="__span-0-14"><a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>  --boot-device string       eMMC boot0 device /dev/mmcblkNboot0 (auto-detected if empty)
 </span><span id="__span-0-15"><a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a>  --boot-uboot-seek int64    512-byte blocks to seek before writing U-Boot (only 2 is supported)
+</span><span id="__span-0-16"><a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a>  --commit-gate              Require a health verdict before committing a pending rootfs (on for nightly MDB, off elsewhere)
+</span><span id="__span-0-17"><a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a>  --commit-gate-floor        Uptime before evaluating health probes (MDB 3m, DBC 1m)
+</span><span id="__span-0-18"><a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a>  --commit-gate-deadline     Maximum health window before rollback (default 20m)
+</span><span id="__span-0-19"><a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a>  --commit-gate-required-units  Comma-separated required systemd units
 </span></code></pre></div>
 <p>CLI flags override Redis settings. <code>--component</code> and <code>--redis-addr</code> are CLI-only.</p>
 <h2 id="systemd-units">Systemd Units<a class="headerlink" href="#systemd-units" title="Permanent link">&para;</a></h2>
@@ -2340,6 +2344,7 @@ Comparison errors do not trigger a write. Short writes, sync failures, readback
 mismatches, and read-only restoration errors fail the operation without requesting
 a reboot. Cancellation before writing aborts; an already-started write completes
 sync/readback/cleanup instead of deliberately stopping halfway.</p>
+<p>Local boot maintenance waits while a rootfs update is pending. When the optional commit gate verifies and commits the rootfs, it automatically checks and applies the local boot assets. Waiting for the commit is not a boot-update failure; a failed commit or rollback does not start boot maintenance.</p>
 <p>Boot installation requires settled Mender state and holds the update-operation
 lock through its deferred reboot waiter so it cannot interrupt a rootfs install.
 It acquires <code>power:inhibits[install:{component}-boot]</code> as a non-expiring <code>block</code>
@@ -2703,9 +2708,11 @@ connect-retry loop can go similarly quiet.</p>
 treat a heartbeat that has stopped advancing as evidence the reporter is gone rather
 than merely quiet.</p>
 <p>Two cautions for anyone building on that.</p>
-<p><code>pending-reboot</code> is not a quiet operation, it is a finished one. A DBC install ends
-there and the heartbeat stops, legitimately, until a stand-by reboot or the next
-power cycle applies the update. Only <code>downloading</code>, <code>preparing</code> and <code>installing</code>
+<p><code>pending-reboot</code> marks the end of the install phase. A DBC install ends there
+and the heartbeat stops legitimately until a stand-by reboot or the next power
+cycle applies the update. When the optional commit gate is enabled, the status
+remains <code>pending-reboot</code> while the new image is evaluated and committed; it is
+not proof that the image has already been committed. Only <code>downloading</code>, <code>preparing</code> and <code>installing</code>
 are states where a stopped heartbeat means something is wrong. A staleness test that says "non-terminal" without
 naming those three will flag every successfully updated DBC.</p>
 <p>An absent heartbeat is not a stale one. Images before this field existed never write

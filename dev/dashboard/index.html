@@ -1488,6 +1488,23 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Speedometer Display">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#startup-speed-in-librescoot" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Startup speed in Librescoot
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
         
           <li class="md-nav__item">
@@ -2061,6 +2078,23 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Speedometer Display">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#startup-speed-in-librescoot" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Startup speed in Librescoot
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
         
           <li class="md-nav__item">
@@ -2578,6 +2612,9 @@ The scores indicate the priority. As many values as possible are fit on the scre
 <li>Battery charge levels</li>
 </ul>
 <p>Speed display can adapt to the user's preferred unit system (metric/imperial), but only metric is used in shipped scooters.</p>
+<h4 id="startup-speed-in-librescoot">Startup speed in Librescoot<a class="headerlink" href="#startup-speed-in-librescoot" title="Permanent link">&para;</a></h4>
+<p>The Qt dashboard uses zero as a temporary placeholder while its initial Redis connection is pending. The one-shot startup window has a three-second monotonic deadline, checked every 250 ms. The first connection, an explicit disconnect condition or <code>ready-to-drive</code> ends the window permanently. Reconnecting does not reopen it.</p>
+<p>ECU fault E20 and known nonzero corrected or raw speed retain the dash. Known moving telemetry and later disconnects keep their existing masks. Unchanged values alone do not establish staleness. This presentation policy leaves telemetry trust and dashboard readiness unchanged; the placeholder is not evidence of a fresh ECU sample. See <a href="https://github.com/librescoot/scootui-qt/tree/v1.20.1">scootui-qt v1.20.1</a>.</p>
 <h3 id="navigation-view">Navigation View<a class="headerlink" href="#navigation-view" title="Permanent link">&para;</a></h3>
 <p>The navigation interface includes:</p>
 <ul>

@@ -2997,19 +2997,20 @@ subscribed to. Pairing a second card mid-install therefore does not take
 the next transition.</p>
 <h3 id="state-machine-behavior">State Machine Behavior<a class="headerlink" href="#state-machine-behavior" title="Permanent link">&para;</a></h3>
 <h4 id="ready-to-drive-conditions">Ready-to-Drive Conditions<a class="headerlink" href="#ready-to-drive-conditions" title="Permanent link">&para;</a></h4>
-<p>Vehicle enters <code>ready-to-drive</code> when ALL are true:</p>
-<ul>
-<li>Dashboard ready (<code>dashboard</code> hash <code>ready</code> field = "true")</li>
-<li>Kickstand up</li>
-<li>Current state is <code>parked</code></li>
-</ul>
-<p><strong>Manual Ready-to-Drive Activation:</strong>
-In <code>parked</code> state, if dashboard is not ready, pressing the seatbox button while:</p>
-<ul>
-<li>Kickstand is up</li>
-<li>Both brakes are held</li>
-</ul>
-<p>Will manually transition to <code>ready-to-drive</code> and blink the main light once for confirmation.</p>
+<p>Raising the kickstand requests a start while the vehicle remains <code>parked</code>
+and interlocked. Entry requires a present active pack, hardware 48V, closed
+seatbox, and fresh ECU evidence of a stopped wheel and released throttle.
+Normal entry also requires dashboard readiness and an unlocked handlebar lock.
+The three-button override retains the supply and throttle gate. Evidence must
+be no more than 500 ms old and the motion frame must follow 1.5 seconds of
+uninterrupted main and engine power. A fresh frame may report unchanged values.</p>
+<p><code>vehicle[drive-start-status]</code> publishes <code>waiting-battery</code>, <code>waiting-power</code>,
+<code>waiting-ecu</code>, <code>release-throttle</code>, <code>stop-vehicle</code>, <code>close-seatbox</code>, <code>timeout</code>,
+or an empty value when no warning is pending. Pending starts retry while
+parked; after 30 seconds a new kickstand cycle or lock/unlock cycle is needed.
+Lowering the kickstand or locking cancels the request. Restoring a saved drive
+state without active supply returns to parked and needs a new kickstand cycle.
+Battery-service retains its normal activation and voltage safeguards.</p>
 <h4 id="lockunlock-handling">Lock/Unlock Handling<a class="headerlink" href="#lockunlock-handling" title="Permanent link">&para;</a></h4>
 <p><strong>Lock command</strong> (<code>LPUSH scooter:state lock</code>):</p>
 <ol>
@@ -3020,9 +3021,8 @@ In <code>parked</code> state, if dashboard is not ready, pressing the seatbox bu
 </ol>
 <p><strong>Unlock command</strong> (<code>LPUSH scooter:state unlock</code>):</p>
 <ol>
-<li>Reads kickstand state</li>
-<li>If dashboard ready and kickstand up: transitions to <code>ready-to-drive</code></li>
-<li>Otherwise: transitions to <code>parked</code> (if currently in <code>stand-by</code>)</li>
+<li>Transitions from <code>stand-by</code> to <code>parked</code>.</li>
+<li>With the kickstand up, requests ride start subject to the admission gates above.</li>
 </ol>
 <p><strong>Lock-Hibernate command</strong> (<code>LPUSH scooter:state lock-hibernate</code>):</p>
 <ol>

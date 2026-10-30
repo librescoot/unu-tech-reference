@@ -1163,6 +1163,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#ride-start-demand-and-wake-up" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Ride-start demand and wake-up
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#experimental-dual-pack-admission" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
@@ -2114,6 +2125,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#ride-start-demand-and-wake-up" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Ride-start demand and wake-up
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#experimental-dual-pack-admission" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
@@ -2615,6 +2637,17 @@
 <li><strong>Started by:</strong> systemd at boot</li>
 <li><strong>Restart policy:</strong> Always</li>
 </ul>
+<h3 id="ride-start-demand-and-wake-up">Ride-start demand and wake-up<a class="headerlink" href="#ride-start-demand-and-wake-up" title="Permanent link">&para;</a></h3>
+<p>A newly selected tag must report one changed payload before stored data is
+trusted. An unconfirmed inactive tag continues through the insertion wake-up
+sequence, but cannot bypass ON admission. After confirmation, unchanged values
+remain valid when complete NFC acquisition succeeds.</p>
+<p><code>vehicle[drive-start-status]=waiting-battery</code> requests a status sampling round
+immediately. Requests coalesce with an existing round and remain pending through
+BMS command settling. Newly confirmed tag data and completed paired readings
+prompt admission rechecks. Foreground demand ends when the status changes or
+a 30-second budget expires; ordinary periodic sampling continues. Sampling
+never relaxes the voltage, freshness, supply and motion admission protections.</p>
 <h3 id="experimental-dual-pack-admission">Experimental dual-pack admission<a class="headerlink" href="#experimental-dual-pack-admission" title="Permanent link">&para;</a></h3>
 <p>With <code>experimental.battery.dual-pack-admission=true</code>, both readers check every
 ON command against fresh NFC data. The higher-voltage usable pack starts first.
@@ -2640,8 +2673,9 @@ no CAN socket. Missing/stale evidence, sequence loss and reconnects restart
 qualification without stopping established supplies or ordinary parked admission.
 The <a href="https://github.com/librescoot/battery-service/blob/main/MOTION_IPC.md">motion contract</a>
 defines the observation and invalidation payloads.</p>
-<p>With the base flag off, slot 1 retains its per-insertion voltage gate and the
-startup and role-change checks against published voltages.</p>
+<p>The shared ON guard remains active with the experimental flag off. It uses
+fresh complete NFC acquisitions, not cached Redis voltages; a mismatched second
+pack stays off without displacing a confirmed running supply.</p>
 <p>See <a href="https://github.com/librescoot/battery-service#dual-battery-activation">battery-service README</a>
 for the timing and voltage limits. The experimental path needs bench testing
 before vehicle use.</p>

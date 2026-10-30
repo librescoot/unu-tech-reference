@@ -1356,6 +1356,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#ride-start-telemetry-and-boot-handoff" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Ride start, telemetry and boot handoff
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#redis-operations" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
@@ -1485,6 +1496,17 @@
         
       </ul>
     </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#multi-stop-route-continuation" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Multi-stop route continuation
+      </span>
+    </span>
+  </a>
   
 </li>
       
@@ -2013,6 +2035,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#ride-start-telemetry-and-boot-handoff" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Ride start, telemetry and boot handoff
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#redis-operations" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
@@ -2142,6 +2175,17 @@
         
       </ul>
     </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#multi-stop-route-continuation" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Multi-stop route continuation
+      </span>
+    </span>
+  </a>
   
 </li>
       
@@ -2366,6 +2410,8 @@ five-second rotation and event deadlines. When navigation occupies the primary
 slot, its notification companion is shown instead; navigation graphics remain
 on the cluster and map screens. Dismissing or expiring the last notification
 restores the full maintenance content area.</p>
+<p>When a recent GPS fix is not accurate enough for routing, the map stays visible and an accuracy-wait explanation uses the shared notification card, including its priority selection, cycling and preemption.</p>
+<p>Clearing Bluetooth connections requires confirmation and is available only while parked. Feedback confirms the request, not completion; when the dashboard is already disconnected, it reports an error and queues no request.</p>
 <h2 id="build">Build<a class="headerlink" href="#build" title="Permanent link">&para;</a></h2>
 <h3 id="desktop-simulator-mode">Desktop (simulator mode)<a class="headerlink" href="#desktop-simulator-mode" title="Permanent link">&para;</a></h3>
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>./run-desktop.sh
@@ -2415,6 +2461,21 @@ restores the full maintenance content area.</p>
 </tr>
 </tbody>
 </table>
+<h2 id="ride-start-telemetry-and-boot-handoff">Ride start, telemetry and boot handoff<a class="headerlink" href="#ride-start-telemetry-and-boot-handoff" title="Permanent link">&para;</a></h2>
+<p>While parked, <code>vehicle[drive-start-status]</code> drives the shared notification card
+for battery activation, power and ECU waits, throttle, motion, seatbox and
+start timeout. The dashboard does not authorize driving. Unchanged telemetry
+values alone do not imply stale speed or power. E20 masks both, and lost
+MDB telemetry trust masks speed; the bounded startup-zero presentation does
+not override E20 or connection loss during a ride.</p>
+<p>System information converts ECU <code>energy:consumed</code> and <code>energy:recovered</code> from
+mWh to kWh. Missing or invalid values remain unknown.</p>
+<p>On a configured framebuffer overlay, the GPU renders live UI frames to fb1
+while the animation continues on fb0. After the first UI frame, the overlay
+fades in over one second, then the animation is stopped. A failed or timed-out
+fade attempts direct reveal; failure exits for service restart. Without an
+overlay, the KMS first-frame handoff applies. The fbdev integration preserves
+the requested depth and stencil buffers used for geometry and clipping.</p>
 <h2 id="redis-operations">Redis Operations<a class="headerlink" href="#redis-operations" title="Permanent link">&para;</a></h2>
 <h3 id="subscriptions-pubsub-periodic-hgetall">Subscriptions (pub/sub + periodic HGETALL)<a class="headerlink" href="#subscriptions-pubsub-periodic-hgetall" title="Permanent link">&para;</a></h3>
 <table>
@@ -2729,7 +2790,7 @@ restores the full maintenance content area.</p>
 <td><code>dashboard.milestones.mode</code></td>
 <td><code>off</code>/<code>regular</code>/<code>all</code></td>
 <td><code>off</code></td>
-<td>No milestone output, regular milestones at 10 km and every 100 km, or regular milestones plus one-shot easter eggs; the menu demo always remains available</td>
+<td>No milestone output, regular milestones at 10 km and every 100 km, or all milestones</td>
 </tr>
 <tr>
 <td><code>dashboard.milestones.presentation</code></td>
@@ -2851,9 +2912,28 @@ Update Mode. See <a href="../librescoot-update/">update-service</a> for the prev
 </ol>
 <h3 id="shutdown">Shutdown<a class="headerlink" href="#shutdown" title="Permanent link">&para;</a></h3>
 <p>On SIGTERM or <code>vehicle state</code> → <code>shutting-down</code>: <code>ShutdownStore::forceBlackout()</code> blacks out the display.</p>
+<h2 id="multi-stop-route-continuation">Multi-stop route continuation<a class="headerlink" href="#multi-stop-route-continuation" title="Permanent link">&para;</a></h2>
+<p>The durable route plan belongs to settings-service; the dashboard edits it through
+<a href="../librescoot-settings/">route-plan RPC</a>. A plan and its current stop survive a
+dashboard restart. Recovery waits for the routing engine when it is not ready yet.</p>
+<p>At a reached intermediate stop, <code>NavigationService</code> starts a 30-second countdown
+only in <code>ready-to-drive</code>. Expiry advances to the next stop through <code>plan.advance</code>.
+Opening the riding shortcut menu holds the countdown. With that menu closed, a
+seatbox-switch press pauses the plan. Leaving drive mode also cancels the
+countdown and pauses the plan; after a reached stop, entering drive mode again
+advances to the next stop. A paused, unfinished leg can resume on entering
+<code>parked</code>, but a reached stop waits for <code>ready-to-drive</code>.</p>
+<p>Brake gestures do not confirm or reject the arrival prompt: <code>InputHandler</code>
+forwards brake menu input only while parked. The shortcut menu's keep-stop action
+uses <code>plan.unreach</code> to retain the current target and suppress drive-mode arrival
+until dismount. Skipping is a separate action and does not mark a stop reached.</p>
+<p>Source: <a href="https://github.com/librescoot/scootui-qt/blob/1e4b3a150d965ad4355416535f39489409486184/src/services/NavigationService.cpp">NavigationService.cpp</a>,
+<a href="https://github.com/librescoot/scootui-qt/blob/1e4b3a150d965ad4355416535f39489409486184/src/services/NavigationService.h">NavigationService.h</a>,
+<a href="https://github.com/librescoot/scootui-qt/blob/1e4b3a150d965ad4355416535f39489409486184/src/services/InputHandler.cpp">InputHandler.cpp</a>
+and <a href="https://github.com/librescoot/scootui-qt/blob/1e4b3a150d965ad4355416535f39489409486184/src/stores/ShortcutMenuStore.cpp">ShortcutMenuStore.cpp</a>.</p>
 <h2 id="map-tiles">Map Tiles<a class="headerlink" href="#map-tiles" title="Permanent link">&para;</a></h2>
 <p>A singleton installation reads <code>/data/maps/map.mbtiles</code> on the DBC. The app watches <code>/data/maps/</code> via inotify and reloads map services when the file appears or changes. A regional installation reads <code>tiles_&lt;slug&gt;.mbtiles</code> and the matching <code>valhalla_tiles_&lt;slug&gt;.tar</code>; a recent GPS fix selects a named pack using its MBTiles <code>bounds</code>. If <code>map.mbtiles</code> exists, regional selection requires <code>/data/valhalla/tiles.tar</code> to be a symlink, so named files alone do not change a singleton installation.</p>
-<p>What is installed is recorded in <code>/data/maps/metadata.json</code> (region slug, per-artifact SHA-256, upstream publication time, last update check) and mirrored into the <a href="../../redis/#installed-maps-maps---librescoot-only"><code>maps</code></a> Redis hash on the MDB. scootui-qt republishes the hash on every Redis reconnect, because the MDB's valkey keeps nothing across a reboot. The same values back the System &gt; Info &gt; Maps screen, so the dashboard and an MDB-side consumer cannot report different things.</p>
+<p>What is installed is recorded in <code>/data/maps/metadata.json</code> (region slug, per-artifact SHA-256, upstream publication time, last update check) and mirrored into the <a href="../../redis/#installed-maps-maps-librescoot-only"><code>maps</code></a> Redis hash on the MDB. scootui-qt republishes the hash on every Redis reconnect, because the MDB's valkey keeps nothing across a reboot. The same values back the System &gt; Info &gt; Maps screen, so the dashboard and an MDB-side consumer cannot report different things.</p>
 <p>Routing tiles live separately at <code>/data/valhalla/tiles.tar</code>, which Valhalla mmaps as its <code>tile_extract</code> and which therefore has to resolve to an uncompressed seekable tar. In regional mode the dashboard swaps that symlink atomically and restarts Valhalla when the selected region changes. A missing matching archive stops local Valhalla rather than serving another region's graph. Routes must be entirely within the active region; cross-region routing is not supported. The built-in map updater continues to serve singleton installations, while regional packs are installed through USB update mode.</p>
 <p><code>MapDownloadService</code> fetches both from the manifest at <code>downloads.librescoot.org/releases/tiles.json</code>, keyed by region slug. Each region's <code>valhalla</code> entry may carry an optional nested <code>compressed</code> object (<code>codec</code>, <code>url</code>, <code>size</code>, <code>sha256</code>); when it is present and the codec is <code>zstd</code>, the service downloads that instead, verifies its SHA256, and decompresses it into place at install. The parent <code>url</code>, <code>size</code> and <code>sha256</code> continue to describe the uncompressed tar, so a client that predates the compressed asset keeps working unchanged. Downloads resume via HTTP <code>Range</code> against the artifact actually being fetched; the compressed variant uses its own <code>.part</code> file.</p>
 <p>The <code>.mbtiles</code> is not compressed for transport. Its vector tiles are already gzipped per tile, so the archive only compresses by about 1.14x.</p>

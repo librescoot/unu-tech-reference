@@ -1034,10 +1034,43 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#sms-inbox" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        SMS inbox
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#read-only-hash-queries" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Read-only hash queries
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#file-transfer" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
         File transfer
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#logging" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Logging
       </span>
     </span>
   </a>
@@ -2101,10 +2134,43 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#sms-inbox" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        SMS inbox
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#read-only-hash-queries" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Read-only hash queries
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#file-transfer" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
         File transfer
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#logging" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Logging
       </span>
     </span>
   </a>
@@ -2756,6 +2822,31 @@
 <h1 id="librescoot-bluetooth-bluetooth-service">librescoot-bluetooth (bluetooth-service)<a class="headerlink" href="#librescoot-bluetooth-bluetooth-service" title="Permanent link">&para;</a></h1>
 <h2 id="description">Description<a class="headerlink" href="#description" title="Permanent link">&para;</a></h2>
 <p>The Bluetooth service provides the BLE (Bluetooth Low Energy) interface for the scooter and manages communication with the nRF52840 chip via UART. It acts as a communication bridge between the nRF52 BLE chip and Redis-based backend system, handling bidirectional translation of messages. The service exposes BLE GATT characteristics for remote control and monitoring (via nRF firmware), processes UART messages from the nRF chip, and publishes battery/vehicle state updates to Redis.</p>
+<h2 id="sms-inbox">SMS inbox<a class="headerlink" href="#sms-inbox" title="Permanent link">&para;</a></h2>
+<p><code>cap:ext</code> advertises <code>sms=1</code> when the inbox projection is available. Bonded
+phones with extended-command access can read the shared inbox and queue read
+or delete actions. <code>sms:start</code> freezes a snapshot; <code>sms:get</code> pulls individual
+messages in MTU-budgeted base64url chunks. Sessions expire after five minutes
+of inactivity and are cleared on disconnect. See the <a href="https://github.com/librescoot/bluetooth-service/blob/5ffa7c64cc028f83cb899efcf5945964c7387cb7/README.md#operation-and-interfaces">protocol</a>.</p>
+<h2 id="read-only-hash-queries">Read-only hash queries<a class="headerlink" href="#read-only-hash-queries" title="Permanent link">&para;</a></h2>
+<p><code>cap:ext</code> advertises <code>hash=1</code>; <code>cap:hash</code> lists the request forms. Bonded
+phones with extended-command access can read only <code>present</code> and
+<code>serial-number</code> from <code>battery:0</code> and <code>battery:1</code>. This is not general Redis
+access: other hashes and fields are denied, and writes, key discovery and
+hash-wide reads are not provided. Values are returned as unchanged strings or
+<code>null</code> for missing fields, not interpreted battery data.</p>
+<p>A <code>hash:read</code> request freezes up to two distinct fields in request order.
+<code>hash:get</code> pulls the resulting JSON array in base64url-encoded byte chunks;
+the client supplies a notification budget no larger than the negotiated ATT
+MTU minus three. Requests use fresh eight-digit lowercase hexadecimal IDs.
+Each field is limited to 256 UTF-8 bytes and the encoded snapshot to 4096 bytes.
+Four snapshots are allowed globally, each expiring after five minutes;
+disconnection clears snapshots and invalidates pending reads and responses.
+At most four handlers run concurrently, and excess requests can be dropped.
+Clients need timeouts and a manual retry path with a fresh ID for a new read.
+The compatible <a href="https://github.com/librescoot/mobile-app/blob/567d3e36c4a95bec0efd6ad05fa45b0dd78d367a/docs/ble-hash-reads.md">app reader</a> requires <code>hash=1</code>, has no legacy fallback or automatic retries, and treats reported values as potentially cached, not fresh measurements.
+Values and request payloads are not logged. The full framing and error contract
+is documented in the <a href="https://github.com/librescoot/bluetooth-service/blob/5ffa7c64cc028f83cb899efcf5945964c7387cb7/README.md#read-only-hash-queries">Bluetooth service protocol</a>.</p>
 <h2 id="file-transfer">File transfer<a class="headerlink" href="#file-transfer" title="Permanent link">&para;</a></h2>
 <p><code>files=1</code> in <code>cap:ext</code> identifies support for the separate bidirectional binary
 <a href="../../bluetooth/file-transfer/">file service</a>. The service exposes read-only
@@ -2772,6 +2863,8 @@ create or content-checked replacement intent. Symlinks and special files are
 not transferable. Administrative writes may affect services consuming those
 files; uploads do not themselves install firmware or execute commands. Read-only
 version-1 Logs access stays available independently of this opt-in.</p>
+<h2 id="logging">Logging<a class="headerlink" href="#logging" title="Permanent link">&para;</a></h2>
+<p>Extended BLE command and response logs record a recognized category, not the payload. Raw UART debug logging records frame ID and payload length rather than bytes; malformed CBOR is logged without the raw message. Other diagnostic logs and log archives can still contain sensitive data and should be handled accordingly.</p>
 <h2 id="command-line-options">Command-Line Options<a class="headerlink" href="#command-line-options" title="Permanent link">&para;</a></h2>
 <div class="language-text highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>--serial string        Serial device path (default "/dev/ttymxc1")
 </span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>--baud int            Serial baud rate (default 115200)
@@ -2893,7 +2986,7 @@ version-1 Logs access stays available independently of this opt-in.</p>
 <li><code>navigation-available</code> - Routing engine available (set by scootui-qt, queried via <code>status:navigation-available</code>)</li>
 </ul>
 <h3 id="hash-otable">Hash: <code>ota:ble</code><a class="headerlink" href="#hash-otable" title="Permanent link">&para;</a></h3>
-<p>Transfer status of the BLE OTA receiver (see <a href="../../bluetooth/ota-transfer/">BLE OTA Firmware Transfer</a> and the <a href="../../redis/#ble-ota-transfer-status-otable---librescoot-only">field reference</a>):</p>
+<p>Transfer status of the BLE OTA receiver (see <a href="../../bluetooth/ota-transfer/">BLE OTA Firmware Transfer</a> and the <a href="../../redis/#ble-ota-transfer-status-otable-librescoot-only">field reference</a>):</p>
 <p><strong>Fields written:</strong></p>
 <ul>
 <li><code>state</code> - <code>idle</code>, <code>receiving</code>, or <code>installing</code></li>

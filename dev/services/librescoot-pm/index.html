@@ -3098,6 +3098,7 @@
 <li>Starts command listeners for <code>scooter:power</code> and <code>scooter:governor</code></li>
 <li>Starts Redis inhibitor listener for <code>power:inhibits</code></li>
 </ol>
+<p>PM uses <code>Type=notify</code> and sends readiness after its inhibitor socket, FSM and Redis watchers are initialized. Its enabled unit orders PM before battery-service and installs a battery-service <code>Requires</code> dependency on PM. Battery startup waits for PM readiness. Socket inhibitors are registered before the acknowledgment is sent; a failed acknowledgment releases the registration.</p>
 <h3 id="runtime-behavior">Runtime Behavior<a class="headerlink" href="#runtime-behavior" title="Permanent link">&para;</a></h3>
 <h4 id="suspend-trigger">Suspend Trigger<a class="headerlink" href="#suspend-trigger" title="Permanent link">&para;</a></h4>
 <p>When vehicle enters <code>stand-by</code> state with target=<code>suspend</code>:</p>
@@ -3114,8 +3115,9 @@
 <h4 id="hibernation-trigger">Hibernation Trigger<a class="headerlink" href="#hibernation-trigger" title="Permanent link">&para;</a></h4>
 <p><strong>Explicit hibernate command:</strong></p>
 <ul>
-<li><code>LPUSH scooter:power hibernate</code> (or <code>hibernate-manual</code>, <code>hibernate-timer</code>)</li>
-<li>Skips pre-suspend delay; FSM goes directly to <code>hibernate-imminent</code></li>
+<li><code>LPUSH scooter:power hibernate</code> and <code>hibernate-manual</code> use explicit request admission: <code>parked</code> starts correlated vehicle preparation; <code>stand-by</code> starts power preparation directly. Other vehicle states reject the request without retaining it for a later lock.</li>
+<li>Preparation skips the pre-suspend delay but still respects blocking inhibitors. See <a href="#hibernate-for-nrf-driven-scheduled-wake">Hibernate-for</a> for the shared admission and status contract.</li>
+<li><code>hibernate-timer</code> follows the automatic timer path, not explicit vehicle preparation.</li>
 </ul>
 <p><strong>Hibernation timer:</strong></p>
 <ul>

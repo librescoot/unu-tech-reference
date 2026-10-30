@@ -1373,10 +1373,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#networkmanager-apn-configuration" class="md-nav__link">
+  <a href="#cellular-apn-ownership" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
-        NetworkManager APN Configuration
+        Cellular APN ownership
       </span>
     </span>
   </a>
@@ -1472,17 +1472,6 @@
   
     <nav class="md-nav" aria-label="Key: settings:schema">
       <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#apn-special-handling" class="md-nav__link">
-    <span class="md-ellipsis">
-      <span class="md-typeset">
-        APN Special Handling
-      </span>
-    </span>
-  </a>
-  
-</li>
         
           <li class="md-nav__item">
   <a href="#empty-config-handling" class="md-nav__link">
@@ -2109,10 +2098,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#networkmanager-apn-configuration" class="md-nav__link">
+  <a href="#cellular-apn-ownership" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
-        NetworkManager APN Configuration
+        Cellular APN ownership
       </span>
     </span>
   </a>
@@ -2208,17 +2197,6 @@
   
     <nav class="md-nav" aria-label="Key: settings:schema">
       <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#apn-special-handling" class="md-nav__link">
-    <span class="md-ellipsis">
-      <span class="md-typeset">
-        APN Special Handling
-      </span>
-    </span>
-  </a>
-  
-</li>
         
           <li class="md-nav__item">
   <a href="#empty-config-handling" class="md-nav__link">
@@ -2547,7 +2525,7 @@
 <ol>
 <li>Reads the new value from Redis</li>
 <li>Updates the TOML file</li>
-<li>Performs special handling for certain fields (e.g., APN updates)</li>
+<li>Applies special handling for supported fields such as <code>scooter.logserver</code></li>
 </ol>
 <h3 id="list-settingsoverlay-command-queue">List: <code>settings:overlay</code> (command queue)<a class="headerlink" href="#list-settingsoverlay-command-queue" title="Permanent link">&para;</a></h3>
 <p>Consumed by settings-service via BRPOP. Applies or clears a named settings overlay without touching <code>/data/settings.toml</code>.</p>
@@ -2785,16 +2763,9 @@ a scooter in service mode stays.</p>
 </span><span id="__span-3-27"><a id="__codelineno-3-27" name="__codelineno-3-27" href="#__codelineno-3-27"></a><span class="n">channel</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"stable"</span>
 </span><span id="__span-3-28"><a id="__codelineno-3-28" name="__codelineno-3-28" href="#__codelineno-3-28"></a><span class="n">check-interval</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"12h"</span>
 </span></code></pre></div>
-<h3 id="networkmanager-apn-configuration">NetworkManager APN Configuration<a class="headerlink" href="#networkmanager-apn-configuration" title="Permanent link">&para;</a></h3>
-<p>When <code>cellular.apn</code> is updated, the service automatically updates:</p>
-<p><strong>File:</strong> <code>/etc/NetworkManager/system-connections/wwan.nmconnection</code></p>
-<p>The service:</p>
-<ol>
-<li>Reads the existing nmconnection file</li>
-<li>Updates the <code>apn=</code> field in the <code>[gsm]</code> section</li>
-<li>Writes the updated file</li>
-<li>NetworkManager automatically reloads the connection</li>
-</ol>
+<h3 id="cellular-apn-ownership">Cellular APN ownership<a class="headerlink" href="#cellular-apn-ownership" title="Permanent link">&para;</a></h3>
+<p>Settings-service persists <code>cellular.apn</code>, including an explicitly empty value, and publishes it during boot hydration. Live changes use the normal hash-update and field-notification contract. Other settings, including credentials and custom namespaces, remain unchanged by an APN-only edit.</p>
+<p>Modem-service v0.15.1 or later owns APN application, including the bounded profile and attach transaction, durable commit and rollback. Settings-service does not edit NetworkManager profiles or restart NetworkManager for APN changes. Persistence alone does not confirm application; verify the modem and profile state separately. See <a href="../librescoot-modem/">modem-service</a> for the transaction and retry policy.</p>
 <h3 id="wireguard-configuration-management">WireGuard Configuration Management<a class="headerlink" href="#wireguard-configuration-management" title="Permanent link">&para;</a></h3>
 <p>On startup, the service manages WireGuard VPN connections:</p>
 <ol>
@@ -2831,6 +2802,7 @@ a scooter in service mode stays.</p>
 <li>Updates the TOML file</li>
 <li>Saves to disk</li>
 </ol>
+<p>Atomic TOML replacement preserves an existing regular file's permission bits and syncs both the file contents and the renamed directory entry before returning success. A reused temporary file is protected before contents are written. Route-plan persistence uses the same helper.</p>
 <h4 id="toml-to-redis-sync-startup-only">TOML to Redis Sync (Startup Only)<a class="headerlink" href="#toml-to-redis-sync-startup-only" title="Permanent link">&para;</a></h4>
 <p>On startup, if <code>/data/settings.toml</code> exists:</p>
 <ol>
@@ -2843,19 +2815,6 @@ a scooter in service mode stays.</p>
 <p>This ensures Redis reflects the persistent configuration.</p>
 <h3 id="key-settingsschema">Key: <code>settings:schema</code><a class="headerlink" href="#key-settingsschema" title="Permanent link">&para;</a></h3>
 <p>On startup, the service publishes the raw schema JSON to this string key so other services can introspect available settings and their metadata.</p>
-<h4 id="apn-special-handling">APN Special Handling<a class="headerlink" href="#apn-special-handling" title="Permanent link">&para;</a></h4>
-<p>When <code>cellular.apn</code> is updated:</p>
-<ol>
-<li>TOML file is updated (normal behavior)</li>
-<li>Service checks if <code>/etc/NetworkManager/system-connections/wwan.nmconnection</code> exists</li>
-<li>If exists:</li>
-<li>Reads the file</li>
-<li>Finds the <code>[gsm]</code> section</li>
-<li>Updates the <code>apn=</code> line</li>
-<li>Writes the file back</li>
-<li>NetworkManager detects the change and reloads the connection</li>
-<li>New APN takes effect on next modem connection</li>
-</ol>
 <h4 id="empty-config-handling">Empty Config Handling<a class="headerlink" href="#empty-config-handling" title="Permanent link">&para;</a></h4>
 <p>If <code>/data/settings.toml</code> is missing or empty, the service logs it and seeds the <code>settings</code> hash from the schema defaults alone. There is no special case for an empty <code>[scooter]</code> section, and nothing flushes the hash: a TOML that simply lacks a key leaves that key at its schema default.</p>
 <h3 id="wireguard-management">WireGuard Management<a class="headerlink" href="#wireguard-management" title="Permanent link">&para;</a></h3>
@@ -2893,7 +2852,7 @@ a scooter in service mode stays.</p>
 </span><span id="__span-6-8"><a id="__codelineno-6-8" name="__codelineno-6-8" href="#__codelineno-6-8"></a><span class="c1"># speed_limit = "30"</span>
 </span></code></pre></div>
 <h3 id="configuring-cellular-apn">Configuring Cellular APN<a class="headerlink" href="#configuring-cellular-apn" title="Permanent link">&para;</a></h3>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="c1"># Set APN (also updates NetworkManager)</span>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="c1"># Set APN and notify modem-service</span>
 </span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>redis-cli<span class="w"> </span>HSET<span class="w"> </span>settings<span class="w"> </span>cellular.apn<span class="w"> </span><span class="s2">"internet.lebara.de"</span>
 </span><span id="__span-7-3"><a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a>redis-cli<span class="w"> </span>PUBLISH<span class="w"> </span>settings<span class="w"> </span>cellular.apn
 </span><span id="__span-7-4"><a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a>
@@ -2901,11 +2860,6 @@ a scooter in service mode stays.</p>
 </span><span id="__span-7-6"><a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a>cat<span class="w"> </span>/data/settings.toml
 </span><span id="__span-7-7"><a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a><span class="c1"># [cellular]</span>
 </span><span id="__span-7-8"><a id="__codelineno-7-8" name="__codelineno-7-8" href="#__codelineno-7-8"></a><span class="c1"># apn = "internet.lebara.de"</span>
-</span><span id="__span-7-9"><a id="__codelineno-7-9" name="__codelineno-7-9" href="#__codelineno-7-9"></a>
-</span><span id="__span-7-10"><a id="__codelineno-7-10" name="__codelineno-7-10" href="#__codelineno-7-10"></a><span class="c1"># Verify in NetworkManager</span>
-</span><span id="__span-7-11"><a id="__codelineno-7-11" name="__codelineno-7-11" href="#__codelineno-7-11"></a>cat<span class="w"> </span>/etc/NetworkManager/system-connections/wwan.nmconnection
-</span><span id="__span-7-12"><a id="__codelineno-7-12" name="__codelineno-7-12" href="#__codelineno-7-12"></a><span class="c1"># [gsm]</span>
-</span><span id="__span-7-13"><a id="__codelineno-7-13" name="__codelineno-7-13" href="#__codelineno-7-13"></a><span class="c1"># apn=internet.lebara.de</span>
 </span></code></pre></div>
 <h3 id="configuring-updates">Configuring Updates<a class="headerlink" href="#configuring-updates" title="Permanent link">&para;</a></h3>
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="c1"># Set MDB to stable channel</span>
@@ -2974,7 +2928,6 @@ a scooter in service mode stays.</p>
 <ul>
 <li>TOML file read/write operations</li>
 <li>Redis synchronization events</li>
-<li>APN configuration updates</li>
 <li>WireGuard connection management</li>
 <li>Parse errors or file I/O errors</li>
 </ul>
@@ -2982,7 +2935,7 @@ a scooter in service mode stays.</p>
 <h2 id="dependencies">Dependencies<a class="headerlink" href="#dependencies" title="Permanent link">&para;</a></h2>
 <ul>
 <li><strong>Redis server</strong> - For settings storage and pub/sub</li>
-<li><strong>NetworkManager</strong> - For APN and WireGuard management</li>
+<li><strong>NetworkManager</strong> - For WireGuard management</li>
 <li><strong>File system</strong> - <code>/data/</code> directory must be writable</li>
 </ul>
 <h2 id="integration-with-other-services">Integration with Other Services<a class="headerlink" href="#integration-with-other-services" title="Permanent link">&para;</a></h2>
@@ -2991,7 +2944,7 @@ a scooter in service mode stays.</p>
 <li><strong>alarm-service</strong>: Reads <code>alarm.enabled</code>, <code>alarm.honk</code></li>
 <li><strong>update-service</strong>: Reads <code>updates.{component}.*</code> settings</li>
 <li><strong>vehicle-service</strong>: Can read scooter behavior settings</li>
-<li><strong>modem-service</strong>: APN is configured via NetworkManager</li>
+<li><strong>modem-service</strong>: Applies persisted APN settings via NetworkManager</li>
 </ul>
 <p>Services should:</p>
 <ol>
@@ -3005,7 +2958,7 @@ a scooter in service mode stays.</p>
 <ul>
 <li><strong>Persistent configuration:</strong> Settings survive reboots</li>
 <li><strong>Easy backup:</strong> Single TOML file contains all settings</li>
-<li><strong>Network management:</strong> Automatic APN and WireGuard configuration</li>
+<li><strong>Network management:</strong> APN persistence and automatic WireGuard configuration</li>
 <li><strong>Flexibility:</strong> Any service can add new settings</li>
 <li><strong>No cloud dependency:</strong> All configuration is local</li>
 </ul>
