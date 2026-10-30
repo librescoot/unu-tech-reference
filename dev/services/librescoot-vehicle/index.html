@@ -2998,19 +2998,20 @@ the next transition.</p>
 <h3 id="state-machine-behavior">State Machine Behavior<a class="headerlink" href="#state-machine-behavior" title="Permanent link">&para;</a></h3>
 <h4 id="ready-to-drive-conditions">Ready-to-Drive Conditions<a class="headerlink" href="#ready-to-drive-conditions" title="Permanent link">&para;</a></h4>
 <p>Raising the kickstand requests a start while the vehicle remains <code>parked</code>
-and interlocked. Entry requires a present active pack, hardware 48V, closed
-seatbox, and fresh ECU evidence of a stopped wheel and released throttle.
-Normal entry also requires dashboard readiness and an unlocked handlebar lock.
-The three-button override retains the supply and throttle gate. Evidence must
-be no more than 500 ms old and the motion frame must follow 1.5 seconds of
-uninterrupted main and engine power. A fresh frame may report unchanged values.</p>
-<p><code>vehicle[drive-start-status]</code> publishes <code>waiting-battery</code>, <code>waiting-power</code>,
-<code>waiting-ecu</code>, <code>release-throttle</code>, <code>stop-vehicle</code>, <code>close-seatbox</code>, <code>timeout</code>,
-or an empty value when no warning is pending. Pending starts retry while
-parked; after 30 seconds a new kickstand cycle or lock/unlock cycle is needed.
-Lowering the kickstand or locking cancels the request. Restoring a saved drive
-state without active supply returns to parked and needs a new kickstand cycle.
+and interlocked until at least one present battery is active. Normal entry
+also requires dashboard readiness and an unlocked handlebar lock. The
+three-button override retains the active-battery requirement. Rolling,
+throttle position, ECU telemetry and power-settling time do not add start gates.
+Both batteries' presence and state are read together, with a final recheck
+before motor release. Missing data or a failed read keeps the vehicle parked.</p>
+<p><code>vehicle[drive-start-status]</code> publishes <code>waiting-battery</code> while activation is
+pending, or an empty value when no warning is pending. Pending starts retry
+while parked without a timeout requiring another kickstand cycle. Lowering
+the kickstand or locking cancels the request. Restoring a saved drive state
+without active supply returns to parked and needs a new kickstand cycle;
+that case uses the existing <code>timeout</code> status for retry guidance.
 Battery-service retains its normal activation and voltage safeguards.</p>
+<p>Source: <a href="https://github.com/librescoot/vehicle-service/blob/c5577771830ff8447707a311cc3c3ef55dbda89a/README.md#starting-a-ride">vehicle-service</a>.</p>
 <h4 id="lockunlock-handling">Lock/Unlock Handling<a class="headerlink" href="#lockunlock-handling" title="Permanent link">&para;</a></h4>
 <p><strong>Lock command</strong> (<code>LPUSH scooter:state lock</code>):</p>
 <ol>
