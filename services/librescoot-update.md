@@ -454,7 +454,7 @@ Configured via `updates.{component}.method` in Redis settings. Default is `delta
 
 ## Reboot Behavior
 
-- **MDB**: waits until vehicle is in stand-by state for 3 minutes, then triggers reboot via `scooter:power`. The 3-minute requirement applies to periodic checks; a manually requested update (`check-now`, `update-from-file:`, `update-from-url:`) reboots as soon as the vehicle is in stand-by.
+- **MDB**: waits until the vehicle is in `stand-by` for 3 minutes on periodic updates; manual updates skip that duration. Both rootfs and boot-update reboots additionally wait for the DBC rootfs and boot updates to reach a terminal outcome, `vehicle[dbc-updating]=false`, and `vehicle[dashboard:power]=off`. The MDB remains available through DBC activation and confirmation, then rechecks vehicle state and standby duration before requesting `scooter:power reboot`. Missing vehicle fields, unknown update statuses and read failures defer the request. UMS reboot ownership remains authoritative. See [update-service v0.17.3](https://github.com/librescoot/update-service/tree/v0.17.3).
 - **DBC**: sets status to `pending-reboot` and reboots itself once the vehicle is in `stand-by`. The local activation reboot is gated on `stand-by` alone — never `ready-to-drive` or `parked`, where the rider is present — so activation waits out the rider; a pending artifact that never gets its stand-by reboot still applies on the next power cycle. When the dashboard powers off, the MDB clears only a DBC `downloading` or `preparing` status. `pending-reboot` is kept for the DBC's own recovery on the next power-on, and it does not block MDB orchestration of the DBC.
 - With `--dry-run`: logs reboot intent only
 
