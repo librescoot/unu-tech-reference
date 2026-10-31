@@ -67,7 +67,7 @@ unobserved intervals, including sleep and off-vehicle charging, are not filled.
 | `driving:mwh` | Net estimate during `ready-to-drive`, including stops |
 | `parked:mwh` | Net estimate during parked, hop-on or waiting-seatbox |
 | `standby:mwh` | Net estimate during stand-by/hibernation states while observed |
-| `unassigned:mwh` | Net estimate over state transitions or unknown states |
+| `unassigned:mwh` | Net estimate where phase time shares tie or unknown time dominates |
 | `since` | Accounting start, UTC RFC3339 |
 | `updated-at` | Publisher heartbeat, Unix milliseconds |
 | `status` | `waiting`, `collecting`, `partial`, `unavailable`, `storage-error` |
@@ -78,6 +78,13 @@ The `energy` channel publishes `updated-at` after the hash transaction. Totals
 are stored in `energy.json` beside the trip database, using atomic rename and
 file/directory fsync before publishing. Corrupt storage is reported unavailable,
 not reset. This accounting does not follow the trip-counter reset policy.
+
+Each pack interval is assigned in full to the phase with the largest accumulated
+time share between its acquisition timestamps. Multiple visits to a phase are
+added together. Valid vehicle transition timestamps locate changes between polls;
+otherwise observation times are used. Exact ties and dominant unknown periods
+remain unassigned. A state timestamp changing while the state stays the same
+marks an unobserved excursion as unknown.
 
 Phases are disjoint operating periods, not electrical loads. AUX/CBB charging
 and other consumers can operate in each phase; there is no separately measured
