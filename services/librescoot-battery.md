@@ -233,7 +233,14 @@ Otherwise, both packs need requalification, including when leaving ready-to-driv
 with keep-active disabled. The effective policy is read live at that boundary.
 A replacement identity or previously inactive pack cannot inherit the keepalive
 exception, and pending OFF reservations remain intact. Duplicate seatbox reports
-do not invalidate new measurements.
+do not invalidate new measurements. The identity-bound confirmation that a tag
+has refreshed is retained across seatbox changes; new acquisitions can therefore
+qualify even with unchanged values. Old measurements and pairs remain unusable.
+
+Detected tag absence requires requalification even when the same UID and serial
+return. Power and OFF reservations remain held. Known running identities retain
+heartbeats across RF loss in ready-to-drive; requalification is then required
+in a non-driving state. A different identity never inherits this exception.
 
 See [battery-service README](https://github.com/librescoot/battery-service#dual-battery-activation)
 for the timing and voltage limits. The experimental path needs bench testing
