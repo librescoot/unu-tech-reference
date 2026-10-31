@@ -59,6 +59,13 @@ Usage of battery-service:
 - `serial-number` - Battery serial number
 - `manufacturing-date` - Manufacturing date
 - `fw-version` - Firmware version
+- `sample:timestamp` - Unix milliseconds at the start of the STATUS0 NFC acquisition; `0` without an acquisition
+- `sample:valid` - Complete, non-artifact acquisition from a present pack after tag confirmation (`true`/`false`)
+
+Acquisition metadata is included in the same atomic hash update as the pack
+values. State-only publications retain its timestamp. This is the NFC read time,
+not the BMS's internal measurement time; consumers must check age and identity.
+The metadata does not change activation or polling.
 
 **Published channels and messages:**
 

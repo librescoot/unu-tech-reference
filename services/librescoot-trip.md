@@ -43,6 +43,48 @@ All counter distances are integer metres, durations are integer seconds,
 `average-speed-kmh` is an integer km/h rounded to the nearest km/h. The ECU
 odometer is also metres. The counter only includes time in `ready-to-drive`.
 
+## Traction-pack energy estimate
+
+The independent `energy` hash reports signed net consumption estimated from BMS
+remaining-capacity changes and mean endpoint voltage for both active packs.
+Positive means net withdrawal, negative means net capacity gain. It does not
+integrate a cached instantaneous current. BMS gauge corrections can affect the
+estimate; this is not a pair of gross discharge/recuperation meters.
+
+Fresh acquisitions require battery-service's `sample:timestamp` and
+`sample:valid`, present/active state, serial, voltage and remaining/full capacity.
+Redis snapshots are atomic and polled once a second. Acquisitions older than 90
+seconds and intervals over 120 seconds are discarded. Repeated cached data,
+invalid measurements, identity/full-capacity changes, implausible jumps and
+Redis failures cannot create energy. Restart requires new post-start readings;
+unobserved intervals, including sleep and off-vehicle charging, are not filled.
+
+| Field | Unit / meaning |
+|---|---|
+| `source` | `bms-capacity-delta` |
+| `known` | `true` after at least one accepted interval, otherwise `false` |
+| `net:mwh` | Signed net estimate, sum of the four phase fields |
+| `driving:mwh` | Net estimate during `ready-to-drive`, including stops |
+| `parked:mwh` | Net estimate during parked, hop-on or waiting-seatbox |
+| `standby:mwh` | Net estimate during stand-by/hibernation states while observed |
+| `unassigned:mwh` | Net estimate over state transitions or unknown states |
+| `since` | Accounting start, UTC RFC3339 |
+| `updated-at` | Publisher heartbeat, Unix milliseconds |
+| `status` | `waiting`, `collecting`, `partial`, `unavailable`, `storage-error` |
+| `intervals` | Accepted pack intervals |
+| `gaps` | Baseline discontinuities, including process restarts |
+
+The `energy` channel publishes `updated-at` after the hash transaction. Totals
+are stored in `energy.json` beside the trip database, using atomic rename and
+file/directory fsync before publishing. Corrupt storage is reported unavailable,
+not reset. This accounting does not follow the trip-counter reset policy.
+
+Phases are disjoint operating periods, not electrical loads. AUX/CBB charging
+and other consumers can operate in each phase; there is no separately measured
+charger-energy split. ECU lifetime totals remain independent and have a
+different collection period. The dashboard shows pack estimates, collection
+coverage and separately labelled ECU counters under System > Info > Consumption.
+
 ## Counter and reset policy
 
 `settings[trip.counter-reset]` is a persistent enum. Its default is `ride`;

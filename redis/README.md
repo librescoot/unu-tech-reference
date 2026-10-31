@@ -126,6 +126,8 @@ Note: When battery is not present (`"present": "false"`), all fields will show d
 | temperature-state | string | Temperature status | "unknown" |
 | cycle-count | integer | Battery cycle count | "0" |
 | state-of-health | integer (%) | Battery health | "0" |
+| sample:timestamp | Unix milliseconds | Start of STATUS0 NFC acquisition, retained across state-only publications | "0" |
+| sample:valid | "true"/"false" | Complete non-artifact acquisition from a present, confirmed pack; consumers must also check age | "false" |
 | remaining-capacity | integer (mAh) | Remaining pack capacity | "0" |
 | full-capacity | integer (mAh) | Full pack capacity | "0" |
 | fault-code | integer | Pack fault code (0 when none) | "0" |
@@ -531,6 +533,20 @@ Written by modem-service after it successfully sets the system clock from an aut
 | updated | string | When the hash was last written (RFC3339) | "2026-06-11T12:00:00Z" |
 
 Redis is not persistent on librescoot, so the presence of this hash always refers to the current boot.
+
+### Battery energy estimate (`energy`) - Librescoot Only
+
+trip-service publishes signed net mWh estimated from traction-pack BMS capacity
+changes. `net:mwh` equals `driving:mwh` + `parked:mwh` + `standby:mwh` +
+`unassigned:mwh`. Negative values represent net capacity gain. These are phase
+buckets, not a motor/charger load split or gross recuperation counters.
+
+`source=bms-capacity-delta`, `known`, `since` (UTC RFC3339), `updated-at` (Unix
+milliseconds), `status`, `intervals` and `gaps` describe origin and coverage.
+Unknown is not a measured zero. State changes, missing data, sleep, restart and
+pack replacement can leave unobserved intervals. The `energy` channel publishes
+`updated-at` after atomic snapshot updates. See the [trip-service energy
+contract](../services/librescoot-trip.md#traction-pack-energy-estimate).
 
 ### Trip Service (`trip`, `trip:counter`, and `trip:expunge`) - Librescoot Only
 
