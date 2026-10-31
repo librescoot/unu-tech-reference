@@ -4,6 +4,10 @@
 
 The Bluetooth service provides the BLE (Bluetooth Low Energy) interface for the scooter and manages communication with the nRF52840 chip via UART. It acts as a communication bridge between the nRF52 BLE chip and Redis-based backend system, handling bidirectional translation of messages. The service exposes BLE GATT characteristics for remote control and monitoring (via nRF firmware), processes UART messages from the nRF chip, and publishes battery/vehicle state updates to Redis.
 
+## Cloud account pairing
+
+`cap:ext` advertises `cloud-pairing=1`. Bonded phones with extended-command access can send `cloud-pairing:start`, `cloud-pairing:status` and `cloud-pairing:stop`. Replies are `cloud-pairing:status:<JSON>` or `cloud-pairing:error:<reason>`. The JSON contains only state, running flag, and when available the short code, fixed Connect URL and expiry. The polling token, QR capability and provider credentials are not returned or logged. Start launches the explicitly requested local Connect worker; stop requests a cooperative pause between configuration steps. Opening the account page or checking status does not start a session.
+
 ## SMS inbox
 
 `cap:ext` advertises `sms=1` when the inbox projection is available. Bonded
