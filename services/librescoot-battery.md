@@ -202,8 +202,9 @@ must finish within 2 seconds of its start, and the round deadline is 10 seconds.
 This aligns NFC reads, not the BMS's internal measurement times.
 
 The stopped-RTD exception also requires
-`experimental.battery.dual-pack-admission-while-stopped=true`. It needs a confirmed
-running peer, at least three stable paired samples spanning 6 seconds after the
+`experimental.battery.dual-pack-admission-while-stopped=true`. It needs an already
+admitted, confirmed running peer; an unqualified replacement's ACTIVE report is
+insufficient. It also needs at least three stable paired samples spanning 6 seconds after the
 current stop began, and a pair at most 3 seconds old. A fresh ECU observation
 must be acquired at or after both complete battery frames and remain at most 500 ms
 old at each ON write attempt. Zero RPM, zero raw speed and throttle off must
