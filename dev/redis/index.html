@@ -24,7 +24,7 @@
       
       
       <link rel="icon" href="../assets/favicon.png">
-      <meta name="generator" content="zensical-0.0.73">
+      <meta name="generator" content="zensical-0.0.74">
     
     
       
@@ -987,6 +987,17 @@
     <span class="md-ellipsis">
       <span class="md-typeset">
         Clock Sync (<code>clock</code>)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#battery-energy-estimate-energy-librescoot-only" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Battery energy estimate (<code>energy</code>) - Librescoot Only
       </span>
     </span>
   </a>
@@ -2704,6 +2715,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#battery-energy-estimate-energy-librescoot-only" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Battery energy estimate (<code>energy</code>) - Librescoot Only
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#trip-service-trip-tripcounter-and-tripexpunge-librescoot-only" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
@@ -3757,6 +3779,18 @@ and <a href="../services/librescoot-battery/#experimental-dual-pack-admission">b
 <td>integer (%)</td>
 <td>Battery health</td>
 <td>"0"</td>
+</tr>
+<tr>
+<td>sample:timestamp</td>
+<td>Unix milliseconds</td>
+<td>Start of STATUS0 NFC acquisition, retained across state-only publications</td>
+<td>"0"</td>
+</tr>
+<tr>
+<td>sample:valid</td>
+<td>"true"/"false"</td>
+<td>Complete non-artifact acquisition from a present, confirmed pack; consumers must also check age</td>
+<td>"false"</td>
 </tr>
 <tr>
 <td>remaining-capacity</td>
@@ -4839,6 +4873,17 @@ correlate with the request that caused them).</p>
 </tbody>
 </table>
 <p>Redis is not persistent on librescoot, so the presence of this hash always refers to the current boot.</p>
+<h3 id="battery-energy-estimate-energy-librescoot-only">Battery energy estimate (<code>energy</code>) - Librescoot Only<a class="headerlink" href="#battery-energy-estimate-energy-librescoot-only" title="Permanent link">&para;</a></h3>
+<p>trip-service publishes signed net mWh estimated from traction-pack BMS capacity
+changes. <code>net:mwh</code> equals <code>driving:mwh</code> + <code>parked:mwh</code> + <code>standby:mwh</code> +
+<code>unassigned:mwh</code>. Negative values represent net capacity gain. These are phase
+buckets, not a motor/charger load split or gross recuperation counters.</p>
+<p><code>source=bms-capacity-delta</code>, <code>known</code>, <code>since</code> (UTC RFC3339), <code>updated-at</code> (Unix
+milliseconds), <code>status</code>, <code>intervals</code> and <code>gaps</code> describe origin and coverage.
+Unknown is not a measured zero. State changes, missing data, sleep, restart and
+pack replacement can leave unobserved intervals. The <code>energy</code> channel publishes
+<code>updated-at</code> after atomic snapshot updates. See the <a href="../services/librescoot-trip/#traction-pack-energy-estimate">trip-service energy
+contract</a>.</p>
 <h3 id="trip-service-trip-tripcounter-and-tripexpunge-librescoot-only">Trip Service (<code>trip</code>, <code>trip:counter</code>, and <code>trip:expunge</code>) - Librescoot Only<a class="headerlink" href="#trip-service-trip-tripcounter-and-tripexpunge-librescoot-only" title="Permanent link">&para;</a></h3>
 <p>trip-service owns a durable vehicle-wide display counter and separate recorded
 trip history. See <a href="../services/librescoot-trip/">trip-service</a> for recovery,
@@ -6711,10 +6756,10 @@ additionally reports its own refusals in <code>usb.last-result</code> and as an 
       
         
         
-      <script id="__config" type="application/json">{"annotate":null,"base":"..","features":["content.action.edit","content.code.copy","content.code.select","content.tooltips","navigation.footer","navigation.indexes","navigation.instant","navigation.instant.prefetch","navigation.path","navigation.sections","navigation.top","navigation.tracking","search.highlight","toc.follow"],"redirect":null,"search":"../assets/javascripts/workers/search.c47bb847.min.js","tags":null,"translations":{"clipboard.copied":"Copied to clipboard","clipboard.copy":"Copy to clipboard","clipboard.error":"Could not copy to clipboard","search.result.more.one":"1 more on this page","search.result.more.other":"# more on this page","search.result.none":"No matching documents","search.result.one":"1 matching document","search.result.other":"# matching documents","search.result.placeholder":"Type to start searching","search.result.term.missing":"Missing","select.version":"Select version"},"version":{"provider":"mike"}}</script>
+      <script id="__config" type="application/json">{"annotate":null,"base":"..","features":["content.action.edit","content.code.copy","content.code.select","content.tooltips","navigation.footer","navigation.indexes","navigation.instant","navigation.instant.prefetch","navigation.path","navigation.sections","navigation.top","navigation.tracking","search.highlight","toc.follow"],"redirect":null,"search":"../assets/javascripts/workers/search.719e0d91.min.js","tags":null,"translations":{"clipboard.copied":"Copied to clipboard","clipboard.copy":"Copy to clipboard","clipboard.error":"Could not copy to clipboard","search.result.more.one":"1 more on this page","search.result.more.other":"# more on this page","search.result.none":"No matching documents","search.result.one":"1 matching document","search.result.other":"# matching documents","search.result.placeholder":"Type to start searching","search.result.term.missing":"Missing","select.version":"Select version"},"version":{"provider":"mike"}}</script>
     
     
-      <script src="../assets/javascripts/bundle.77dd0ce9.min.js"></script>
+      <script src="../assets/javascripts/bundle.d31f0ffa.min.js"></script>
       
     
   </body>

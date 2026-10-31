@@ -24,7 +24,7 @@
       
       
       <link rel="icon" href="../../assets/favicon.png">
-      <meta name="generator" content="zensical-0.0.73">
+      <meta name="generator" content="zensical-0.0.74">
     
     
       
@@ -1277,6 +1277,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#traction-pack-energy-estimate" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Traction-pack energy estimate
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#counter-and-reset-policy" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
@@ -1670,6 +1681,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#traction-pack-energy-estimate" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Traction-pack energy estimate
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#counter-and-reset-policy" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
@@ -1926,6 +1948,92 @@ session across every parked-equivalent pause until lock.</p>
 <code>reset-at</code>, <code>updated-at</code>, and expunge timestamps are Unix seconds, and
 <code>average-speed-kmh</code> is an integer km/h rounded to the nearest km/h. The ECU
 odometer is also metres. The counter only includes time in <code>ready-to-drive</code>.</p>
+<h2 id="traction-pack-energy-estimate">Traction-pack energy estimate<a class="headerlink" href="#traction-pack-energy-estimate" title="Permanent link">&para;</a></h2>
+<p>The independent <code>energy</code> hash reports signed net consumption estimated from BMS
+remaining-capacity changes and mean endpoint voltage for both active packs.
+Positive means net withdrawal, negative means net capacity gain. It does not
+integrate a cached instantaneous current. BMS gauge corrections can affect the
+estimate; this is not a pair of gross discharge/recuperation meters.</p>
+<p>Fresh acquisitions require battery-service's <code>sample:timestamp</code> and
+<code>sample:valid</code>, present/active state, serial, voltage and remaining/full capacity.
+Redis snapshots are atomic and polled once a second. Acquisitions older than 90
+seconds and intervals over 120 seconds are discarded. Repeated cached data,
+invalid measurements, identity/full-capacity changes, implausible jumps and
+Redis failures cannot create energy. Restart requires new post-start readings;
+unobserved intervals, including sleep and off-vehicle charging, are not filled.</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Unit / meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>source</code></td>
+<td><code>bms-capacity-delta</code></td>
+</tr>
+<tr>
+<td><code>known</code></td>
+<td><code>true</code> after at least one accepted interval, otherwise <code>false</code></td>
+</tr>
+<tr>
+<td><code>net:mwh</code></td>
+<td>Signed net estimate, sum of the four phase fields</td>
+</tr>
+<tr>
+<td><code>driving:mwh</code></td>
+<td>Net estimate during <code>ready-to-drive</code>, including stops</td>
+</tr>
+<tr>
+<td><code>parked:mwh</code></td>
+<td>Net estimate during parked, hop-on or waiting-seatbox</td>
+</tr>
+<tr>
+<td><code>standby:mwh</code></td>
+<td>Net estimate during stand-by/hibernation states while observed</td>
+</tr>
+<tr>
+<td><code>unassigned:mwh</code></td>
+<td>Net estimate where phase time shares tie or unknown time dominates</td>
+</tr>
+<tr>
+<td><code>since</code></td>
+<td>Accounting start, UTC RFC3339</td>
+</tr>
+<tr>
+<td><code>updated-at</code></td>
+<td>Publisher heartbeat, Unix milliseconds</td>
+</tr>
+<tr>
+<td><code>status</code></td>
+<td><code>waiting</code>, <code>collecting</code>, <code>partial</code>, <code>unavailable</code>, <code>storage-error</code></td>
+</tr>
+<tr>
+<td><code>intervals</code></td>
+<td>Accepted pack intervals</td>
+</tr>
+<tr>
+<td><code>gaps</code></td>
+<td>Baseline discontinuities, including process restarts</td>
+</tr>
+</tbody>
+</table>
+<p>The <code>energy</code> channel publishes <code>updated-at</code> after the hash transaction. Totals
+are stored in <code>energy.json</code> beside the trip database, using atomic rename and
+file/directory fsync before publishing. Corrupt storage is reported unavailable,
+not reset. This accounting does not follow the trip-counter reset policy.</p>
+<p>Each pack interval is assigned in full to the phase with the largest accumulated
+time share between its acquisition timestamps. Multiple visits to a phase are
+added together. Valid vehicle transition timestamps locate changes between polls;
+otherwise observation times are used. Exact ties and dominant unknown periods
+remain unassigned. A state timestamp changing while the state stays the same
+marks an unobserved excursion as unknown.</p>
+<p>Phases are disjoint operating periods, not electrical loads. AUX/CBB charging
+and other consumers can operate in each phase; there is no separately measured
+charger-energy split. ECU lifetime totals remain independent and have a
+different collection period. The dashboard shows pack estimates, collection
+coverage and separately labelled ECU counters under System &gt; Info &gt; Consumption.</p>
 <h2 id="counter-and-reset-policy">Counter and reset policy<a class="headerlink" href="#counter-and-reset-policy" title="Permanent link">&para;</a></h2>
 <p><code>settings[trip.counter-reset]</code> is a persistent enum. Its default is <code>ride</code>;
 valid values are <code>ride</code>, <code>day</code>, <code>battery</code>, and <code>manual</code>. settings-service
@@ -2340,10 +2448,10 @@ and retention setting. BLE does not provide trip-history or GPS-trace queries.</
       
         
         
-      <script id="__config" type="application/json">{"annotate":null,"base":"../..","features":["content.action.edit","content.code.copy","content.code.select","content.tooltips","navigation.footer","navigation.indexes","navigation.instant","navigation.instant.prefetch","navigation.path","navigation.sections","navigation.top","navigation.tracking","search.highlight","toc.follow"],"redirect":null,"search":"../../assets/javascripts/workers/search.c47bb847.min.js","tags":null,"translations":{"clipboard.copied":"Copied to clipboard","clipboard.copy":"Copy to clipboard","clipboard.error":"Could not copy to clipboard","search.result.more.one":"1 more on this page","search.result.more.other":"# more on this page","search.result.none":"No matching documents","search.result.one":"1 matching document","search.result.other":"# matching documents","search.result.placeholder":"Type to start searching","search.result.term.missing":"Missing","select.version":"Select version"},"version":{"provider":"mike"}}</script>
+      <script id="__config" type="application/json">{"annotate":null,"base":"../..","features":["content.action.edit","content.code.copy","content.code.select","content.tooltips","navigation.footer","navigation.indexes","navigation.instant","navigation.instant.prefetch","navigation.path","navigation.sections","navigation.top","navigation.tracking","search.highlight","toc.follow"],"redirect":null,"search":"../../assets/javascripts/workers/search.719e0d91.min.js","tags":null,"translations":{"clipboard.copied":"Copied to clipboard","clipboard.copy":"Copy to clipboard","clipboard.error":"Could not copy to clipboard","search.result.more.one":"1 more on this page","search.result.more.other":"# more on this page","search.result.none":"No matching documents","search.result.one":"1 matching document","search.result.other":"# matching documents","search.result.placeholder":"Type to start searching","search.result.term.missing":"Missing","select.version":"Select version"},"version":{"provider":"mike"}}</script>
     
     
-      <script src="../../assets/javascripts/bundle.77dd0ce9.min.js"></script>
+      <script src="../../assets/javascripts/bundle.d31f0ffa.min.js"></script>
       
     
   </body>
