@@ -187,13 +187,17 @@ never relaxes the voltage, freshness, supply and motion admission protections.
 
 ### Experimental dual-pack admission
 
-With `experimental.battery.dual-pack-admission=true`, both readers check every
-ON command against fresh NFC data. The higher-voltage usable pack starts first.
-A second pack can join in `parked` after stable low-load readings pass the
-voltage limit. A separate default-off stopped-RTD exception is described below.
+Every ON command uses the shared guard. A qualified first supply can start
+regardless of vehicle state. A second pack requires stationary evidence and
+compatible fresh readings. Known non-drive states such as `parked` and `stand-by`
+provide stationary evidence; a fresh movement/throttle report overrides them.
+Otherwise, fresh ECU evidence and the stable window below are required.
+`experimental.battery.dual-pack-admission=true` enables voltage-priority selection,
+confirmed-OFF handovers and conservative qualification in known non-drive states.
+The flag is fixed at startup and cannot disable the common safety guards.
 Active packs keep their heartbeats; a deferred ON never becomes OFF.
-Missing or stale data blocks admission, not the running supply. OFF attempts need
-later inactive readings before another ON. The flag is fixed at startup.
+Missing or stale data blocks new admission, not established supply heartbeats.
+OFF attempts need later inactive readings before another ON.
 
 Paired sampling is attempted every 3 seconds across vehicle states when both
 reader roles are eligible. One round ID ties both reads together. The union of
@@ -201,17 +205,17 @@ both STATUS0 acquisition intervals must be at most 1 second, each full frame
 must finish within 2 seconds of its start, and the round deadline is 10 seconds.
 This aligns NFC reads, not the BMS's internal measurement times.
 
-The stopped-RTD exception also requires
-`experimental.battery.dual-pack-admission-while-stopped=true`. It needs an already
-admitted, confirmed running peer; an unqualified replacement's ACTIVE report is
-insufficient. It also needs at least three stable paired samples spanning 6 seconds after the
-current stop began, and a pair at most 3 seconds old. A fresh ECU observation
+`experimental.battery.dual-pack-admission-while-stopped` is obsolete and ignored.
+When using ECU motion evidence for second-pack admission, an already admitted,
+confirmed running peer is required; an unqualified replacement's ACTIVE report
+is insufficient. At least three stable paired samples must span 6 seconds after
+the current stop began, and the latest pair must be at most 3 seconds old. A fresh ECU observation
 must be acquired at or after both complete battery frames and remain at most 500 ms
 old at each ON write attempt. Zero RPM, zero raw speed and throttle off must
 remain continuously qualified throughout that window.
 
-Battery-service subscribes to direct JSON values on `engine-ecu:motion`; it opens
-no CAN socket. Missing/stale evidence, sequence loss and reconnects restart
+Battery-service subscribes to direct JSON values on `engine-ecu:motion`
+independently of experimental settings; it opens no CAN socket. Missing/stale evidence, sequence loss and reconnects restart
 qualification without stopping established supplies or ordinary parked admission.
 The [motion contract](https://github.com/librescoot/battery-service/blob/main/MOTION_IPC.md)
 defines the observation and invalidation payloads.
@@ -226,22 +230,22 @@ not bypass fresh qualification or authorize OFF of the established supply.
 Unresolved power reservations survive identity changes. Serial identity is retained
 separately from measurement freshness.
 
-Seatbox opening and closing invalidate both packs' measurement evidence and
-paired rounds before reader events are queued. Unchanged running identities
-retain their heartbeats in ready-to-drive or with effective keep-active enabled,
-including the AUX-low override. Their measurement evidence is still invalidated.
-Otherwise, both packs need requalification, including when leaving ready-to-drive
-with keep-active disabled. The effective policy is read live at that boundary.
-A replacement identity or previously inactive pack cannot inherit the keepalive
-exception, and pending OFF reservations remain intact. Duplicate seatbox reports
-do not invalidate new measurements. The identity-bound confirmation that a tag
-has refreshed is retained across seatbox changes; new acquisitions can therefore
-qualify even with unchanged values. Old measurements and pairs remain unusable.
+Seatbox opening and closing invalidate measurement evidence and paired rounds
+before reader events are queued, without revoking an established identity's
+heartbeat permission. Reader policy still issues OFF for an open seatbox unless
+keep-active (manual/AUX-low) or the drive latch applies. Pending OFF reservations
+remain intact; replacements and previously inactive packs cannot inherit ON
+permission. Duplicate seatbox reports do not invalidate new measurements.
+Identity-bound tag-refresh confirmation survives seatbox changes, so new complete
+acquisitions remain usable even with unchanged values.
 
-Detected tag absence requires requalification even when the same UID and serial
-return. Power and OFF reservations remain held. Known running identities retain
-heartbeats across RF loss in ready-to-drive; requalification is then required
-in a non-driving state. A different identity never inherits this exception.
+Tag absence or same-identity rediscovery in a known non-drive state requires
+requalification. Power/OFF reservations survive. Known running identities retain
+heartbeats across RF loss outside those states; a later state change alone does
+not revoke that permission. Changed identities never inherit it. Qualification
+windows survive changes between known non-drive states, or other state changes
+with fresh continuous ECU stationary evidence. Movement or throttle transitions
+discard old measurement pairs and histories.
 
 See [battery-service README](https://github.com/librescoot/battery-service#dual-battery-activation)
 for the timing and voltage limits. The experimental path needs bench testing
