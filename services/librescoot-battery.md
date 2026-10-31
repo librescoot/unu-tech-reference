@@ -226,12 +226,14 @@ Unresolved power reservations survive identity changes. Serial identity is retai
 separately from measurement freshness.
 
 Seatbox opening and closing invalidate both packs' measurement evidence and
-paired rounds before reader events are queued. Both packs need requalification
-in non-drive states. In ready-to-drive, unchanged running identities keep their
-heartbeats across latch-sensor changes, but their measurements are invalidated
-immediately and qualification is required once parked. A replacement identity
-cannot inherit that exception. Duplicate seatbox reports do not invalidate new
-measurements.
+paired rounds before reader events are queued. Unchanged running identities
+retain their heartbeats in ready-to-drive or with effective keep-active enabled,
+including the AUX-low override. Their measurement evidence is still invalidated.
+Otherwise, both packs need requalification, including when leaving ready-to-drive
+with keep-active disabled. The effective policy is read live at that boundary.
+A replacement identity or previously inactive pack cannot inherit the keepalive
+exception, and pending OFF reservations remain intact. Duplicate seatbox reports
+do not invalidate new measurements.
 
 See [battery-service README](https://github.com/librescoot/battery-service#dual-battery-activation)
 for the timing and voltage limits. The experimental path needs bench testing
