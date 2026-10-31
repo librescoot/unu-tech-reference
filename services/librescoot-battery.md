@@ -78,7 +78,7 @@ The metadata does not change activation or polling.
 
 - `scooter.battery-keep-active-on-seatbox-open` - Bool (`true`/`false`); runtime equivalent of the `-keep-active-on-seatbox-open` CLI flag. Keeps a running battery active across a seatbox open while still letting seatbox events flow. Hot-reloaded via `settings` pub/sub; a change restarts any mid-cycle active reader so the new value takes effect at once.
 - `experimental.battery.dual-pack-admission` - Bool, default `false`. Enables coordinated pack selection, paired sampling and activation checks. Read at startup; changes require a battery-service restart. Does not enable reader 1.
-- `experimental.battery.dual-pack-admission-while-stopped` - Obsolete and ignored. Neither value permits new activation in `ready-to-drive` or bypasses stationary qualification.
+- `experimental.battery.dual-pack-admission-while-stopped` - Obsolete and ignored. Neither value permits adding another supply in `ready-to-drive` or bypasses stationary qualification.
 - `scooter.dual-battery` - Bool (`true`/`false`); controls whether battery slot 1 is treated as active/present. `true` sets reader 1 to the active role (subject to the `scooter.max-voltage-delta` check); `false` sets it inactive (disabled). Read on startup and hot-reloaded via `settings` pub/sub; only takes effect when a slot 1 reader exists.
 - `scooter.max-voltage-delta` - Max voltage difference between batteries in mV before battery 1 activation is refused (default: 1000; 0 to disable). Updated live via `settings` pub/sub.
 - `scooter.battery-aux-low-keep-active-enter-mv` - Aux battery voltage in mV below which the keep-active-on-seatbox-open override engages automatically (default: 11500). Hot-reloaded via `settings` pub/sub.
@@ -187,13 +187,14 @@ never relaxes the voltage, freshness, supply and motion admission protections.
 
 ### Experimental dual-pack admission
 
-Every ON command uses the shared guard. New activation requires a known non-drive
-state such as `parked` or `stand-by`, for both first and second supplies in either
-slot. In `ready-to-drive` or an unknown state, even qualified stopped/throttle-off
-evidence cannot permit a new ON. Already-admitted running supplies retain their
-heartbeat permission across state changes. A second pack also needs stationary
-evidence and compatible fresh readings; a fresh movement/throttle report
-contradicts the stationary non-drive state and blocks its admission.
+Every ON command uses the shared guard. The first qualified supply may start in
+`ready-to-drive`, in either slot, provided the peer is not a possible live supply.
+Uncertain/pending peer ON or OFF still counts as possible power. Adding another
+supply requires a known non-drive state such as `parked` or `stand-by`; stopped
+ECU evidence cannot bypass this. Unknown states block new activation. Running
+admitted supplies retain their heartbeats across state changes. A second pack
+also needs stationary evidence and compatible fresh readings; a fresh movement
+or throttle report contradicts the stationary state and blocks its admission.
 `experimental.battery.dual-pack-admission=true` enables voltage-priority selection,
 confirmed-OFF handovers and conservative qualification in known non-drive states.
 The flag is fixed at startup and cannot disable the common safety guards.
@@ -208,9 +209,10 @@ must finish within 2 seconds of its start, and the round deadline is 10 seconds.
 This aligns NFC reads, not the BMS's internal measurement times.
 
 `experimental.battery.dual-pack-admission-while-stopped` is obsolete and ignored.
-The state restriction is rechecked at every ON write, including retries. A pending
-ON reserved while parked cannot be retried in `ready-to-drive`; its possible-power
-reservation remains held. Once the admitted supply is positively confirmed active,
+The state restriction is rechecked at every ON write, including retries. In
+`ready-to-drive`, an ON retry remains blocked while the peer is a possible live
+supply; the reservation stays held. A sole supply may retry within the existing
+confirmation limits. Once the admitted supply is positively confirmed active,
 its heartbeats continue. Conservative second-pack qualification still requires
 three stable paired samples over at least 6 seconds, with low load and compatible
 voltages. Movement/throttle transitions discard old measurement pairs and histories.
