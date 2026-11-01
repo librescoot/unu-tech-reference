@@ -172,11 +172,13 @@ user-service: Jonas-Click / [music-service](https://github.com/Jonas-Click/music
 
 - `0x4E8` - Play/stop (sent to ECU)
 - `0x4E9` - Music volume (sent to ECU)
+- `0x4EA` - Engine sound: off/on/demo, volume, style (sent to ECU)
 - `0x4EC` - Song upload: begin track (sent to ECU)
 - `0x4ED` - Song upload: data chunk (sent to ECU)
 - `0x4EE` - Song upload: end track (sent to ECU)
-- `0x7E6` - Music status: playing, song, volume (from ECU)
+- `0x7E6` - Music status: playing, song, volume, start counter, end reason (from ECU)
 - `0x7E7` - Song upload result (from ECU)
+- `0x7ED` - Engine sound status: on/off, volume, demo, style (from ECU)
 
 **Speed Calibration:**
 
