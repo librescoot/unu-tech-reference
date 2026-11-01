@@ -3,7 +3,7 @@
 ## Purpose and ownership
 
 trip-service records one history entry for an unlocked ride and owns the
-vehicle-wide trip counter. It uses `vehicle` state, `engine-ecu` odometer, `gps`, `profile`,
+vehicle-wide trip counter. It uses `vehicle` state, `engine-ecu` odometer, live `gps:tpv` snapshots, `profile`,
 `battery:0`, `battery:1`, and the relevant `settings` fields as inputs. It
 writes the `trip`, `trip:counter`, and `trip:expunge` hashes, the
 `trip:completed` and `trip:command-result` channels, and the `trip:ready` lease.
@@ -42,6 +42,21 @@ All counter distances are integer metres, durations are integer seconds,
 `reset-at`, `updated-at`, and expunge timestamps are Unix seconds, and
 `average-speed-kmh` is an integer km/h rounded to the nearest km/h. The ECU
 odometer is also metres. The counter only includes time in `ready-to-drive`.
+
+## GPS trace input
+
+The recorder subscribes to the modem's complete JSON snapshots on `gps:tpv`.
+Normal GPS hash updates are silent; the `gps` recovery notification is not a
+continuous position stream. Each accepted snapshot must report active and
+connected GPS, an established 2D or 3D fix, finite valid coordinates, and finite
+altitude, speed and course. Snapshot speed is km/h.
+
+GPS collection runs only during ready-to-drive intervals, at speeds of at least
+5 km/h. The existing distance filter suppresses repeated positions. Stored point
+timestamps use local receipt time. GPS timestamps are not an ordering gate:
+equal whole-second timestamps and backward clock corrections do not stop the
+trace. The service logs `GPS snapshot intake active` once after its first
+accepted snapshot, without coordinates; this confirms input, not a stored ride.
 
 ## Traction-pack energy estimate
 

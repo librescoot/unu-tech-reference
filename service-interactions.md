@@ -380,10 +380,12 @@ Note: Sets 10-second TTL on `keycard` hash after authentication. Its short-lived
 `trip:command-result` publishes the JSON result of a `counter.reset` request,
 after a successful replacement `trip:counter` snapshot has been written.
 
-**Reads and watches:** `vehicle/state`; `engine-ecu/odometer` and `speed`; GPS;
+**Reads and watches:** `vehicle/state`; `engine-ecu/odometer` and `speed`;
 `profile/active.id`; `battery:0` and `battery:1` presence and serial; and
 `settings/trip.counter-reset`, `settings/trip.expunge`, and
-`scooter.dual-battery`. It synchronizes the watched snapshots at startup.
+`scooter.dual-battery`. It synchronizes those watched hashes at startup, then
+subscribes to complete live GPS JSON snapshots on `gps:tpv`. The legacy `gps`
+recovery notification does not supply its trace input.
 
 **Consumes queue:** `scooter:trip` JSON requests with
 `op: "counter.reset"` and a required short Unix-millisecond `expires-at`
