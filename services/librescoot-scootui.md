@@ -40,6 +40,21 @@ ScootUI is the primary user interface for Librescoot. It runs on the DBC (Dashbo
 - Configurable blinker overlay styles
 - Multi-language support
 
+## Trip history
+
+The trip-history entry opens the completed-ride list. Selecting a ride shows its
+date and compact side-by-side distance, ready-to-drive duration and average
+speed, with recorded GPS maximum when available. The recorded GPS trace opens
+automatically in a large inline map below those values. Metrics remain visible
+while the trace loads or the map is unavailable. A ride without stored points
+shows "No GPS trace" rather than a route inferred from its endpoints.
+
+Left hold returns from the detail to the same selected list row; left hold from
+the list returns to the menu. The map uses the current theme and recorded trace
+only, omitting live navigation and group overlays. Invalid samples and time gaps
+break the line. This view uses the existing tile-cache and point-loading paths;
+it adds no rendered-preview or background-map cache.
+
 ## Connect account and SMS menus
 
 Settings > Cloud appears only when internet reachability is connected and the MDB connection is live. Losing connectivity inside that submenu returns to Settings. Connect account starts pairing only after an explicit right-brake tap while parked or in standby. The provider-neutral screen explains the flow and shows code preparation, browser confirmation and completion as separate phases. Checking, preparing, applying and stopping have animated activity indicators; a separate waiting message appears after ten seconds. Background status polls do not disable start or stop or replace an actionable error with a loading screen.
