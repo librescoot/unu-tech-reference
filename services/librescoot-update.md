@@ -462,7 +462,9 @@ Startup recovers boot status independently of settled rootfs status. A successfu
 
 ### Recover a stale DBC boot status
 
-With update-service v0.17.4, a completed DBC rootfs update can leave `status:dbc-boot=pending-reboot` while `status:dbc=idle`, preventing the staged MDB update from rebooting. Starting the DBC again does not reliably clear this state because the old recovery code returns early for an idle rootfs.
+With update-service v0.17.3 or v0.17.4, a completed DBC rootfs update can leave `status:dbc-boot=pending-reboot` while `status:dbc=idle`, preventing the staged MDB update from rebooting. Starting the DBC again does not reliably clear this state because the old recovery code returns early for an idle rootfs.
+
+Affected Testing builds are `testing-20261030T165841` (withdrawn), `testing-20261030T173135`, and `testing-20261101T000855`. The corrected build is `testing-20261101T144850`, with update-service v0.17.6.
 
 A normal MDB reboot can recover this specific state. Valkey persistence is disabled, and the DBC state cache does not restore boot-update status.
 
