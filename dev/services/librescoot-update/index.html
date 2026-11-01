@@ -2915,7 +2915,16 @@ before prompting the rider to confirm.</p>
 <p>Startup recovers boot status independently of settled rootfs status. A successful DBC boot flash retains its lifecycle and heartbeat until a standby-gated local reboot. The initiating Linux boot ID is recorded in <code>ota[boot-reboot-id:dbc]</code>; recovery publishes <code>complete-dbc</code> and clears the pending boot state only after observing a different boot ID. A same-boot service restart resumes the wait, and a legacy pending status without an identity requires a fresh local reboot. An interrupted flash left in <code>installing</code> remains unresolved. MDB terminal-status, lifecycle, vehicle-state and dashboard-power checks remain required. See <a href="https://github.com/librescoot/update-service/tree/v0.17.6">update-service v0.17.6</a>.</p>
 <h3 id="recover-a-stale-dbc-boot-status">Recover a stale DBC boot status<a class="headerlink" href="#recover-a-stale-dbc-boot-status" title="Permanent link">&para;</a></h3>
 <p>With update-service v0.17.4, a completed DBC rootfs update can leave <code>status:dbc-boot=pending-reboot</code> while <code>status:dbc=idle</code>, preventing the staged MDB update from rebooting. Starting the DBC again does not reliably clear this state because the old recovery code returns early for an idle rootfs.</p>
-<p>A normal MDB reboot can recover this specific state. Valkey persistence is disabled, and the DBC state cache does not restore boot-update status. Before rebooting, check these values on the MDB:</p>
+<p>A normal MDB reboot can recover this specific state. Valkey persistence is disabled, and the DBC state cache does not restore boot-update status.</p>
+<p>For users, no shell is needed:</p>
+<ol>
+<li>Let the dashboard update finish, then lock the scooter.</li>
+<li>Connect to the scooter over Bluetooth in the app.</li>
+<li>Open <strong>Controls</strong> and choose <strong>Reboot</strong> (German: <strong>Steuerung</strong>, <strong>Neu starten</strong>), using the normal reboot option.</li>
+<li>Reconnect after startup. This completes the staged MDB update; a separate DBC installation is not needed for recovery. Then update to the corrected Testing release if it is not already installed.</li>
+</ol>
+<p>The app sends the normal power reboot command, which bluetooth-service forwards to the MDB power manager. A hard reboot is not part of this procedure.</p>
+<p>For technical confirmation before recovery, these values identify the specific stuck state:</p>
 <div class="language-sh highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>redis-cli<span class="w"> </span>HMGET<span class="w"> </span>vehicle<span class="w"> </span>state<span class="w"> </span>dashboard:power<span class="w"> </span>dbc-updating
 </span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="c1"># Required: stand-by, off, false</span>
 </span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>redis-cli<span class="w"> </span>HMGET<span class="w"> </span>ota<span class="w"> </span>status:mdb<span class="w"> </span>status:dbc<span class="w"> </span>status:dbc-boot
