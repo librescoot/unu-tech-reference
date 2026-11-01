@@ -1588,6 +1588,23 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Reboot Behavior">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#recover-a-stale-dbc-boot-status" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Recover a stale DBC boot status
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -2119,6 +2136,23 @@
       </span>
     </span>
   </a>
+  
+    <nav class="md-nav" aria-label="Reboot Behavior">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#recover-a-stale-dbc-boot-status" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Recover a stale DBC boot status
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -2879,6 +2913,20 @@ before prompting the rider to confirm.</p>
 <li>With <code>--dry-run</code>: logs reboot intent only</li>
 </ul>
 <p>Startup recovers boot status independently of settled rootfs status. A successful DBC boot flash retains its lifecycle and heartbeat until a standby-gated local reboot. The initiating Linux boot ID is recorded in <code>ota[boot-reboot-id:dbc]</code>; recovery publishes <code>complete-dbc</code> and clears the pending boot state only after observing a different boot ID. A same-boot service restart resumes the wait, and a legacy pending status without an identity requires a fresh local reboot. An interrupted flash left in <code>installing</code> remains unresolved. MDB terminal-status, lifecycle, vehicle-state and dashboard-power checks remain required. See <a href="https://github.com/librescoot/update-service/tree/v0.17.6">update-service v0.17.6</a>.</p>
+<h3 id="recover-a-stale-dbc-boot-status">Recover a stale DBC boot status<a class="headerlink" href="#recover-a-stale-dbc-boot-status" title="Permanent link">&para;</a></h3>
+<p>With update-service v0.17.4, a completed DBC rootfs update can leave <code>status:dbc-boot=pending-reboot</code> while <code>status:dbc=idle</code>, preventing the staged MDB update from rebooting. Starting the DBC again does not reliably clear this state because the old recovery code returns early for an idle rootfs.</p>
+<p>A normal MDB reboot can recover this specific state. Valkey persistence is disabled, and the DBC state cache does not restore boot-update status. Before rebooting, check these values on the MDB:</p>
+<div class="language-sh highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>redis-cli<span class="w"> </span>HMGET<span class="w"> </span>vehicle<span class="w"> </span>state<span class="w"> </span>dashboard:power<span class="w"> </span>dbc-updating
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="c1"># Required: stand-by, off, false</span>
+</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>redis-cli<span class="w"> </span>HMGET<span class="w"> </span>ota<span class="w"> </span>status:mdb<span class="w"> </span>status:dbc<span class="w"> </span>status:dbc-boot
+</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="c1"># Required: pending-reboot, idle, pending-reboot</span>
+</span><span id="__span-3-5"><a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>lsc<span class="w"> </span>ota<span class="w"> </span>status
+</span><span id="__span-3-6"><a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="c1"># The DBC must already report the intended target version.</span>
+</span></code></pre></div>
+<p>When all conditions match, request a normal reboot:</p>
+<div class="language-sh highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>lsc<span class="w"> </span>power<span class="w"> </span>reboot
+</span></code></pre></div>
+<p>Let the MDB boot and finish its health/commit checks, then verify both running versions and OTA status with <code>lsc ota status</code>. Do not use this procedure during <code>installing</code>, an active DBC lifecycle, or with different/unknown preconditions.</p>
 <h2 id="file-locations">File Locations<a class="headerlink" href="#file-locations" title="Permanent link">&para;</a></h2>
 <table>
 <thead>
@@ -2903,10 +2951,10 @@ before prompting the rider to confirm.</p>
 </tbody>
 </table>
 <h2 id="building">Building<a class="headerlink" href="#building" title="Permanent link">&para;</a></h2>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>make<span class="w"> </span>dist<span class="w">          </span><span class="c1"># ARM dist binary → update-service-arm-dist</span>
-</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>make<span class="w"> </span>host<span class="w">          </span><span class="c1"># Host binary for development</span>
-</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>make<span class="w"> </span>install<span class="w">       </span><span class="c1"># Install to /usr/bin/update-service</span>
-</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>make<span class="w"> </span>tidy<span class="w"> </span>fmt<span class="w"> </span><span class="nb">test</span><span class="w"> </span><span class="c1"># Lint and test</span>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>make<span class="w"> </span>dist<span class="w">          </span><span class="c1"># ARM dist binary → update-service-arm-dist</span>
+</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>make<span class="w"> </span>host<span class="w">          </span><span class="c1"># Host binary for development</span>
+</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>make<span class="w"> </span>install<span class="w">       </span><span class="c1"># Install to /usr/bin/update-service</span>
+</span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a>make<span class="w"> </span>tidy<span class="w"> </span>fmt<span class="w"> </span><span class="nb">test</span><span class="w"> </span><span class="c1"># Lint and test</span>
 </span></code></pre></div>
 <h2 id="related-documentation">Related Documentation<a class="headerlink" href="#related-documentation" title="Permanent link">&para;</a></h2>
 <ul>
