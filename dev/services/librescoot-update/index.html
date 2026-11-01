@@ -2878,6 +2878,7 @@ before prompting the rider to confirm.</p>
 <li><strong>DBC</strong>: sets status to <code>pending-reboot</code> and reboots itself once the vehicle is in <code>stand-by</code>. The local activation reboot is gated on <code>stand-by</code> alone — never <code>ready-to-drive</code> or <code>parked</code>, where the rider is present — so activation waits out the rider; a pending artifact that never gets its stand-by reboot still applies on the next power cycle. When the dashboard powers off, the MDB clears only a DBC <code>downloading</code> or <code>preparing</code> status. <code>pending-reboot</code> is kept for the DBC's own recovery on the next power-on, and it does not block MDB orchestration of the DBC.</li>
 <li>With <code>--dry-run</code>: logs reboot intent only</li>
 </ul>
+<p>Startup recovers boot status even when the rootfs status is already <code>idle</code> or absent. Recovering a DBC boot update from <code>pending-reboot</code> publishes <code>complete-dbc</code> and clears the boot status. This does not relax the MDB's terminal-status, lifecycle, vehicle-state or dashboard-power checks. See <a href="https://github.com/librescoot/update-service/tree/v0.17.5">update-service v0.17.5</a>.</p>
 <h2 id="file-locations">File Locations<a class="headerlink" href="#file-locations" title="Permanent link">&para;</a></h2>
 <table>
 <thead>
