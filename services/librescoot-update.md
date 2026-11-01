@@ -460,6 +460,29 @@ Configured via `updates.{component}.method` in Redis settings. Default is `delta
 
 Startup recovers boot status independently of settled rootfs status. A successful DBC boot flash retains its lifecycle and heartbeat until a standby-gated local reboot. The initiating Linux boot ID is recorded in `ota[boot-reboot-id:dbc]`; recovery publishes `complete-dbc` and clears the pending boot state only after observing a different boot ID. A same-boot service restart resumes the wait, and a legacy pending status without an identity requires a fresh local reboot. An interrupted flash left in `installing` remains unresolved. MDB terminal-status, lifecycle, vehicle-state and dashboard-power checks remain required. See [update-service v0.17.6](https://github.com/librescoot/update-service/tree/v0.17.6).
 
+### Recover a stale DBC boot status
+
+With update-service v0.17.4, a completed DBC rootfs update can leave `status:dbc-boot=pending-reboot` while `status:dbc=idle`, preventing the staged MDB update from rebooting. Starting the DBC again does not reliably clear this state because the old recovery code returns early for an idle rootfs.
+
+A normal MDB reboot can recover this specific state. Valkey persistence is disabled, and the DBC state cache does not restore boot-update status. Before rebooting, check these values on the MDB:
+
+```sh
+redis-cli HMGET vehicle state dashboard:power dbc-updating
+# Required: stand-by, off, false
+redis-cli HMGET ota status:mdb status:dbc status:dbc-boot
+# Required: pending-reboot, idle, pending-reboot
+lsc ota status
+# The DBC must already report the intended target version.
+```
+
+When all conditions match, request a normal reboot:
+
+```sh
+lsc power reboot
+```
+
+Let the MDB boot and finish its health/commit checks, then verify both running versions and OTA status with `lsc ota status`. Do not use this procedure during `installing`, an active DBC lifecycle, or with different/unknown preconditions.
+
 ## File Locations
 
 | Path | Purpose |
