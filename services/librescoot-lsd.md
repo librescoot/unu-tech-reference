@@ -48,6 +48,8 @@ Navigation changes use the existing `settings:route-plan` Redis IPC channel: `pl
 
 The MDB daemon consumes `cloud:pairing` requests with methods `start`, `status` and `stop`. Requests use a unique ID, a matching `cloud:pairing:reply:<id>` pub/sub channel, an empty payload and a deadline no more than 15 seconds ahead. The dashboard subscribes before enqueueing. The daemon checks the current `vehicle[state]` for `stand-by` or `parked` before starting; stale requests and arbitrary reply channels/arguments are rejected. Replies contain only the bounded pairing state, short display code, fixed Connect URL and expiry, never polling or cloud credentials. The explicit worker is shared with the web and Bluetooth interfaces; stopping requests a cooperative pause between steps.
 
+Status reads and mutations use separate bounded queues with one worker each. Slow status reads do not block start or stop. Mutations execute in FIFO order. Requests recheck their deadline before execution, and start also checks the current vehicle state. Queue overflow returns a bounded failure response without starting more workers.
+
 ### Lists pushed
 
 | List | Payloads |

@@ -40,6 +40,12 @@ ScootUI is the primary user interface for Librescoot. It runs on the DBC (Dashbo
 - Configurable blinker overlay styles
 - Multi-language support
 
+## Connect account and SMS menus
+
+Settings > Cloud > Connect account starts pairing only after an explicit right-brake tap while parked or in standby. Background status polls do not disable start or stop. A validated, unexpired short code is shown alongside a QR link containing that code in the URL fragment. The portal removes the fragment and fills in the code; account approval still takes place in the browser. No QR is shown without a valid code. Stopping requests a cooperative pause.
+
+The SMS inbox uses the regular menu, with unread markers and message previews. Opening a message shows a plain-text reader with scrolling and shared control hints. Cached messages remain readable offline; deletion and forwarding changes require a connection. Deletion has a cancel-first confirmation menu.
+
 ## Connection and maintenance notifications
 
 The connection explanation, maintenance spinner and update-progress screen show
