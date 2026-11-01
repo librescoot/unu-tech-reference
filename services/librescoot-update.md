@@ -464,7 +464,18 @@ Startup recovers boot status independently of settled rootfs status. A successfu
 
 With update-service v0.17.4, a completed DBC rootfs update can leave `status:dbc-boot=pending-reboot` while `status:dbc=idle`, preventing the staged MDB update from rebooting. Starting the DBC again does not reliably clear this state because the old recovery code returns early for an idle rootfs.
 
-A normal MDB reboot can recover this specific state. Valkey persistence is disabled, and the DBC state cache does not restore boot-update status. Before rebooting, check these values on the MDB:
+A normal MDB reboot can recover this specific state. Valkey persistence is disabled, and the DBC state cache does not restore boot-update status.
+
+For users, no shell is needed:
+
+1. Let the dashboard update finish, then lock the scooter.
+2. Connect to the scooter over Bluetooth in the app.
+3. Open **Controls** and choose **Reboot** (German: **Steuerung**, **Neu starten**), using the normal reboot option.
+4. Reconnect after startup. This completes the staged MDB update; a separate DBC installation is not needed for recovery. Then update to the corrected Testing release if it is not already installed.
+
+The app sends the normal power reboot command, which bluetooth-service forwards to the MDB power manager. A hard reboot is not part of this procedure.
+
+For technical confirmation before recovery, these values identify the specific stuck state:
 
 ```sh
 redis-cli HMGET vehicle state dashboard:power dbc-updating
