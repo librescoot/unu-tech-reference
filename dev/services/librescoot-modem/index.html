@@ -1432,6 +1432,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#gps-clock-samples" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        GPS clock samples
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#gps-state-machine" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
@@ -2254,6 +2265,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#gps-clock-samples" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        GPS clock samples
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#gps-state-machine" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
@@ -2804,6 +2826,8 @@ drops the inhibitor after <code>PowerOffModem</code>, and the suspend proceeds.<
 <li><strong>Trigger recovery:</strong> never. A failed probe sets <code>status=disconnected</code> and <code>reachability=unreachable</code>, but only the local <code>link.Assess</code> verdict can trigger a modem remedy.</li>
 </ul>
 <p>This ensures the service only reports "connected" when actual internet connectivity is verified.</p>
+<h4 id="gps-clock-samples">GPS clock samples<a class="headerlink" href="#gps-clock-samples" title="Permanent link">&para;</a></h4>
+<p>Only timestamps supplied by gpsd are eligible for clock recovery; system-time fallbacks are excluded. The service validates timestamp progression, receiver-session identity, receipt age and suspend continuity before submitting corrected samples to <code>/run/clock-coordinator/control.sock</code>. The coordinator applies boot/generation fencing and recovery budgets. A successful submission means delivery, not selection or convergence. The Redis <code>clock</code> hash is updated only after the coordinator confirms sufficiently converged external GPS quality.</p>
 <h4 id="gps-state-machine">GPS State Machine<a class="headerlink" href="#gps-state-machine" title="Permanent link">&para;</a></h4>
 <p><strong>Update interval:</strong> 1 second (GPSUpdateInterval constant)</p>
 <p><strong>GPS States:</strong></p>
@@ -2816,7 +2840,7 @@ drops the inhibitor after <code>PowerOffModem</code>, and the suspend proceeds.<
 <p><strong>State transitions:</strong></p>
 <ol>
 <li>GPS enable: <code>off</code> → <code>searching</code> → configure GPS → connect to gpsd</li>
-<li>Fix acquired: <code>searching</code> → <code>fix-established</code> (system clock set via <code>chronyc</code> on first fix)</li>
+<li>Fix acquired: <code>searching</code> to <code>fix-established</code>. Fresh, progressing GPS timestamps are submitted to clock-coordinator; chronyd selects and applies them through a SOCK refclock.</li>
 <li>Fix lost: <code>fix-established</code> → <code>searching</code></li>
 <li>Configuration failure: <code>searching</code> → <code>error</code></li>
 </ol>

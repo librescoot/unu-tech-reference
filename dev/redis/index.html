@@ -4841,7 +4841,7 @@ correlate with the request that caused them).</p>
 <h3 id="clock-sync-clock">Clock Sync (<code>clock</code>)<a class="headerlink" href="#clock-sync-clock" title="Permanent link">&para;</a></h3>
 <div class="language-text highlight"><pre><span></span><code><span id="__span-21-1"><a id="__codelineno-21-1" name="__codelineno-21-1" href="#__codelineno-21-1"></a>hgetall clock
 </span></code></pre></div>
-<p>Written by modem-service after it successfully sets the system clock from an authoritative source. It is passed to chrony as a discrete step (<code>chronyc settime</code>), which does <em>not</em> register a chrony reference, so this hash — not <code>gps.active</code> and not <code>chronyc tracking</code> — is the evidence that the GPS clock path actually worked. Consumers poll it (the write is silent); pm-service uses it to gate scheduled hibernation.</p>
+<p>Written silently by modem-service after clock-coordinator reports fresh, selected and sufficiently converged external GPS quality. GPS samples reach chronyd through a SOCK refclock; submitting a sample alone does not confirm synchronization. This hash records a GPS confirmation, not the current clock-quality contract. PM and Bluetooth query <code>/run/clock-coordinator/control.sock</code> for boot identity, generation, source, age, residual correction, uncertainty and recovery state.</p>
 <table>
 <thead>
 <tr>
@@ -4855,13 +4855,13 @@ correlate with the request that caused them).</p>
 <tr>
 <td>source</td>
 <td>string</td>
-<td>Source the clock was set from</td>
+<td>Selected external source confirmed by the coordinator</td>
 <td>"gps"</td>
 </tr>
 <tr>
 <td>synced-at</td>
 <td>string</td>
-<td>Timestamp that was applied (RFC3339)</td>
+<td>System time when GPS quality was confirmed (RFC3339)</td>
 <td>"2026-06-11T12:00:00Z"</td>
 </tr>
 <tr>
@@ -4872,7 +4872,7 @@ correlate with the request that caused them).</p>
 </tr>
 </tbody>
 </table>
-<p>Redis is not persistent on librescoot, so the presence of this hash always refers to the current boot.</p>
+<p>Redis is not persistent on Librescoot. A confirmation can still become stale during a boot; its presence alone does not establish current clock quality.</p>
 <h3 id="battery-energy-estimate-energy-librescoot-only">Battery energy estimate (<code>energy</code>) - Librescoot Only<a class="headerlink" href="#battery-energy-estimate-energy-librescoot-only" title="Permanent link">&para;</a></h3>
 <p>trip-service publishes signed net mWh estimated from traction-pack BMS capacity
 changes. <code>net:mwh</code> equals <code>driving:mwh</code> + <code>parked:mwh</code> + <code>standby:mwh</code> +

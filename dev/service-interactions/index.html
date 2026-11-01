@@ -942,6 +942,17 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#clock-recovery" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Clock recovery
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#architecture-overview" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
@@ -1918,6 +1929,17 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#clock-recovery" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Clock recovery
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#architecture-overview" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
@@ -2411,6 +2433,16 @@
 
 <h1 id="librescoot-service-interaction-map">Librescoot Service Interaction Map<a class="headerlink" href="#librescoot-service-interaction-map" title="Permanent link">&para;</a></h1>
 <p>Generated from source analysis of all service repositories.</p>
+<h2 id="clock-recovery">Clock recovery<a class="headerlink" href="#clock-recovery" title="Permanent link">&para;</a></h2>
+<p>After the cold-boot fake-hwclock fallback, chronyd is the only runtime system-clock writer on Librescoot. The root-local <code>clock-coordinator</code> daemon runs on MDB and DBC and exposes <code>/run/clock-coordinator/control.sock</code>.</p>
+<ul>
+<li>Bluetooth submits nRF RTC and explicit-user time samples; modem-service submits fresh, progressing GPS samples. Chronyd receives them as SOCK refclocks.</li>
+<li>The coordinator persists bounded recovery budgets and admits individual parameterless <code>chronyc makestep</code> commands. An unknown command outcome consumes its budget and requires reconciliation rather than replay.</li>
+<li>PM coordinates suspend preparation and resume with the daemon. Bluetooth, PM and radio-gaga consume current quality rather than treating a plausible date or successful sample delivery as synchronization.</li>
+<li>nRF RTC restoration remains available without internet or GPS. DBC can recover from MDB network holdover offline; holdover does not establish external NTP/GPS trust.</li>
+<li>Startup waits are bounded. Missing synchronization does not block normal vehicle operation or permit fallback direct clock setters.</li>
+</ul>
+<p>Implementation contracts: <a href="https://github.com/librescoot/pm-service#clock-coordinator-core">clock-coordinator</a>, <a href="../services/librescoot-bluetooth/">Bluetooth</a>, <a href="../services/librescoot-modem/">modem</a>, <a href="../services/librescoot-pm/">PM</a>, and <a href="../redis/#clock-sync-clock">clock telemetry</a>.</p>
 <h2 id="architecture-overview">Architecture Overview<a class="headerlink" href="#architecture-overview" title="Permanent link">&para;</a></h2>
 <div class="language-text highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>                                    Redis (192.168.7.1:6379)
 </span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>                                    ========================

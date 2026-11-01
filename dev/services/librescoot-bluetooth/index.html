@@ -3323,7 +3323,9 @@ Messages are CBOR-encoded maps with structure:
 </ul>
 <p><strong>Time:</strong></p>
 <ul>
-<li><code>time:set &lt;unix_timestamp&gt;</code> → sets system clock via <code>timedatectl set-time</code></li>
+<li><code>time:set &lt;unix_timestamp&gt;</code> submits an explicit-user time sample to <code>/run/clock-coordinator/control.sock</code>. <code>time:ok</code> confirms delivery, not chronyd selection or convergence. The service does not directly set the Linux clock.</li>
+<li>nRF RTC recovery uses the same coordinator, with boot/generation tokens, CLOCK_BOOTTIME receipt/deadline checks and eligibility gating. It remains available offline after hibernation. Established external time fences nRF recovery until a new detected lost-time episode.</li>
+<li>Fresh, externally confirmed NTP/GPS time is periodically written back to the nRF. Local, nRF and explicit-user time do not qualify as external confirmation; suspend preparation fences seeding.</li>
 </ul>
 <p><strong>Configuration:</strong></p>
 <ul>
