@@ -42,9 +42,13 @@ ScootUI is the primary user interface for Librescoot. It runs on the DBC (Dashbo
 
 ## Connect account and SMS menus
 
-Settings > Cloud > Connect account starts pairing only after an explicit right-brake tap while parked or in standby. Background status polls do not disable start or stop. A validated, unexpired short code is shown alongside a QR link containing that code in the URL fragment. The portal removes the fragment and fills in the code; account approval still takes place in the browser. No QR is shown without a valid code. Stopping requests a cooperative pause.
+Settings > Cloud appears only when internet reachability is connected and the MDB connection is live. Losing connectivity inside that submenu returns to Settings. Connect account starts pairing only after an explicit right-brake tap while parked or in standby. The provider-neutral screen explains the flow and shows code preparation, browser confirmation and completion as separate phases. Checking, preparing, applying and stopping have animated activity indicators; a separate waiting message appears after ten seconds. Background status polls do not disable start or stop or replace an actionable error with a loading screen.
 
-The SMS inbox uses the regular menu, with unread markers and message previews. Opening a message shows a plain-text reader with scrolling and shared control hints. Cached messages remain readable offline; deletion and forwarding changes require a connection. Deletion has a cancel-first confirmation menu.
+A validated, unexpired short code is shown alongside a QR link containing that code in the URL fragment. The portal removes the fragment and fills in the code; account approval still takes place in the browser. No QR is shown without a valid code or while internet access is unavailable. If connectivity is lost with the screen open, it shows the offline state. Stopping requests a cooperative pause.
+
+Info > SMS uses the regular menu, with unread markers and separate sender and preview lines. Selecting a message opens its plain-text reader directly. A left-brake tap scrolls down, a right-brake hold scrolls up, and a left-brake hold returns to the inbox. A right-brake tap opens a deletion confirmation with Cancel selected. The delete action retains the opened message identity and checks that it is still present in the inbox. Cached messages remain readable offline; deletion and forwarding changes require a connection.
+
+The forwarding submenu shows the current destination and allows disabling forwarding. Its informational text explains how to enter or change the destination in the scooter web interface: open Settings, enable Advanced mode and search for SMS.
 
 ## Connection and maintenance notifications
 
