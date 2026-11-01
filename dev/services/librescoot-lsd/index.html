@@ -1584,6 +1584,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#cloud-pairing-rpc" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Cloud pairing RPC
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#lists-pushed" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
@@ -1684,8 +1695,8 @@
 
 <h1 id="librescoot-lsd-lsd">librescoot-lsd (lsd)<a class="headerlink" href="#librescoot-lsd-lsd" title="Permanent link">&para;</a></h1>
 <h2 id="description">Description<a class="headerlink" href="#description" title="Permanent link">&para;</a></h2>
-<p>The Librescoot Daemon is a web management interface for the scooter. It runs on the MDB, is built from the <a href="https://github.com/librescoot/lsc">lsc repository</a> (<code>cmd/lsd</code>) and installed by the lsc package, and serves an embedded single-page UI plus a small HTTP API over the same Redis interfaces the vehicle services already expose. It adds no Redis contracts of its own.</p>
-<p>Pages: dashboard with live vehicle, battery, connectivity, board and fault state and the vehicle commands; a schema-driven settings editor; navigation destination and saved locations; keycard management; a file browser for <code>/data</code>; cloud connectivity (Sunshine bootstrap, radio-gaga and uplink-service configs); updates (per-board status, channel, local <code>.mender</code> and <code>.delta</code> install); Librescoot systemd units; log bundles, journal viewer, map and modem details.</p>
+<p>The Librescoot Daemon is a web management interface for the scooter. It runs on the MDB, is built from the <a href="https://github.com/librescoot/lsc">lsc repository</a> (<code>cmd/lsd</code>) and installed by the lsc package, and serves an embedded single-page UI plus a small HTTP API over the same Redis interfaces the vehicle services already expose. It also serves the bounded <code>cloud:pairing</code> RPC for the dashboard's explicit Connect flow.</p>
+<p>Pages: dashboard with live vehicle, battery, connectivity, board and fault state and the vehicle commands; a schema-driven settings editor; navigation destination and saved locations; keycard management; a file browser for <code>/data</code>; cloud connectivity (Connect code pairing, Sunshine bootstrap, radio-gaga and uplink-service configs); updates (per-board status, channel, local <code>.mender</code> and <code>.delta</code> install); Librescoot systemd units; log bundles, journal viewer, map and modem details.</p>
 <h2 id="command-line-options">Command-Line Options<a class="headerlink" href="#command-line-options" title="Permanent link">&para;</a></h2>
 <div class="language-text highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>  -addr string          HTTP listen address (default "192.168.7.1:8090")
 </span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>  -wg-interface string  Also listen on this WireGuard interface (default wg0
@@ -1712,6 +1723,8 @@
 </ul>
 <h3 id="route-plan-rpc">Route-plan RPC<a class="headerlink" href="#route-plan-rpc" title="Permanent link">&para;</a></h3>
 <p>Navigation changes use the existing <code>settings:route-plan</code> Redis IPC channel: <code>plan.get</code>, <code>plan.replace</code>, <code>plan.clear</code>, <code>plan.append</code>, <code>plan.remove</code>, and <code>plan.advance</code>. A compatible settings-service owns the plan and projects it into <code>navigation</code>; LSD does not write the destination hash directly. Removing a stop checks the expected revision, and skipping a stop checks the expected plan and stop IDs., <code>destination</code> last</p>
+<h3 id="cloud-pairing-rpc">Cloud pairing RPC<a class="headerlink" href="#cloud-pairing-rpc" title="Permanent link">&para;</a></h3>
+<p>The MDB daemon consumes <code>cloud:pairing</code> requests with methods <code>start</code>, <code>status</code> and <code>stop</code>. Requests use a unique ID, a matching <code>cloud:pairing:reply:&lt;id&gt;</code> pub/sub channel, an empty payload and a deadline no more than 15 seconds ahead. The dashboard subscribes before enqueueing. The daemon checks the current <code>vehicle[state]</code> for <code>stand-by</code> or <code>parked</code> before starting; stale requests and arbitrary reply channels/arguments are rejected. Replies contain only the bounded pairing state, short display code, fixed Connect URL and expiry, never polling or cloud credentials. The explicit worker is shared with the web and Bluetooth interfaces; stopping requests a cooperative pause between steps.</p>
 <h3 id="lists-pushed">Lists pushed<a class="headerlink" href="#lists-pushed" title="Permanent link">&para;</a></h3>
 <table>
 <thead>
@@ -1814,6 +1827,10 @@
 <td>File browser under <code>-data</code>; folders download as tar</td>
 </tr>
 <tr>
+<td><code>GET/POST /api/cloud/pairing</code></td>
+<td>Read pairing state or explicitly start/stop (<code>{action: "start"}</code> or <code>"stop"</code>); no-store response</td>
+</tr>
+<tr>
 <td><code>GET /api/cloud</code>, <code>POST /api/cloud/bootstrap</code>, <code>POST /api/cloud/config</code></td>
 <td>Identity and service state; Sunshine bootstrap with a token or online installer URL; install a pasted config</td>
 </tr>
@@ -1832,7 +1849,8 @@
 </tbody>
 </table>
 <h3 id="sunshine-setup">Sunshine setup<a class="headerlink" href="#sunshine-setup" title="Permanent link">&para;</a></h3>
-<p>Generate an installer credential in <a href="https://sunshine.rescoot.org/account/security#bootstrap-tokens">Sunshine Account settings</a>; developer mode is not required. The Cloud page accepts its bootstrap token or an online installer URL (<code>/install/u/&lt;token&gt;</code> or <code>/a/&lt;code&gt;</code>). Installer URLs must point to the instance selected by <code>-sunshine-url</code>. LSD submits hardware identifiers to <code>POST /api/v1/scooters/bootstrap</code> and installs the returned radio-gaga configuration. Any pending scooter claim must be accepted in Sunshine; another account's credential cannot take ownership of an already-owned scooter.</p>
+<p>The Cloud page's Connect account flow starts an explicit worker and displays a code for approval at <code>connect.librescoot.org/pair</code>. The dashboard's Settings &gt; Cloud &gt; Connect account uses the same worker and a static QR for that URL. Existing owners approve their own scooter, retaining existing credentials. The scooter must be online; radio-gaga verifies and applies its own configuration.</p>
+<p>Alternatively, generate an installer credential in <a href="https://sunshine.rescoot.org/account/security#bootstrap-tokens">Sunshine Account settings</a>; developer mode is not required. The Cloud page accepts its bootstrap token or an online installer URL (<code>/install/u/&lt;token&gt;</code> or <code>/a/&lt;code&gt;</code>). Installer URLs must point to the instance selected by <code>-sunshine-url</code>. LSD submits hardware identifiers to <code>POST /api/v1/scooters/bootstrap</code> and installs the returned radio-gaga configuration. Any pending scooter claim must be accepted in Sunshine; another account's credential cannot take ownership of an already-owned scooter.</p>
 <p>Offline claim URLs (<code>/c/&lt;code&gt;</code> and <code>/i/&lt;code&gt;</code>) run in the scooter's shell, not in LSD's bootstrap form.</p>
 <h3 id="dbc-updates">DBC updates<a class="headerlink" href="#dbc-updates" title="Permanent link">&para;</a></h3>
 <p>The DBC's update-service runs on the DBC with its own <code>/data</code>. A file uploaded for the DBC is staged on the MDB under <code>/data/ota/dbc</code>; on install the daemon powers the dashboard on if needed, copies the file to the DBC's <code>/data/ota/dbc</code> through the DBC's data-server on <code>192.168.7.2:8080</code>, and queues <code>update-from-file</code> with the file's SHA-256 on <code>scooter:update:dbc</code>.</p>

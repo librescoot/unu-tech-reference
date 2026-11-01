@@ -1034,6 +1034,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#cloud-account-pairing" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Cloud account pairing
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#sms-inbox" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
@@ -2134,6 +2145,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#cloud-account-pairing" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Cloud account pairing
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#sms-inbox" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
@@ -2822,6 +2844,8 @@
 <h1 id="librescoot-bluetooth-bluetooth-service">librescoot-bluetooth (bluetooth-service)<a class="headerlink" href="#librescoot-bluetooth-bluetooth-service" title="Permanent link">&para;</a></h1>
 <h2 id="description">Description<a class="headerlink" href="#description" title="Permanent link">&para;</a></h2>
 <p>The Bluetooth service provides the BLE (Bluetooth Low Energy) interface for the scooter and manages communication with the nRF52840 chip via UART. It acts as a communication bridge between the nRF52 BLE chip and Redis-based backend system, handling bidirectional translation of messages. The service exposes BLE GATT characteristics for remote control and monitoring (via nRF firmware), processes UART messages from the nRF chip, and publishes battery/vehicle state updates to Redis.</p>
+<h2 id="cloud-account-pairing">Cloud account pairing<a class="headerlink" href="#cloud-account-pairing" title="Permanent link">&para;</a></h2>
+<p><code>cap:ext</code> advertises <code>cloud-pairing=1</code>. Bonded phones with extended-command access can send <code>cloud-pairing:start</code>, <code>cloud-pairing:status</code> and <code>cloud-pairing:stop</code>. Replies are <code>cloud-pairing:status:&lt;JSON&gt;</code> or <code>cloud-pairing:error:&lt;reason&gt;</code>. The JSON contains only state, running flag, and when available the short code, fixed Connect URL and expiry. The polling token, QR capability and provider credentials are not returned or logged. Start launches the explicitly requested local Connect worker; stop requests a cooperative pause between configuration steps. Opening the account page or checking status does not start a session.</p>
 <h2 id="sms-inbox">SMS inbox<a class="headerlink" href="#sms-inbox" title="Permanent link">&para;</a></h2>
 <p><code>cap:ext</code> advertises <code>sms=1</code> when the inbox projection is available. Bonded
 phones with extended-command access can read the shared inbox and queue read
