@@ -4,10 +4,7 @@ Reverse-engineered technical documentation of the unu Scooter Pro.
 
 ## About this version
 
-You are reading `dev`, which tracks the `main` branch of this repository and
-describes the current state of the code, including work that has not shipped in
-any release yet. For what a released image actually contains, pick that version
-from the selector above.
+This reference describes the source revisions selected for Librescoot 1.4.0.
 
 ## System Architecture
 
