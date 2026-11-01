@@ -1284,6 +1284,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#trip-history" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Trip history
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#connect-account-and-sms-menus" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
@@ -1974,6 +1985,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#trip-history" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Trip history
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#connect-account-and-sms-menus" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
@@ -2421,6 +2443,18 @@
 <li>Configurable blinker overlay styles</li>
 <li>Multi-language support</li>
 </ul>
+<h2 id="trip-history">Trip history<a class="headerlink" href="#trip-history" title="Permanent link">&para;</a></h2>
+<p>The trip-history entry opens the completed-ride list. Selecting a ride shows its
+date and compact side-by-side distance, ready-to-drive duration and average
+speed, with recorded GPS maximum when available. The recorded GPS trace opens
+automatically in a large inline map below those values. Metrics remain visible
+while the trace loads or the map is unavailable. A ride without stored points
+shows "No GPS trace" rather than a route inferred from its endpoints.</p>
+<p>Left hold returns from the detail to the same selected list row; left hold from
+the list returns to the menu. The map uses the current theme and recorded trace
+only, omitting live navigation and group overlays. Invalid samples and time gaps
+break the line. This view uses the existing tile-cache and point-loading paths;
+it adds no rendered-preview or background-map cache.</p>
 <h2 id="connect-account-and-sms-menus">Connect account and SMS menus<a class="headerlink" href="#connect-account-and-sms-menus" title="Permanent link">&para;</a></h2>
 <p>Settings &gt; Cloud appears only when internet reachability is connected and the MDB connection is live. Losing connectivity inside that submenu returns to Settings. Connect account starts pairing only after an explicit right-brake tap while parked or in standby. The provider-neutral screen explains the flow and shows code preparation, browser confirmation and completion as separate phases. Checking, preparing, applying and stopping have animated activity indicators; a separate waiting message appears after ten seconds. Background status polls do not disable start or stop or replace an actionable error with a loading screen.</p>
 <p>A validated, unexpired short code is shown alongside a QR link containing that code in the URL fragment. The portal removes the fragment and fills in the code; account approval still takes place in the browser. No QR is shown without a valid code or while internet access is unavailable. If connectivity is lost with the screen open, it shows the offline state. Stopping requests a cooperative pause.</p>
