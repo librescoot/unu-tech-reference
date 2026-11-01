@@ -528,7 +528,9 @@ Extended commands arrive as string payloads via the EXTENDED_COMMAND BLE charact
 
 **Time:**
 
-- `time:set <unix_timestamp>` → sets system clock via `timedatectl set-time`
+- `time:set <unix_timestamp>` submits an explicit-user time sample to `/run/clock-coordinator/control.sock`. `time:ok` confirms delivery, not chronyd selection or convergence. The service does not directly set the Linux clock.
+- nRF RTC recovery uses the same coordinator, with boot/generation tokens, CLOCK_BOOTTIME receipt/deadline checks and eligibility gating. It remains available offline after hibernation. Established external time fences nRF recovery until a new detected lost-time episode.
+- Fresh, externally confirmed NTP/GPS time is periodically written back to the nRF. Local, nRF and explicit-user time do not qualify as external confirmation; suspend preparation fences seeding.
 
 **Configuration:**
 

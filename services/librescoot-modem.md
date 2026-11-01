@@ -368,6 +368,10 @@ The service uses a two-level status model:
 
 This ensures the service only reports "connected" when actual internet connectivity is verified.
 
+#### GPS clock samples
+
+Only timestamps supplied by gpsd are eligible for clock recovery; system-time fallbacks are excluded. The service validates timestamp progression, receiver-session identity, receipt age and suspend continuity before submitting corrected samples to `/run/clock-coordinator/control.sock`. The coordinator applies boot/generation fencing and recovery budgets. A successful submission means delivery, not selection or convergence. The Redis `clock` hash is updated only after the coordinator confirms sufficiently converged external GPS quality.
+
 #### GPS State Machine
 
 **Update interval:** 1 second (GPSUpdateInterval constant)
@@ -382,7 +386,7 @@ This ensures the service only reports "connected" when actual internet connectiv
 **State transitions:**
 
 1. GPS enable: `off` → `searching` → configure GPS → connect to gpsd
-2. Fix acquired: `searching` → `fix-established` (system clock set via `chronyc` on first fix)
+2. Fix acquired: `searching` to `fix-established`. Fresh, progressing GPS timestamps are submitted to clock-coordinator; chronyd selects and applies them through a SOCK refclock.
 3. Fix lost: `fix-established` → `searching`
 4. Configuration failure: `searching` → `error`
 

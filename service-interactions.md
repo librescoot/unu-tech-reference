@@ -2,6 +2,18 @@
 
 Generated from source analysis of all service repositories.
 
+## Clock recovery
+
+After the cold-boot fake-hwclock fallback, chronyd is the only runtime system-clock writer on Librescoot. The root-local `clock-coordinator` daemon runs on MDB and DBC and exposes `/run/clock-coordinator/control.sock`.
+
+- Bluetooth submits nRF RTC and explicit-user time samples; modem-service submits fresh, progressing GPS samples. Chronyd receives them as SOCK refclocks.
+- The coordinator persists bounded recovery budgets and admits individual parameterless `chronyc makestep` commands. An unknown command outcome consumes its budget and requires reconciliation rather than replay.
+- PM coordinates suspend preparation and resume with the daemon. Bluetooth, PM and radio-gaga consume current quality rather than treating a plausible date or successful sample delivery as synchronization.
+- nRF RTC restoration remains available without internet or GPS. DBC can recover from MDB network holdover offline; holdover does not establish external NTP/GPS trust.
+- Startup waits are bounded. Missing synchronization does not block normal vehicle operation or permit fallback direct clock setters.
+
+Implementation contracts: [clock-coordinator](https://github.com/librescoot/pm-service#clock-coordinator-core), [Bluetooth](services/librescoot-bluetooth.md), [modem](services/librescoot-modem.md), [PM](services/librescoot-pm.md), and [clock telemetry](redis/README.md#clock-sync-clock).
+
 ## Architecture Overview
 
 ```

@@ -101,11 +101,9 @@ pm-service subscribes to the `power:inhibits` channel and syncs entries into its
 
 - Each of the fields above triggers a re-read on change.
 
-### Hash: `gps`
+### Clock quality socket
 
-**Fields read:**
-
-- `active` - Polled by pm-service (every 30 s, immediate first check) as the proxy for "the wall clock has been bootstrapped from GPS". modem-service calls `chronyc settime` in the same loop iteration that flips `gps.active` to `true` on a valid fix. The scheduler latches this signal — once observed `true`, the wall-clock validity gate stays open even if the GPS fix is later lost (chrony retains the bootstrap). NTP-only scooters with a broken or absent GPS receiver would never flip this; that's a documented limitation.
+PM queries `/run/clock-coordinator/control.sock` immediately and every five seconds for fresh, converged external NTP or GPS quality. Neither `gps.active` nor the Redis `clock` hash authorizes calendar scheduling. The coordinator also handles bounded suspend preparation, abort and resume; unresolved clock-adjustment outcomes defer suspend.
 
 ### Hash: `system`
 
@@ -522,7 +520,7 @@ Use `journalctl -u librescoot-pm.service` to view logs.
 **Hibernation Scheduler (`internal/hibernation/scheduler.go`)**
 
 - Cron-driven scheduler for `pm.scheduled-hibernate-*` settings (uses `github.com/robfig/cron/v3`, standard 5-field parser). Expressions whose consecutive occurrences are closer than 15 min are rejected at configuration time (the previous expression stays in effect), because a sub-15-min cadence is indistinguishable from a hibernate/wake loop across poweroffs
-- Latches a wall-clock validity gate on **either** a confirmed GPS clock step (the `clock` hash that modem-service writes after a successful `chronyc settime`) **or** chronyd converging on a real external reference (`chronyc tracking` with `Leap status: Normal` and a reference ID outside `127.0.0.0/8`, so chrony's `local`/`manual` pseudo-sources do not count). Both paths additionally require a reading past the plausibility floor, the newer of `/etc/build-timestamp` and the fake-hwclock saved time (`/data` or `/etc/fake-hwclock.data`). A cron occurrence that elapsed under the gate is caught up once it opens, if its wake-by target is still in the future
+- Anchors calendar-clock validity to fresh, sufficiently converged external NTP or GPS quality from clock-coordinator. Local, nRF, explicit-user and network-holdover time do not establish external trust. The plausibility floor is `/etc/build-timestamp`; saved fake-hwclock values are provisional and cannot prevent correction of a future-dated clock. The guard checks UTC against CLOCK_BOOTTIME and is re-anchored by new confirmed quality. A cron occurrence that elapsed under the gate is caught up once it opens, if its wake-by target is still in the future
 - Rejects cron fires for the first 15 min of uptime after a wake from a scheduled hibernation. The fact that the last shutdown was scheduled is persisted as a flag in `/data` (not a timestamp, since the clock is untrusted across the poweroff); the guard itself is monotonic-uptime based
 - Defers cron fires while the vehicle is not in `stand-by` and dispatches on the next standby transition with the remaining time until the original wake-by target
 - 30 s background monitor detects wall-clock jumps (wall time vs monotonic time, so external `CLOCK_REALTIME` steps are visible) and rebuilds the cron entry / re-evaluates pending deferred wakes accordingly

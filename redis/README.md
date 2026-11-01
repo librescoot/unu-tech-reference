@@ -524,15 +524,15 @@ GPS has no commands; modem-service manages it automatically (see `scooter:modem`
 hgetall clock
 ```
 
-Written by modem-service after it successfully sets the system clock from an authoritative source. It is passed to chrony as a discrete step (`chronyc settime`), which does *not* register a chrony reference, so this hash — not `gps.active` and not `chronyc tracking` — is the evidence that the GPS clock path actually worked. Consumers poll it (the write is silent); pm-service uses it to gate scheduled hibernation.
+Written silently by modem-service after clock-coordinator reports fresh, selected and sufficiently converged external GPS quality. GPS samples reach chronyd through a SOCK refclock; submitting a sample alone does not confirm synchronization. This hash records a GPS confirmation, not the current clock-quality contract. PM and Bluetooth query `/run/clock-coordinator/control.sock` for boot identity, generation, source, age, residual correction, uncertainty and recovery state.
 
 | Field | Type | Description | Example |
 |-------|------|-------------|---------|
-| source | string | Source the clock was set from | "gps" |
-| synced-at | string | Timestamp that was applied (RFC3339) | "2026-06-11T12:00:00Z" |
+| source | string | Selected external source confirmed by the coordinator | "gps" |
+| synced-at | string | System time when GPS quality was confirmed (RFC3339) | "2026-06-11T12:00:00Z" |
 | updated | string | When the hash was last written (RFC3339) | "2026-06-11T12:00:00Z" |
 
-Redis is not persistent on librescoot, so the presence of this hash always refers to the current boot.
+Redis is not persistent on Librescoot. A confirmation can still become stale during a boot; its presence alone does not establish current clock quality.
 
 ### Battery energy estimate (`energy`) - Librescoot Only
 
