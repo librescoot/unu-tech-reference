@@ -1277,6 +1277,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#gps-trace-input" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        GPS trace input
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#traction-pack-energy-estimate" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
@@ -1681,6 +1692,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#gps-trace-input" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        GPS trace input
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#traction-pack-energy-estimate" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
@@ -1916,7 +1938,7 @@
 <h1 id="librescoot-trip-trip-service">librescoot-trip (trip-service)<a class="headerlink" href="#librescoot-trip-trip-service" title="Permanent link">&para;</a></h1>
 <h2 id="purpose-and-ownership">Purpose and ownership<a class="headerlink" href="#purpose-and-ownership" title="Permanent link">&para;</a></h2>
 <p>trip-service records one history entry for an unlocked ride and owns the
-vehicle-wide trip counter. It uses <code>vehicle</code> state, <code>engine-ecu</code> odometer, <code>gps</code>, <code>profile</code>,
+vehicle-wide trip counter. It uses <code>vehicle</code> state, <code>engine-ecu</code> odometer, live <code>gps:tpv</code> snapshots, <code>profile</code>,
 <code>battery:0</code>, <code>battery:1</code>, and the relevant <code>settings</code> fields as inputs. It
 writes the <code>trip</code>, <code>trip:counter</code>, and <code>trip:expunge</code> hashes, the
 <code>trip:completed</code> and <code>trip:command-result</code> channels, and the <code>trip:ready</code> lease.
@@ -1948,6 +1970,18 @@ session across every parked-equivalent pause until lock.</p>
 <code>reset-at</code>, <code>updated-at</code>, and expunge timestamps are Unix seconds, and
 <code>average-speed-kmh</code> is an integer km/h rounded to the nearest km/h. The ECU
 odometer is also metres. The counter only includes time in <code>ready-to-drive</code>.</p>
+<h2 id="gps-trace-input">GPS trace input<a class="headerlink" href="#gps-trace-input" title="Permanent link">&para;</a></h2>
+<p>The recorder subscribes to the modem's complete JSON snapshots on <code>gps:tpv</code>.
+Normal GPS hash updates are silent; the <code>gps</code> recovery notification is not a
+continuous position stream. Each accepted snapshot must report active and
+connected GPS, an established 2D or 3D fix, finite valid coordinates, and finite
+altitude, speed and course. Snapshot speed is km/h.</p>
+<p>GPS collection runs only during ready-to-drive intervals, at speeds of at least
+5 km/h. The existing distance filter suppresses repeated positions. Stored point
+timestamps use local receipt time. GPS timestamps are not an ordering gate:
+equal whole-second timestamps and backward clock corrections do not stop the
+trace. The service logs <code>GPS snapshot intake active</code> once after its first
+accepted snapshot, without coordinates; this confirms input, not a stored ride.</p>
 <h2 id="traction-pack-energy-estimate">Traction-pack energy estimate<a class="headerlink" href="#traction-pack-energy-estimate" title="Permanent link">&para;</a></h2>
 <p>The independent <code>energy</code> hash reports signed net consumption estimated from BMS
 remaining-capacity changes and mean endpoint voltage for both active packs.

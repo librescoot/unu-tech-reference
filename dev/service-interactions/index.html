@@ -2798,10 +2798,12 @@ access is unchanged.</p>
 30 seconds. <code>trip:completed</code> publishes a completed-trip notification.
 <code>trip:command-result</code> publishes the JSON result of a <code>counter.reset</code> request,
 after a successful replacement <code>trip:counter</code> snapshot has been written.</p>
-<p><strong>Reads and watches:</strong> <code>vehicle/state</code>; <code>engine-ecu/odometer</code> and <code>speed</code>; GPS;
+<p><strong>Reads and watches:</strong> <code>vehicle/state</code>; <code>engine-ecu/odometer</code> and <code>speed</code>;
 <code>profile/active.id</code>; <code>battery:0</code> and <code>battery:1</code> presence and serial; and
 <code>settings/trip.counter-reset</code>, <code>settings/trip.expunge</code>, and
-<code>scooter.dual-battery</code>. It synchronizes the watched snapshots at startup.</p>
+<code>scooter.dual-battery</code>. It synchronizes those watched hashes at startup, then
+subscribes to complete live GPS JSON snapshots on <code>gps:tpv</code>. The legacy <code>gps</code>
+recovery notification does not supply its trace input.</p>
 <p><strong>Consumes queue:</strong> <code>scooter:trip</code> JSON requests with
 <code>op: "counter.reset"</code> and a required short Unix-millisecond <code>expires-at</code>
 deadline. bluetooth-service is the BLE producer; local trusted clients may also
