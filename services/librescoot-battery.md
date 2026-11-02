@@ -382,7 +382,10 @@ The service implements multiple recovery mechanisms:
    - Full reinitialization with power cycle
    - Resume normal operation
    - A ten-second watchdog also restarts an absent reader when polling has produced no explicit error
-   - Genuine RF departure and successful no-tag detection still clear presence promptly
+   - Quiet notification waits and RF deactivation retain the cached battery snapshot while discovery continues
+   - At watchdog expiry, clear cached presence, identity and measurements only after a quiet search with no errors or ambiguous observations and a final quiet receive check
+   - Ten seconds is the host search budget, not a hardware guarantee of physical removal
+   - Discovery cleanup sends no battery OFF command and preserves possible supply reservations; RF absence does not establish electrical OFF
    - Critical-fault handling and normal suspend rules remain unchanged
 
 4. **Zero Data Recovery:**
