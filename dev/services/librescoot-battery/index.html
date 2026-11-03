@@ -2557,7 +2557,7 @@ The metadata does not change activation or polling.</p>
 <h3 id="hash-settings">Hash: <code>settings</code><a class="headerlink" href="#hash-settings" title="Permanent link">&para;</a></h3>
 <p><strong>Fields read:</strong></p>
 <ul>
-<li><code>scooter.battery-keep-active-on-seatbox-open</code> - Bool (<code>true</code>/<code>false</code>); runtime equivalent of the <code>-keep-active-on-seatbox-open</code> CLI flag. Keeps a running battery active across a seatbox open while still letting seatbox events flow. Hot-reloaded via <code>settings</code> pub/sub; a change restarts any mid-cycle active reader so the new value takes effect at once.</li>
+<li><code>scooter.battery-keep-active-on-seatbox-open</code> - Bool (<code>true</code>/<code>false</code>); runtime equivalent of the <code>-keep-active-on-seatbox-open</code> CLI flag. Keeps a running battery active across a seatbox open, automatic NFC heartbeat recovery, and close/open sensor changes while still letting seatbox events flow. Hot-reloaded via <code>settings</code> pub/sub; the reader loop reapplies the effective manual/AUX-low policy before restarting readers whose enabled state changes. An unchanged enabled state does not restart the command cycle. Inactive-role readers do not use keep-active, and empty-pack and activation-admission checks still apply.</li>
 <li><code>experimental.battery.dual-pack-admission</code> - Bool, default <code>false</code>. Enables coordinated pack selection, paired sampling and activation checks. Read at startup; changes require a battery-service restart. Does not enable reader 1.</li>
 <li><code>experimental.battery.dual-pack-admission-while-stopped</code> - Obsolete and ignored. Neither value permits adding another supply in <code>ready-to-drive</code> or bypasses stationary qualification.</li>
 <li><code>scooter.dual-battery</code> - Bool (<code>true</code>/<code>false</code>); controls whether battery slot 1 is treated as active/present. <code>true</code> sets reader 1 to the active role (subject to the <code>scooter.max-voltage-delta</code> check); <code>false</code> sets it inactive (disabled). Read on startup and hot-reloaded via <code>settings</code> pub/sub; only takes effect when a slot 1 reader exists.</li>
@@ -2573,7 +2573,7 @@ The metadata does not change activation or polling.</p>
 <p><strong>Subscribed channels:</strong></p>
 <ul>
 <li><code>aux-battery</code> - Aux battery field change notifications</li>
-<li><code>voltage</code> - Recomputes the keep-active-on-seatbox-open override using Schmitt-trigger hysteresis (engages when below the enter threshold, disengages when at or above the exit threshold). On a transition, active readers are restarted so the FSM walks through the wake-up sequence.</li>
+<li><code>voltage</code> - Recomputes the keep-active-on-seatbox-open override using Schmitt-trigger hysteresis (engages when below the enter threshold, disengages when at or above the exit threshold). On a transition, active readers reapply the effective manual/AUX-low policy on their reader loops. Only a changed enabled state requests a restart, so an engaged manual setting keeps its command cycle when the AUX-low override changes.</li>
 </ul>
 <h3 id="hash-vehicle">Hash: <code>vehicle</code><a class="headerlink" href="#hash-vehicle" title="Permanent link">&para;</a></h3>
 <p><strong>Fields read:</strong></p>
@@ -2848,7 +2848,10 @@ before vehicle use.</p>
 <li>Full reinitialization with power cycle</li>
 <li>Resume normal operation</li>
 <li>A ten-second watchdog also restarts an absent reader when polling has produced no explicit error</li>
-<li>Genuine RF departure and successful no-tag detection still clear presence promptly</li>
+<li>Quiet notification waits and RF deactivation retain the cached battery snapshot while discovery continues</li>
+<li>At watchdog expiry, clear cached presence, identity and measurements only after a quiet search with no errors or ambiguous observations and a final quiet receive check</li>
+<li>Ten seconds is the host search budget, not a hardware guarantee of physical removal</li>
+<li>Discovery cleanup sends no battery OFF command and preserves possible supply reservations; RF absence does not establish electrical OFF</li>
 <li>
 <p>Critical-fault handling and normal suspend rules remain unchanged</p>
 </li>
