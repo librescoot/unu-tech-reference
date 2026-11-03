@@ -76,7 +76,7 @@ The metadata does not change activation or polling.
 
 **Fields read:**
 
-- `scooter.battery-keep-active-on-seatbox-open` - Bool (`true`/`false`); runtime equivalent of the `-keep-active-on-seatbox-open` CLI flag. Keeps a running battery active across a seatbox open while still letting seatbox events flow. Hot-reloaded via `settings` pub/sub; a change restarts any mid-cycle active reader so the new value takes effect at once.
+- `scooter.battery-keep-active-on-seatbox-open` - Bool (`true`/`false`); runtime equivalent of the `-keep-active-on-seatbox-open` CLI flag. Keeps a running battery active across a seatbox open, automatic NFC heartbeat recovery, and close/open sensor changes while still letting seatbox events flow. Hot-reloaded via `settings` pub/sub; the reader loop reapplies the effective manual/AUX-low policy before restarting readers whose enabled state changes. An unchanged enabled state does not restart the command cycle. Inactive-role readers do not use keep-active, and empty-pack and activation-admission checks still apply.
 - `experimental.battery.dual-pack-admission` - Bool, default `false`. Enables coordinated pack selection, paired sampling and activation checks. Read at startup; changes require a battery-service restart. Does not enable reader 1.
 - `experimental.battery.dual-pack-admission-while-stopped` - Obsolete and ignored. Neither value permits adding another supply in `ready-to-drive` or bypasses stationary qualification.
 - `scooter.dual-battery` - Bool (`true`/`false`); controls whether battery slot 1 is treated as active/present. `true` sets reader 1 to the active role (subject to the `scooter.max-voltage-delta` check); `false` sets it inactive (disabled). Read on startup and hot-reloaded via `settings` pub/sub; only takes effect when a slot 1 reader exists.
@@ -93,7 +93,7 @@ The metadata does not change activation or polling.
 **Subscribed channels:**
 
 - `aux-battery` - Aux battery field change notifications
-  - `voltage` - Recomputes the keep-active-on-seatbox-open override using Schmitt-trigger hysteresis (engages when below the enter threshold, disengages when at or above the exit threshold). On a transition, active readers are restarted so the FSM walks through the wake-up sequence.
+  - `voltage` - Recomputes the keep-active-on-seatbox-open override using Schmitt-trigger hysteresis (engages when below the enter threshold, disengages when at or above the exit threshold). On a transition, active readers reapply the effective manual/AUX-low policy on their reader loops. Only a changed enabled state requests a restart, so an engaged manual setting keeps its command cycle when the AUX-low override changes.
 
 ### Hash: `vehicle`
 
