@@ -1314,6 +1314,23 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Connection and maintenance notifications">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#notice-lifetimes-and-state-changes" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Notice lifetimes and state changes
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -2015,6 +2032,23 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Connection and maintenance notifications">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#notice-lifetimes-and-state-changes" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Notice lifetimes and state changes
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -2473,6 +2507,31 @@ on the cluster and map screens. Dismissing or expiring the last notification
 restores the full maintenance content area.</p>
 <p>When a recent GPS fix is not accurate enough for routing, the map stays visible and an accuracy-wait explanation uses the shared notification card, including its priority selection, cycling and preemption.</p>
 <p>Clearing Bluetooth connections requires confirmation and is available only while parked. Feedback confirms the request, not completion; when the dashboard is already disconnected, it reports an error and queues no request.</p>
+<h3 id="notice-lifetimes-and-state-changes">Notice lifetimes and state changes<a class="headerlink" href="#notice-lifetimes-and-state-changes" title="Permanent link">&para;</a></h3>
+<p>A map-update banner is eligible for five seconds when availability becomes true
+outside <code>ready-to-drive</code>. Entering <code>ready-to-drive</code> consumes the notice immediately;
+updates discovered there do not show a banner. Returning to parked or refreshing
+language/status does not replay it. The menu and Navigation Setup retain their
+update indicators until availability is cleared.</p>
+<p>A manual map check reports "Maps are up to date" only after successfully comparing
+the recorded installed tile sets. Failed checks and unsupported or unidentifiable
+maps have distinct feedback and preserve known update flags and the last successful
+check time. Busy requests do not accumulate result handlers; cancelled checks cannot
+report a late success. Automatic checks remain silent when no update is found.
+Coverage warnings update when the language changes.</p>
+<p>The handlebar-lock warning evaluates the initial state, waits 1.2 seconds for a
+confirmed locked reading while parked or ready-to-drive, and clears when leaving
+those vehicle states even if the sensor is unknown. Unknown readings cancel a
+pending warning but retain an already confirmed warning within those states.
+Bluetooth health and low-temperature monitors also evaluate their initial store
+values. AUX charging-warning evaluation includes voltage changes; both charging
+channels retain their debounce and transient, once-per-failure notifications.</p>
+<p>Bluetooth PINs disappear when <code>ble[pin-code]</code> is cleared or removed, or after 30
+seconds. A new code restarts the deadline. The versions overlay closes outside
+parked or when the menu opens; brake-release linger lasts four seconds only while
+still eligible. The hibernation countdown uses held-brake values and resets on
+vehicle-state changes. Shutdown shows DBC and MDB update status, version and error
+text separately, so one component's pending reboot does not hide the other's work.</p>
 <h2 id="build">Build<a class="headerlink" href="#build" title="Permanent link">&para;</a></h2>
 <h3 id="desktop-simulator-mode">Desktop (simulator mode)<a class="headerlink" href="#desktop-simulator-mode" title="Permanent link">&para;</a></h3>
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>./run-desktop.sh
