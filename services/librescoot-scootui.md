@@ -83,6 +83,36 @@ When a recent GPS fix is not accurate enough for routing, the map stays visible 
 
 Clearing Bluetooth connections requires confirmation and is available only while parked. Feedback confirms the request, not completion; when the dashboard is already disconnected, it reports an error and queues no request.
 
+### Notice lifetimes and state changes
+
+A map-update banner is eligible for five seconds when availability becomes true
+outside `ready-to-drive`. Entering `ready-to-drive` consumes the notice immediately;
+updates discovered there do not show a banner. Returning to parked or refreshing
+language/status does not replay it. The menu and Navigation Setup retain their
+update indicators until availability is cleared.
+
+A manual map check reports "Maps are up to date" only after successfully comparing
+the recorded installed tile sets. Failed checks and unsupported or unidentifiable
+maps have distinct feedback and preserve known update flags and the last successful
+check time. Busy requests do not accumulate result handlers; cancelled checks cannot
+report a late success. Automatic checks remain silent when no update is found.
+Coverage warnings update when the language changes.
+
+The handlebar-lock warning evaluates the initial state, waits 1.2 seconds for a
+confirmed locked reading while parked or ready-to-drive, and clears when leaving
+those vehicle states even if the sensor is unknown. Unknown readings cancel a
+pending warning but retain an already confirmed warning within those states.
+Bluetooth health and low-temperature monitors also evaluate their initial store
+values. AUX charging-warning evaluation includes voltage changes; both charging
+channels retain their debounce and transient, once-per-failure notifications.
+
+Bluetooth PINs disappear when `ble[pin-code]` is cleared or removed, or after 30
+seconds. A new code restarts the deadline. The versions overlay closes outside
+parked or when the menu opens; brake-release linger lasts four seconds only while
+still eligible. The hibernation countdown uses held-brake values and resets on
+vehicle-state changes. Shutdown shows DBC and MDB update status, version and error
+text separately, so one component's pending reboot does not hide the other's work.
+
 ## Build
 
 ### Desktop (simulator mode)
