@@ -2131,6 +2131,13 @@ stale.</p>
 <p>trip-service writes a complete synchronous snapshot. <code>api-version</code> must be
 <code>"1"</code>; a reader that does not understand that version must not interpret the
 other fields.</p>
+<p>While <code>recording</code>, it publishes a live snapshot every second, even without an
+odometer notification. This keeps duration and average speed current between ECU
+odometer changes. Live publication does not write to SQLite or advance
+<code>updated-at</code>, which describes the last durable update. The 30-second checkpoint
+schedule remains separate. Live publications are serialized with state changes
+and resets, and stop before shutdown completes.</p>
+<p>Source: <a href="https://github.com/librescoot/trip-service/blob/5ce68b7706a90e9ad61873269e92aeb750232ff2/internal/app/app.go">live counter publication</a>.</p>
 <table>
 <thead>
 <tr>
