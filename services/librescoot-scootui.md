@@ -113,6 +113,27 @@ still eligible. The hibernation countdown uses held-brake values and resets on
 vehicle-state changes. Shutdown shows DBC and MDB update status, version and error
 text separately, so one component's pending reboot does not hide the other's work.
 
+## Doctor
+
+Info > Doctor opens a read-only diagnostic snapshot for both boards, independent
+of whether the faults list is empty. ScootUI runs `lsc doctor --json` locally on
+the DBC and through the existing `ssh mdb` connection for the MDB. Both lsc
+installations must support Doctor report schema 1. Each process has a 40-second
+deadline and a 256 KiB combined stdout/stderr limit. Valid diagnostic JSON with
+exit status 1 is accepted, since lsc uses that status for reported faults.
+Unavailable tools or boards, unsupported schemas, malformed output and timeouts
+are shown as not checkable rather than healthy.
+
+The page keeps DBC and MDB summaries separate, timestamps completed snapshots,
+and lists services, board connection, kernel, updates, vehicle faults and storage.
+Within each board, problems precede healthy checks. UI labels are translated;
+diagnostic details and hints retain the text from lsc.
+
+Left tap scrolls down, right hold scrolls up, right tap repeats the check, and left
+hold returns to Info. A running check cannot be duplicated. Leaving the page or
+leaving parked cancels its processes. An open Doctor page remains visible during
+a board-connection failure. No diagnosis automatically repairs or restarts anything.
+
 ## Build
 
 ### Desktop (simulator mode)

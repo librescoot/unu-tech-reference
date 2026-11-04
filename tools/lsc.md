@@ -316,6 +316,28 @@ lsc ota status --json
 - Reads from `ota` hash (status:mdb, status:dbc, download-progress, etc.)
 - Sends commands to the `scooter:update:{mdb,dbc}` lists (check-now)
 
+### Doctor
+
+`lsc doctor` performs read-only checks of board links, kernel consistency, local
+systemd units, update state, vehicle faults and free space on `/data`.
+`lsc doctor --json` returns report schema 1: `schema_version`, a `checks` array
+with `name`, `verdict`, `detail` and `hint`, plus `attention`, `warnings` and
+`unknown` counts. Verdicts are `ok`, `warning`, `attention` and `unknown`.
+Attention results exit nonzero while still returning a complete JSON report.
+
+The service check reports failed units and enabled continuous services that are
+inactive. It excludes completed oneshots, uninstantiated templates, triggered
+services, unmet conditions/assertions and remain-after-exit units from the
+inactive-daemon check. Disabled services are not assumed to be required. Failed
+queries produce unknown results rather than a clean bill of health. Each local
+subprocess has a five-second deadline.
+
+Redis failure does not prevent local checks; unavailable datastore-based checks
+report unknown. Systemd and filesystem checks always run on the board executing
+lsc, regardless of `--redis-addr`. ScootUI's Info > Doctor therefore invokes lsc
+on both boards separately. Neither CLI nor dashboard diagnosis repairs or
+restarts services automatically.
+
 ### Diagnostics
 
 System diagnostics and fault monitoring.
