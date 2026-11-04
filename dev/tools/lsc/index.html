@@ -1633,6 +1633,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#doctor" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Doctor
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#diagnostics" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
@@ -2097,6 +2108,17 @@
     <span class="md-ellipsis">
       <span class="md-typeset">
         OTA Updates
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#doctor" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Doctor
       </span>
     </span>
   </a>
@@ -2723,6 +2745,24 @@ images and <code>status</code>, <code>restart</code> and <code>logs</code> faile
 <li>Reads from <code>ota</code> hash (status:mdb, status:dbc, download-progress, etc.)</li>
 <li>Sends commands to the <code>scooter:update:{mdb,dbc}</code> lists (check-now)</li>
 </ul>
+<h3 id="doctor">Doctor<a class="headerlink" href="#doctor" title="Permanent link">&para;</a></h3>
+<p><code>lsc doctor</code> performs read-only checks of board links, kernel consistency, local
+systemd units, update state, vehicle faults and free space on <code>/data</code>.
+<code>lsc doctor --json</code> returns report schema 1: <code>schema_version</code>, a <code>checks</code> array
+with <code>name</code>, <code>verdict</code>, <code>detail</code> and <code>hint</code>, plus <code>attention</code>, <code>warnings</code> and
+<code>unknown</code> counts. Verdicts are <code>ok</code>, <code>warning</code>, <code>attention</code> and <code>unknown</code>.
+Attention results exit nonzero while still returning a complete JSON report.</p>
+<p>The service check reports failed units and enabled continuous services that are
+inactive. It excludes completed oneshots, uninstantiated templates, triggered
+services, unmet conditions/assertions and remain-after-exit units from the
+inactive-daemon check. Disabled services are not assumed to be required. Failed
+queries produce unknown results rather than a clean bill of health. Each local
+subprocess has a five-second deadline.</p>
+<p>Redis failure does not prevent local checks; unavailable datastore-based checks
+report unknown. Systemd and filesystem checks always run on the board executing
+lsc, regardless of <code>--redis-addr</code>. ScootUI's Info &gt; Doctor therefore invokes lsc
+on both boards separately. Neither CLI nor dashboard diagnosis repairs or
+restarts services automatically.</p>
 <h3 id="diagnostics">Diagnostics<a class="headerlink" href="#diagnostics" title="Permanent link">&para;</a></h3>
 <p>System diagnostics and fault monitoring.</p>
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="c1"># Show firmware versions (also via: lsc ver)</span>
