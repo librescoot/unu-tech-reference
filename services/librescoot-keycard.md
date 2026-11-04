@@ -15,7 +15,7 @@ Two physical-card roles do not overlap. An **authorized** card unlocks the vehic
   --data-dir string     Directory for UID storage (default: /data/keycard)
   --redis string        Redis server address (default: localhost:6379)
   --log int             Log level 0-3 (0=error, 3=debug) (default: 2)
-  --led-device string   I2C device for LP5562 LED (empty = script-based control)
+  --led-device string   I2C device for LP5562 LED (empty disables RGB feedback)
   --led-address uint    I2C address for LP5562 LED (default: 48 / 0x30)
   --debug               Enable debug logging
 ```
@@ -147,10 +147,15 @@ Format is `<event>[:<uid>][:<trigger>]`, where trigger is `card`, `command`, `bo
 - `/dev/pwm_led3`, `/dev/pwm_led7` — on during learn mode
 - Controlled via `/usr/bin/ledcontrol.sh`
 
-**Script-based fallback** (when `--led-device` not set):
+Without `--led-device`, dashboard RGB feedback is disabled; enrollment's separate PWM indicators still use `/usr/bin/ledcontrol.sh`.
 
-- `/usr/bin/greenled.sh` — color/on/off
-- `/usr/bin/ledcontrol.sh` — PWM pattern control
+### Armed alarm indicator
+
+`settings[alarm.armed-led]` is an opt-in boolean, default `false`, owned by keycard-service. With `alarm[status]=armed`, it selects a dim red pulse in `stand-by` and the `waiting-hibernation*` vehicle states. `power-manager[state]` must identify running, suspend or hibernation, including the corresponding pending/imminent transitions. Other vehicle states suppress the indication.
+
+The LP5562 runs a roughly 94 ms pulse every 2 seconds on engine 3 without periodic host writes or a suspend inhibitor. Card feedback, enrollment and NFC fault indications take priority. Completion restores the current background state; cancelled or superseded feedback cannot restore an obsolete indication. Redis subscriptions are accompanied by startup and reconnect snapshots.
+
+Low-power entry ends temporary flashes, and resume reapplies the desired indication. Ordinary shutdown stops the engine; announced hibernation poweroff leaves an eligible autonomous alarm pattern running while the chip remains powered and enabled. This does not maintain the LED power rail. Other services can overwrite or stop this best-effort pattern.
 
 ## Operational Modes
 
