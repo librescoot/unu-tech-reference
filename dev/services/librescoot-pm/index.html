@@ -24,7 +24,7 @@
       
       
       <link rel="icon" href="../../assets/favicon.png">
-      <meta name="generator" content="zensical-0.0.74">
+      <meta name="generator" content="zensical-0.1.0">
     
     
       
@@ -2898,7 +2898,7 @@
 <li>Each of the fields above triggers a re-read on change.</li>
 </ul>
 <h3 id="clock-quality-socket">Clock quality socket<a class="headerlink" href="#clock-quality-socket" title="Permanent link">&para;</a></h3>
-<p>PM queries <code>/run/clock-coordinator/control.sock</code> immediately and every five seconds for fresh, converged external NTP or GPS quality. Neither <code>gps.active</code> nor the Redis <code>clock</code> hash authorizes calendar scheduling. The coordinator also handles bounded suspend preparation, abort and resume; unresolved clock-adjustment outcomes defer suspend.</p>
+<p>PM queries <code>/run/clock-coordinator/control.sock</code> immediately and every five seconds for fresh, converged external NTP or GPS quality to establish or refresh its calendar-clock anchor. Scheduled dispatch uses the validated clock's progression against <code>CLOCK_BOOTTIME</code>, without requiring a fresh coordinator response. Neither <code>gps.active</code> nor the Redis <code>clock</code> hash establishes calendar trust. The coordinator also handles bounded suspend preparation, abort and resume; unresolved clock-adjustment outcomes defer suspend.</p>
 <h3 id="hash-system">Hash: <code>system</code><a class="headerlink" href="#hash-system" title="Permanent link">&para;</a></h3>
 <p><strong>Fields written:</strong></p>
 <ul>
@@ -3196,13 +3196,12 @@
 <p>bluetooth-service is the bridge: it watches <code>power-manager:wake-timer-seconds</code>, forwards the value to the nRF52 over UART (subtype 0x0805 under 0x0800), and writes the echo as <code>wake-timer-ack-seconds</code>, alongside <code>wake-timer-armed</code> telemetry. PM, vehicle-service's correlated preparation handler, and this bridge must be deployed together.</p>
 <p>The system never powers off without a confirmed wake source. If bluetooth-service is down or the nRF52 fails to ACK, the hibernation is aborted and the FSM returns to <code>running</code>.</p>
 <h4 id="time-sync-gate">Time-sync gate<a class="headerlink" href="#time-sync-gate" title="Permanent link">&para;</a></h4>
-<p>The scheduler refuses to dispatch cron occurrences until PM validates synchronization evidence and clock plausibility. PM checks immediately, then every 30 seconds:</p>
+<p>The scheduler waits for external time validation after PM starts. PM checks immediately, then every five seconds:</p>
 <ul>
-<li>GPS evidence is <code>clock[synced-at]</code>, written by modem-service only after chrony accepts a GPS time sample. An active GPS fix alone is insufficient.</li>
-<li>Alternatively, chrony must report a synchronized external NTP reference; local/manual pseudo-references do not qualify.</li>
-<li>The wall clock must not predate the newest image build timestamp or saved fake-hwclock timestamp.</li>
+<li>The clock coordinator must report fresh, converged external NTP or GPS quality for the current boot. Local, nRF and explicit-user references do not establish calendar trust.</li>
+<li>The wall clock must not predate the image build timestamp. Saved fake-hwclock timestamps are provisional and do not override a confirmed external correction.</li>
 </ul>
-<p>Successful validation latches the session's synchronization gate and anchors the wall clock to <code>CLOCK_BOOTTIME</code>. A per-dispatch validator checks clock progression, including across suspend. Losing GPS or NTP reachability alone does not revoke the session latch. Relative explicit <code>hibernate-for</code> requests do not use these scheduler gates.</p>
+<p>Successful validation latches the session's synchronization gate and anchors the wall clock to <code>CLOCK_BOOTTIME</code>. At dispatch, PM only checks that the validated clock has kept pace with elapsed boot time, including suspend. Normal NTP polling intervals, loss of GPS or network access, and an unavailable clock coordinator do not revoke calendar trust. A clock that falls behind by more than two minutes requires revalidation. Relative explicit <code>hibernate-for</code> requests do not use these scheduler gates.</p>
 <h4 id="clock-jump-resilience">Clock-jump resilience<a class="headerlink" href="#clock-jump-resilience" title="Permanent link">&para;</a></h4>
 <p>A separate 30 s monitor loop in the scheduler compares monotonic elapsed vs wall-clock elapsed. A delta beyond ±60 s indicates a wall-clock jump (typical when chrony first converges from a wrong startup time). On jump:</p>
 <ol>
@@ -3309,7 +3308,7 @@
 <p><strong>Hibernation Scheduler (<code>internal/hibernation/scheduler.go</code>)</strong></p>
 <ul>
 <li>Cron-driven scheduler for <code>pm.scheduled-hibernate-*</code> settings (uses <code>github.com/robfig/cron/v3</code>, standard 5-field parser). Expressions whose consecutive occurrences are closer than 15 min are rejected at configuration time (the previous expression stays in effect), because a sub-15-min cadence is indistinguishable from a hibernate/wake loop across poweroffs</li>
-<li>Anchors calendar-clock validity to fresh, sufficiently converged external NTP or GPS quality from clock-coordinator. Local, nRF, explicit-user and network-holdover time do not establish external trust. The plausibility floor is <code>/etc/build-timestamp</code>; saved fake-hwclock values are provisional and cannot prevent correction of a future-dated clock. The guard checks UTC against CLOCK_BOOTTIME and is re-anchored by new confirmed quality. A cron occurrence that elapsed under the gate is caught up once it opens, if its wake-by target is still in the future</li>
+<li>Anchors calendar-clock validity to fresh, sufficiently converged external NTP or GPS quality from clock-coordinator. Local, nRF, explicit-user and network-holdover time do not establish external trust. The plausibility floor is <code>/etc/build-timestamp</code>; saved fake-hwclock values are provisional and cannot prevent correction of a future-dated clock. The guard checks UTC against CLOCK_BOOTTIME and is re-anchored by new confirmed quality. Established calendar trust does not expire between source samples or when sources become unavailable. A cron occurrence that elapsed under the gate is caught up once it opens, if its wake-by target is still in the future</li>
 <li>Rejects cron fires for the first 15 min of uptime after a wake from a scheduled hibernation. The fact that the last shutdown was scheduled is persisted as a flag in <code>/data</code> (not a timestamp, since the clock is untrusted across the poweroff); the guard itself is monotonic-uptime based</li>
 <li>Defers cron fires while the vehicle is not in <code>stand-by</code> and dispatches on the next standby transition with the remaining time until the original wake-by target</li>
 <li>30 s background monitor detects wall-clock jumps (wall time vs monotonic time, so external <code>CLOCK_REALTIME</code> steps are visible) and rebuilds the cron entry / re-evaluates pending deferred wakes accordingly</li>
