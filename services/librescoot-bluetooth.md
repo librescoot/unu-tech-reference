@@ -648,6 +648,15 @@ The hibernation event is deliberately redundant: motion-service reads the same l
 
 ### Power Management
 
+The advanced `settings[alarm.armed-led-hibernate]` boolean defaults to `true`.
+Indicator supply retention in L1 requires this setting, `alarm.armed-led=true`,
+and `alarm[status]=armed`. The effective boolean is sent over USOCK parameter
+`0x0806` only when link capability `0x08` is advertised. It is refreshed on
+settings/alarm changes, subscription restart, link negotiation, and before power
+transitions. Missing general LED settings or unavailable state disable retention;
+a missing hibernation-specific setting uses its default. The nRF starts with
+retention disabled after reset. L2 and hard-reboot power cuts remain unchanged.
+
 The service handles hibernation requests from the nRF52:
 
 **Automatic hibernation:**

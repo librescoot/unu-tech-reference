@@ -155,7 +155,9 @@ Without `--led-device`, dashboard RGB feedback is disabled; enrollment's separat
 
 The LP5562 runs a roughly 94 ms pulse every 2 seconds on engine 3 without periodic host writes or a suspend inhibitor. Card feedback, enrollment and NFC fault indications take priority. Completion restores the current background state; cancelled or superseded feedback cannot restore an obsolete indication. Redis subscriptions are accompanied by startup and reconnect snapshots.
 
-Low-power entry ends temporary flashes, and resume reapplies the desired indication. Ordinary shutdown stops the engine; announced hibernation poweroff leaves an eligible autonomous alarm pattern running while the chip remains powered and enabled. This does not maintain the LED power rail. Other services can overwrite or stop this best-effort pattern.
+The advanced `settings[alarm.armed-led-hibernate]` boolean defaults to `true` and is effective only with `alarm.armed-led=true`. Disabling it stops the background indication at hibernation-imminent and through poweroff, without disabling stand-by or suspend blinking. Bluetooth-service forwards the effective setting to compatible nRF firmware so disabling it also restores normal supply cutoff.
+
+Low-power entry ends temporary flashes, and resume reapplies the desired indication. Ordinary shutdown stops the engine; announced hibernation poweroff leaves an eligible autonomous alarm pattern running while the chip remains powered and enabled. Compatible nRF firmware can retain the indicator supply in L1 when both settings are enabled and the alarm is armed; L2 still cuts it. Keycard-service does not control the rail. Other services can overwrite or stop this best-effort pattern.
 
 ## Operational Modes
 
