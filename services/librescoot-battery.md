@@ -114,6 +114,14 @@ The metadata does not change activation or polling.
 
 - Hardware faults (1-16): Temperature, voltage, current protection faults
 - Software faults (32+): Communication errors, NFC reader errors
+- **36 (B36): Battery switched off unexpectedly.** A complete, artifact-free NFC
+  acquisition observes the same pack changing from `active` to `idle` or `asleep`
+  while its active-role reader still requests ON. The BMS fault code may be zero.
+  Successful OFF writes and tag changes reset transition tracking; disabled or
+  inactive-role readers and empty-pack shutdowns do not trigger B36. Recovery to
+  a valid `active` reading or confirmed departure clears the active fault. B36
+  records the observation without identifying a protection cause, marking the
+  pack absent, or changing activation policy.
 
 ### Stream: `events:faults`
 
@@ -122,6 +130,12 @@ The metadata does not change activation or polling.
 - `group` - Source (e.g., "battery:0")
 - `code` - Fault code (positive for set, negative for cleared)
 - `description` - Human-readable fault description
+
+B36 activation events additionally include `state`, `voltage-mv`, `current-ma`,
+`charge`, `bms-fault-code`, `serial-number` and `vehicle-state`. The current is the
+signed reported value, not an inferred or corrected current. Repeated inactive
+readings do not append duplicate B36 events. Clearing the active set member does
+not remove history from the bounded stream.
 
 ## Hardware Interfaces
 
