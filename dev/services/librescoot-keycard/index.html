@@ -1220,6 +1220,17 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#armed-alarm-indicator" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Armed alarm indicator
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -1891,6 +1902,17 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#armed-alarm-indicator" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Armed alarm indicator
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -2133,7 +2155,7 @@
 </span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>  --data-dir string     Directory for UID storage (default: /data/keycard)
 </span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>  --redis string        Redis server address (default: localhost:6379)
 </span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>  --log int             Log level 0-3 (0=error, 3=debug) (default: 2)
-</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>  --led-device string   I2C device for LP5562 LED (empty = script-based control)
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>  --led-device string   I2C device for LP5562 LED (empty disables RGB feedback)
 </span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>  --led-address uint    I2C address for LP5562 LED (default: 48 / 0x30)
 </span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>  --debug               Enable debug logging
 </span></code></pre></div>
@@ -2415,11 +2437,11 @@
 <li><code>/dev/pwm_led3</code>, <code>/dev/pwm_led7</code> — on during learn mode</li>
 <li>Controlled via <code>/usr/bin/ledcontrol.sh</code></li>
 </ul>
-<p><strong>Script-based fallback</strong> (when <code>--led-device</code> not set):</p>
-<ul>
-<li><code>/usr/bin/greenled.sh</code> — color/on/off</li>
-<li><code>/usr/bin/ledcontrol.sh</code> — PWM pattern control</li>
-</ul>
+<p>Without <code>--led-device</code>, dashboard RGB feedback is disabled; enrollment's separate PWM indicators still use <code>/usr/bin/ledcontrol.sh</code>.</p>
+<h3 id="armed-alarm-indicator">Armed alarm indicator<a class="headerlink" href="#armed-alarm-indicator" title="Permanent link">&para;</a></h3>
+<p><code>settings[alarm.armed-led]</code> is an opt-in boolean, default <code>false</code>, owned by keycard-service. With <code>alarm[status]=armed</code>, it selects a dim red pulse in <code>stand-by</code> and the <code>waiting-hibernation*</code> vehicle states. <code>power-manager[state]</code> must identify running, suspend or hibernation, including the corresponding pending/imminent transitions. Other vehicle states suppress the indication.</p>
+<p>The LP5562 runs a roughly 94 ms pulse every 2 seconds on engine 3 without periodic host writes or a suspend inhibitor. Card feedback, enrollment and NFC fault indications take priority. Completion restores the current background state; cancelled or superseded feedback cannot restore an obsolete indication. Redis subscriptions are accompanied by startup and reconnect snapshots.</p>
+<p>Low-power entry ends temporary flashes, and resume reapplies the desired indication. Ordinary shutdown stops the engine; announced hibernation poweroff leaves an eligible autonomous alarm pattern running while the chip remains powered and enabled. This does not maintain the LED power rail. Other services can overwrite or stop this best-effort pattern.</p>
 <h2 id="operational-modes">Operational Modes<a class="headerlink" href="#operational-modes" title="Permanent link">&para;</a></h2>
 <h3 id="master-bootstrap-first-boot">Master Bootstrap (first boot)<a class="headerlink" href="#master-bootstrap-first-boot" title="Permanent link">&para;</a></h3>
 <p>Activated at startup when the master file is missing or empty, and only on a reader that has no authorized cards and is not in service mode. A vehicle with cards enrolled must not crown the owner's next tap: a master starts learn mode and never unlocks, so that card would stop opening the scooter. The <code>NONE</code> sentinel counts as an entry, so a vehicle that has recorded "no physical master" does not re-arm this either.</p>
