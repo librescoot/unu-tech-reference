@@ -2592,6 +2592,14 @@ The metadata does not change activation or polling.</p>
 <ul>
 <li>Hardware faults (1-16): Temperature, voltage, current protection faults</li>
 <li>Software faults (32+): Communication errors, NFC reader errors</li>
+<li><strong>36 (B36): Battery switched off unexpectedly.</strong> A complete, artifact-free NFC
+  acquisition observes the same pack changing from <code>active</code> to <code>idle</code> or <code>asleep</code>
+  while its active-role reader still requests ON. The BMS fault code may be zero.
+  Successful OFF writes and tag changes reset transition tracking; disabled or
+  inactive-role readers and empty-pack shutdowns do not trigger B36. Recovery to
+  a valid <code>active</code> reading or confirmed departure clears the active fault. B36
+  records the observation without identifying a protection cause, marking the
+  pack absent, or changing activation policy.</li>
 </ul>
 <h3 id="stream-eventsfaults">Stream: <code>events:faults</code><a class="headerlink" href="#stream-eventsfaults" title="Permanent link">&para;</a></h3>
 <p><strong>Fault events written:</strong></p>
@@ -2600,6 +2608,11 @@ The metadata does not change activation or polling.</p>
 <li><code>code</code> - Fault code (positive for set, negative for cleared)</li>
 <li><code>description</code> - Human-readable fault description</li>
 </ul>
+<p>B36 activation events additionally include <code>state</code>, <code>voltage-mv</code>, <code>current-ma</code>,
+<code>charge</code>, <code>bms-fault-code</code>, <code>serial-number</code> and <code>vehicle-state</code>. The current is the
+signed reported value, not an inferred or corrected current. Repeated inactive
+readings do not append duplicate B36 events. Clearing the active set member does
+not remove history from the bounded stream.</p>
 <h2 id="hardware-interfaces">Hardware Interfaces<a class="headerlink" href="#hardware-interfaces" title="Permanent link">&para;</a></h2>
 <h3 id="nfc-readers">NFC Readers<a class="headerlink" href="#nfc-readers" title="Permanent link">&para;</a></h3>
 <ul>
