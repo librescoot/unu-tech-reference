@@ -3428,6 +3428,14 @@ answers <code>cap:ble:count:0</code> otherwise. An app should probe it rather th
 </ul>
 <p>The hibernation event is deliberately redundant: motion-service reads the same latched interrupt at startup and publishes its own <code>wake-hibernation</code>. Both routes report the one accelerometer, whose interrupt is wired to the iMX and to the nRF in parallel. alarm-service handles the duplicate without escalating, so the second event costs nothing but a log line.</p>
 <h3 id="power-management">Power Management<a class="headerlink" href="#power-management" title="Permanent link">&para;</a></h3>
+<p>The advanced <code>settings[alarm.armed-led-hibernate]</code> boolean defaults to <code>true</code>.
+Indicator supply retention in L1 requires this setting, <code>alarm.armed-led=true</code>,
+and <code>alarm[status]=armed</code>. The effective boolean is sent over USOCK parameter
+<code>0x0806</code> only when link capability <code>0x08</code> is advertised. It is refreshed on
+settings/alarm changes, subscription restart, link negotiation, and before power
+transitions. Missing general LED settings or unavailable state disable retention;
+a missing hibernation-specific setting uses its default. The nRF starts with
+retention disabled after reset. L2 and hard-reboot power cuts remain unchanged.</p>
 <p>The service handles hibernation requests from the nRF52:</p>
 <p><strong>Automatic hibernation:</strong></p>
 <ul>
