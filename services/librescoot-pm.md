@@ -103,7 +103,7 @@ pm-service subscribes to the `power:inhibits` channel and syncs entries into its
 
 ### Clock quality socket
 
-PM queries `/run/clock-coordinator/control.sock` immediately and every five seconds for fresh, converged external NTP or GPS quality. Neither `gps.active` nor the Redis `clock` hash authorizes calendar scheduling. The coordinator also handles bounded suspend preparation, abort and resume; unresolved clock-adjustment outcomes defer suspend.
+PM queries `/run/clock-coordinator/control.sock` immediately and every five seconds for fresh, converged external NTP or GPS quality to establish or refresh its calendar-clock anchor. Scheduled dispatch uses the validated clock's progression against `CLOCK_BOOTTIME`, without requiring a fresh coordinator response. Neither `gps.active` nor the Redis `clock` hash establishes calendar trust. The coordinator also handles bounded suspend preparation, abort and resume; unresolved clock-adjustment outcomes defer suspend.
 
 ### Hash: `system`
 
@@ -396,13 +396,12 @@ The system never powers off without a confirmed wake source. If bluetooth-servic
 
 #### Time-sync gate
 
-The scheduler refuses to dispatch cron occurrences until PM validates synchronization evidence and clock plausibility. PM checks immediately, then every 30 seconds:
+The scheduler waits for external time validation after PM starts. PM checks immediately, then every five seconds:
 
-- GPS evidence is `clock[synced-at]`, written by modem-service only after chrony accepts a GPS time sample. An active GPS fix alone is insufficient.
-- Alternatively, chrony must report a synchronized external NTP reference; local/manual pseudo-references do not qualify.
-- The wall clock must not predate the newest image build timestamp or saved fake-hwclock timestamp.
+- The clock coordinator must report fresh, converged external NTP or GPS quality for the current boot. Local, nRF and explicit-user references do not establish calendar trust.
+- The wall clock must not predate the image build timestamp. Saved fake-hwclock timestamps are provisional and do not override a confirmed external correction.
 
-Successful validation latches the session's synchronization gate and anchors the wall clock to `CLOCK_BOOTTIME`. A per-dispatch validator checks clock progression, including across suspend. Losing GPS or NTP reachability alone does not revoke the session latch. Relative explicit `hibernate-for` requests do not use these scheduler gates.
+Successful validation latches the session's synchronization gate and anchors the wall clock to `CLOCK_BOOTTIME`. At dispatch, PM only checks that the validated clock has kept pace with elapsed boot time, including suspend. Normal NTP polling intervals, loss of GPS or network access, and an unavailable clock coordinator do not revoke calendar trust. A clock that falls behind by more than two minutes requires revalidation. Relative explicit `hibernate-for` requests do not use these scheduler gates.
 
 #### Clock-jump resilience
 
@@ -520,7 +519,7 @@ Use `journalctl -u librescoot-pm.service` to view logs.
 **Hibernation Scheduler (`internal/hibernation/scheduler.go`)**
 
 - Cron-driven scheduler for `pm.scheduled-hibernate-*` settings (uses `github.com/robfig/cron/v3`, standard 5-field parser). Expressions whose consecutive occurrences are closer than 15 min are rejected at configuration time (the previous expression stays in effect), because a sub-15-min cadence is indistinguishable from a hibernate/wake loop across poweroffs
-- Anchors calendar-clock validity to fresh, sufficiently converged external NTP or GPS quality from clock-coordinator. Local, nRF, explicit-user and network-holdover time do not establish external trust. The plausibility floor is `/etc/build-timestamp`; saved fake-hwclock values are provisional and cannot prevent correction of a future-dated clock. The guard checks UTC against CLOCK_BOOTTIME and is re-anchored by new confirmed quality. A cron occurrence that elapsed under the gate is caught up once it opens, if its wake-by target is still in the future
+- Anchors calendar-clock validity to fresh, sufficiently converged external NTP or GPS quality from clock-coordinator. Local, nRF, explicit-user and network-holdover time do not establish external trust. The plausibility floor is `/etc/build-timestamp`; saved fake-hwclock values are provisional and cannot prevent correction of a future-dated clock. The guard checks UTC against CLOCK_BOOTTIME and is re-anchored by new confirmed quality. Established calendar trust does not expire between source samples or when sources become unavailable. A cron occurrence that elapsed under the gate is caught up once it opens, if its wake-by target is still in the future
 - Rejects cron fires for the first 15 min of uptime after a wake from a scheduled hibernation. The fact that the last shutdown was scheduled is persisted as a flag in `/data` (not a timestamp, since the clock is untrusted across the poweroff); the guard itself is monotonic-uptime based
 - Defers cron fires while the vehicle is not in `stand-by` and dispatches on the next standby transition with the remaining time until the original wake-by target
 - 30 s background monitor detects wall-clock jumps (wall time vs monotonic time, so external `CLOCK_REALTIME` steps are visible) and rebuilds the cron entry / re-evaluates pending deferred wakes accordingly
