@@ -201,7 +201,7 @@ Values `error:{component}` takes, with `error-message:{component}` carrying the 
 | `download-failed` | The artifact could not be fetched |
 | `checksum-mismatch` | A downloaded or staged file did not match its expected checksum |
 | `file-not-found` | A path given to `update-from-file:`, or a staged update file, does not exist |
-| `invalid-file` | A file given to `update-from-file:`, or staged for update, is neither a `.mender` nor a `.delta` |
+| `invalid-file` | A file given to `update-from-file:`, or staged for update, is not a `.mender`, `.delta`, or `.hdelta` |
 | `already-installed` | A full `.mender` given to `update-from-file:` carries the version that is already running. Checked before installation starts, so nothing is written |
 | `image-too-large` | The artifact's rootfs payload is larger than the rootfs slot it would be written to. Checked before installation starts, so nothing is written |
 | `install-failed` | `mender-update install` failed |
@@ -216,16 +216,27 @@ Values `error:{component}` takes, with `error-message:{component}` carrying the 
 | `delta-failed` | A delta update failed and a full update is being started instead. Transient: cleared to `idle` after two seconds, then the full update proceeds |
 | `reboot-failed` | The update installed but the reboot could not be triggered |
 
+#### HDiffPatch Nightly deltas
+
+Normal Nightly releases contain both `.delta` (xdelta3) and `.hdelta`
+(HDiffPatch) assets for each board. The update service chooses the smaller asset
+for each Nightly chain step when `hpatchz` is available; otherwise it uses the
+standard `.delta`. Older update services ignore `.hdelta` and use `.delta`.
+Testing, Stable, and custom Nightly releases do not produce `.hdelta` assets.
+The delta metadata identifies the patch algorithm; an unknown algorithm fails
+rather than being interpreted as xdelta. Both formats use the same base and
+reconstructed payload checksum checks and the same full-update fallback.
+
 #### Staged updates
 
 `apply-staged-updates` installs whatever update files are present in the
 component's download directory (default `/data/ota/<component>`). A `.mender`
 that is not newer than the running version is treated as the delta base image and
 ignored, so the base file that lives in that directory is never a conflict. A
-newer `.mender` staged together with any `.delta` that parses as a newer artifact on
+newer `.mender` staged together with any `.delta` or `.hdelta` that parses as a newer artifact on
 the running version's channel, two or more newer `.mender` files, and deltas that
 cannot be resolved into one contiguous chain from the running version are all refused
-before anything is unpacked, with `staged-updates-refused` and no install. A `.delta`
+before anything is unpacked, with `staged-updates-refused` and no install. A delta
 the version test cannot judge (a cross-channel orphan, an unparsable name, a partial
 transfer) is ignored rather than counted, and so cannot block a legitimately staged
 image. When nothing in the set applies — the staged image is already the running
@@ -354,7 +365,7 @@ stable checks continue to reject downgrades.
   - `preview-channel:<channel>` — report what a switch to `<channel>` would fetch, without changing anything
   - `update-from-file:/path/to/file.mender` — install from local file
   - `update-from-file:/path/to/file.mender#sha256=<hex>` - with checksum
-  - `apply-staged-updates` — install the update files staged in this component's download directory, resolving staged `.delta` files as one chain
+  - `apply-staged-updates` — install the update files staged in this component's download directory, resolving staged `.delta` and `.hdelta` files as one chain
   - `update-from-url:https://...` — install from URL
   - `update-from-url:https://...#sha256=<hex>` - with checksum
   - the legacy checksum form `:sha256:<hex>` is still accepted; `#sha256=` is preferred (keeps the source a valid URL)
@@ -448,7 +459,7 @@ before prompting the rider to confirm.
 ## Update Method
 
 - **full** — downloads and installs a complete Mender artifact
-- **delta** — downloads a delta patch relative to the current version, applies it with xdelta; falls back to full if no base file exists
+- **delta** — downloads a delta patch relative to the current version, applies it with xdelta3 or HDiffPatch, and falls back to full if no usable base or chain exists
 
 Configured via `updates.{component}.method` in Redis settings. Default is `delta`.
 
