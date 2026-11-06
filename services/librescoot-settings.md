@@ -204,6 +204,11 @@ a scooter in service mode stays.
 
 ### Settings File: `/data/settings.toml`
 
+`alarm.l1-cooldown` defaults to two seconds. A one-time startup migration changes
+a saved value of 15 to 2 and leaves other values unchanged. The completion marker
+is `/data/settings.toml.alarm-cooldown-v1`; retain it when backing up settings so
+later explicit choices of 15 remain unchanged on restart.
+
 The service maintains a TOML file with this structure:
 
 ```toml
@@ -214,7 +219,7 @@ duration = "60"
 seatbox-trigger = "true"
 hairtrigger = "false"
 hairtrigger-duration = "3"
-l1-cooldown = "15"
+l1-cooldown = "2"
 
 [cellular]
 apn = "internet.provider.com"

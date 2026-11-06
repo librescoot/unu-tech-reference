@@ -623,7 +623,7 @@ Librescoot adds persistent settings managed by the settings-service:
 | alarm.trigger.handlebar | "true"/"false" | Handlebar lock sensor and position are an alarm trigger source (default false; muted for 90 s after arming) | "false" |
 | alarm.hairtrigger | "true"/"false" | Hair trigger mode (immediate short alarm on first motion) | "false" |
 | alarm.hairtrigger-duration | integer (sec) | Hair trigger alarm duration in seconds | "3" |
-| alarm.l1-cooldown | integer (sec) | Level 1 cooldown duration in seconds | "15" |
+| alarm.l1-cooldown | integer (sec) | Wait after the first trigger before a five-second repeat-trigger check; triggers during the wait do not escalate | "2" |
 | scooter.battery-keep-active-on-seatbox-open | "true"/"false" | Keep a running battery powered across a seatbox open | "false" |
 | trip.counter-reset | enum | Vehicle-wide counter reset policy: `ride`, `day`, `battery`, or `manual` | "ride" |
 | trip.expunge | string | Atomic completed/abandoned trip-history retention policy: `never`, `age:<duration>`, `count:<trips>`, or `size:<bytes>` | "age:365d" |

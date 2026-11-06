@@ -19,13 +19,13 @@ Librescoot alarm-service v0.10+ (Phase 4 of the motion-service refactor).
 --seatbox-trigger=true         Trigger alarm on unauthorized seatbox opening
 --hair-trigger=false           Enable hair trigger mode (immediate short alarm on first motion)
 --hair-trigger-duration=3      Hair trigger alarm duration in seconds
---l1-cooldown=15               Level 1 cooldown duration in seconds
+--l1-cooldown=2                Level 1 cooldown duration in seconds
 --version                      Print version and exit
 ```
 
 `--i2c-bus`, `--evdev-device`, `--evdev-keycode`, `--poller-interval-ms` are gone. motion-service owns the chip.
 
-These flags only take effect when explicitly passed; each one then writes its value to the `settings` hash on startup. The production unit passes none of them, so the settings-service schema defaults apply; the compiled-in flag defaults now match the schema (`alarm.duration` 30, `alarm.l1-cooldown` 15).
+These flags only take effect when explicitly passed; each one then writes its value to the `settings` hash on startup. The production unit passes none of them, so the settings-service schema defaults apply; the compiled-in flag defaults now match the schema (`alarm.duration` 30, `alarm.l1-cooldown` 2).
 
 ## Redis Operations
 
@@ -230,7 +230,7 @@ Plus `seatbox_access` (transient state during authorized seatbox openings) and `
 - **disarmed**: Alarm enabled but vehicle not in stand-by
 - **delay_armed**: 5-second delay before arming (allows user to leave)
 - **armed**: Armed and monitoring the enabled trigger sources (motion, buttons, handlebar, seatbox)
-- **trigger_level_1_wait**: Cooldown after a trigger. `alarm.l1-cooldown`, default 15s. With hair trigger: immediate short alarm.
+- **trigger_level_1_wait**: Cooldown after a trigger. `alarm.l1-cooldown`, default 2s. Repeat motion and input triggers do not escalate during this wait. The hazard cue and optional hair-trigger alarm start after a 750 ms authentication grace period.
 - **trigger_level_1**: 5-second check for continued movement
 - **trigger_level_2**: Full alarm activated (horn + hazards). Duration is `alarm.duration`, default 30s. Capped at 6 cycles.
 - **seatbox_access**: Authorized seatbox opening — alarm temporarily inhibited
@@ -247,9 +247,9 @@ Plus `seatbox_access` (transient state during authorized seatbox openings) and `
 
 - An enabled [trigger source](#trigger-sources) fires while in `armed`: a `motion:interrupt`, a button press, or a handlebar edge past the settling window
 - `armed` → `trigger_level_1_wait`
-- Hazards blink once
-- If hair trigger enabled: short horn pulse (skipped if this edge was the wake-from-hibernation edge — `wakeFromHibernation` flag gates it)
-- Cooldown (default 15s, configurable) → `trigger_level_1`
+- After the 750 ms authentication grace, hazards start a three-flash warning pattern.
+- If hair trigger is enabled, a short alarm also starts after the grace period (skipped for the wake-from-hibernation edge).
+- Cooldown (default 2s, configurable), then `trigger_level_1` starts the verification window.
 - 5s verification window → if another trigger arrives: `trigger_level_2`; else: back through `delay_armed` to `armed`
 
 ### Disarming
