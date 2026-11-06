@@ -2733,10 +2733,9 @@ a scooter in service mode stays.</p>
 <p><strong>No-clobber invariant:</strong> <code>/data/settings.toml</code> always reflects the user's chosen values. Run <code>cat /data/settings.toml</code> while service mode is active to confirm the TOML is unchanged.</p>
 <h2 id="file-operations">File Operations<a class="headerlink" href="#file-operations" title="Permanent link">&para;</a></h2>
 <h3 id="settings-file-datasettingstoml">Settings File: <code>/data/settings.toml</code><a class="headerlink" href="#settings-file-datasettingstoml" title="Permanent link">&para;</a></h3>
-<p><code>alarm.l1-cooldown</code> defaults to two seconds. A one-time startup migration changes
-a saved value of 15 to 2 and leaves other values unchanged. The completion marker
-is <code>/data/settings.toml.alarm-cooldown-v1</code>; retain it when backing up settings so
-later explicit choices of 15 remain unchanged on restart.</p>
+<p><code>alarm.l1-cooldown</code> defaults to two seconds when unset. Explicit saved values,
+including 15, take precedence and remain unchanged. Schema defaults populate
+Redis but are not persisted as user choices.</p>
 <p>The service maintains a TOML file with this structure:</p>
 <div class="language-toml highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="k">[alarm]</span>
 </span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="n">enabled</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"true"</span>
