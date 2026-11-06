@@ -216,13 +216,13 @@ Values `error:{component}` takes, with `error-message:{component}` carrying the 
 | `delta-failed` | A delta update failed and a full update is being started instead. Transient: cleared to `idle` after two seconds, then the full update proceeds |
 | `reboot-failed` | The update installed but the reboot could not be triggered |
 
-#### HDiffPatch Nightly deltas
+#### HDiffPatch Nightly and Testing deltas
 
-Normal Nightly releases contain both `.delta` (xdelta3) and `.hdelta`
+Normal Nightly and Testing releases contain both `.delta` (xdelta3) and `.hdelta`
 (HDiffPatch) assets for each board. The update service chooses the smaller asset
-for each Nightly chain step when `hpatchz` is available; otherwise it uses the
-standard `.delta`. Older update services ignore `.hdelta` and use `.delta`.
-Testing, Stable, and custom Nightly releases do not produce `.hdelta` assets.
+for each Nightly or Testing chain step when `hpatchz` is available; otherwise it
+uses the standard `.delta`. Older update services ignore `.hdelta` and use `.delta`.
+Stable and custom Nightly releases do not produce `.hdelta` assets.
 The delta metadata identifies the patch algorithm; an unknown algorithm fails
 rather than being interpreted as xdelta. Both formats use the same base and
 reconstructed payload checksum checks and the same full-update fallback.
