@@ -1427,10 +1427,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#hdiffpatch-nightly-deltas" class="md-nav__link">
+  <a href="#hdiffpatch-nightly-and-testing-deltas" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
-        HDiffPatch Nightly deltas
+        HDiffPatch Nightly and Testing deltas
       </span>
     </span>
   </a>
@@ -1987,10 +1987,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#hdiffpatch-nightly-deltas" class="md-nav__link">
+  <a href="#hdiffpatch-nightly-and-testing-deltas" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
-        HDiffPatch Nightly deltas
+        HDiffPatch Nightly and Testing deltas
       </span>
     </span>
   </a>
@@ -2703,12 +2703,12 @@ the dashboard on.</p>
 </tr>
 </tbody>
 </table>
-<h4 id="hdiffpatch-nightly-deltas">HDiffPatch Nightly deltas<a class="headerlink" href="#hdiffpatch-nightly-deltas" title="Permanent link">&para;</a></h4>
-<p>Normal Nightly releases contain both <code>.delta</code> (xdelta3) and <code>.hdelta</code>
+<h4 id="hdiffpatch-nightly-and-testing-deltas">HDiffPatch Nightly and Testing deltas<a class="headerlink" href="#hdiffpatch-nightly-and-testing-deltas" title="Permanent link">&para;</a></h4>
+<p>Normal Nightly and Testing releases contain both <code>.delta</code> (xdelta3) and <code>.hdelta</code>
 (HDiffPatch) assets for each board. The update service chooses the smaller asset
-for each Nightly chain step when <code>hpatchz</code> is available; otherwise it uses the
-standard <code>.delta</code>. Older update services ignore <code>.hdelta</code> and use <code>.delta</code>.
-Testing, Stable, and custom Nightly releases do not produce <code>.hdelta</code> assets.
+for each Nightly or Testing chain step when <code>hpatchz</code> is available; otherwise it
+uses the standard <code>.delta</code>. Older update services ignore <code>.hdelta</code> and use <code>.delta</code>.
+Stable and custom Nightly releases do not produce <code>.hdelta</code> assets.
 The delta metadata identifies the patch algorithm; an unknown algorithm fails
 rather than being interpreted as xdelta. Both formats use the same base and
 reconstructed payload checksum checks and the same full-update fallback.</p>
