@@ -616,14 +616,15 @@ Librescoot adds persistent settings managed by the settings-service:
 |-------|------|-------------|----------|
 | alarm.enabled | "true"/"false" | Alarm system enabled | "true" |
 | alarm.honk | "true"/"false" | Horn enabled during alarm | "false" |
-| alarm.duration | integer (sec) | Alarm duration in seconds | "30" |
+| alarm.duration | integer (sec) | Duration of each full horn/hazard burst; further triggers do not extend it | "30" |
 | alarm.seatbox-trigger | "true"/"false" | Trigger alarm on unauthorized seatbox opening | "true" |
 | alarm.trigger.motion | "true"/"false" | Motion is an alarm trigger source (default true) | "true" |
 | alarm.trigger.buttons | "true"/"false" | Brake, horn and seatbox button presses are an alarm trigger source (default true) | "true" |
 | alarm.trigger.handlebar | "true"/"false" | Handlebar lock sensor and position are an alarm trigger source (default false; muted for 90 s after arming) | "false" |
-| alarm.hairtrigger | "true"/"false" | Hair trigger mode (immediate short alarm on first motion) | "false" |
+| alarm.hairtrigger | "true"/"false" | Short first-trigger alarm after the 750 ms authentication grace; skipped on hibernation wake | "false" |
 | alarm.hairtrigger-duration | integer (sec) | Hair trigger alarm duration in seconds | "3" |
-| alarm.l1-cooldown | integer (sec) | Wait after the first trigger before a five-second repeat-trigger check; triggers during the wait do not escalate | "2" |
+| alarm.l1-cooldown | integer (sec) | L2 escalation delay after the first trigger; earlier triggers reset quiet time without escalating | "2" |
+| alarm.quiet-time | integer (sec, 1-300) | Advanced: time since the last accepted trigger before rearming; a running burst finishes first | "30" |
 | scooter.battery-keep-active-on-seatbox-open | "true"/"false" | Keep a running battery powered across a seatbox open | "false" |
 | trip.counter-reset | enum | Vehicle-wide counter reset policy: `ride`, `day`, `battery`, or `manual` | "ride" |
 | trip.expunge | string | Atomic completed/abandoned trip-history retention policy: `never`, `age:<duration>`, `count:<trips>`, or `size:<bytes>` | "age:365d" |

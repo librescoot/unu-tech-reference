@@ -14,18 +14,19 @@ Librescoot alarm-service v0.10+ (Phase 4 of the motion-service refactor).
 --redis=localhost:6379         Redis address
 --log-level=info               Log level (debug, info, warn, error)
 --alarm-enabled=true           Enable alarm system (writes to Redis on startup)
---alarm-duration=30            Alarm duration in seconds
+--alarm-duration=30            Duration of each full alarm burst in seconds
 --horn-enabled=false           Enable horn during alarm (overrides Redis setting)
 --seatbox-trigger=true         Trigger alarm on unauthorized seatbox opening
---hair-trigger=false           Enable hair trigger mode (immediate short alarm on first motion)
+--hair-trigger=false           Short first-trigger alarm after the 750 ms authentication grace
 --hair-trigger-duration=3      Hair trigger alarm duration in seconds
---l1-cooldown=2                Level 1 cooldown duration in seconds
+--l1-cooldown=2                Minimum delay before another trigger can escalate to L2
+--quiet-time=30                Seconds without a trigger before rearming (1-300)
 --version                      Print version and exit
 ```
 
 `--i2c-bus`, `--evdev-device`, `--evdev-keycode`, `--poller-interval-ms` are gone. motion-service owns the chip.
 
-These flags only take effect when explicitly passed; each one then writes its value to the `settings` hash on startup. The production unit passes none of them, so the settings-service schema defaults apply; the compiled-in flag defaults now match the schema (`alarm.duration` 30, `alarm.l1-cooldown` 2).
+These flags only take effect when explicitly passed; each one then writes its value to the `settings` hash on startup. The production unit passes none of them, so the settings-service schema defaults apply; the compiled-in flag defaults now match the schema (`alarm.duration` 30, `alarm.l1-cooldown` 2, `alarm.quiet-time` 30).
 
 ## Redis Operations
 
@@ -65,7 +66,7 @@ after the fact why a parked scooter sounded its horn.
 **Fields read:**
 
 - `alarm.enabled`, `alarm.honk`, `alarm.duration`, `alarm.seatbox-trigger`
-- `alarm.hairtrigger`, `alarm.hairtrigger-duration`, `alarm.l1-cooldown`
+- `alarm.hairtrigger`, `alarm.hairtrigger-duration`, `alarm.l1-cooldown`, `alarm.quiet-time`
 - `alarm.trigger.motion`, `alarm.trigger.buttons`, `alarm.trigger.handlebar` (per-source trigger gates, see [Trigger Sources](#trigger-sources))
 
 **Fields written (if CLI flags set):** same fields, overrides Redis values on startup.
@@ -210,18 +211,21 @@ soon as the baseline and settling-window guards allow.
 
 ## Alarm State Machine
 
-```
-init → waiting_enabled → disarmed → delay_armed (5s) → armed
-                                         ↑                ↓ motion detected (motion:interrupt)
-                                         |        trigger_level_1_wait (configurable cooldown)
-                                         |                ↓
-                                         |        trigger_level_1 (5s check)
-                                         |                ↓ major movement
-                                         |        trigger_level_2 (alarm.duration, max 6 cycles)
-                                         |________________|
+```text
+init -> waiting_enabled -> disarmed -> delay_armed (5s) -> armed
+armed -> trigger_level_1_wait -> trigger_level_1 -> trigger_level_2
+           escalation delay       next trigger      full burst
+                                                     |
+                                                     v
+                                               waiting_movement
+                                              next trigger -> L2
 ```
 
-Plus `seatbox_access` (transient state during authorized seatbox openings) and `waiting_movement` (between L2 cycles).
+Quiet time is measured from the last accepted disturbance across the whole
+episode. Its expiry returns L1 or `waiting_movement` directly to `armed`, without
+an extra arming delay. In L2, the current burst finishes before returning to
+`armed`. `seatbox_access` temporarily suspends warning-stage monitoring during
+an authorized opening.
 
 ### State Descriptions
 
@@ -230,11 +234,11 @@ Plus `seatbox_access` (transient state during authorized seatbox openings) and `
 - **disarmed**: Alarm enabled but vehicle not in stand-by
 - **delay_armed**: 5-second delay before arming (allows user to leave)
 - **armed**: Armed and monitoring the enabled trigger sources (motion, buttons, handlebar, seatbox)
-- **trigger_level_1_wait**: Cooldown after a trigger. `alarm.l1-cooldown`, default 2s. Repeat motion and input triggers do not escalate during this wait. The hazard cue and optional hair-trigger alarm start after a 750 ms authentication grace period.
-- **trigger_level_1**: 5-second check for continued movement
-- **trigger_level_2**: Full alarm activated (horn + hazards). Duration is `alarm.duration`, default 30s. Capped at 6 cycles.
+- **trigger_level_1_wait**: L2 escalation delay after the first trigger. `alarm.l1-cooldown`, default 2s. Repeat motion and input triggers reset quiet time but do not escalate during this wait. The hazard cue and optional short first-trigger alarm start after a 750 ms authentication grace period.
+- **trigger_level_1**: Monitoring until another trigger escalates to L2 or quiet time expires.
+- **trigger_level_2**: One full alarm burst (hazards and the enabled horn). Duration is `alarm.duration`, default 30s. Disturbances reset quiet time without extending the burst. At most six bursts per episode.
 - **seatbox_access**: Authorized seatbox opening — alarm temporarily inhibited
-- **waiting_movement**: Between L2 cycles, waiting for re-trigger
+- **waiting_movement**: Silent monitoring after a burst until another disturbance starts the next burst or quiet time expires. Entering this state never starts an automatic burst.
 
 ### Arming
 
@@ -249,8 +253,10 @@ Plus `seatbox_access` (transient state during authorized seatbox openings) and `
 - `armed` → `trigger_level_1_wait`
 - After the 750 ms authentication grace, hazards start a three-flash warning pattern.
 - If hair trigger is enabled, a short alarm also starts after the grace period (skipped for the wake-from-hibernation edge).
-- Cooldown (default 2s, configurable), then `trigger_level_1` starts the verification window.
-- 5s verification window → if another trigger arrives: `trigger_level_2`; else: back through `delay_armed` to `armed`
+- After the escalation delay (default 2s), another trigger starts `trigger_level_2`.
+- `alarm.quiet-time` is an advanced setting (default 30s, range 1-300s), labelled "Quiet Time Before Rearming". Every accepted disturbance resets it, including during the escalation delay and full alarm bursts. Filtered triggers do not reset it.
+- Quiet expiry ends L1 or silent monitoring directly in `armed`. A running L2 burst finishes first. Live changes recalculate the deadline from the last disturbance.
+- After six bursts, an episode that is still disturbed enters the existing five-minute disarmed safety cooldown before rearming.
 
 ### Disarming
 
@@ -303,8 +309,8 @@ A `block` inhibitor in pm-service's `power:inhibits` hash (id `alarm-active`, wh
 Held in:
 
 - **delay_armed**: held during 5-s arming delay
-- **trigger_level_1_wait / trigger_level_1**: held during cooldown + verification
-- **trigger_level_2 / waiting_movement**: held during full alarm
+- **trigger_level_1_wait / trigger_level_1**: held during the escalation delay and quiet-time monitoring
+- **trigger_level_2 / waiting_movement**: held during full bursts and silent monitoring until quiet expiry
 - **seatbox_access**: held during authorized opening
 - **prepare-hibernation failure** (rare): held indefinitely until alarm-service is restarted or the chip-config issue is resolved
 

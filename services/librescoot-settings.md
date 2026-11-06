@@ -60,11 +60,12 @@ Settings are organized by section. Examples:
 
 - `alarm.enabled` - Alarm system enabled ("true"/"false")
 - `alarm.honk` - Horn enabled during alarm ("true"/"false")
-- `alarm.duration` - Alarm duration in seconds
+- `alarm.duration` - Duration of each full alarm burst in seconds
 - `alarm.seatbox-trigger` - Trigger alarm on unauthorized seatbox opening ("true"/"false")
 - `alarm.hairtrigger` - Hair trigger mode enabled ("true"/"false")
 - `alarm.hairtrigger-duration` - Hair trigger alarm duration in seconds
-- `alarm.l1-cooldown` - Level 1 cooldown duration in seconds
+- `alarm.l1-cooldown` - Minimum delay before another trigger can escalate to the full alarm (default 2 seconds)
+- `alarm.quiet-time` - Advanced: quiet time since the last accepted trigger before rearming (default 30 seconds, range 1-300); a running burst finishes first
 
 - `scooter.max-voltage-delta` - Maximum voltage difference between batteries in mV before dual battery activation is refused (default: 1000; 0 to disable)
 - `scooter.battery-keep-active-on-seatbox-open` - Keep active battery on across seatbox opens (default: false)
