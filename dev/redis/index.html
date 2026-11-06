@@ -5025,7 +5025,7 @@ never changes the counter.</p>
 <tr>
 <td>alarm.duration</td>
 <td>integer (sec)</td>
-<td>Alarm duration in seconds</td>
+<td>Duration of each full horn/hazard burst; further triggers do not extend it</td>
 <td>"30"</td>
 </tr>
 <tr>
@@ -5055,7 +5055,7 @@ never changes the counter.</p>
 <tr>
 <td>alarm.hairtrigger</td>
 <td>"true"/"false"</td>
-<td>Hair trigger mode (immediate short alarm on first motion)</td>
+<td>Short first-trigger alarm after the 750 ms authentication grace; skipped on hibernation wake</td>
 <td>"false"</td>
 </tr>
 <tr>
@@ -5067,8 +5067,14 @@ never changes the counter.</p>
 <tr>
 <td>alarm.l1-cooldown</td>
 <td>integer (sec)</td>
-<td>Wait after the first trigger before a five-second repeat-trigger check; triggers during the wait do not escalate</td>
+<td>L2 escalation delay after the first trigger; earlier triggers reset quiet time without escalating</td>
 <td>"2"</td>
+</tr>
+<tr>
+<td>alarm.quiet-time</td>
+<td>integer (sec, 1-300)</td>
+<td>Advanced: time since the last accepted trigger before rearming; a running burst finishes first</td>
+<td>"30"</td>
 </tr>
 <tr>
 <td>scooter.battery-keep-active-on-seatbox-open</td>
