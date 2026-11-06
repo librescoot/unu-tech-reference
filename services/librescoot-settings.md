@@ -204,10 +204,9 @@ a scooter in service mode stays.
 
 ### Settings File: `/data/settings.toml`
 
-`alarm.l1-cooldown` defaults to two seconds. A one-time startup migration changes
-a saved value of 15 to 2 and leaves other values unchanged. The completion marker
-is `/data/settings.toml.alarm-cooldown-v1`; retain it when backing up settings so
-later explicit choices of 15 remain unchanged on restart.
+`alarm.l1-cooldown` defaults to two seconds when unset. Explicit saved values,
+including 15, take precedence and remain unchanged. Schema defaults populate
+Redis but are not persisted as user choices.
 
 The service maintains a TOML file with this structure:
 
