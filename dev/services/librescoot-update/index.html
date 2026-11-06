@@ -1427,6 +1427,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#hdiffpatch-nightly-deltas" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        HDiffPatch Nightly deltas
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#staged-updates" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
@@ -1969,6 +1980,17 @@
     <span class="md-ellipsis">
       <span class="md-typeset">
         Error types
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hdiffpatch-nightly-deltas" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        HDiffPatch Nightly deltas
       </span>
     </span>
   </a>
@@ -2625,7 +2647,7 @@ the dashboard on.</p>
 </tr>
 <tr>
 <td><code>invalid-file</code></td>
-<td>A file given to <code>update-from-file:</code>, or staged for update, is neither a <code>.mender</code> nor a <code>.delta</code></td>
+<td>A file given to <code>update-from-file:</code>, or staged for update, is not a <code>.mender</code>, <code>.delta</code>, or <code>.hdelta</code></td>
 </tr>
 <tr>
 <td><code>already-installed</code></td>
@@ -2681,15 +2703,24 @@ the dashboard on.</p>
 </tr>
 </tbody>
 </table>
+<h4 id="hdiffpatch-nightly-deltas">HDiffPatch Nightly deltas<a class="headerlink" href="#hdiffpatch-nightly-deltas" title="Permanent link">&para;</a></h4>
+<p>Normal Nightly releases contain both <code>.delta</code> (xdelta3) and <code>.hdelta</code>
+(HDiffPatch) assets for each board. The update service chooses the smaller asset
+for each Nightly chain step when <code>hpatchz</code> is available; otherwise it uses the
+standard <code>.delta</code>. Older update services ignore <code>.hdelta</code> and use <code>.delta</code>.
+Testing, Stable, and custom Nightly releases do not produce <code>.hdelta</code> assets.
+The delta metadata identifies the patch algorithm; an unknown algorithm fails
+rather than being interpreted as xdelta. Both formats use the same base and
+reconstructed payload checksum checks and the same full-update fallback.</p>
 <h4 id="staged-updates">Staged updates<a class="headerlink" href="#staged-updates" title="Permanent link">&para;</a></h4>
 <p><code>apply-staged-updates</code> installs whatever update files are present in the
 component's download directory (default <code>/data/ota/&lt;component&gt;</code>). A <code>.mender</code>
 that is not newer than the running version is treated as the delta base image and
 ignored, so the base file that lives in that directory is never a conflict. A
-newer <code>.mender</code> staged together with any <code>.delta</code> that parses as a newer artifact on
+newer <code>.mender</code> staged together with any <code>.delta</code> or <code>.hdelta</code> that parses as a newer artifact on
 the running version's channel, two or more newer <code>.mender</code> files, and deltas that
 cannot be resolved into one contiguous chain from the running version are all refused
-before anything is unpacked, with <code>staged-updates-refused</code> and no install. A <code>.delta</code>
+before anything is unpacked, with <code>staged-updates-refused</code> and no install. A delta
 the version test cannot judge (a cross-channel orphan, an unparsable name, a partial
 transfer) is ignored rather than counted, and so cannot block a legitimately staged
 image. When nothing in the set applies — the staged image is already the running
@@ -2798,7 +2829,7 @@ stable checks continue to reject downgrades.</p>
 <li><code>preview-channel:&lt;channel&gt;</code> — report what a switch to <code>&lt;channel&gt;</code> would fetch, without changing anything</li>
 <li><code>update-from-file:/path/to/file.mender</code> — install from local file</li>
 <li><code>update-from-file:/path/to/file.mender#sha256=&lt;hex&gt;</code> - with checksum</li>
-<li><code>apply-staged-updates</code> — install the update files staged in this component's download directory, resolving staged <code>.delta</code> files as one chain</li>
+<li><code>apply-staged-updates</code> — install the update files staged in this component's download directory, resolving staged <code>.delta</code> and <code>.hdelta</code> files as one chain</li>
 <li><code>update-from-url:https://...</code> — install from URL</li>
 <li><code>update-from-url:https://...#sha256=&lt;hex&gt;</code> - with checksum</li>
 <li>the legacy checksum form <code>:sha256:&lt;hex&gt;</code> is still accepted; <code>#sha256=</code> is preferred (keeps the source a valid URL)</li>
@@ -2903,7 +2934,7 @@ before prompting the rider to confirm.</p>
 <h2 id="update-method">Update Method<a class="headerlink" href="#update-method" title="Permanent link">&para;</a></h2>
 <ul>
 <li><strong>full</strong> — downloads and installs a complete Mender artifact</li>
-<li><strong>delta</strong> — downloads a delta patch relative to the current version, applies it with xdelta; falls back to full if no base file exists</li>
+<li><strong>delta</strong> — downloads a delta patch relative to the current version, applies it with xdelta3 or HDiffPatch, and falls back to full if no usable base or chain exists</li>
 </ul>
 <p>Configured via <code>updates.{component}.method</code> in Redis settings. Default is <code>delta</code>.</p>
 <h2 id="reboot-behavior">Reboot Behavior<a class="headerlink" href="#reboot-behavior" title="Permanent link">&para;</a></h2>
