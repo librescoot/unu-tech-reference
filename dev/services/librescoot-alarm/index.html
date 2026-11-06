@@ -2513,11 +2513,11 @@
 </span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>--seatbox-trigger=true         Trigger alarm on unauthorized seatbox opening
 </span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>--hair-trigger=false           Enable hair trigger mode (immediate short alarm on first motion)
 </span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>--hair-trigger-duration=3      Hair trigger alarm duration in seconds
-</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>--l1-cooldown=15               Level 1 cooldown duration in seconds
+</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>--l1-cooldown=2                Level 1 cooldown duration in seconds
 </span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>--version                      Print version and exit
 </span></code></pre></div>
 <p><code>--i2c-bus</code>, <code>--evdev-device</code>, <code>--evdev-keycode</code>, <code>--poller-interval-ms</code> are gone. motion-service owns the chip.</p>
-<p>These flags only take effect when explicitly passed; each one then writes its value to the <code>settings</code> hash on startup. The production unit passes none of them, so the settings-service schema defaults apply; the compiled-in flag defaults now match the schema (<code>alarm.duration</code> 30, <code>alarm.l1-cooldown</code> 15).</p>
+<p>These flags only take effect when explicitly passed; each one then writes its value to the <code>settings</code> hash on startup. The production unit passes none of them, so the settings-service schema defaults apply; the compiled-in flag defaults now match the schema (<code>alarm.duration</code> 30, <code>alarm.l1-cooldown</code> 2).</p>
 <h2 id="redis-operations">Redis Operations<a class="headerlink" href="#redis-operations" title="Permanent link">&para;</a></h2>
 <h3 id="hash-alarm">Hash: <code>alarm</code><a class="headerlink" href="#hash-alarm" title="Permanent link">&para;</a></h3>
 <p><strong>Fields written:</strong></p>
@@ -2704,7 +2704,7 @@ soon as the baseline and settling-window guards allow.</p>
 <li><strong>disarmed</strong>: Alarm enabled but vehicle not in stand-by</li>
 <li><strong>delay_armed</strong>: 5-second delay before arming (allows user to leave)</li>
 <li><strong>armed</strong>: Armed and monitoring the enabled trigger sources (motion, buttons, handlebar, seatbox)</li>
-<li><strong>trigger_level_1_wait</strong>: Cooldown after a trigger. <code>alarm.l1-cooldown</code>, default 15s. With hair trigger: immediate short alarm.</li>
+<li><strong>trigger_level_1_wait</strong>: Cooldown after a trigger. <code>alarm.l1-cooldown</code>, default 2s. Repeat motion and input triggers do not escalate during this wait. The hazard cue and optional hair-trigger alarm start after a 750 ms authentication grace period.</li>
 <li><strong>trigger_level_1</strong>: 5-second check for continued movement</li>
 <li><strong>trigger_level_2</strong>: Full alarm activated (horn + hazards). Duration is <code>alarm.duration</code>, default 30s. Capped at 6 cycles.</li>
 <li><strong>seatbox_access</strong>: Authorized seatbox opening — alarm temporarily inhibited</li>
@@ -2721,9 +2721,9 @@ soon as the baseline and settling-window guards allow.</p>
 <ul>
 <li>An enabled <a href="#trigger-sources">trigger source</a> fires while in <code>armed</code>: a <code>motion:interrupt</code>, a button press, or a handlebar edge past the settling window</li>
 <li><code>armed</code> → <code>trigger_level_1_wait</code></li>
-<li>Hazards blink once</li>
-<li>If hair trigger enabled: short horn pulse (skipped if this edge was the wake-from-hibernation edge — <code>wakeFromHibernation</code> flag gates it)</li>
-<li>Cooldown (default 15s, configurable) → <code>trigger_level_1</code></li>
+<li>After the 750 ms authentication grace, hazards start a three-flash warning pattern.</li>
+<li>If hair trigger is enabled, a short alarm also starts after the grace period (skipped for the wake-from-hibernation edge).</li>
+<li>Cooldown (default 2s, configurable), then <code>trigger_level_1</code> starts the verification window.</li>
 <li>5s verification window → if another trigger arrives: <code>trigger_level_2</code>; else: back through <code>delay_armed</code> to <code>armed</code></li>
 </ul>
 <h3 id="disarming">Disarming<a class="headerlink" href="#disarming" title="Permanent link">&para;</a></h3>
