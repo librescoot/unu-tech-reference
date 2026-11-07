@@ -320,10 +320,12 @@ dashboard up and going in over SSH. This hash describes singleton map bookkeepin
 | region | string | Region slug, matching the keys in `tiles.json` and the published filenames | "berlin_brandenburg" |
 | region-name | string | Human-readable region. Absent until the dashboard has run | "Berlin & Brandenburg" |
 | map:sha256 | string | SHA-256 of the installed `map.mbtiles` | "78d1f829…" |
+| map:version | string | Map release tag, when known | "tiles-20261001T094148Z" |
 | map:size | integer | Size in bytes | "208076800" |
 | map:published-at | string (ISO8601) | Upstream release time. Absent when the tiles did not come from a release | "2026-08-12T16:26:27Z" |
 | map:mtime | string (ISO8601) | When the file was written on the DBC | "2026-08-13T09:12:00Z" |
 | routing:sha256 | string | SHA-256 of the installed `tiles.tar` | "02f5fd5b…" |
+| routing:version | string | Routing release tag, when known | "tiles-20261101T130555Z" |
 | routing:size | integer | Size in bytes | "202055680" |
 | routing:published-at | string (ISO8601) | Upstream release time | "2026-08-09T21:30:13Z" |
 | routing:mtime | string (ISO8601) | When the file was written on the DBC | "2026-08-13T09:20:00Z" |
