@@ -1456,7 +1456,11 @@ redis-cli -h 192.168.7.1 HMGET ota preview-status:mdb preview-version:mdb previe
 redis-cli -h 192.168.7.1 LPUSH scooter:update:mdb apply-staged-updates
 ```
 
-**Per-component commands** (`scooter:update:mdb` / `scooter:update:dbc`): `check-now`, `preview-channel:<channel>`, `update-from-file:<path>[#sha256=<hex>]`, `update-from-url:<url>[#sha256=<hex>]`, `apply-staged-updates`
+**Per-component commands** (`scooter:update:mdb` / `scooter:update:dbc`): `check-now`, `preview-channel:<channel>`, `update-from-file:<path>[#sha256=<hex>]`, `update-from-url:<url>[#sha256=<hex>]`, `apply-staged-updates`, `probe-hdelta:<nonce>`
+
+For `probe-hdelta`, the nonce is 32 lowercase hexadecimal characters. The running
+component's update-service writes `1` when its `hpatchz` decoder is available,
+otherwise `0`, to `ota:hdelta-probe:<component>:<nonce>` with a one-minute expiry.
 
 `check-now` is queued by `lsc ota check` and by uplink-service's cloud
 `update_check` command. A both-board request from uplink-service collapses to

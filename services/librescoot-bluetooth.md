@@ -622,6 +622,7 @@ answers `cap:ble:count:0` otherwise. An app should probe it rather than assume.
 
 - `status:maps-available` → reads `dashboard:maps-available` (set by scootui-qt)
 - `status:navigation-available` → reads `dashboard:navigation-available` (set by scootui-qt)
+- `status:hdelta:mdb` / `status:hdelta:dbc` → probes the respective running update-service for `.hdelta` and decoder availability, returning `status:hdelta:<component>:true` or `false`. A timeout or unavailable board returns `false`; the query does not wake the DBC.
 
 Responses are sent back via EXTENDED_RESPONSE (0x0402) as string notifications to the phone app.
 

@@ -169,7 +169,7 @@ Transfer state survives disconnects, app restarts, and scooter reboots:
 The bundle ID both identifies the transfer (resume matching) and names the staged file, so it must be the real asset basename:
 
 - **Full images:** send the filename **stem** (no extension); the scooter appends `.mender` when staging. IDs already ending in `.mender` are used verbatim.
-- **Delta bundles:** send the full filename **with** the `.delta` extension; update-service dispatches on the extension to apply the file as a delta.
+- **Delta bundles:** send the full filename with its `.delta` or `.hdelta` extension; update-service dispatches on the extension. Before choosing `.hdelta`, the app probes the target board with `status:hdelta:<component>` and requires a `true` response. It probes again before transfer. Older services, unavailable boards and missing decoders fall back to `.delta` or a full image.
 
 update-service derives the installed version from the filename, so the name matters beyond identity. Allowed charset: first character alphanumeric, rest `[A-Za-z0-9._-]`, at most 64 bytes; anything else is rejected with START_ACK `0x12` (the ID is joined into filesystem paths, so separators and leading dots must never get through).
 
