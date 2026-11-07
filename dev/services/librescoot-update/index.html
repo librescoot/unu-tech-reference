@@ -2827,6 +2827,7 @@ stable checks continue to reject downgrades.</p>
 <li><code>scooter:update:{component}</code> — component-specific commands:</li>
 <li><code>check-now</code> — trigger immediate update check</li>
 <li><code>preview-channel:&lt;channel&gt;</code> — report what a switch to <code>&lt;channel&gt;</code> would fetch, without changing anything</li>
+<li><code>probe-hdelta:&lt;nonce&gt;</code> - respond to a 32-character lowercase hexadecimal nonce with <code>1</code> if <code>hpatchz</code> is available, otherwise <code>0</code>, in <code>ota:hdelta-probe:&lt;component&gt;:&lt;nonce&gt;</code>. The response expires after one minute.</li>
 <li><code>update-from-file:/path/to/file.mender</code> — install from local file</li>
 <li><code>update-from-file:/path/to/file.mender#sha256=&lt;hex&gt;</code> - with checksum</li>
 <li><code>apply-staged-updates</code> — install the update files staged in this component's download directory, resolving staged <code>.delta</code> and <code>.hdelta</code> files as one chain</li>

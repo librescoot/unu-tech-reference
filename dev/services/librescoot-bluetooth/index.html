@@ -3409,6 +3409,7 @@ answers <code>cap:ble:count:0</code> otherwise. An app should probe it rather th
 <ul>
 <li><code>status:maps-available</code> → reads <code>dashboard:maps-available</code> (set by scootui-qt)</li>
 <li><code>status:navigation-available</code> → reads <code>dashboard:navigation-available</code> (set by scootui-qt)</li>
+<li><code>status:hdelta:mdb</code> / <code>status:hdelta:dbc</code> → probes the respective running update-service for <code>.hdelta</code> and decoder availability, returning <code>status:hdelta:&lt;component&gt;:true</code> or <code>false</code>. A timeout or unavailable board returns <code>false</code>; the query does not wake the DBC.</li>
 </ul>
 <p>Responses are sent back via EXTENDED_RESPONSE (0x0402) as string notifications to the phone app.</p>
 <h3 id="ble-ota-firmware-transfer">BLE OTA Firmware Transfer<a class="headerlink" href="#ble-ota-firmware-transfer" title="Permanent link">&para;</a></h3>

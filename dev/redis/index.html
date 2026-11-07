@@ -6567,7 +6567,10 @@ also reflected in the <code>sms</code> hash (<code>state</code> goes <code>sendi
 </span><span id="__span-45-14"><a id="__codelineno-45-14" name="__codelineno-45-14" href="#__codelineno-45-14"></a><span class="c1"># Install whatever update files are staged for this component</span>
 </span><span id="__span-45-15"><a id="__codelineno-45-15" name="__codelineno-45-15" href="#__codelineno-45-15"></a>redis-cli<span class="w"> </span>-h<span class="w"> </span><span class="m">192</span>.168.7.1<span class="w"> </span>LPUSH<span class="w"> </span>scooter:update:mdb<span class="w"> </span>apply-staged-updates
 </span></code></pre></div>
-<p><strong>Per-component commands</strong> (<code>scooter:update:mdb</code> / <code>scooter:update:dbc</code>): <code>check-now</code>, <code>preview-channel:&lt;channel&gt;</code>, <code>update-from-file:&lt;path&gt;[#sha256=&lt;hex&gt;]</code>, <code>update-from-url:&lt;url&gt;[#sha256=&lt;hex&gt;]</code>, <code>apply-staged-updates</code></p>
+<p><strong>Per-component commands</strong> (<code>scooter:update:mdb</code> / <code>scooter:update:dbc</code>): <code>check-now</code>, <code>preview-channel:&lt;channel&gt;</code>, <code>update-from-file:&lt;path&gt;[#sha256=&lt;hex&gt;]</code>, <code>update-from-url:&lt;url&gt;[#sha256=&lt;hex&gt;]</code>, <code>apply-staged-updates</code>, <code>probe-hdelta:&lt;nonce&gt;</code></p>
+<p>For <code>probe-hdelta</code>, the nonce is 32 lowercase hexadecimal characters. The running
+component's update-service writes <code>1</code> when its <code>hpatchz</code> decoder is available,
+otherwise <code>0</code>, to <code>ota:hdelta-probe:&lt;component&gt;:&lt;nonce&gt;</code> with a one-minute expiry.</p>
 <p><code>check-now</code> is queued by <code>lsc ota check</code> and by uplink-service's cloud
 <code>update_check</code> command. A both-board request from uplink-service collapses to
 <code>scooter:update:mdb</code> when <code>settings[updates.mdb.orchestrate-dbc]</code> is on, so the
