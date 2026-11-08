@@ -37,13 +37,22 @@ ATT MTU minus three.
 Version-1 names are 1–64 ASCII bytes: initial alphanumeric, subsequent characters
 alphanumeric, `.`, `_` or `-`. Paths and hidden staging names are invalid.
 
-## Administrative `/data` browser
+## `/data` browser
 
 Protocol v2 uses the same GATT characteristics, framing, transfer windows and
 SHA-256 verification. It additionally requires `data=1` in `cap:ext`.
-The root is fixed at `/data`; the service enables it only with the local
-root-admin startup flag `--enable-data-browser`, which defaults to false.
-Authenticated version-1 Logs access does not require this flag or `data=1`.
+
+In bluetooth-service `v0.20.0`, the browser is disabled by default. The local
+`--enable-data-browser` flag enables unrestricted administrative access under
+`/data` for bonded phones. The current development version instead reads the
+local-only `bluetooth.data-browser` setting at service startup and restricts
+access to selected OTA artifacts and radio-gaga configuration. The setting is
+read-only over Bluetooth; the browser cannot modify `settings.toml`. See the
+service README for destination and configuration policy details. Changes to the
+setting require a Bluetooth service restart. These policies share the `data=1`
+capability, so the capability alone does not distinguish them.
+
+Authenticated version-1 Logs access does not require the browser or `data=1`.
 Hiding a browser in a client build is not an authorization boundary.
 
 Requests use version `2` in the common header. Directory and node handles are
@@ -79,6 +88,9 @@ race the final target check and rename; this is not a filesystem compare-and-swa
 guarantee. Administrative uploads can affect services consuming those files but
 do not themselves execute commands, apply configuration or install firmware.
 Matching private partials remain resumable after cancellation or disconnect.
+In the development version, partials older than seven days are eligible for
+cleanup when a new upload starts. The oldest can also be evicted at the
+512-partial limit or to recover disk space.
 
 The exact v2 layouts are defined in bluetooth-service's
 `pkg/filetransfer/protocol_v2.go` and mobile-app's
@@ -95,7 +107,8 @@ named-store request and response layouts describe version 1.
 `lsc logs` publishes an archive only after closing, syncing and atomically
 renaming its staging file. The catalog excludes hidden staging files and
 non-regular files; it contains at most 2048 entries, newest first. Files are
-limited to 4 GiB. Upload admission reserves a 32 MiB free-space margin.
+limited to 4 GiB. Upload admission checks for a 32 MiB free-space margin; it
+does not reserve that space against other writers.
 
 ## Control requests
 

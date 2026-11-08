@@ -47,15 +47,15 @@ bounded transfer windows and cancellation/resume. Uploads do not install or
 activate artifacts. Active transfers hold the `ble-files` block inhibitor in
 `power:inhibits`; file and firmware OTA transfers are mutually exclusive.
 
-The administrative protocol-v2 browser is rooted at `/data` and requires the
-local root-admin startup flag `--enable-data-browser` (default false). When
-configured and the nRF file tunnel is supported, `cap:ext` additionally advertises
-`data=1`. This permits authenticated BLE clients to navigate directories,
-download files, create directories and upload verified files with explicit
-create or content-checked replacement intent. Symlinks and special files are
-not transferable. Administrative writes may affect services consuming those
-files; uploads do not themselves install firmware or execute commands. Read-only
-version-1 Logs access stays available independently of this opt-in.
+The protocol-v2 browser is rooted at `/data` and disabled by default. In
+`v0.20.0`, the local `--enable-data-browser` flag grants bonded clients
+administrative access. The current development version uses the local-only
+`bluetooth.data-browser` setting and limits access to selected destinations.
+Both advertise `data=1` when enabled and the nRF file tunnel is supported; see
+the [file service policy](../bluetooth/file-transfer.md) for the differences.
+Symlinks and special files are not transferable. Uploads do not themselves
+install firmware or execute commands. Read-only version-1 Logs access stays
+available independently of this opt-in.
 
 ## Logging
 
@@ -72,7 +72,7 @@ Extended BLE command and response logs record a recognized category, not the pay
 --firmware-dir string  Directory containing nRF firmware files (default "/usr/share/nrf-fw")
 --auto-update          Automatically update nRF firmware on startup if newer version available (default true)
 --ota-staging-dir string  Staging directory for BLE OTA bundle transfers (default "/data/ota")
---enable-data-browser    Enable administrative BLE browsing and writes rooted at /data (default false)
+--enable-data-browser    v0.20.0: enable administrative /data browser; deprecated and ignored in current development
 ```
 
 ## Redis Operations
