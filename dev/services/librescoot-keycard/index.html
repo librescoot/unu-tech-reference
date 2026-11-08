@@ -2383,6 +2383,10 @@
 <td>Already registered, or already seen this session</td>
 </tr>
 <tr>
+<td><code>card-random-id:&lt;uid&gt;</code></td>
+<td>Enrollment tap discarded: a 4-byte UID starting with <code>08</code> is an ISO 14443-3 random ID, typically a phone that did not answer as a phone key. Presenting the same UID again enrolls it, so a card with a fixed UID of this form still works. Applies to learn mode, master teach-in and bootstrap</td>
+</tr>
+<tr>
 <td><code>card-added:&lt;uid&gt;:command</code> / <code>card-removed:&lt;uid&gt;:command</code></td>
 <td>Authorized list changed by command</td>
 </tr>
