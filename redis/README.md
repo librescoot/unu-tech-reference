@@ -1547,7 +1547,9 @@ Consumed by vehicle-service; the dashboard asks it to keep the DBC powered while
 redis-cli -h 192.168.7.1 LPUSH scooter:dbc-hold map-download
 ```
 
-**Available commands**: `map-download`, `release`
+**Available commands**: `map-download`, `map-install`, `release`
+
+`map-download` defers a DBC power-off for up to 3 minutes. `map-install` is sent when the dashboard has finished downloading and is applying the update (decompressing routing tiles, patching and rebuilding a map from a delta); it restarts the deferral with a 15 minute cap, because a delta rebuild keeps the DBC busy for minutes and an interrupted rebuild restarts from the beginning. `release` ends either hold.
 
 ### LED Cue Playback (`scooter:led:cue`) - Librescoot Only
 

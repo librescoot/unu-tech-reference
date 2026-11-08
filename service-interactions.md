@@ -193,7 +193,7 @@ pending tail rather than undoing completed actions.
 - `scooter:update` → "start", "complete", "start-dbc", "complete-dbc"
 - `scooter:hardware` → "dashboard:on", "dashboard:off", "engine:on", "engine:off", "handlebar:lock", "handlebar:unlock" (and :force variants)
 - `scooter:hop-on` → "engage", "engage-learning", "release"
-- `scooter:dbc-hold` → "map-download", "release"
+- `scooter:dbc-hold` → "map-download", "map-install", "release"
 
 **DBC update power hold.** `start-dbc` makes vehicle-service keep dashboard power up and
 defer the power cut that entering stand-by would normally perform, until `complete-dbc`
@@ -640,7 +640,7 @@ overridden off or pinned to a fixed level.
 - `scooter:blinker` → `off`, `left`, `right`, `both`
 - `scooter:bluetooth` → `delete-all-bonds`
 - `scooter:hop-on` → `engage-learning`, `engage`, `release`
-- `scooter:dbc-hold` → `map-download`, `release`
+- `scooter:dbc-hold` → `map-download`, `map-install`, `release`
 - `scooter:update:mdb`, `scooter:update:dbc` → `check-now`, `preview-channel:<channel>`
 - `settings:overlay` → `apply:service`, `clear:service`
 
@@ -810,7 +810,7 @@ Inhibitor ids worth knowing, because fleet tooling matches on their prefixes:
 | `download-transfer:{component}` | suspend-only | update-service | an OTA transfer is in flight, both components |
 | `download:{component}`, `preparing:{component}`, `install:{component}` | delay | update-service | the corresponding update phase (advisory only, see below) |
 | `dbc-update` | suspend-only | vehicle-service | a DBC update holds dashboard power |
-| `map-download` | suspend-only | vehicle-service | the dashboard is mid map or tile download |
+| `map-download` | suspend-only | vehicle-service | the dashboard is mid map or tile download, or applying it (longer cap) |
 | `alarm-active` | block | alarm-service | an alarm is sounding |
 | `modem-active` | block | modem-service | the modem is powered |
 
