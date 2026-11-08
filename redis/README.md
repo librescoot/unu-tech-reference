@@ -45,6 +45,7 @@ hgetall vehicle
 | seatbox:button | "on"/"off" | Seat open button state | "off" |
 | seatbox:lock | "open"/"closed" | Seat lock state | "closed" |
 | horn:button | "on"/"off" | Horn button state | "off" |
+| horn:chirp-capability | "v1:<boot-id>" | Present when the bounded `chirp` horn command is supported; carries the current boot ID | - |
 | brake:left | "on"/"off" | Left brake state | "off" |
 | brake:right | "on"/"off" | Right brake state | "off" |
 | blinker:switch | "left"/"right"/"both"/"off" | Blinker switch position | "off" |
@@ -1312,7 +1313,13 @@ redis-cli -h 192.168.7.1 LPUSH scooter:horn on
 redis-cli -h 192.168.7.1 LPUSH scooter:horn off
 ```
 
-**Available commands**: `on`, `off`
+**Available commands**: `on`, `off`, `chirp:<boot-id>:<expires-unix-seconds>`
+
+`chirp` produces two 50 ms pulses separated by a 75 ms gap, timed and lowered
+by vehicle-service. It is accepted only in `stand-by` with `scooter.enable-horn`
+set to `true`, when `<boot-id>` matches the `v1:<boot-id>` value published in
+`vehicle[horn:chirp-capability]`, and when the expiry lies within the next five
+seconds. It does not change vehicle state.
 
 ### Blinker Control (`scooter:blinker`)
 

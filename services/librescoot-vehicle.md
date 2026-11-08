@@ -27,6 +27,7 @@ Usage of vehicle-service:
 - `blinker:start_nanos` - Monotonic start time of current blinker cycle (for UI sync)
 - `blinker:switch` - Blinker switch position ("left", "right", "both", "off")
 - `horn:button` - Horn button state ("on", "off")
+- `horn:chirp-capability` - `v1:<boot-id>` when the bounded `chirp` command is available
 - `seatbox:button` - Seatbox button state ("on", "off")
 - `seatbox:lock` - Seatbox lock state ("open", "closed")
 - `kickstand` - Kickstand position ("up", "down")
@@ -44,7 +45,7 @@ Usage of vehicle-service:
 
 - `scooter:state` - State change commands ("lock", "unlock", "lock-hibernate", "force-lock")
 - `scooter:seatbox` - Seatbox commands ("open")
-- `scooter:horn` - Horn commands ("on", "off")
+- `scooter:horn` - Horn commands ("on", "off", or a bounded `chirp:<boot-id>:<expires>`)
 - `scooter:blinker` - Blinker commands ("left", "right", "both", "off")
 - `scooter:hop-on` - Hop-on mode commands:
   - `engage` - Enter the locked hop-on state (lock screen, LED cue, steering lock with the same positioning grace window as parked->stand-by: locks at once if the handlebar is already in position, otherwise the rider has the lock window to move it fully left; publishes `state=hop-on`)
