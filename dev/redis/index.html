@@ -3455,6 +3455,12 @@ will not find it on 1.2 or later.</p>
 <td>"off"</td>
 </tr>
 <tr>
+<td>horn:chirp-capability</td>
+<td>"v1:<boot-id>"</td>
+<td>Present when the bounded <code>chirp</code> horn command is supported; carries the current boot ID</td>
+<td>-</td>
+</tr>
+<tr>
 <td>brake:left</td>
 <td>"on"/"off"</td>
 <td>Left brake state</td>
@@ -6460,7 +6466,12 @@ events. Use stream commands (<code>XRANGE</code>/<code>XREAD</code>), not <code>
 </span><span id="__span-39-4"><a id="__codelineno-39-4" name="__codelineno-39-4" href="#__codelineno-39-4"></a><span class="c1"># Turn horn off</span>
 </span><span id="__span-39-5"><a id="__codelineno-39-5" name="__codelineno-39-5" href="#__codelineno-39-5"></a>redis-cli<span class="w"> </span>-h<span class="w"> </span><span class="m">192</span>.168.7.1<span class="w"> </span>LPUSH<span class="w"> </span>scooter:horn<span class="w"> </span>off
 </span></code></pre></div>
-<p><strong>Available commands</strong>: <code>on</code>, <code>off</code></p>
+<p><strong>Available commands</strong>: <code>on</code>, <code>off</code>, <code>chirp:&lt;boot-id&gt;:&lt;expires-unix-seconds&gt;</code></p>
+<p><code>chirp</code> produces two 50 ms pulses separated by a 75 ms gap, timed and lowered
+by vehicle-service. It is accepted only in <code>stand-by</code> with <code>scooter.enable-horn</code>
+set to <code>true</code>, when <code>&lt;boot-id&gt;</code> matches the <code>v1:&lt;boot-id&gt;</code> value published in
+<code>vehicle[horn:chirp-capability]</code>, and when the expiry lies within the next five
+seconds. It does not change vehicle state.</p>
 <h3 id="blinker-control-scooterblinker">Blinker Control (<code>scooter:blinker</code>)<a class="headerlink" href="#blinker-control-scooterblinker" title="Permanent link">&para;</a></h3>
 <p>Controls the turn signals/blinkers.</p>
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-40-1"><a id="__codelineno-40-1" name="__codelineno-40-1" href="#__codelineno-40-1"></a><span class="c1"># Left blinker</span>

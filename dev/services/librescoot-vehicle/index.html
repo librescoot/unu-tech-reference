@@ -2775,6 +2775,7 @@
 <li><code>blinker:start_nanos</code> - Monotonic start time of current blinker cycle (for UI sync)</li>
 <li><code>blinker:switch</code> - Blinker switch position ("left", "right", "both", "off")</li>
 <li><code>horn:button</code> - Horn button state ("on", "off")</li>
+<li><code>horn:chirp-capability</code> - <code>v1:&lt;boot-id&gt;</code> when the bounded <code>chirp</code> command is available</li>
 <li><code>seatbox:button</code> - Seatbox button state ("on", "off")</li>
 <li><code>seatbox:lock</code> - Seatbox lock state ("open", "closed")</li>
 <li><code>kickstand</code> - Kickstand position ("up", "down")</li>
@@ -2791,7 +2792,7 @@
 <ul>
 <li><code>scooter:state</code> - State change commands ("lock", "unlock", "lock-hibernate", "force-lock")</li>
 <li><code>scooter:seatbox</code> - Seatbox commands ("open")</li>
-<li><code>scooter:horn</code> - Horn commands ("on", "off")</li>
+<li><code>scooter:horn</code> - Horn commands ("on", "off", or a bounded <code>chirp:&lt;boot-id&gt;:&lt;expires&gt;</code>)</li>
 <li><code>scooter:blinker</code> - Blinker commands ("left", "right", "both", "off")</li>
 <li><code>scooter:hop-on</code> - Hop-on mode commands:</li>
 <li><code>engage</code> - Enter the locked hop-on state (lock screen, LED cue, steering lock with the same positioning grace window as parked-&gt;stand-by: locks at once if the handlebar is already in position, otherwise the rider has the lock window to move it fully left; publishes <code>state=hop-on</code>)</li>
