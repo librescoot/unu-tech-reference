@@ -2607,7 +2607,7 @@ pending tail rather than undoing completed actions.</p>
 <li><code>scooter:update</code> → "start", "complete", "start-dbc", "complete-dbc"</li>
 <li><code>scooter:hardware</code> → "dashboard:on", "dashboard:off", "engine:on", "engine:off", "handlebar:lock", "handlebar:unlock" (and :force variants)</li>
 <li><code>scooter:hop-on</code> → "engage", "engage-learning", "release"</li>
-<li><code>scooter:dbc-hold</code> → "map-download", "release"</li>
+<li><code>scooter:dbc-hold</code> → "map-download", "map-install", "release"</li>
 </ul>
 <p><strong>DBC update power hold.</strong> <code>start-dbc</code> makes vehicle-service keep dashboard power up and
 defer the power cut that entering stand-by would normally perform, until <code>complete-dbc</code>
@@ -3019,7 +3019,7 @@ overridden off or pinned to a fixed level.</p>
 <li><code>scooter:blinker</code> → <code>off</code>, <code>left</code>, <code>right</code>, <code>both</code></li>
 <li><code>scooter:bluetooth</code> → <code>delete-all-bonds</code></li>
 <li><code>scooter:hop-on</code> → <code>engage-learning</code>, <code>engage</code>, <code>release</code></li>
-<li><code>scooter:dbc-hold</code> → <code>map-download</code>, <code>release</code></li>
+<li><code>scooter:dbc-hold</code> → <code>map-download</code>, <code>map-install</code>, <code>release</code></li>
 <li><code>scooter:update:mdb</code>, <code>scooter:update:dbc</code> → <code>check-now</code>, <code>preview-channel:&lt;channel&gt;</code></li>
 <li><code>settings:overlay</code> → <code>apply:service</code>, <code>clear:service</code></li>
 </ul>
@@ -3472,7 +3472,7 @@ alone; the destination and value are entirely rule configuration.</p>
 <td><code>map-download</code></td>
 <td>suspend-only</td>
 <td>vehicle-service</td>
-<td>the dashboard is mid map or tile download</td>
+<td>the dashboard is mid map or tile download, or applying it (longer cap)</td>
 </tr>
 <tr>
 <td><code>alarm-active</code></td>
