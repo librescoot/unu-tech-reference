@@ -116,6 +116,7 @@ Format is `<event>[:<uid>][:<trigger>]`, where trigger is `card`, `command`, `bo
 | `phone-added:<fingerprint>` / `phone-removed:<fingerprint>` | Phone list changed |
 | `phone-rejected` | Phone authentication rejected |
 | `card-duplicate:<uid>` | Already registered, or already seen this session |
+| `card-random-id:<uid>` | Enrollment tap discarded: a 4-byte UID starting with `08` is an ISO 14443-3 random ID, typically a phone that did not answer as a phone key. Presenting the same UID again enrolls it, so a card with a fixed UID of this form still works. Applies to learn mode, master teach-in and bootstrap |
 | `card-added:<uid>:command` / `card-removed:<uid>:command` | Authorized list changed by command |
 | `access-granted:<uid>` | An authorized card unlocked the vehicle |
 | `master-added:<uid>:<trigger>` / `master-removed:<uid>:command` | Master list changed |
