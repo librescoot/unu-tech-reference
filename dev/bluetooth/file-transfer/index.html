@@ -1506,10 +1506,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#administrative-data-browser" class="md-nav__link">
+  <a href="#data-browser" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
-        Administrative <code>/data</code> browser
+        <code>/data</code> browser
       </span>
     </span>
   </a>
@@ -1649,12 +1649,19 @@ is the client's notification/data payload limit, <code>20..244</code> bytes, bou
 ATT MTU minus three.</p>
 <p>Version-1 names are 1–64 ASCII bytes: initial alphanumeric, subsequent characters
 alphanumeric, <code>.</code>, <code>_</code> or <code>-</code>. Paths and hidden staging names are invalid.</p>
-<h2 id="administrative-data-browser">Administrative <code>/data</code> browser<a class="headerlink" href="#administrative-data-browser" title="Permanent link">&para;</a></h2>
+<h2 id="data-browser"><code>/data</code> browser<a class="headerlink" href="#data-browser" title="Permanent link">&para;</a></h2>
 <p>Protocol v2 uses the same GATT characteristics, framing, transfer windows and
-SHA-256 verification. It additionally requires <code>data=1</code> in <code>cap:ext</code>.
-The root is fixed at <code>/data</code>; the service enables it only with the local
-root-admin startup flag <code>--enable-data-browser</code>, which defaults to false.
-Authenticated version-1 Logs access does not require this flag or <code>data=1</code>.
+SHA-256 verification. It additionally requires <code>data=1</code> in <code>cap:ext</code>.</p>
+<p>In bluetooth-service <code>v0.20.0</code>, the browser is disabled by default. The local
+<code>--enable-data-browser</code> flag enables unrestricted administrative access under
+<code>/data</code> for bonded phones. The current development version instead reads the
+local-only <code>bluetooth.data-browser</code> setting at service startup and restricts
+access to selected OTA artifacts and radio-gaga configuration. The setting is
+read-only over Bluetooth; the browser cannot modify <code>settings.toml</code>. See the
+service README for destination and configuration policy details. Changes to the
+setting require a Bluetooth service restart. These policies share the <code>data=1</code>
+capability, so the capability alone does not distinguish them.</p>
+<p>Authenticated version-1 Logs access does not require the browser or <code>data=1</code>.
 Hiding a browser in a client build is not an authorization boundary.</p>
 <p>Requests use version <code>2</code> in the common header. Directory and node handles are
 opaque 16-byte identifiers scoped to the BLE connection. Clients navigate one
@@ -1730,7 +1737,10 @@ ownership and mode, and publishes atomically. An uncooperative external writer c
 race the final target check and rename; this is not a filesystem compare-and-swap
 guarantee. Administrative uploads can affect services consuming those files but
 do not themselves execute commands, apply configuration or install firmware.
-Matching private partials remain resumable after cancellation or disconnect.</p>
+Matching private partials remain resumable after cancellation or disconnect.
+In the development version, partials older than seven days are eligible for
+cleanup when a new upload starts. The oldest can also be evicted at the
+512-partial limit or to recover disk space.</p>
 <p>The exact v2 layouts are defined in bluetooth-service's
 <code>pkg/filetransfer/protocol_v2.go</code> and mobile-app's
 <code>packages/scooter_core/lib/src/file_browser_protocol.dart</code>. The following
@@ -1760,7 +1770,8 @@ named-store request and response layouts describe version 1.</p>
 <p><code>lsc logs</code> publishes an archive only after closing, syncing and atomically
 renaming its staging file. The catalog excludes hidden staging files and
 non-regular files; it contains at most 2048 entries, newest first. Files are
-limited to 4 GiB. Upload admission reserves a 32 MiB free-space margin.</p>
+limited to 4 GiB. Upload admission checks for a 32 MiB free-space margin; it
+does not reserve that space against other writers.</p>
 <h2 id="control-requests">Control requests<a class="headerlink" href="#control-requests" title="Permanent link">&para;</a></h2>
 <p>Layouts below follow the common request header. <code>name</code> means
 <code>[store:u8][length:u8][ASCII name]</code>.</p>
