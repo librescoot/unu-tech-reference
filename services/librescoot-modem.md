@@ -144,8 +144,9 @@ phones as sensitive.
 
 Binary SMS remain in the modem store.
 
-`sms.forward-to` defaults to `off` or accepts a valid international mobile or
-landline number. Only new text messages with usable network timestamps are
+`sms.forward-to` defaults to `off` or accepts `+` followed by 8 to 15 digits,
+starting with a nonzero digit. The number's assignment and type are not checked.
+Only new text messages with usable network timestamps are
 forwarded, only on home registration, up to ten SMS segments per UTC day;
 queued jobs expire after 24 hours. Changing the destination cancels queued jobs.
 Failed or interrupted sends are not automatically retried. Modem acceptance

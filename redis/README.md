@@ -909,7 +909,9 @@ The inbox retains at most 100 messages for 30 days. The hash channel publishes
 
 Push `{"action":"read","id":"<id>"}` or `{"action":"delete","id":"<id>"}`
 to `sms:inbox:commands`; observe the resulting snapshot to confirm the change.
-`sms.forward-to` is `off` by default or a validated international destination.
+`sms.forward-to` is `off` by default or an international destination in `+`
+and 8 to 15 digit format, starting with a nonzero digit. The number's assignment
+and type are not checked.
 Forwarding applies only to new text SMS, is paused outside home registration,
 and is limited to 10 segments per UTC day with a 24-hour queue expiry. Messages
 without a usable network timestamp are stored but not forwarded. Ambiguous send
