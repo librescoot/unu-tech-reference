@@ -1095,17 +1095,6 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#channel-engine-ecumotion" class="md-nav__link">
-    <span class="md-ellipsis">
-      <span class="md-typeset">
-        Channel: <code>engine-ecu:motion</code>
-      </span>
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
   <a href="#hash-settings" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
@@ -1909,17 +1898,6 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#channel-engine-ecumotion" class="md-nav__link">
-    <span class="md-ellipsis">
-      <span class="md-typeset">
-        Channel: <code>engine-ecu:motion</code>
-      </span>
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
   <a href="#hash-settings" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
@@ -2325,6 +2303,7 @@
 <ul>
 <li><code>motor:voltage</code> - Motor voltage in mV</li>
 <li><code>motor:current</code> - Motor current in mA (signed, negative during regenerative braking)</li>
+<li><code>updated-at</code> - Unix milliseconds when the latest published motion status frame was received</li>
 <li><code>rpm</code> - Motor RPM</li>
 <li><code>speed</code> - Vehicle speed in km/h (calibrated)</li>
 <li><code>raw-speed</code> - Raw speed before calibration</li>
@@ -2369,6 +2348,7 @@
 <p>Hash change notifications go out on the <code>engine-ecu</code> channel, with the name of
 the field that changed as the payload:</p>
 <ul>
+<li><code>updated-at</code> - Published whenever the motion status receive timestamp is updated, at most once per second</li>
 <li><code>throttle</code> - Published when throttle state changes</li>
 <li><code>kers</code> - Published when KERS state changes</li>
 <li><code>odometer</code> - Published when odometer updates</li>
@@ -2376,17 +2356,10 @@ the field that changed as the payload:</p>
 <li><code>regen-available</code> - Published when derived regen availability or reason changes</li>
 <li><code>fault</code> - Published when a fault is raised or cleared</li>
 </ul>
-<h3 id="channel-engine-ecumotion">Channel: <code>engine-ecu:motion</code><a class="headerlink" href="#channel-engine-ecumotion" title="Permanent link">&para;</a></h3>
-<p>Direct-value JSON observations are published for every complete motion frame,
-including unchanged values. Version 1 carries <code>version</code>, <code>source</code>, <code>sequence</code>,
-<code>valid</code>, <code>observed_at</code>, <code>rpm</code>, <code>raw_speed</code> and <code>throttle_on</code>. The timestamp is UTC
-kernel reception time; the source identifies a receive/power generation and the
-sequence exposes lost observations. Invalidations carry <code>valid:false</code> and a
-<code>reason</code>, with no fabricated motion values. There is no cached-hash bootstrap.</p>
-<p>Consumers expire observations after 500 ms and restart qualification after
-source changes, gaps, reconnects or invalidation. Battery-service consumes this
-channel only for its separately enabled stopped-RTD admission gate. See the
-<a href="https://github.com/librescoot/ecu-service/blob/main/MOTION_IPC.md">complete contract</a>.</p>
+<p>The <code>updated-at</code> field advances only on valid motion status frames. Its value
+is the kernel receive time, not the time of the Redis write. It remains
+unchanged during CAN silence and is not advanced by unrelated status frames.
+Consumers must check its age and handle missing or future timestamps.</p>
 <h3 id="hash-settings">Hash: <code>settings</code><a class="headerlink" href="#hash-settings" title="Permanent link">&para;</a></h3>
 <p><strong>Fields read:</strong></p>
 <ul>
