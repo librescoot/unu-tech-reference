@@ -204,11 +204,11 @@ never relaxes the voltage, freshness, supply and motion admission protections.
 Every ON command uses the shared guard. The first qualified supply may start in
 `ready-to-drive`, in either slot, provided the peer is not a possible live supply.
 Uncertain/pending peer ON or OFF still counts as possible power. Adding another
-supply requires a known non-drive state such as `parked` or `stand-by`; stopped
-ECU evidence cannot bypass this. Unknown states block new activation. Running
-admitted supplies retain their heartbeats across state changes. A second pack
-also needs stationary evidence and compatible fresh readings; a fresh movement
-or throttle report contradicts the stationary state and blocks its admission.
+supply requires either a known non-drive state such as `parked` or `stand-by`
+for five seconds, or a series of stopped ECU samples spanning five seconds in
+`ready-to-drive`. Unknown states block new activation. Running admitted supplies
+retain their heartbeats across state changes. A second pack also needs compatible
+fresh readings; a fresh movement or throttle report blocks its admission.
 `experimental.battery.dual-pack-admission=true` enables voltage-priority selection,
 confirmed-OFF handovers and conservative qualification in known non-drive states.
 The flag is fixed at startup and cannot disable the common safety guards.
@@ -223,26 +223,27 @@ visible, and the storage pack cannot receive ON permission. Possible live suppli
 and pending ON/OFF commands remain protected.
 OFF attempts need later inactive readings before another ON.
 
-Paired sampling is attempted every 3 seconds across vehicle states when both
-reader roles are eligible. One round ID ties both reads together. The union of
+Paired sampling is considered every 3 seconds when an admission decision needs
+it. One round ID ties both reads together. The union of
 both STATUS0 acquisition intervals must be at most 1 second, each full frame
 must finish within 2 seconds of its start, and the round deadline is 10 seconds.
 This aligns NFC reads, not the BMS's internal measurement times.
 
 `experimental.battery.dual-pack-admission-while-stopped` is obsolete and ignored.
 The state restriction is rechecked at every ON write, including retries. In
-`ready-to-drive`, an ON retry remains blocked while the peer is a possible live
-supply; the reservation stays held. A sole supply may retry within the existing
+`ready-to-drive`, a second-supply ON retry requires stationary qualification;
+the reservation stays held. A sole supply may retry within the existing
 confirmation limits. Once the admitted supply is positively confirmed active,
 its heartbeats continue. Conservative second-pack qualification still requires
 three stable paired samples over at least 6 seconds, with low load and compatible
 voltages. Movement/throttle transitions discard old measurement pairs and histories.
 
-Battery-service subscribes to direct JSON values on `engine-ecu:motion`
-independently of experimental settings; it opens no CAN socket. Missing/stale evidence, sequence loss and reconnects restart
-qualification without stopping established supplies or ordinary parked admission.
-The [motion contract](https://github.com/librescoot/battery-service/blob/main/MOTION_IPC.md)
-defines the observation and invalidation payloads.
+Battery-service reads `engine-ecu[rpm,raw-speed,throttle,updated-at]` when
+needed; it opens no CAN socket. A motion sample is usable only while engine
+power is on and the ECU receive timestamp is at most two seconds old. Missing,
+stale or malformed evidence cannot qualify `ready-to-drive` standstill and
+does not stop an established supply. Known non-drive states remain stationary
+without an ECU reading.
 
 The shared ON guard remains active with the experimental flag off. It uses
 fresh complete NFC acquisitions, not cached Redis voltages; a mismatched second
@@ -266,10 +267,9 @@ acquisitions remain usable even with unchanged values.
 Tag absence or same-identity rediscovery in a known non-drive state requires
 requalification. Power/OFF reservations survive. Known running identities retain
 heartbeats across RF loss outside those states; a later state change alone does
-not revoke that permission. Changed identities never inherit it. Qualification
-windows survive changes between known non-drive states, or other state changes
-with fresh continuous ECU stationary evidence. Movement or throttle transitions
-discard old measurement pairs and histories.
+not revoke that permission. Changed identities never inherit it. Qualification windows survive changes between known non-drive states. A change
+between drive and non-drive states invalidates the previous window. Observed
+movement or throttle transitions discard old measurement pairs and histories.
 
 See [battery-service README](https://github.com/librescoot/battery-service#dual-battery-activation)
 for the timing and voltage limits. The experimental path needs bench testing

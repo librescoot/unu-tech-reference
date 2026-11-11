@@ -66,7 +66,6 @@ Implementation contracts: [clock-coordinator](https://github.com/librescoot/pm-s
  battery:0     ← published by battery-service (payload = field name or "fault")
  battery:1     ← published by battery-service
  engine-ecu    <- ecu-service field-change notifications; bluetooth-service odometer
- engine-ecu:motion <- ecu-service direct JSON motion observations (no hash read)
  keycard       ← published by keycard-service
  dashboard     ← published by scootui (ready, serial-number, backlight-enabled), dbc-backlight
  power-manager ← published by pm-service
@@ -239,19 +238,18 @@ the rail.
 - `settings/scooter.battery-keep-active-on-seatbox-open`
 - `settings/scooter.dual-battery`
 - `settings/experimental.battery.dual-pack-admission` (startup-only, default false)
-- `settings/experimental.battery.dual-pack-admission-while-stopped` (startup-only, default false)
+- `vehicle/engine-power` and `engine-ecu/{rpm,raw-speed,throttle,updated-at}` for second-pack admission
 
 **Subscribes to:**
 
 - `vehicle` channel (payload: "state", "seatbox:lock")
 - `settings` channel (payload: "scooter.battery-keep-active-on-seatbox-open", "scooter.dual-battery")
 
-The optional stopped-RTD admission path also subscribes to `engine-ecu:motion`
-direct JSON observations. Kernel acquisition time, source/sequence continuity
-and a 500 ms expiry gate fresh stopped evidence. It cannot substitute cached ECU
-hash values or release an established supply on telemetry loss. The battery
-service owns paired NFC sampling and admission; the ECU service supplies motion
-observations without deciding battery activation.
+For second-pack admission, battery-service reads ECU motion fields and checks
+that `updated-at` is no more than two seconds old while engine power is on.
+In `ready-to-drive`, a series of stopped samples must span five seconds.
+Telemetry loss does not release an established supply. The battery service owns
+paired NFC sampling and admission; the ECU service does not decide activation.
 
 **Hardware access:** NFC via `/dev/i2c-*`, PN7150 controller; no ECU CAN socket
 
@@ -282,17 +280,15 @@ observations without deciding battery activation.
 - `battery:0`, `battery:1` channels (all fields → HGETALL)
 - `settings` channel (payload: "engine-ecu.boost")
 
-The additional `engine-ecu:motion` channel publishes versioned direct-value
-observations on every motion frame, including unchanged values, and explicit
-invalidations on loss of trustworthy evidence. See the
-[contract](https://github.com/librescoot/ecu-service/blob/0e03a8b2d756f04a5ba87607081894eb01fa174d/MOTION_IPC.md).
+The `engine-ecu[updated-at]` receive timestamp is refreshed and notified at
+most once per second while valid motion status frames arrive. It is not
+refreshed by unrelated frames or during silence.
 
 While parked, vehicle-service requests ride start and publishes
 `vehicle[drive-start-status]`. Battery-service responds to `waiting-battery`
 with an immediate coalesced sampling round. The additional drive-entry gate
 waits only for a present, active battery, including when the scooter is already
-rolling. Vehicle-service does not consume `engine-ecu:motion`; battery-service
-retains its own motion and voltage admission protections. ScootUI displays the
+rolling. Battery-service retains its own motion and voltage admission checks. ScootUI displays the
 status without owning the interlock. See [vehicle-service](services/librescoot-vehicle.md#ready-to-drive-conditions).
 
 **Hardware access:** one SocketCAN socket with a timestamped receive pump,

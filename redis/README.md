@@ -80,6 +80,7 @@ hgetall engine-ecu
 | power | integer (mW) | Instantaneous power | "0" |
 | energy:consumed | integer (mWh) | Cumulative energy consumed | "0" |
 | energy:recovered | integer (mWh) | Cumulative energy recovered via regen | "0" |
+| updated-at | Unix milliseconds | Receive time of the latest published motion status; updated and notified at most once per second | "0" |
 | rpm | integer | Motor RPM | "0" |
 | speed | integer (km/h) | Vehicle speed after calibration and moving-average filtering | "0" |
 | raw-speed | integer (km/h) | Speed as reported by the ECU, before calibration or filtering | "0" |
@@ -93,20 +94,15 @@ hgetall engine-ecu
 | fault:code | integer (32-bit) | Current fault code (0 when no fault) | "0" |
 | fault:description | string | Active fault description (empty when no fault) | "" |
 
-### Fresh ECU motion (`engine-ecu:motion` channel)
+### ECU motion freshness
 
-This Pub/Sub channel carries direct JSON observations, not hash field names.
-Version 1 includes `version`, `source`, `sequence`, `valid`, `observed_at`, `rpm`,
-`raw_speed` and `throttle_on`. `observed_at` is the kernel receive timestamp;
-unchanged values are republished on each motion frame. Invalidations contain
-`valid:false` and `reason`, without motion values.
-
-Evidence expires after 500 ms. Source changes, lost/reordered sequences,
-reconnects and invalidation end stopped qualification. There is no retained value
-or `HGET` fallback. The existing `engine-ecu` hash and its field-name notifications
-are unchanged. See the
-[complete contract](https://github.com/librescoot/ecu-service/blob/0e03a8b2d756f04a5ba87607081894eb01fa174d/MOTION_IPC.md)
-and [battery admission gates](../services/librescoot-battery.md#experimental-dual-pack-admission).
+The `updated-at` field records the kernel receive time of a valid motion status
+frame, in Unix milliseconds. ECU-service writes it and publishes `updated-at`
+on `engine-ecu` at most once per second while such frames arrive. It is not
+refreshed by a timer during silence or by unrelated status frames.
+Battery-service reads this field with `rpm`, `raw-speed` and `throttle` when
+it considers adding a supply. See the
+[battery admission gates](../services/librescoot-battery.md#experimental-dual-pack-admission).
 
 ### Battery Management (`battery:0` and `battery:1`)
 ```

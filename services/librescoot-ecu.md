@@ -30,6 +30,7 @@ Usage of ecu-service:
 
 - `motor:voltage` - Motor voltage in mV
 - `motor:current` - Motor current in mA (signed, negative during regenerative braking)
+- `updated-at` - Unix milliseconds when the latest published motion status frame was received
 - `rpm` - Motor RPM
 - `speed` - Vehicle speed in km/h (calibrated)
 - `raw-speed` - Raw speed before calibration
@@ -76,6 +77,7 @@ The `config:*` fields are deleted from the hash rather than written as 0 while t
 Hash change notifications go out on the `engine-ecu` channel, with the name of
 the field that changed as the payload:
 
+- `updated-at` - Published whenever the motion status receive timestamp is updated, at most once per second
 - `throttle` - Published when throttle state changes
 - `kers` - Published when KERS state changes
 - `odometer` - Published when odometer updates
@@ -83,19 +85,10 @@ the field that changed as the payload:
 - `regen-available` - Published when derived regen availability or reason changes
 - `fault` - Published when a fault is raised or cleared
 
-### Channel: `engine-ecu:motion`
-
-Direct-value JSON observations are published for every complete motion frame,
-including unchanged values. Version 1 carries `version`, `source`, `sequence`,
-`valid`, `observed_at`, `rpm`, `raw_speed` and `throttle_on`. The timestamp is UTC
-kernel reception time; the source identifies a receive/power generation and the
-sequence exposes lost observations. Invalidations carry `valid:false` and a
-`reason`, with no fabricated motion values. There is no cached-hash bootstrap.
-
-Consumers expire observations after 500 ms and restart qualification after
-source changes, gaps, reconnects or invalidation. Battery-service consumes this
-channel only for its separately enabled stopped-RTD admission gate. See the
-[complete contract](https://github.com/librescoot/ecu-service/blob/main/MOTION_IPC.md).
+The `updated-at` field advances only on valid motion status frames. Its value
+is the kernel receive time, not the time of the Redis write. It remains
+unchanged during CAN silence and is not advanced by unrelated status frames.
+Consumers must check its age and handle missing or future timestamps.
 
 ### Hash: `settings`
 
