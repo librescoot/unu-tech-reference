@@ -107,8 +107,8 @@ lost and the baseline restarted.
 **Fields written:**
 
 - `power-state` - Modem power state ("on", "off")
-- `sim-state` - SIM card state ("present", "missing", "locked", "inactive")
-- `sim-lock` - SIM lock status (unlock required type or empty)
+- `sim-state` - SIM card state ("present", "missing", "locked", "inactive", "unknown"); "locked" indicates a primary SIM or personalization lock, not PIN2/PUK2
+- `sim-lock` - ModemManager `UnlockRequired` type or empty; retains `sim-pin2`/`sim-puk2` even when the SIM is "present"
 - `registration` - Network registration state ("home", "roaming", "searching", "denied", "idle", "unknown")
 - `operator-name` - Current network operator name
 - `operator-code` - Current network operator code
@@ -117,6 +117,8 @@ lost and the baseline restarted.
 - `error-state` - Consolidated error state ("ok", "powered-off", "sim-missing", "sim-inactive", "sim-locked", "registration-denied", "registration-failed", "disconnected", "no-modem", "modem-disappeared")
 - `pin-action` - Outcome of last SIM PIN reconcile ("unconfigured", "ok", "unlocked", "lock-enabled", "wrong-pin", "low-retries-bail", "puk-required", "error")
 - `apn-action` - Outcome of last APN reconcile ("no-sim", "unconfigured", "ok", "applied", "iccid-changed-cleared", "error")
+
+PIN2/PUK2 affect auxiliary SIM functions, not cellular access. They do not produce `sim-state=locked` or `error-state=sim-locked`. Missing or unreadable SIM presence remains "missing" or "unknown" even when PIN2/PUK2 is reported. Configured PIN protection (`EnabledFacilityLocks`) is separate from a currently required code (`UnlockRequired`).
 
 **Published channel:** `modem` (publishes field name on change)
 

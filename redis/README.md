@@ -840,8 +840,8 @@ hgetall modem
 | Field | Type | Description | Example |
 |-------|------|-------------|----------|
 | power-state | string | Modem power state | "on" |
-| sim-state | string | SIM card state ("present"/"missing"/"locked"/"inactive") | "present" |
-| sim-lock | string | SIM lock status | "disabled" |
+| sim-state | string | SIM card state ("present"/"missing"/"locked"/"inactive"/"unknown"); "locked" excludes PIN2/PUK2 | "present" |
+| sim-lock | string | ModemManager `UnlockRequired` type, including non-blocking `sim-pin2`/`sim-puk2`; empty when no code is required | "sim-pin2" |
 | registration | string | Network registration state ("home"/"roaming"/"searching"/"denied"/"idle"/"unknown") | "home" |
 | operator-name | string | Network operator name | "T-Mobile" |
 | operator-code | string | Network operator code | "26201" |
