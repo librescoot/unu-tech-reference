@@ -2594,8 +2594,8 @@ lost and the baseline restarted.</p>
 <p><strong>Fields written:</strong></p>
 <ul>
 <li><code>power-state</code> - Modem power state ("on", "off")</li>
-<li><code>sim-state</code> - SIM card state ("present", "missing", "locked", "inactive")</li>
-<li><code>sim-lock</code> - SIM lock status (unlock required type or empty)</li>
+<li><code>sim-state</code> - SIM card state ("present", "missing", "locked", "inactive", "unknown"); "locked" indicates a primary SIM or personalization lock, not PIN2/PUK2</li>
+<li><code>sim-lock</code> - ModemManager <code>UnlockRequired</code> type or empty; retains <code>sim-pin2</code>/<code>sim-puk2</code> even when the SIM is "present"</li>
 <li><code>registration</code> - Network registration state ("home", "roaming", "searching", "denied", "idle", "unknown")</li>
 <li><code>operator-name</code> - Current network operator name</li>
 <li><code>operator-code</code> - Current network operator code</li>
@@ -2605,6 +2605,7 @@ lost and the baseline restarted.</p>
 <li><code>pin-action</code> - Outcome of last SIM PIN reconcile ("unconfigured", "ok", "unlocked", "lock-enabled", "wrong-pin", "low-retries-bail", "puk-required", "error")</li>
 <li><code>apn-action</code> - Outcome of last APN reconcile ("no-sim", "unconfigured", "ok", "applied", "iccid-changed-cleared", "error")</li>
 </ul>
+<p>PIN2/PUK2 affect auxiliary SIM functions, not cellular access. They do not produce <code>sim-state=locked</code> or <code>error-state=sim-locked</code>. Missing or unreadable SIM presence remains "missing" or "unknown" even when PIN2/PUK2 is reported. Configured PIN protection (<code>EnabledFacilityLocks</code>) is separate from a currently required code (<code>UnlockRequired</code>).</p>
 <p><strong>Published channel:</strong> <code>modem</code> (publishes field name on change)</p>
 <h3 id="sms-hash-sms-streams-smsreceived-smssent">SMS: hash <code>sms</code>, streams <code>sms:received</code> / <code>sms:sent</code><a class="headerlink" href="#sms-hash-sms-streams-smsreceived-smssent" title="Permanent link">&para;</a></h3>
 <p><strong><code>sms</code> hash (latest-value convenience state):</strong></p>

@@ -5655,14 +5655,14 @@ the backlight is overridden off or pinned to a fixed level.</p>
 <tr>
 <td>sim-state</td>
 <td>string</td>
-<td>SIM card state ("present"/"missing"/"locked"/"inactive")</td>
+<td>SIM card state ("present"/"missing"/"locked"/"inactive"/"unknown"); "locked" excludes PIN2/PUK2</td>
 <td>"present"</td>
 </tr>
 <tr>
 <td>sim-lock</td>
 <td>string</td>
-<td>SIM lock status</td>
-<td>"disabled"</td>
+<td>ModemManager <code>UnlockRequired</code> type, including non-blocking <code>sim-pin2</code>/<code>sim-puk2</code>; empty when no code is required</td>
+<td>"sim-pin2"</td>
 </tr>
 <tr>
 <td>registration</td>
