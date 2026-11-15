@@ -2597,8 +2597,9 @@ lost and the baseline restarted.</p>
 <li><code>sim-state</code> - SIM card state ("present", "missing", "locked", "inactive", "unknown"); "locked" indicates a primary SIM or personalization lock, not PIN2/PUK2</li>
 <li><code>sim-lock</code> - ModemManager <code>UnlockRequired</code> type or empty; retains <code>sim-pin2</code>/<code>sim-puk2</code> even when the SIM is "present"</li>
 <li><code>registration</code> - Network registration state ("home", "roaming", "searching", "denied", "idle", "unknown")</li>
-<li><code>operator-name</code> - Current network operator name</li>
-<li><code>operator-code</code> - Current network operator code</li>
+<li><code>sim-operator-name</code> / <code>sim-operator-code</code> - SIM home provider name and MCC/MNC; empty if unavailable</li>
+<li><code>network-operator-name</code> / <code>network-operator-code</code> - Registered network name and MCC/MNC; empty if unavailable or not registered</li>
+<li><code>operator-name</code> / <code>operator-code</code> - Legacy fields; each prefers the SIM value and falls back to the network value</li>
 <li><code>is-roaming</code> - Roaming status ("true", "false")</li>
 <li><code>registration-fail</code> - Registration failure reason (if any)</li>
 <li><code>error-state</code> - Consolidated error state ("ok", "powered-off", "sim-missing", "sim-inactive", "sim-locked", "registration-denied", "registration-failed", "disconnected", "no-modem", "modem-disappeared")</li>

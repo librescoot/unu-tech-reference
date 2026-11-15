@@ -5671,16 +5671,40 @@ the backlight is overridden off or pinned to a fixed level.</p>
 <td>"home"</td>
 </tr>
 <tr>
+<td>sim-operator-name</td>
+<td>string</td>
+<td>SIM home provider name; empty if unavailable</td>
+<td>"Lebara"</td>
+</tr>
+<tr>
+<td>sim-operator-code</td>
+<td>string</td>
+<td>SIM home MCC/MNC; empty if unavailable</td>
+<td>"26214"</td>
+</tr>
+<tr>
+<td>network-operator-name</td>
+<td>string</td>
+<td>Registered network name; empty if unavailable or not registered</td>
+<td>"E-Plus"</td>
+</tr>
+<tr>
+<td>network-operator-code</td>
+<td>string</td>
+<td>Registered network MCC/MNC; empty if unavailable or not registered</td>
+<td>"26203"</td>
+</tr>
+<tr>
 <td>operator-name</td>
 <td>string</td>
-<td>Network operator name</td>
-<td>"T-Mobile"</td>
+<td>Legacy name: SIM provider first, network name as fallback</td>
+<td>"Lebara"</td>
 </tr>
 <tr>
 <td>operator-code</td>
 <td>string</td>
-<td>Network operator code</td>
-<td>"26201"</td>
+<td>Legacy code: SIM MCC/MNC first, network code as fallback</td>
+<td>"26214"</td>
 </tr>
 <tr>
 <td>is-roaming</td>
