@@ -843,8 +843,12 @@ hgetall modem
 | sim-state | string | SIM card state ("present"/"missing"/"locked"/"inactive"/"unknown"); "locked" excludes PIN2/PUK2 | "present" |
 | sim-lock | string | ModemManager `UnlockRequired` type, including non-blocking `sim-pin2`/`sim-puk2`; empty when no code is required | "sim-pin2" |
 | registration | string | Network registration state ("home"/"roaming"/"searching"/"denied"/"idle"/"unknown") | "home" |
-| operator-name | string | Network operator name | "T-Mobile" |
-| operator-code | string | Network operator code | "26201" |
+| sim-operator-name | string | SIM home provider name; empty if unavailable | "Lebara" |
+| sim-operator-code | string | SIM home MCC/MNC; empty if unavailable | "26214" |
+| network-operator-name | string | Registered network name; empty if unavailable or not registered | "E-Plus" |
+| network-operator-code | string | Registered network MCC/MNC; empty if unavailable or not registered | "26203" |
+| operator-name | string | Legacy name: SIM provider first, network name as fallback | "Lebara" |
+| operator-code | string | Legacy code: SIM MCC/MNC first, network code as fallback | "26214" |
 | is-roaming | "true"/"false" | Roaming status | "false" |
 | registration-fail | string | Registration failure reason | "" |
 | error-state | string | Consolidated error state ("ok"/"powered-off"/"sim-missing"/"sim-inactive"/"sim-locked"/"registration-denied"/"registration-failed"/"disconnected"/"no-modem"/"modem-disappeared") | "ok" |

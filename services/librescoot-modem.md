@@ -110,8 +110,9 @@ lost and the baseline restarted.
 - `sim-state` - SIM card state ("present", "missing", "locked", "inactive", "unknown"); "locked" indicates a primary SIM or personalization lock, not PIN2/PUK2
 - `sim-lock` - ModemManager `UnlockRequired` type or empty; retains `sim-pin2`/`sim-puk2` even when the SIM is "present"
 - `registration` - Network registration state ("home", "roaming", "searching", "denied", "idle", "unknown")
-- `operator-name` - Current network operator name
-- `operator-code` - Current network operator code
+- `sim-operator-name` / `sim-operator-code` - SIM home provider name and MCC/MNC; empty if unavailable
+- `network-operator-name` / `network-operator-code` - Registered network name and MCC/MNC; empty if unavailable or not registered
+- `operator-name` / `operator-code` - Legacy fields; each prefers the SIM value and falls back to the network value
 - `is-roaming` - Roaming status ("true", "false")
 - `registration-fail` - Registration failure reason (if any)
 - `error-state` - Consolidated error state ("ok", "powered-off", "sim-missing", "sim-inactive", "sim-locked", "registration-denied", "registration-failed", "disconnected", "no-modem", "modem-disappeared")
