@@ -7,8 +7,9 @@ Generated from source analysis of all service repositories.
 After the cold-boot fake-hwclock fallback, chronyd is the only runtime system-clock writer on Librescoot. The root-local `clock-coordinator` daemon runs on MDB and DBC and exposes `/run/clock-coordinator/control.sock`.
 
 - Bluetooth submits nRF RTC and explicit-user time samples; modem-service submits fresh, progressing GPS samples. Chronyd receives them as SOCK refclocks.
-- The coordinator persists bounded recovery budgets and admits individual parameterless `chronyc makestep` commands. An unknown command outcome consumes its budget and requires reconciliation rather than replay.
-- PM coordinates suspend preparation and resume with the daemon. Bluetooth, PM and radio-gaga consume current quality rather than treating a plausible date or successful sample delivery as synchronization.
+- The coordinator persists bounded recovery budgets and admits individual parameterless `chronyc makestep` commands. Late sources are checked autonomously, with reduced polling after the startup window. An unknown command outcome is not blindly replayed; a genuinely new explicit-user sample can start a new bounded correction once no step is active.
+- PM coordinates suspend preparation and resume when the daemon is available. Missing coordination or a historical unknown adjustment does not veto ordinary suspend. Calendar scheduling uses sufficiently accurate selected NTP, GPS or explicit Bluetooth user time, and retains that validity through normal sample gaps and offline operation while the clock keeps pace with BOOTTIME.
+- Bluetooth uses selected source quality for nRF seeding. For explicit-user time it also checks that the system clock matches the elapsed-adjusted requested time, so acceptance alone does not seed an uncorrected clock.
 - nRF RTC restoration remains available without internet or GPS. DBC can recover from MDB network holdover offline; holdover does not establish external NTP/GPS trust.
 - Startup waits are bounded. Missing synchronization does not block normal vehicle operation or permit fallback direct clock setters.
 

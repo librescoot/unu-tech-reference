@@ -528,9 +528,10 @@ Extended commands arrive as string payloads via the EXTENDED_COMMAND BLE charact
 
 **Time:**
 
-- `time:set <unix_timestamp>` submits an explicit-user time sample to `/run/clock-coordinator/control.sock`. `time:ok` confirms delivery, not chronyd selection or convergence. The service does not directly set the Linux clock.
+- `time:set <unix_timestamp>` submits an explicit-user time sample to `/run/clock-coordinator/control.sock`. `time:ok` confirms acceptance, not chronyd selection or convergence. A new accepted user sample opens a bounded correction episode, including after the startup window or a historical unknown command outcome. An active step and duplicate samples do not trigger another correction. The service does not directly set the Linux clock.
 - nRF RTC recovery uses the same coordinator, with boot/generation tokens, CLOCK_BOOTTIME receipt/deadline checks and eligibility gating. It remains available offline after hibernation. Established external time fences nRF recovery until a new detected lost-time episode.
-- Fresh, externally confirmed NTP/GPS time is periodically written back to the nRF. Local, nRF and explicit-user time do not qualify as external confirmation; suspend preparation fences seeding.
+- Selected NTP/GPS time is periodically written back to the nRF when residual plus uncertainty fits the source's error budget: one second for NTP, five seconds for GPS. NTP reference age may be up to 2048 seconds; GPS samples remain limited to 30 seconds. Local and nRF references do not seed themselves; suspend preparation fences seeding.
+- After an accepted explicit-user sample, the service checks selected user quality during its 30-second lifetime. It seeds the nRF only when the actual system clock also matches the requested UTC advanced by elapsed BOOTTIME within five seconds. A superseded request cannot seed. User time remains a separate, non-external source and is usable for calendar scheduling.
 
 **Configuration:**
 
